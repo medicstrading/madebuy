@@ -1,0 +1,168 @@
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
+import type { Order, CreateOrderInput } from '@madebuy/shared'
+
+function generateOrderNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase()
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase()
+  return `ORD-${timestamp}-${random}`
+}
+
+function calculateOrderTotals(items: Order['items'], shipping: number, tax: number, discount: number = 0) {
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  const total = subtotal + shipping + tax - discount
+  return { subtotal, total }
+}
+
+export async function createOrder(
+  tenantId: string,
+  data: CreateOrderInput,
+  pricing: { shipping: number; tax: number; discount?: number; currency?: string }
+): Promise<Order> {
+  const db = await getDatabase()
+
+  const { subtotal, total } = calculateOrderTotals(
+    data.items,
+    pricing.shipping,
+    pricing.tax,
+    pricing.discount || 0
+  )
+
+  const order: Order = {
+    id: nanoid(),
+    tenantId,
+    orderNumber: generateOrderNumber(),
+    customerEmail: data.customerEmail,
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    items: data.items,
+    subtotal,
+    shipping: pricing.shipping,
+    tax: pricing.tax,
+    discount: pricing.discount || 0,
+    total,
+    currency: pricing.currency || 'AUD',
+    shippingAddress: data.shippingAddress,
+    billingAddress: data.billingAddress,
+    shippingMethod: data.shippingMethod,
+    shippingType: data.shippingType,
+    paymentMethod: 'stripe',
+    paymentStatus: 'pending',
+    status: 'pending',
+    promotionCode: data.promotionCode,
+    customerNotes: data.customerNotes,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  await db.collection('orders').insertOne(order)
+  return order
+}
+
+export async function getOrder(tenantId: string, id: string): Promise<Order | null> {
+  const db = await getDatabase()
+  return await db.collection('orders').findOne({ tenantId, id }) as Order | null
+}
+
+export async function getOrderByNumber(tenantId: string, orderNumber: string): Promise<Order | null> {
+  const db = await getDatabase()
+  return await db.collection('orders').findOne({ tenantId, orderNumber }) as Order | null
+}
+
+export async function getOrderByPaymentIntent(paymentIntentId: string): Promise<Order | null> {
+  const db = await getDatabase()
+  return await db.collection('orders').findOne({ paymentIntentId }) as Order | null
+}
+
+export async function listOrders(
+  tenantId: string,
+  filters?: {
+    status?: Order['status']
+    paymentStatus?: Order['paymentStatus']
+    customerEmail?: string
+  }
+): Promise<Order[]> {
+  const db = await getDatabase()
+
+  const query: any = { tenantId }
+
+  if (filters?.status) {
+    query.status = filters.status
+  }
+
+  if (filters?.paymentStatus) {
+    query.paymentStatus = filters.paymentStatus
+  }
+
+  if (filters?.customerEmail) {
+    query.customerEmail = filters.customerEmail
+  }
+
+  const results = await db.collection('orders')
+    .find(query)
+    .sort({ createdAt: -1 })
+    .toArray()
+
+  return results as any[]
+}
+
+export async function updateOrderStatus(
+  tenantId: string,
+  id: string,
+  status: Order['status']
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('orders').updateOne(
+    { tenantId, id },
+    {
+      $set: {
+        status,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+export async function updateOrderPaymentStatus(
+  tenantId: string,
+  id: string,
+  paymentStatus: Order['paymentStatus']
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('orders').updateOne(
+    { tenantId, id },
+    {
+      $set: {
+        paymentStatus,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+export async function updateOrder(
+  tenantId: string,
+  id: string,
+  updates: Partial<Omit<Order, 'id' | 'tenantId' | 'orderNumber' | 'createdAt'>>
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('orders').updateOne(
+    { tenantId, id },
+    {
+      $set: {
+        ...updates,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+export async function deleteOrder(tenantId: string, id: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('orders').deleteOne({ tenantId, id })
+}
+
+export async function countOrders(tenantId: string): Promise<number> {
+  const db = await getDatabase()
+  return await db.collection('orders').countDocuments({ tenantId })
+}

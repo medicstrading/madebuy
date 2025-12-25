@@ -1,0 +1,149 @@
+/**
+ * Piece - Product/inventory item
+ */
+
+import type { MediaItem } from './media'
+
+export interface Piece {
+  id: string
+  tenantId: string
+
+  name: string
+  slug: string // URL-safe version
+  description?: string
+
+  // Materials
+  stones: string[]
+  metals: string[]
+  techniques: string[]
+
+  // Details
+  dimensions?: string
+  weight?: string
+  chainLength?: string
+
+  // Pricing
+  price?: number
+  currency: string
+  cogs?: number // Cost of Goods Sold (calculated from material usages)
+
+  // Inventory
+  stock?: number // Quantity available. Undefined = unlimited stock
+
+  // Status
+  status: PieceStatus
+
+  // Media
+  mediaIds: string[]
+  primaryMediaId?: string
+
+  // Social Videos (for embedding on shop page)
+  socialVideos?: SocialVideo[]
+
+  // Marketplace integrations
+  integrations?: PieceIntegrations
+
+  // Display
+  isFeatured: boolean
+  category: string // Customizable per tenant
+  tags: string[]
+
+  // Publishing
+  isPublishedToWebsite: boolean
+  websiteSlug?: string
+
+  // Analytics
+  viewCount?: number
+
+  // Timestamps
+  createdAt: Date
+  updatedAt: Date
+  soldAt?: Date
+
+  // Customer info (if sold)
+  soldTo?: {
+    name?: string
+    email?: string
+    note?: string
+  }
+}
+
+export type PieceStatus = 'draft' | 'available' | 'reserved' | 'sold'
+
+// Social Video Embeds (for displaying social content on shop page)
+export interface SocialVideo {
+  platform: 'tiktok' | 'instagram' | 'youtube'
+  url: string // Original URL
+  embedUrl: string // Embed URL for iframe
+  videoId?: string // Platform-specific video ID
+}
+
+export interface EtsyListingIntegration {
+  listingId: string
+  listingUrl: string
+  state: 'draft' | 'active' | 'inactive' | 'sold_out' | 'expired'
+  lastSyncedAt: Date
+  etsyQuantity: number
+  syncEnabled: boolean
+}
+
+export interface PieceIntegrations {
+  etsy?: EtsyListingIntegration
+}
+
+export interface CreatePieceInput {
+  name: string
+  description?: string
+  stones?: string[]
+  metals?: string[]
+  techniques?: string[]
+  dimensions?: string
+  weight?: string
+  chainLength?: string
+  price?: number
+  currency?: string
+  stock?: number
+  category?: string
+  tags?: string[]
+  status?: PieceStatus
+  isFeatured?: boolean
+}
+
+export interface UpdatePieceInput extends Partial<CreatePieceInput> {
+  status?: PieceStatus
+  isFeatured?: boolean
+  mediaIds?: string[]
+  primaryMediaId?: string
+  socialVideoUrls?: string[] // Raw URLs from form
+  isPublishedToWebsite?: boolean
+  websiteSlug?: string
+  soldTo?: Piece['soldTo']
+}
+
+export interface PieceFilters {
+  status?: PieceStatus | PieceStatus[]
+  category?: string | string[]
+  tags?: string[]
+  isFeatured?: boolean
+  isPublishedToWebsite?: boolean
+  search?: string
+  minPrice?: number
+  maxPrice?: number
+}
+
+export interface PieceListOptions extends PieceFilters {
+  limit?: number
+  offset?: number
+  sortBy?: 'createdAt' | 'updatedAt' | 'price' | 'name'
+  sortOrder?: 'asc' | 'desc'
+}
+
+/**
+ * PieceWithMedia - Piece with populated media objects
+ * Used in web app for displaying pieces with images
+ */
+export interface PieceWithMedia extends Piece {
+  primaryImage?: MediaItem
+  allImages: MediaItem[]
+  materials?: string[] // Combined from stones, metals, etc.
+}

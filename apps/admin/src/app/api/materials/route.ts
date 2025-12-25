@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
+import { materials } from '@madebuy/db'
+import { CreateMaterialInput } from '@madebuy/shared'
+
+export async function GET() {
+  try {
+    const tenant = await getCurrentTenant()
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const allMaterials = await materials.listMaterials(tenant.id)
+
+    return NextResponse.json({ materials: allMaterials })
+  } catch (error) {
+    console.error('Error fetching materials:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const tenant = await getCurrentTenant()
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const data: CreateMaterialInput = await request.json()
+
+    const material = await materials.createMaterial(tenant.id, data)
+
+    return NextResponse.json({ material }, { status: 201 })
+  } catch (error) {
+    console.error('Error creating material:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

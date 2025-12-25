@@ -1,0 +1,41 @@
+{
+  "name": "madebuy",
+  "version": "3.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:admin": "pnpm --filter admin dev",
+    "dev:web": "pnpm --filter web dev",
+    "build": "pnpm -r build",
+    "build:admin": "pnpm --filter admin build",
+    "build:web": "pnpm --filter web build",
+    "lint": "pnpm -r lint",
+    "db:migrate": "pnpm --filter @madebuy/db migrate",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop ecosystem.config.js",
+    "pm2:restart": "pm2 restart ecosystem.config.js",
+    "pm2:delete": "pm2 delete ecosystem.config.js",
+    "pm2:logs": "pm2 logs",
+    "pm2:monit": "pm2 monit",
+    "pm2:status": "pm2 status",
+    "deploy:local": "pnpm build && pnpm pm2:restart",
+    "create:tenant": "npx tsx scripts/create-test-tenant.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "mongodb": "^6.3.0",
+    "nanoid": "^5.0.4",
+    "resend": "^6.6.0"
+  }
+}

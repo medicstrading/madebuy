@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
+import { enquiries } from '@madebuy/db'
+import type { Enquiry } from '@madebuy/shared'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const tenant = await getCurrentTenant()
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const enquiry = await enquiries.getEnquiry(tenant.id, params.id)
+
+    if (!enquiry) {
+      return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ enquiry })
+  } catch (error) {
+    console.error('Error fetching enquiry:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const tenant = await getCurrentTenant()
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { status, note } = await request.json()
+
+    // Update status if provided
+    if (status) {
+      await enquiries.updateEnquiryStatus(tenant.id, params.id, status as Enquiry['status'])
+    }
+
+    // Add note if provided
+    if (note) {
+      await enquiries.addEnquiryNote(tenant.id, params.id, note)
+    }
+
+    // Fetch updated enquiry
+    const enquiry = await enquiries.getEnquiry(tenant.id, params.id)
+
+    if (!enquiry) {
+      return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ enquiry })
+  } catch (error) {
+    console.error('Error updating enquiry:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const tenant = await getCurrentTenant()
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    await enquiries.deleteEnquiry(tenant.id, params.id)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting enquiry:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
