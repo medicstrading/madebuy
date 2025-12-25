@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl
 
   // Development: localhost with tenant subdomain
-  // Example: acme.localhost:3002
+  // Example: acme.localhost:3302
   if (hostname.includes('localhost')) {
     const parts = hostname.split('.')
     if (parts.length > 1 && parts[0] !== 'localhost') {

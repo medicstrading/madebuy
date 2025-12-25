@@ -66,7 +66,7 @@ For basic testing, you need at minimum:
 - `MONGODB_DB` - Database name (e.g., "madebuy")
 
 **Admin only**:
-- `NEXTAUTH_URL=http://localhost:3001`
+- `NEXTAUTH_URL=http://localhost:3301`
 - `NEXTAUTH_SECRET` - Generate with: `openssl rand -base64 32`
 
 **Web only**:
@@ -201,20 +201,20 @@ You should see:
 ### 2. Test Admin App
 
 ```bash
-curl http://localhost:3001
+curl http://localhost:3301
 # Should return HTML
 ```
 
-Or visit in browser: http://localhost:3001
+Or visit in browser: http://localhost:3301
 
 ### 3. Test Web App
 
 ```bash
-curl http://localhost:3002
+curl http://localhost:3302
 # Should return HTML or redirect
 ```
 
-Or visit in browser: http://localhost:3002
+Or visit in browser: http://localhost:3302
 
 ### 4. Check Logs
 
@@ -247,8 +247,8 @@ pnpm pm2:logs
 
 ```bash
 # Find process using port
-lsof -i :3001
-lsof -i :3002
+lsof -i :3301
+lsof -i :3302
 
 # Kill process
 kill -9 <PID>
@@ -279,17 +279,17 @@ pnpm pm2:restart
 
 Once running:
 
-- **Admin Dashboard**: http://localhost:3001
-  - Login page: http://localhost:3001/login
-  - Dashboard: http://localhost:3001/dashboard
+- **Admin Dashboard**: http://localhost:3301
+  - Login page: http://localhost:3301/login
+  - Dashboard: http://localhost:3301/dashboard
 
-- **Customer Storefront**: http://localhost:3002
-  - Tenant shop: http://localhost:3002/{tenant-id}
+- **Customer Storefront**: http://localhost:3302
+  - Tenant shop: http://localhost:3302/{tenant-id}
 
 ## 🎯 Next Steps
 
 1. **Create a tenant account**:
-   - Visit http://localhost:3001/login
+   - Visit http://localhost:3301/login
    - Create first admin user (requires database setup)
 
 2. **Configure integrations**:

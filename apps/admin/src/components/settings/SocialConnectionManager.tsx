@@ -21,12 +21,12 @@ const platformConfig = {
   },
   tiktok: {
     name: 'TikTok',
-    icon: () => <span className="text-2xl">🎵</span>,
+    icon: ({ className }: { className?: string }) => <span className="text-2xl">🎵</span>,
     color: 'bg-black text-white',
   },
   pinterest: {
     name: 'Pinterest',
-    icon: () => <span className="text-2xl">📌</span>,
+    icon: ({ className }: { className?: string }) => <span className="text-2xl">📌</span>,
     color: 'bg-red-100 text-red-600',
   },
   youtube: {

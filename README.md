@@ -77,8 +77,8 @@ pnpm dev:web
 ```
 
 Access the apps:
-- Admin: http://localhost:3001
-- Web: http://localhost:3002
+- Admin: http://localhost:3301
+- Web: http://localhost:3302
 
 ## 🚢 Production Deployment (PM2)
 
@@ -140,7 +140,7 @@ pm2 save
 Required:
 - `MONGODB_URI` - MongoDB connection string
 - `MONGODB_DB` - Database name
-- `NEXTAUTH_URL` - Admin URL (http://localhost:3001)
+- `NEXTAUTH_URL` - Admin URL (http://localhost:3301)
 - `NEXTAUTH_SECRET` - Generate with: `openssl rand -base64 32`
 - `R2_ACCOUNT_ID` - Cloudflare R2 account
 - `R2_ACCESS_KEY_ID` - R2 access key

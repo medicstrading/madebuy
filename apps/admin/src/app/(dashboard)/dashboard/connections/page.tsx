@@ -28,7 +28,6 @@ const connections = [
     icon: Instagram,
     href: '/dashboard/connections/marketplaces',
     color: 'bg-green-500',
-    comingSoon: true,
   },
 ]
 

@@ -34,7 +34,7 @@ export default async function CheckoutSuccessPage({
             </h1>
 
             <p className="mt-4 text-lg text-gray-600">
-              Thank you for your purchase. We've received your order and will send you a confirmation email shortly.
+              Thank you for your purchase. We&apos;ve received your order and will send you a confirmation email shortly.
             </p>
 
             {sessionId && (
@@ -47,7 +47,7 @@ export default async function CheckoutSuccessPage({
 
             <div className="mt-8 space-y-4">
               <p className="text-gray-600">
-                You'll receive an email with your order details and tracking information once your order ships.
+                You&apos;ll receive an email with your order details and tracking information once your order ships.
               </p>
 
               <Link
