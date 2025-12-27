@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, Heart, Share2, ShoppingCart, MapPin, Package, Shield, ArrowLeft, Sparkles } from 'lucide-react'
-import { ProductImage } from '@/components/marketplace'
+import { ProductImage, ProductReviews, RelatedItems, MobileProductCTA } from '@/components/marketplace'
 import { notFound } from 'next/navigation'
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -37,6 +37,16 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
   // Record view
   await marketplace.recordMarketplaceView(product.id)
+  // Fetch related products (same category)
+  const relatedProductsResult = await marketplace.listMarketplaceProducts({
+    category: product.category,
+    page: 1,
+    limit: 6,
+  })
+  
+  // Filter out current product
+  const relatedProducts = relatedProductsResult.products.filter(p => p.id !== product.id).slice(0, 6)
+
 
   // Type assertion for marketplace product (full typing TBD)
   const productData = product as any
@@ -278,84 +288,17 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
         </div>
       </div>
 
-      {/* Reviews Section */}
-      <div className="mt-12 border-t pt-12">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900">Customer Reviews</h2>
+      {/* Product Reviews Component */}
+      <ProductReviews productId={product.id} productName={product.name} />
+      
+      {/* Related Items Carousel */}
+      <RelatedItems products={relatedProducts} title="Similar Products" />
 
-        {reviewSummary.totalReviews > 0 ? (
-          <>
-            {/* Review Summary */}
-            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6">
-              <div className="grid gap-8 md:grid-cols-2">
-                {/* Overall Rating */}
-                <div className="text-center">
-                  <div className="mb-2 text-5xl font-bold text-gray-900">
-                    {reviewSummary.avgRating.toFixed(1)}
-                  </div>
-                  <div className="mb-2 flex items-center justify-center gap-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star
-                        key={i}
-                        className={`h-6 w-6 ${
-                          i <= Math.round(reviewSummary.avgRating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Based on {reviewSummary.totalReviews} reviews
-                  </div>
-                </div>
+      {/* Mobile CTA Bar */}
+      <MobileProductCTA 
+        product={product}
 
-                {/* Rating Distribution */}
-                <div className="space-y-2">
-                  {[5, 4, 3, 2, 1].map((rating) => {
-                    const count = reviewSummary.distribution[rating as keyof typeof reviewSummary.distribution] || 0
-                    const percentage = reviewSummary.totalReviews > 0
-                      ? (count / reviewSummary.totalReviews) * 100
-                      : 0
-                    return (
-                      <div key={rating} className="flex items-center gap-2">
-                        <span className="w-12 text-sm text-gray-600">{rating} star</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
-                          <div
-                            className="h-full bg-yellow-400"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                        <span className="w-12 text-right text-sm text-gray-600">
-                          {count}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="mb-8 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-            <Star className="mx-auto mb-3 h-12 w-12 text-gray-400" />
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              No Reviews Yet
-            </h3>
-            <p className="text-gray-600">
-              Be the first to review this product!
-            </p>
-          </div>
-        )}
-
-        {/* Individual Reviews - Coming Soon */}
-        {reviewSummary.totalReviews > 0 && (
-          <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
-            <p className="text-sm text-gray-600">
-              Individual review details coming soon
-            </p>
-          </div>
-        )}
-      </div>
+      />
     </div>
   )
 }

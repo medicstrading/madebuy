@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react'
 import { ShoppingCart, Heart } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
-import type { PieceWithMedia } from '@madebuy/shared'
+import type { ProductWithMedia } from '@madebuy/shared'
 
 interface MobileProductCTAProps {
-  piece: PieceWithMedia
-  tenant: string
+  product: ProductWithMedia
+  tenantId?: string
 }
 
-export function MobileProductCTA({ piece, tenant }: MobileProductCTAProps) {
+export function MobileProductCTA({ product, tenantId }: MobileProductCTAProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [added, setAdded] = useState(false)
   const { addItem } = useCart()
@@ -26,20 +26,20 @@ export function MobileProductCTA({ piece, tenant }: MobileProductCTAProps) {
   }, [])
 
   const handleAddToCart = () => {
-    if (!piece.price || piece.status !== 'available') {
+    if (!product.price || product.status !== 'available') {
       return
     }
 
-    addItem(piece, 1)
+    addItem(product, 1)
     setAdded(true)
 
     // Reset button after 2 seconds
     setTimeout(() => setAdded(false), 2000)
   }
 
-  const canAddToCart = piece.price && piece.status === 'available'
-  const isSold = piece.status === 'sold'
-  const isReserved = piece.status === 'reserved'
+  const canAddToCart = product.price && product.status === 'available'
+  const isSold = product.status === 'sold'
+  const isReserved = product.status === 'reserved'
 
   return (
     <div
@@ -55,7 +55,7 @@ export function MobileProductCTA({ piece, tenant }: MobileProductCTAProps) {
         <div>
           <div className="text-xs text-gray-500">Price</div>
           <div className="text-xl font-bold text-gray-900">
-            ${piece.price?.toFixed(2)}
+            ${product.price?.toFixed(2)} <span className="text-sm font-normal">{product.currency}</span>
           </div>
         </div>
 

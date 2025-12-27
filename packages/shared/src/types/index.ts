@@ -103,3 +103,17 @@ export type {
 
 // Re-export marketplace constants
 export { MARKETPLACE_CATEGORIES } from './marketplace'
+
+export type {
+  Product,
+  ProductStatus,
+  ProductAttributes,
+  ProductWithMedia,
+  ProductWithSeller,
+  CreateProductInput,
+  UpdateProductInput,
+  ProductFilters,
+  ProductIntegrations,
+  EtsyListingIntegration as EtsyProductIntegration,
+  SellerBadge,
+} from './product'

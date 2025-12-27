@@ -64,10 +64,10 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
         body: JSON.stringify({
           tenantId,
           items: items.map(item => ({
-            pieceId: item.piece.id,
+            productId: item.product.id,
             quantity: item.quantity,
-            price: item.piece.price,
-            currency: item.piece.currency,
+            price: item.product.price,
+            currency: item.product.currency,
           })),
           customerInfo: {
             email: formData.email,
@@ -298,13 +298,13 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
           <div className="mt-4 space-y-4">
             {items.map((item) => (
-              <div key={item.piece.id} className="flex justify-between text-sm">
+              <div key={item.product.id} className="flex justify-between text-sm">
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{item.piece.name}</p>
+                  <p className="font-medium text-gray-900">{item.product.name}</p>
                   <p className="text-gray-600">Qty: {item.quantity}</p>
                 </div>
                 <p className="font-medium text-gray-900">
-                  {formatCurrency(item.piece.price ? item.piece.price * item.quantity : undefined, item.piece.currency)}
+                  {formatCurrency(item.product.price ? item.product.price * item.quantity : undefined, item.product.currency)}
                 </p>
               </div>
             ))}

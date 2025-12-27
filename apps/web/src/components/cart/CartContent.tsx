@@ -35,18 +35,18 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
         <div className="space-y-4">
           {items.map((item) => (
             <div
-              key={item.piece.id}
+              key={item.product.id}
               className="flex gap-4 rounded-lg bg-white p-4 shadow-sm"
             >
               {/* Image */}
-              {item.piece.primaryImage ? (
+              {item.product.primaryImage ? (
                 <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
                   <Image
                     src={
-                      item.piece.primaryImage.variants.thumb?.url ||
-                      item.piece.primaryImage.variants.original.url
+                      item.product.primaryImage.variants.thumb?.url ||
+                      item.product.primaryImage.variants.original.url
                     }
-                    alt={item.piece.name}
+                    alt={item.product.name}
                     fill
                     className="object-cover"
                   />
@@ -61,13 +61,13 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
               <div className="flex flex-1 flex-col justify-between">
                 <div>
                   <Link
-                    href={`/${tenant}/${item.piece.slug}`}
+                    href={`/${tenant}/${item.product.slug}`}
                     className="font-semibold text-gray-900 hover:text-blue-600"
                   >
-                    {item.piece.name}
+                    {item.product.name}
                   </Link>
                   <p className="mt-1 text-sm text-gray-600">
-                    {formatCurrency(item.piece.price, item.piece.currency)}
+                    {formatCurrency(item.product.price, item.product.currency)}
                   </p>
                 </div>
 
@@ -75,7 +75,7 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => updateQuantity(item.piece.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                       className="rounded-md border border-gray-300 p-1 hover:bg-gray-100"
                       aria-label="Decrease quantity"
                     >
@@ -83,12 +83,12 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
                     </button>
                     <span className="w-8 text-center">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.piece.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                       className="rounded-md border border-gray-300 p-1 hover:bg-gray-100"
                       aria-label="Increase quantity"
                       disabled={
-                        item.piece.stock !== undefined &&
-                        item.quantity >= item.piece.stock
+                        item.product.stock !== undefined &&
+                        item.quantity >= item.product.stock
                       }
                     >
                       <Plus className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
                   </div>
 
                   <button
-                    onClick={() => removeItem(item.piece.id)}
+                    onClick={() => removeItem(item.product.id)}
                     className="text-red-600 hover:text-red-700"
                     aria-label="Remove from cart"
                   >
@@ -109,8 +109,8 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
               <div className="flex flex-col items-end justify-between">
                 <p className="font-semibold text-gray-900">
                   {formatCurrency(
-                    item.piece.price ? item.piece.price * item.quantity : undefined,
-                    item.piece.currency
+                    item.product.price ? item.product.price * item.quantity : undefined,
+                    item.product.currency
                   )}
                 </p>
               </div>
