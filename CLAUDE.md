@@ -1,78 +1,134 @@
-# MadeBuy Project - Claude Configuration
+# MadeBuy - Project Configuration
 
-## Available Agents
+## ⛔ PROJECT IDENTITY - READ FIRST
 
-Use these specialized agents by saying "Act as [agent-name] and [task]"
+**This is:** MadeBuy - Etsy Alternative Marketplace for Makers
+**This is NOT:** Loutan Beauty, Sara's jewelry site, sarasite
 
-### Build & Code Quality
-- `code-fixer` - Auto-fix TypeScript, lint, build errors
-- `deployment-reviewer` - Pre-deploy checks, Vercel compatibility
+**Tagline:** "Shopify features + Etsy exposure, zero transaction fees"
+**Domain:** madebuy.com.au
+**Path:** ~/c/madebuy
 
-### Version Control
-- `git-workflow` - Commits, PRs, releases, versioning
+---
 
-### Architecture Reviews
-- `database-reviewer` - MongoDB, schemas, indexes
-- `backend-context-reviewer` - APIs, services
-- `frontend-context-reviewer` - React, components
-- `security-context-reviewer` - Auth, permissions
+## 🔒 PORTS (FIXED)
 
-### Quality Assurance
-- `testing-reviewer` - Test coverage
-- `performance-reviewer` - Lighthouse, bundle size
-- `ui-reviewer` - Screenshots, design improvements
+| App | Port | URL | Start Command |
+|-----|------|-----|---------------|
+| Admin | 3300 | http://localhost:3300 | `pnpm --filter admin dev --port 3300` |
+| Website | 3301 | http://localhost:3301 | `pnpm --filter web dev --port 3301` |
 
-### Infrastructure
-- `devops-reviewer` - Docker, CI/CD
+**DO NOT use ports 3000, 3001** - those are Sarasite's.
 
-## Project Context
+---
 
-MadeBuy is a multi-tenant e-commerce platform for handmade jewelry businesses.
+## What This Project IS
 
-### Tech Stack
-- **Frontend**: Next.js 14 (App Router), React, TailwindCSS
-- **Backend**: Next.js API Routes
-- **Database**: MongoDB
-- **Storage**: Cloudflare R2
-- **Auth**: NextAuth.js
-- **Deployment**: Vercel
-- **Monorepo**: pnpm workspaces
+✅ Multi-vendor marketplace
+✅ Etsy alternative for Australian makers
+✅ Seller storefronts ({user}.madebuy.com.au)
+✅ IP protection (image hashing, timestamps)
+✅ Etsy product sync/import
+✅ Fair dispute resolution (48hr review)
+✅ Subscription-based (no transaction fees)
 
-### Package Structure
-- `apps/admin` - Admin dashboard
-- `apps/web` - Customer-facing storefront
-- `packages/shared` - Shared types and utilities
-- `packages/db` - Database client and repositories
-- `packages/storage` - Cloudflare R2 integration
-- `packages/social` - Late.dev social media integration
-- `packages/marketplaces` - Etsy/Shopify marketplace integrations
+## What This Project IS NOT
 
-### Active Integrations
-- **Late.dev** - Multi-platform social media publishing (11 platforms)
-- **Etsy** - Marketplace integration with OAuth, listing sync, webhooks
-- **PayPal** - Payment processing (via MCP)
-- **Vercel** - Hosting and deployment (via MCP)
+❌ Sara's personal jewelry site
+❌ Single-vendor store
+❌ Loutan Beauty
+❌ Sarasite
 
-### Development Notes
-- TypeScript strict mode (with some exceptions)
-- MongoDB uses namespace exports (e.g., `pieces.listPieces()` not `piecesRepository.list()`)
-- All packages must be added to `transpilePackages` in Next.js config
-- Use `pnpm build` to build all packages
-- Environment variables in `.env.local` files
+---
 
-### Recent Work
-- Completed Etsy marketplace integration (OAuth, sync, webhooks)
-- Added integration types to tenant and piece schemas
-- Created comprehensive API routes for Etsy operations
+## Business Model
 
-## GitHub Integration
+### Pricing Tiers
+| Tier | Price | Features |
+|------|-------|----------|
+| Free | $0 | 10 products, store only |
+| Maker | $19/mo | Unlimited, marketplace listing |
+| Pro | $39/mo | Custom domain, analytics, priority |
+| Business | $79/mo | Multi-store, API access |
 
-**Connected Account:** medicstrading
-**Repository:** https://github.com/medicstrading/madebuy
-**Token Scopes:** repo, read:packages, read:org
+### Key Differentiators
+1. **IP Protection** - Image hashing + timestamps on upload
+2. **Etsy Sync** - Import products, sync inventory
+3. **Fair Disputes** - 48-hour review, not instant buyer wins
+4. **Zero Transaction Fees** - Flat subscription only
+5. **Multi-tenant** - {user}.madebuy.com.au storefronts
 
-This project has GitHub MCP enabled. You can use commands like:
-- Create issues and PRs
-- Review pull requests
-- Check commit history
-- Manage repository settings
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Backend | FastAPI (Python) |
+| Frontend | React 18 + TypeScript |
+| Database | MongoDB |
+| Storage | Cloudflare R2 |
+| Styling | Tailwind CSS |
+| Deploy | Vultr VPS + Docker + Caddy |
+
+## Structure (Monorepo)
+```
+madebuy/
+├── apps/
+│   ├── admin/          # Seller dashboard (port 3300)
+│   ├── api/            # FastAPI backend
+│   └── web/            # Public marketplace (port 3301)
+├── packages/
+│   ├── shared/         # Types, utilities
+│   ├── ui/             # Shared components
+│   └── database/       # MongoDB schemas
+└── services/
+    ├── social/         # Late API integration
+    └── email/          # Resend
+```
+
+---
+
+## Feature Boundaries
+
+### ALLOWED Features (Marketplace)
+- Seller registration/onboarding
+- Product listings with search/filter
+- Multi-vendor storefronts
+- Marketplace browse/discovery
+- Subscription management
+- IP protection tools
+- Etsy import/sync
+- Dispute resolution
+- Analytics for sellers
+
+### FORBIDDEN (These belong to Sarasite)
+- Sara-specific jewelry features
+- Loutan Beauty branding
+- Single-owner inventory management
+
+If asked about "Sara", "jewelry", "Loutan" → **STOP and confirm project**
+
+---
+
+## Agents
+
+When asked to "Act as [agent]", read from `.agents/domains/[agent]/`
+
+| Agent | Purpose |
+|-------|---------|
+| task | General research (context preservation) |
+| backend-researcher | API/DB patterns |
+| frontend-researcher | UI/Component patterns |
+| security-researcher | Auth, permissions |
+| deployment-reviewer | Pre-deploy, Docker, Vultr |
+| project-manager | Multi-domain coordination |
+
+---
+
+## Before Making Changes
+
+1. Confirm this is marketplace-related work
+2. If it sounds like Sara's jewelry → STOP, ask user
+3. Check you're in ~/c/madebuy
+4. Use correct ports (3300, 3301)

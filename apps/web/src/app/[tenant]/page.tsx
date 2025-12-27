@@ -69,13 +69,23 @@ export default async function ShopHomePage({ params }: { params: { tenant: strin
                 )}
               </div>
             </div>
-            <Link
-              href={`/${params.tenant}/cart`}
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/90"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              Cart
-            </Link>
+            <div className="flex items-center gap-6">
+              {tenant.websiteDesign?.blog?.enabled && (
+                <Link
+                  href={`/${params.tenant}/blog`}
+                  className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                >
+                  {tenant.websiteDesign.blog.title || 'Blog'}
+                </Link>
+              )}
+              <Link
+                href={`/${params.tenant}/cart`}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/90"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                Cart
+              </Link>
+            </div>
           </div>
         </div>
       </header>

@@ -173,7 +173,7 @@ export default async function PieceDetailPage({
 
             {/* Add to Cart */}
             <div className="mt-8">
-              <AddToCartButton piece={piece} tenant={params.tenant} disabled={!inStock} />
+              <AddToCartButton product={piece} tenantId={params.tenant} disabled={!inStock} />
             </div>
           </div>
         </div>

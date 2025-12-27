@@ -1,33 +1,23 @@
 # Architectural Memory
 
-**Project:** madebuy
-**Last Updated:** 2025-12-26
+This document captures key decisions and patterns for long-term reference.
 
----
+## Decisions Log
 
-## Recent Decisions
+| Date | Decision | Rationale | Files Affected |
+|------|----------|-----------|----------------|
+| | | | |
 
-| Date | Decision | Rationale |
-|------|----------|-----------|
+## Patterns
 
----
+### Backend Patterns
+- [Pattern name]: [Brief description]
 
-## Established Patterns
+### Frontend Patterns
+- [Pattern name]: [Brief description]
 
-| Pattern | Location |
-|---------|----------|
+### Integration Patterns
+- [Pattern name]: [Brief description]
 
----
-
-## Integration Points
-
-| From | To | Contract |
-|------|----|----------|
-
----
-
-## Known Issues
-
-| Issue | Status |
-|-------|--------|
-
+## Known Issues / Tech Debt
+- [ ] [Issue description]
