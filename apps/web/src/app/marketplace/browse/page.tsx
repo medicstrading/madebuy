@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star, SlidersHorizontal } from 'lucide-react'
+import { Star } from 'lucide-react'
+import { BrowseFilters } from '@/components/marketplace/BrowseFilters'
+import { ActiveFilters } from '@/components/marketplace'
 
 export const metadata = {
   title: 'Browse Products - MadeBuy Marketplace',
@@ -51,80 +53,15 @@ export default async function BrowsePage({
 
       <div className="flex gap-8">
         {/* Sidebar Filters */}
-        <aside className="w-64 flex-shrink-0">
-          <div className="sticky top-24 space-y-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-2 border-b pb-3">
-              <SlidersHorizontal className="h-5 w-5 text-gray-600" />
-              <h2 className="font-semibold text-gray-900">Filters</h2>
-            </div>
-
-            {/* Category Filter */}
-            <div>
-              <h3 className="mb-2 font-medium text-gray-900">Category</h3>
-              <select className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                <option value="">All Categories</option>
-                <option value="jewelry">Jewelry & Accessories</option>
-                <option value="art-prints">Art & Prints</option>
-                <option value="clothing">Clothing & Apparel</option>
-                <option value="home-decor">Home & Living</option>
-                <option value="crafts">Crafts & Stationery</option>
-              </select>
-            </div>
-
-            {/* Price Range */}
-            <div>
-              <h3 className="mb-2 font-medium text-gray-900">Price Range</h3>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-500">-</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Rating Filter */}
-            <div>
-              <h3 className="mb-2 font-medium text-gray-900">Minimum Rating</h3>
-              <div className="space-y-2">
-                {[5, 4, 3, 2, 1].map((rating) => (
-                  <label key={rating} className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="radio"
-                      name="rating"
-                      value={rating}
-                      className="h-4 w-4 text-blue-600"
-                    />
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: rating }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                        />
-                      ))}
-                      <span className="text-sm text-gray-600">& up</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <button className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-              Apply Filters
-            </button>
-          </div>
+        <aside className="hidden lg:block w-64 flex-shrink-0">
+          <BrowseFilters />
         </aside>
 
         {/* Products Grid */}
         <div className="flex-1">
+          {/* Active Filters */}
+          <ActiveFilters />
+
           {/* Toolbar */}
           <div className="mb-6 flex items-center justify-between">
             <p className="text-gray-600">
@@ -145,7 +82,7 @@ export default async function BrowsePage({
           </div>
 
           {/* Products Grid - Placeholder */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <div
                 key={i}

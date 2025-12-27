@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Search, ShoppingBag, User, Heart } from 'lucide-react'
+import { ShoppingBag, User, Heart } from 'lucide-react'
+import { SearchBar } from '@/components/marketplace'
 
 export default function MarketplaceLayout({
   children,
@@ -22,15 +23,8 @@ export default function MarketplaceLayout({
             </Link>
 
             {/* Search bar */}
-            <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search handmade products..."
-                  className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
+            <div className="hidden lg:block flex-1 max-w-2xl mx-8">
+              <SearchBar variant="header" placeholder="Search handmade products..." />
             </div>
 
             {/* User actions */}
@@ -54,8 +48,13 @@ export default function MarketplaceLayout({
             </div>
           </div>
 
+          {/* Mobile Search Bar - Always visible below main header on mobile */}
+          <div className="lg:hidden py-3 border-t">
+            <SearchBar variant="header" placeholder="Search products..." />
+          </div>
+
           {/* Navigation */}
-          <nav className="flex items-center gap-6 py-3 text-sm">
+          <nav className="hidden lg:flex items-center gap-6 py-3 text-sm border-t">
             <Link href="/marketplace" className="font-medium text-gray-900 hover:text-blue-600">
               Home
             </Link>
