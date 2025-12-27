@@ -1,86 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
+import { requireTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
-import { UpdateMediaInput } from '@madebuy/shared'
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const tenant = await getCurrentTenant()
-
-    if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const mediaItem = await media.getMedia(tenant.id, params.id)
-
-    if (!mediaItem) {
-      return NextResponse.json({ error: 'Media not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ media: mediaItem })
-  } catch (error) {
-    console.error('Error fetching media:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const tenant = await getCurrentTenant()
-
-    if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const data: UpdateMediaInput = await request.json()
-
-    // Check if media exists
-    const existing = await media.getMedia(tenant.id, params.id)
-    if (!existing) {
-      return NextResponse.json({ error: 'Media not found' }, { status: 404 })
-    }
-
-    // Update the media
-    await media.updateMedia(tenant.id, params.id, data)
-
-    // Fetch updated media
-    const mediaItem = await media.getMedia(tenant.id, params.id)
-
-    return NextResponse.json({ media: mediaItem })
-  } catch (error) {
-    console.error('Error updating media:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
+import { deleteFromR2 } from '@madebuy/storage'
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const tenant = await getCurrentTenant()
+    const tenant = await requireTenant()
+    const mediaId = params.id
 
-    if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Get media item to access R2 keys
+    const mediaItem = await media.getMedia(tenant.id, mediaId)
+    if (!mediaItem) {
+      return NextResponse.json(
+        { error: 'Media not found' },
+        { status: 404 }
+      )
     }
 
-    // Check if media exists
-    const existing = await media.getMedia(tenant.id, params.id)
-    if (!existing) {
-      return NextResponse.json({ error: 'Media not found' }, { status: 404 })
+    // Delete all variants from R2
+    const deletePromises = []
+    for (const variant of Object.values(mediaItem.variants)) {
+      if (variant && variant.key) {
+        deletePromises.push(
+          deleteFromR2(variant.key).catch(err => {
+            console.error(`Failed to delete R2 key ${variant.key}:`, err)
+          })
+        )
+      }
     }
 
-    await media.deleteMedia(tenant.id, params.id)
+    await Promise.all(deletePromises)
+
+    // Delete from database
+    await media.deleteMedia(tenant.id, mediaId)
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting media:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Delete media error:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete media' },
+      { status: 500 }
+    )
   }
 }

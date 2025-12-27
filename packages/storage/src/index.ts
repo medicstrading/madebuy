@@ -1,6 +1,6 @@
 /**
  * @madebuy/storage
- * R2 storage utilities and image processing for MadeBuy platform
+ * Storage utilities (R2 and Local) and image processing for MadeBuy platform
  */
 
 // Export R2 utilities
@@ -9,8 +9,19 @@ export {
   deleteFromR2,
   getFromR2,
   getPublicUrl,
-  type UploadOptions,
+  getSignedUrl,
+  type UploadOptions as R2UploadOptions,
 } from './r2'
+
+// Export Local storage utilities
+export {
+  uploadToLocal,
+  deleteFromLocal,
+  getFromLocal,
+  getLocalPublicUrl,
+  ensureUploadsDir,
+  type UploadOptions,
+} from './local-storage'
 
 // Export image variant processing
 export {
@@ -22,3 +33,13 @@ export {
   type OptimizeForPlatformOptions,
   type VariantSpec,
 } from './image-variants'
+
+// Export protected image upload (IP protection)
+export {
+  uploadProtectedImage,
+  calculateImageHash,
+  compareHashes,
+  areImagesSimilar,
+  type ProtectedUploadOptions,
+  type ProtectedUploadResult,
+} from './protected-upload'

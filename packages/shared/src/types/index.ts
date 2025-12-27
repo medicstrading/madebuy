@@ -6,12 +6,16 @@
 // Export all types
 export * from './tenant'
 export * from './piece'
+export * from './product'
+export * from './marketplace'
 export * from './media'
 export * from './material'
+export * from './invoice'
 export * from './order'
 export * from './promotion'
 export * from './publish'
 export * from './enquiry'
+export * from './blog'
 
 // Re-export commonly used types for convenience
 export type {
@@ -46,9 +50,20 @@ export type {
 export type {
   Material,
   MaterialCategory,
+  MaterialUnit,
   MaterialUsage,
   CreateMaterialInput,
+  UpdateMaterialInput,
+  MaterialFilters,
 } from './material'
+
+export type {
+  InvoiceRecord,
+  InvoiceLineItem,
+  CreateInvoiceInput,
+  UpdateInvoiceInput,
+  InvoiceFilters,
+} from './invoice'
 
 export type {
   Order,
@@ -77,3 +92,14 @@ export type {
   EnquiryStatus,
   CreateEnquiryInput,
 } from './enquiry'
+
+export type {
+  BlogPost,
+  CreateBlogPostInput,
+  UpdateBlogPostInput,
+  BlogConfig,
+  BlogPublishConfig,
+} from './blog'
+
+// Re-export marketplace constants
+export { MARKETPLACE_CATEGORIES } from './marketplace'

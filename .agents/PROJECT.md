@@ -77,3 +77,12 @@ madebuy
 - Service layer for API calls
 - Context for global state
 
+
+## Git Verification Rule
+
+Before ANY git push:
+1. Run `git remote -v`
+2. Show output to user
+3. Say: "Pushing to: [repo URL]. Approve?"
+4. Wait for explicit approval before pushing
+

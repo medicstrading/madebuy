@@ -10,20 +10,26 @@ import {
   ShoppingCart,
   Tag,
   Share2,
+  FileText,
   Mail,
   Plug,
-  Settings
+  Settings,
+  Store,
+  Paintbrush
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
+  { name: 'Marketplace', href: '/dashboard/marketplace', icon: Store },
+  { name: 'Website Design', href: '/dashboard/website-design', icon: Paintbrush },
   { name: 'Media', href: '/dashboard/media', icon: Image },
   { name: 'Materials', href: '/dashboard/materials', icon: Layers },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
   { name: 'Promotions', href: '/dashboard/promotions', icon: Tag },
   { name: 'Publish', href: '/dashboard/publish', icon: Share2 },
+  { name: 'Blog', href: '/dashboard/blog', icon: FileText },
   { name: 'Enquiries', href: '/dashboard/enquiries', icon: Mail },
   { name: 'Connections', href: '/dashboard/connections', icon: Plug },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },

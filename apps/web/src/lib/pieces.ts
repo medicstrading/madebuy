@@ -1,6 +1,9 @@
 import { pieces, media } from '@madebuy/db'
 import type { Piece, PieceWithMedia } from '@madebuy/shared'
 
+// Re-export type for use in components
+export type { PieceWithMedia }
+
 /**
  * Populate a piece with its media objects
  */

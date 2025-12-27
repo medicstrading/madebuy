@@ -1,6 +1,25 @@
 import sharp from 'sharp'
-import { uploadToR2, type UploadOptions } from './r2'
+import { uploadToR2 } from './r2'
+import { uploadToLocal } from './local-storage'
 import type { MediaVariants, MediaVariant, SocialPlatform } from '@madebuy/shared'
+
+// Storage backend configuration
+const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
+
+// Unified upload function that uses either R2 or local storage
+async function uploadFile(options: {
+  tenantId: string
+  fileName: string
+  buffer: Buffer
+  contentType: string
+  metadata?: Record<string, string>
+}): Promise<MediaVariant> {
+  if (USE_LOCAL_STORAGE) {
+    return await uploadToLocal(options)
+  } else {
+    return await uploadToR2(options)
+  }
+}
 
 export interface VariantSpec {
   name: keyof MediaVariants
@@ -40,6 +59,12 @@ export const PLATFORM_VARIANTS: Record<SocialPlatform, VariantSpec> = {
     width: 1920,
     height: 1080,
     fit: 'cover',
+  },
+  'website-blog': {
+    name: 'large', // Blog uses large web-optimized images
+    width: 1200,
+    height: 630,
+    fit: 'cover', // Standard OG image ratio
   },
 }
 
@@ -122,9 +147,9 @@ async function createVariant(
   const buffer = await processedImage.toBuffer()
   const metadata = await sharp(buffer).metadata()
 
-  // Upload to R2
+  // Upload to storage (R2 or local)
   const variantFileName = `${spec.name}-${fileName}`
-  const uploadResult = await uploadToR2({
+  const uploadResult = await uploadFile({
     tenantId,
     fileName: variantFileName,
     buffer,

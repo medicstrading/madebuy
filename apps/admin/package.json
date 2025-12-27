@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3301",
+    "dev": "next dev -p 3301 -H 0.0.0.0",
     "build": "next build",
     "start": "next start -p 3301",
     "lint": "next lint"
@@ -14,6 +14,12 @@
     "@madebuy/shared": "workspace:*",
     "@madebuy/social": "workspace:*",
     "@madebuy/storage": "workspace:*",
+    "@tiptap/extension-image": "^3.14.0",
+    "@tiptap/extension-link": "^3.14.0",
+    "@tiptap/extension-placeholder": "^3.14.0",
+    "@tiptap/extension-text-align": "^3.14.0",
+    "@tiptap/react": "^3.14.0",
+    "@tiptap/starter-kit": "^3.14.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -22,9 +28,11 @@
     "next": "^14.1.0",
     "next-auth": "^4.24.5",
     "react": "^18.2.0",
+    "react-colorful": "^5.6.1",
     "react-dom": "^18.2.0",
     "sharp": "^0.33.1",
     "tailwind-merge": "^2.2.1",
+    "tesseract.js": "^7.0.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

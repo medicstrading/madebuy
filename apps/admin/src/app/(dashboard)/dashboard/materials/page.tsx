@@ -1,8 +1,9 @@
 import { requireTenant } from '@/lib/session'
 import { materials } from '@madebuy/db'
 import { formatCurrency, formatDate, formatNumber } from '@/lib/utils'
-import { Plus, AlertTriangle, BarChart3 } from 'lucide-react'
+import { Plus, AlertTriangle, BarChart3, FileText } from 'lucide-react'
 import Link from 'next/link'
+import { DeleteMaterialButton } from '@/components/materials/DeleteMaterialButton'
 
 export default async function MaterialsPage() {
   const tenant = await requireTenant()
@@ -23,6 +24,13 @@ export default async function MaterialsPage() {
           >
             <BarChart3 className="h-4 w-4" />
             View Report
+          </Link>
+          <Link
+            href="/dashboard/materials/invoice-scan"
+            className="flex items-center gap-2 rounded-lg border border-blue-600 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+          >
+            <FileText className="h-4 w-4" />
+            Scan Invoice
           </Link>
           <Link
             href="/dashboard/materials/new"
@@ -83,6 +91,9 @@ export default async function MaterialsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   Supplier
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -114,6 +125,9 @@ export default async function MaterialsPage() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                     {material.supplier || '-'}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-right">
+                    <DeleteMaterialButton materialId={material.id} materialName={material.name} />
                   </td>
                 </tr>
               ))}

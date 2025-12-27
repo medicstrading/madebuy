@@ -67,6 +67,9 @@ export function SocialConnectionManager({ tenant }: SocialConnectionManagerProps
   }
 
   const handleDisconnect = async (platform: SocialPlatform) => {
+    // website-blog is not a social connection, skip it
+    if (platform === 'website-blog') return
+
     if (!confirm(`Are you sure you want to disconnect ${platformConfig[platform].name}?`)) {
       return
     }

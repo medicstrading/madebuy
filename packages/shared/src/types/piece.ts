@@ -3,6 +3,7 @@
  */
 
 import type { MediaItem } from './media'
+import type { SocialVideo } from './product'
 
 export interface Piece {
   id: string
@@ -70,13 +71,7 @@ export interface Piece {
 
 export type PieceStatus = 'draft' | 'available' | 'reserved' | 'sold'
 
-// Social Video Embeds (for displaying social content on shop page)
-export interface SocialVideo {
-  platform: 'tiktok' | 'instagram' | 'youtube'
-  url: string // Original URL
-  embedUrl: string // Embed URL for iframe
-  videoId?: string // Platform-specific video ID
-}
+// Social Video Embeds - imported from product.ts to avoid duplication
 
 export interface EtsyListingIntegration {
   listingId: string

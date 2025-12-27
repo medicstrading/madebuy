@@ -22,6 +22,7 @@ export async function createMaterial(tenantId: string, data: CreateMaterialInput
     supplierSku: data.supplierSku,
     notes: data.notes,
     tags: data.tags || [],
+    invoiceIds: [],
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -158,4 +159,47 @@ export async function getMaterialUsageForPiece(tenantId: string, pieceId: string
 export async function calculatePieceCOGS(tenantId: string, pieceId: string): Promise<number> {
   const usages = await getMaterialUsageForPiece(tenantId, pieceId)
   return usages.reduce((total, usage) => total + usage.totalCost, 0)
+}
+
+/**
+ * Update material stock from invoice
+ * Used when confirming invoice scan results
+ */
+export async function restockMaterialFromInvoice(
+  tenantId: string,
+  materialId: string,
+  invoiceId: string,
+  quantityAdded: number,
+  costPerUnit?: number
+): Promise<void> {
+  const db = await getDatabase()
+
+  const updateData: any = {
+    $inc: { quantityInStock: quantityAdded },
+    $addToSet: { invoiceIds: invoiceId },
+    $set: {
+      lastRestocked: new Date(),
+      updatedAt: new Date()
+    }
+  }
+
+  // Update cost per unit if provided
+  if (costPerUnit !== undefined) {
+    updateData.$set.costPerUnit = costPerUnit
+  }
+
+  await db.collection('materials').updateOne(
+    { tenantId, id: materialId },
+    updateData
+  )
+
+  // Recalculate isLowStock
+  const material = await getMaterial(tenantId, materialId)
+  if (material) {
+    const isLowStock = material.quantityInStock <= material.reorderPoint
+    await db.collection('materials').updateOne(
+      { tenantId, id: materialId },
+      { $set: { isLowStock } }
+    )
+  }
 }

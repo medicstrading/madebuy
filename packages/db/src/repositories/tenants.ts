@@ -20,6 +20,8 @@ export async function createTenant(email: string, passwordHash: string, business
       advancedAnalytics: false,
       unlimitedPieces: false,
       customDomain: false,
+      marketplaceListing: false,
+      marketplaceFeatured: false,
     },
     plan: 'free',
     createdAt: new Date(),
@@ -46,8 +48,8 @@ export async function getTenantByCustomDomain(domain: string): Promise<Tenant | 
 }
 
 export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
-  // Slug is the tenant ID
-  return await getTenantById(slug)
+  const db = await getDatabase()
+  return await db.collection('tenants').findOne({ slug }) as Tenant | null
 }
 
 export async function getTenantByDomain(domain: string): Promise<Tenant | null> {

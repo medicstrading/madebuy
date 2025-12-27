@@ -13,6 +13,9 @@ export interface MediaItem {
   mimeType: string
   originalFilename: string
 
+  // IP Protection - Perceptual hash for theft detection
+  hash?: string // pHash for image similarity detection & ownership proof
+
   // Storage - platform-optimized variants
   variants: MediaVariants
 
@@ -47,9 +50,10 @@ export type MediaType = 'image' | 'video'
 export type MediaSource = 'upload' | 'import'
 
 export interface MediaVariants {
-  original: MediaVariant
+  original: MediaVariant // Full resolution, no watermark (buyers & admin only)
+  watermarked?: MediaVariant // Public display with MadeBuy watermark (1600px max)
   large?: MediaVariant // 1200px max
-  thumb?: MediaVariant // 400px max
+  thumb?: MediaVariant // 400px max (no watermark for admin)
 
   // Platform-optimized image variants (auto-generated on upload)
   instagramFeed?: MediaVariant // 1080×1350 (4:5 portrait)
@@ -83,6 +87,7 @@ export interface CreateMediaInput {
   type: MediaType
   mimeType: string
   originalFilename: string
+  hash?: string // pHash for IP protection
   variants: MediaVariants
   platformOptimized?: SocialPlatform[]
   caption?: string

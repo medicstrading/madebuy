@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { SocialPlatform, MediaItem } from '@madebuy/shared'
-import { Instagram, Facebook, Youtube, Sparkles, Send, Calendar } from 'lucide-react'
+import type { SocialPlatform, MediaItem, BlogPublishConfig } from '@madebuy/shared'
+import { Instagram, Facebook, Youtube, Sparkles, Send, Calendar, FileText } from 'lucide-react'
 import Image from 'next/image'
 
 interface PublishComposerProps {
@@ -17,6 +17,7 @@ const platformConfig = {
   tiktok: { name: 'TikTok', icon: () => <span>🎵</span>, color: 'text-black' },
   pinterest: { name: 'Pinterest', icon: () => <span>📌</span>, color: 'text-red-600' },
   youtube: { name: 'YouTube', icon: Youtube, color: 'text-red-600' },
+  'website-blog': { name: 'Website Blog', icon: FileText, color: 'text-gray-700' },
 }
 
 export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }: PublishComposerProps) {
@@ -26,6 +27,16 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
   const [generatingCaption, setGeneratingCaption] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [scheduledFor, setScheduledFor] = useState<Date | null>(null)
+
+  // Blog-specific fields
+  const [blogTitle, setBlogTitle] = useState('')
+  const [blogExcerpt, setBlogExcerpt] = useState('')
+  const [blogTags, setBlogTags] = useState<string[]>([])
+  const [blogTagInput, setBlogTagInput] = useState('')
+  const [blogMetaTitle, setBlogMetaTitle] = useState('')
+  const [blogMetaDescription, setBlogMetaDescription] = useState('')
+
+  const isBlogSelected = selectedPlatforms.includes('website-blog')
 
   const togglePlatform = (platform: SocialPlatform) => {
     setSelectedPlatforms(prev =>
@@ -92,9 +103,28 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
       return
     }
 
+    // Validate blog fields if blog is selected
+    if (isBlogSelected) {
+      if (!blogTitle.trim()) {
+        alert('Please enter a blog title')
+        return
+      }
+    }
+
     setPublishing(true)
 
     try {
+      // Prepare blog config if blog is selected
+      const blogConfig: BlogPublishConfig | undefined = isBlogSelected
+        ? {
+            title: blogTitle,
+            excerpt: blogExcerpt,
+            tags: blogTags,
+            metaTitle: blogMetaTitle,
+            metaDescription: blogMetaDescription,
+          }
+        : undefined
+
       // Create publish record
       const createResponse = await fetch('/api/publish', {
         method: 'POST',
@@ -104,6 +134,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
           caption,
           mediaIds: selectedMedia,
           scheduledFor: scheduledFor?.toISOString(),
+          blogConfig,
         }),
       })
 
@@ -129,6 +160,14 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
       setSelectedMedia([])
       setCaption('')
       setScheduledFor(null)
+
+      // Reset blog fields
+      setBlogTitle('')
+      setBlogExcerpt('')
+      setBlogTags([])
+      setBlogTagInput('')
+      setBlogMetaTitle('')
+      setBlogMetaDescription('')
 
       alert(scheduledFor ? 'Post scheduled successfully!' : 'Published successfully!')
     } catch (error) {
@@ -208,6 +247,148 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
             {caption.length} characters
           </div>
         </div>
+
+        {/* Blog Fields (only show if blog is selected) */}
+        {isBlogSelected && (
+          <div className="mt-6 rounded-lg bg-white p-6 shadow-sm border-2 border-blue-200">
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Blog Settings</h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Blog Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Blog Title *
+                </label>
+                <input
+                  type="text"
+                  value={blogTitle}
+                  onChange={(e) => setBlogTitle(e.target.value)}
+                  placeholder="Enter blog post title..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Blog Excerpt */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Excerpt
+                </label>
+                <textarea
+                  value={blogExcerpt}
+                  onChange={(e) => setBlogExcerpt(e.target.value)}
+                  placeholder="Brief description (150-300 characters)..."
+                  rows={2}
+                  maxLength={300}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {blogExcerpt.length}/300 characters
+                </p>
+              </div>
+
+              {/* Blog Tags */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tags
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={blogTagInput}
+                    onChange={(e) => setBlogTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const tag = blogTagInput.trim()
+                        if (tag && !blogTags.includes(tag)) {
+                          setBlogTags([...blogTags, tag])
+                          setBlogTagInput('')
+                        }
+                      }
+                    }}
+                    placeholder="Add tag..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const tag = blogTagInput.trim()
+                      if (tag && !blogTags.includes(tag)) {
+                        setBlogTags([...blogTags, tag])
+                        setBlogTagInput('')
+                      }
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {blogTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setBlogTags(blogTags.filter(t => t !== tag))}
+                        className="hover:text-red-600"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* SEO Fields (collapsible) */}
+              <details className="border-t border-gray-200 pt-4">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700">
+                  SEO Settings (Optional)
+                </summary>
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Meta Title
+                    </label>
+                    <input
+                      type="text"
+                      value={blogMetaTitle}
+                      onChange={(e) => setBlogMetaTitle(e.target.value)}
+                      placeholder="Leave empty to use blog title..."
+                      maxLength={60}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {(blogMetaTitle || blogTitle).length}/60 characters
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Meta Description
+                    </label>
+                    <textarea
+                      value={blogMetaDescription}
+                      onChange={(e) => setBlogMetaDescription(e.target.value)}
+                      placeholder="Brief description for search engines..."
+                      rows={2}
+                      maxLength={160}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {blogMetaDescription.length}/160 characters
+                    </p>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right Column - Platform Selection & Publish */}

@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner'
 import type { MediaVariant } from '@madebuy/shared'
 
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID!
@@ -82,4 +83,18 @@ export async function getFromR2(key: string): Promise<Buffer> {
 
 export function getPublicUrl(key: string): string {
   return `${R2_PUBLIC_URL}/${key}`
+}
+
+/**
+ * Generate a signed URL for private R2 objects
+ * @param key - The R2 object key
+ * @param expiresIn - Expiration time in seconds (default: 1 hour)
+ */
+export async function getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: key,
+  })
+
+  return await awsGetSignedUrl(r2Client, command, { expiresIn })
 }

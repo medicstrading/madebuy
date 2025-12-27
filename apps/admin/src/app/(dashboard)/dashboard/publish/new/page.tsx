@@ -7,7 +7,7 @@ import type { SocialPlatform } from '@madebuy/shared'
 
 export default async function NewPublishPage() {
   const tenant = await requireTenant()
-  
+
   // Get all media for this tenant
   const allMedia = await media.listMedia(tenant.id, { type: 'image' })
 
@@ -15,6 +15,11 @@ export default async function NewPublishPage() {
   const connectedPlatforms: SocialPlatform[] = tenant.socialConnections
     ?.filter(conn => conn.isActive)
     .map(conn => conn.platform) || []
+
+  // Add website-blog if enabled
+  if (tenant.websiteDesign?.blog?.enabled) {
+    connectedPlatforms.push('website-blog')
+  }
 
   return (
     <div>

@@ -27,6 +27,10 @@ export interface Material {
   notes?: string
   tags: string[]
 
+  // Invoice tracking
+  invoiceIds?: string[] // Track which invoices restocked this material
+  lastRestocked?: Date
+
   createdAt: Date
   updatedAt: Date
 }

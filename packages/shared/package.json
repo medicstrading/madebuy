@@ -8,7 +8,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "date-fns": "^3.3.1"
+  },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"

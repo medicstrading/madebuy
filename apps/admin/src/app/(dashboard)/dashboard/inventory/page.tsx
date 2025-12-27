@@ -3,6 +3,7 @@ import { pieces, materials } from '@madebuy/db'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Plus, Search, Store } from 'lucide-react'
 import Link from 'next/link'
+import { DeletePieceButton } from '@/components/inventory/DeletePieceButton'
 
 export default async function InventoryPage() {
   const tenant = await requireTenant()
@@ -74,6 +75,9 @@ export default async function InventoryPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   Created
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -133,6 +137,9 @@ export default async function InventoryPage() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {formatDate(piece.createdAt)}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-right">
+                      <DeletePieceButton pieceId={piece.id} pieceName={piece.name} />
                     </td>
                   </tr>
                 )

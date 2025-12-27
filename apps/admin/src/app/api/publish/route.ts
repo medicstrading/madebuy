@@ -34,6 +34,11 @@ export async function POST(request: NextRequest) {
     const requestedPlatforms = data.platforms
     const connectedPlatforms = tenant.socialConnections?.map(c => c.platform) || []
 
+    // Add website-blog if enabled
+    if (tenant.websiteDesign?.blog?.enabled) {
+      connectedPlatforms.push('website-blog')
+    }
+
     const missingPlatforms = requestedPlatforms.filter(p => !connectedPlatforms.includes(p))
 
     if (missingPlatforms.length > 0) {

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
-import { uploadToR2, processImageWithVariants } from '@madebuy/storage'
+import { uploadToR2, uploadToLocal, processImageWithVariants } from '@madebuy/storage'
+
+const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +46,8 @@ export async function POST(request: NextRequest) {
         })
       : await (async () => {
           // For videos, just upload the original
-          const variant = await uploadToR2({
+          const uploadFn = USE_LOCAL_STORAGE ? uploadToLocal : uploadToR2
+          const variant = await uploadFn({
             tenantId: tenant.id,
             fileName: `videos/${file.name}`,
             buffer,
