@@ -4,6 +4,7 @@
 
 export interface Tenant {
   id: string
+  slug: string // Username/subdomain for storefront
   email: string
   passwordHash: string
 

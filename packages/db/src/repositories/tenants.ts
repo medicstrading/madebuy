@@ -5,8 +5,15 @@ import type { Tenant } from '@madebuy/shared'
 export async function createTenant(email: string, passwordHash: string, businessName: string): Promise<Tenant> {
   const db = await getDatabase()
 
+  // Generate slug from business name or email
+  const slug = (businessName || email.split('@')[0])
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+
   const tenant: Tenant = {
     id: nanoid(),
+    slug,
     email,
     passwordHash,
     businessName,
