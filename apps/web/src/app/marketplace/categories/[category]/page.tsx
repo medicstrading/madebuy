@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MARKETPLACE_CATEGORIES } from '@madebuy/shared/src/types/marketplace'
 import { Star, ArrowLeft } from 'lucide-react'
+import { marketplace } from '@madebuy/db'
+import { EtsyProductCard } from '@/components/marketplace'
 
 export async function generateMetadata({
   params,
@@ -19,6 +21,26 @@ export async function generateMetadata({
   return {
     title: `${category.name} - MadeBuy Marketplace`,
     description: `Browse handmade ${category.name.toLowerCase()} from independent makers.`,
+  }
+}
+
+// Map DB product to EtsyProductCard format
+function mapToCardProduct(product: any) {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug || product.id,
+    price: product.price,
+    originalPrice: product.originalPrice,
+    currency: 'AUD',
+    images: product.images || [],
+    rating: product.marketplace?.avgRating || 0,
+    reviewCount: product.marketplace?.totalReviews || 0,
+    seller: {
+      name: product.seller?.businessName || 'Seller',
+      slug: product.tenantId,
+    },
+    badges: [] as ('bestseller' | 'freeShipping' | 'sale' | 'ad')[],
   }
 }
 
@@ -41,18 +63,20 @@ export default async function CategoryPage({
     notFound()
   }
 
-  // TODO: Fetch products for this category from API
-  // const filters = {
-  //   category: params.category,
-  //   subcategory: searchParams.subcategory,
-  //   minPrice: searchParams.minPrice ? parseFloat(searchParams.minPrice) : undefined,
-  //   maxPrice: searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : undefined,
-  //   sortBy: searchParams.sortBy || 'recent',
-  //   page: searchParams.page ? parseInt(searchParams.page) : 1,
-  //   limit: 24
-  // }
+  // Fetch products for this category
+  const filters = {
+    category: params.category,
+    subcategory: searchParams.subcategory || undefined,
+    minPrice: searchParams.minPrice ? parseFloat(searchParams.minPrice) : undefined,
+    maxPrice: searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : undefined,
+    sortBy: (searchParams.sortBy || 'recent') as 'recent' | 'popular' | 'price_low' | 'price_high' | 'rating' | 'bestseller',
+    page: searchParams.page ? parseInt(searchParams.page) : 1,
+    limit: 24,
+  }
 
+  const { products, total, pages } = await marketplace.listMarketplaceProducts(filters)
   const sortBy = searchParams.sortBy || 'recent'
+  const currentPage = filters.page
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -167,11 +191,11 @@ export default async function CategoryPage({
           {/* Toolbar */}
           <div className="mb-6 flex items-center justify-between">
             <p className="text-gray-600">
-              Products in <span className="font-semibold">{category.name}</span>
+              <span className="font-semibold">{total}</span> products in <span className="font-semibold">{category.name}</span>
             </p>
 
             <select
-              value={sortBy}
+              defaultValue={sortBy}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="recent">Recently Added</option>
@@ -182,35 +206,56 @@ export default async function CategoryPage({
             </select>
           </div>
 
-          {/* Products Grid - Placeholder */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div
-                key={i}
-                className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100"></div>
-                <div className="p-4">
-                  <div className="mb-2 h-5 w-3/4 rounded bg-gray-200"></div>
-                  <div className="mb-3 h-4 w-1/2 rounded bg-gray-100"></div>
-                  <div className="flex items-center justify-between">
-                    <div className="h-6 w-20 rounded bg-gray-200"></div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm text-gray-600">4.8</span>
-                    </div>
-                  </div>
-                </div>
+          {/* Products Grid */}
+          {products.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product: any) => (
+                  <EtsyProductCard
+                    key={product.id}
+                    product={mapToCardProduct(product)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Placeholder message */}
-          <div className="mt-8 rounded-lg bg-blue-50 p-6 text-center">
-            <p className="text-sm text-gray-600">
-              <strong>Coming Soon:</strong> {category.name} products will appear here once sellers start listing in this category.
-            </p>
-          </div>
+              {/* Pagination */}
+              {pages > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-2">
+                  {currentPage > 1 && (
+                    <Link
+                      href={`/marketplace/categories/${params.category}?page=${currentPage - 1}${searchParams.subcategory ? `&subcategory=${searchParams.subcategory}` : ''}${searchParams.sortBy ? `&sortBy=${searchParams.sortBy}` : ''}`}
+                      className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+                    >
+                      Previous
+                    </Link>
+                  )}
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {pages}
+                  </span>
+                  {currentPage < pages && (
+                    <Link
+                      href={`/marketplace/categories/${params.category}?page=${currentPage + 1}${searchParams.subcategory ? `&subcategory=${searchParams.subcategory}` : ''}${searchParams.sortBy ? `&sortBy=${searchParams.sortBy}` : ''}`}
+                      className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+                    >
+                      Next
+                    </Link>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="rounded-lg bg-gray-50 p-12 text-center">
+              <p className="text-gray-600">
+                No products found in this category yet.
+              </p>
+              <Link
+                href="/marketplace"
+                className="mt-4 inline-block text-blue-600 hover:text-blue-700"
+              >
+                Browse all products →
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

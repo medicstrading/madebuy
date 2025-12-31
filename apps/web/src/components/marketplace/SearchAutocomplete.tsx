@@ -88,7 +88,7 @@ export function SearchAutocomplete({
     localStorage.removeItem(RECENT_SEARCHES_KEY)
   }
 
-  // Search API call (mock - replace with actual API)
+  // Search API call
   const fetchResults = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       setResults([])
@@ -98,51 +98,9 @@ export function SearchAutocomplete({
     setIsLoading(true)
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/marketplace/search?q=${encodeURIComponent(searchQuery)}`)
-      // const data = await response.json()
-      // setResults(data.results)
-
-      // Mock results for demo
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      const mockResults: SearchResult[] = [
-        {
-          id: '1',
-          type: 'product',
-          name: `${searchQuery} Handmade Necklace`,
-          slug: 'handmade-necklace',
-          image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=100',
-          price: 89.99,
-          currency: 'AUD',
-        },
-        {
-          id: '2',
-          type: 'product',
-          name: `Custom ${searchQuery} Ring`,
-          slug: 'custom-ring',
-          image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=100',
-          price: 145.0,
-          currency: 'AUD',
-        },
-        {
-          id: '3',
-          type: 'category',
-          name: `${searchQuery}`,
-          slug: searchQuery.toLowerCase().replace(/\s+/g, '-'),
-          subtitle: '250+ items',
-        },
-        {
-          id: '4',
-          type: 'seller',
-          name: `${searchQuery} Artisan Studio`,
-          slug: 'artisan-studio',
-          image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-          subtitle: 'Melbourne, AU',
-        },
-      ]
-
-      setResults(mockResults)
+      const response = await fetch(`/api/marketplace/search?q=${encodeURIComponent(searchQuery)}&limit=5`)
+      const data = await response.json()
+      setResults(data.results || [])
     } catch (error) {
       console.error('Search error:', error)
       setResults([])
@@ -472,7 +430,7 @@ export function SearchAutocomplete({
           {query.trim() && results.length === 0 && !isLoading && (
             <div className="px-4 py-8 text-center">
               <p className="text-sm text-mb-slate-light">
-                No results found for "<span className="font-medium text-mb-slate">{query}</span>"
+                No results found for &ldquo;<span className="font-medium text-mb-slate">{query}</span>&rdquo;
               </p>
               <button
                 onClick={() => handleSearch(query)}

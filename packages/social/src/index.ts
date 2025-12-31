@@ -7,12 +7,24 @@
 export {
   LateClient,
   lateClient,
+  getLateClient,
+  publishToLate,
+  scheduleToLate,
   type LatePublishRequest,
   type LatePublishResponse,
   type LateOAuthUrlRequest,
   type LateOAuthUrlResponse,
   type LateOAuthTokenRequest,
   type LateOAuthTokenResponse,
+  type LateAccount,
+  type LateAccountsResponse,
+  type LatePlatformType,
+  type LatePost,
+  type LatePlatform,
+  type LateMedia,
+  type LatePostResponse,
+  type LateProfile,
+  type LateProfilesResponse,
 } from './late-client'
 
 // Export AI caption generation

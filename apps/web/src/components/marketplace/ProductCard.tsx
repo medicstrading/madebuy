@@ -23,9 +23,12 @@ export function ProductCard({ product, showSeller = true }: ProductCardProps) {
   const avgRating = marketplace?.avgRating || 0
   const totalReviews = marketplace?.totalReviews || 0
 
+  // Add utm_source for marketplace attribution
+  const productUrl = `/marketplace/product/${id || slug}?utm_source=marketplace`
+
   return (
     <Link
-      href={`/marketplace/product/${id || slug}`}
+      href={productUrl}
       className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md"
     >
       {/* Image */}

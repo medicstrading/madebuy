@@ -6,6 +6,9 @@
 // Export all types
 export * from './types'
 
+// Export subscription utilities
+export * from './lib/subscription'
+
 // Export constants (to be added)
 // export * from './constants'
 

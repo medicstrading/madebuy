@@ -71,9 +71,12 @@ export function EtsyProductCard({
   const isCompact = variant === 'compact'
   const isLarge = variant === 'large'
 
+  // Add utm_source for marketplace attribution
+  const productUrl = `/marketplace/product/${slug || id}?utm_source=marketplace`
+
   return (
     <Link
-      href={`/marketplace/product/${slug || id}`}
+      href={productUrl}
       className="group relative block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

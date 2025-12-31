@@ -1,18 +1,84 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Star, MessageCircle } from 'lucide-react'
+import { Star, MessageCircle, Loader2 } from 'lucide-react'
+
+interface Review {
+  id: string
+  rating: number
+  title?: string
+  content: string
+  buyerName: string
+  buyerEmail?: string
+  verified: boolean
+  images?: string[]
+  createdAt: string
+  sellerResponse?: {
+    content: string
+    respondedAt: string
+  }
+}
+
+interface ReviewSummary {
+  averageRating: number
+  totalReviews: number
+  distribution: Record<number, number>
+}
 
 interface ProductReviewsProps {
   productId: string
   productName: string
+  initialReviews?: Review[]
+  initialSummary?: ReviewSummary
 }
 
-export function ProductReviews({ productId, productName }: ProductReviewsProps) {
-  // TODO: Fetch actual reviews from database
-  const reviews: any[] = []
-  const averageRating = 0
-  const totalReviews = 0
+export function ProductReviews({
+  productId,
+  productName,
+  initialReviews = [],
+  initialSummary,
+}: ProductReviewsProps) {
+  const [reviews, setReviews] = useState<Review[]>(initialReviews)
+  const [summary, setSummary] = useState<ReviewSummary | null>(initialSummary || null)
+  const [loading, setLoading] = useState(!initialReviews.length && !initialSummary)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
+  // Fetch reviews if not provided
+  useEffect(() => {
+    if (initialReviews.length > 0 || initialSummary) return
+
+    async function fetchReviews() {
+      try {
+        const res = await fetch(`/api/marketplace/product/${productId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setReviews(data.recentReviews || [])
+          setSummary(data.reviewSummary || null)
+        }
+      } catch (error) {
+        console.error('Error fetching reviews:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchReviews()
+  }, [productId, initialReviews.length, initialSummary])
+
+  const averageRating = summary?.averageRating || 0
+  const totalReviews = summary?.totalReviews || 0
+
+  if (loading) {
+    return (
+      <section className="py-12 border-t border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="py-12 border-t border-gray-200">
@@ -84,7 +150,10 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 {/* Review Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <div className="font-semibold text-gray-900">{review.author}</div>
+                    <div className="font-semibold text-gray-900">{review.buyerName}</div>
+                    {review.title && (
+                      <div className="text-gray-800 font-medium mt-1">{review.title}</div>
+                    )}
                     <div className="flex items-center gap-1 mt-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
@@ -135,6 +204,17 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                       />
                     </svg>
                     Verified Purchase
+                  </div>
+                )}
+
+                {/* Seller Response */}
+                {review.sellerResponse && (
+                  <div className="mt-4 bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                    <div className="text-sm font-medium text-blue-800 mb-1">Seller Response</div>
+                    <p className="text-sm text-blue-700">{review.sellerResponse.content}</p>
+                    <div className="text-xs text-blue-600 mt-2">
+                      {new Date(review.sellerResponse.respondedAt).toLocaleDateString()}
+                    </div>
                   </div>
                 )}
               </div>

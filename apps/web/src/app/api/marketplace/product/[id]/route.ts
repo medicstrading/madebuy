@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { marketplace } from '@madebuy/db'
+import { rateLimiters } from '@/lib/rate-limit'
 
 /**
  * GET /api/marketplace/product/[id]
@@ -9,6 +10,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Rate limit: 100 requests per minute
+  const rateLimitResponse = rateLimiters.api(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const productId = params.id
 

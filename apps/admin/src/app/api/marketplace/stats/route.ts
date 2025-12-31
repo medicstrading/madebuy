@@ -47,8 +47,43 @@ export async function GET() {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    // TODO: Query orders collection for marketplace sales
-    // This requires tracking marketplace source in orders
+    // Query orders collection for marketplace sales
+    const recentOrders = await db.collection('orders').aggregate([
+      {
+        $match: {
+          tenantId: tenant.id,
+          createdAt: { $gte: thirtyDaysAgo },
+          status: { $in: ['completed', 'shipped', 'delivered'] }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: '$total' },
+          orderCount: { $sum: 1 }
+        }
+      }
+    ]).toArray()
+
+    const recentSales = recentOrders[0] || { totalSales: 0, orderCount: 0 }
+
+    // Get total marketplace views
+    const totalViews = await db.collection('products').aggregate([
+      {
+        $match: {
+          tenantId: tenant.id,
+          'marketplace.listed': true
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: { $ifNull: ['$marketplace.marketplaceViews', 0] } }
+        }
+      }
+    ]).toArray()
+
+    const marketplaceViews = totalViews[0]?.totalViews || 0
 
     return NextResponse.json({
       stats,
@@ -58,6 +93,12 @@ export async function GET() {
         approved: approvedCount,
         pending: pendingCount,
       },
+      recentSales: {
+        total: recentSales.totalSales,
+        orderCount: recentSales.orderCount,
+        period: '30 days'
+      },
+      marketplaceViews,
       hasMarketplaceAccess: tenant.features.marketplaceListing,
       hasFeaturedAccess: tenant.features.marketplaceFeatured,
       plan: tenant.plan,

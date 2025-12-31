@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { marketplace } from '@madebuy/db'
 import type { MarketplaceProductFilters } from '@madebuy/shared'
+import { rateLimiters } from '@/lib/rate-limit'
 
 /**
  * GET /api/marketplace/products
@@ -18,6 +19,10 @@ import type { MarketplaceProductFilters } from '@madebuy/shared'
  * - limit?: number (default: 24)
  */
 export async function GET(request: NextRequest) {
+  // Rate limit: 100 requests per minute
+  const rateLimitResponse = rateLimiters.api(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const searchParams = request.nextUrl.searchParams
 

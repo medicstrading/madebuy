@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatCurrency } from '@/lib/utils'
-import { ImageIcon, TrendingUp, ArrowRight } from 'lucide-react'
+import { ImageIcon, TrendingUp, ArrowRight, Heart } from 'lucide-react'
 import type { PieceWithMedia } from '@/lib/pieces'
 import type { Tenant } from '@madebuy/shared'
 import { EtsyProductCard, RecentlyViewed } from '@/components/marketplace'

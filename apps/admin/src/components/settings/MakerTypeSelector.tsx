@@ -159,7 +159,7 @@ export function MakerTypeSelector({ value, onChange, disabled }: MakerTypeSelect
           <h4 className="text-sm font-medium text-amber-800 mb-2">Custom Categories</h4>
           <p className="text-sm text-amber-700">
             Start with a blank slate and define all your own product and material categories.
-            Perfect for unique crafts that don't fit standard categories.
+            Perfect for unique crafts that don&apos;t fit standard categories.
           </p>
         </div>
       )}

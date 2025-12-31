@@ -220,7 +220,7 @@ export async function getSellerProfile(tenantId: string): Promise<SellerProfile 
 export async function updateSellerProfile(
   tenantId: string,
   updates: Partial<SellerProfile>
-): Promise<void> {
+): Promise<SellerProfile | null> {
   const db = await getDatabase()
 
   await db.collection('seller_profiles').updateOne(
@@ -233,17 +233,30 @@ export async function updateSellerProfile(
     },
     { upsert: true }
   )
+
+  return await getSellerProfile(tenantId)
 }
 
 /**
  * Create seller profile (called on first marketplace opt-in)
  */
-export async function createSellerProfile(tenantId: string, displayName: string): Promise<SellerProfile> {
+export async function createSellerProfile(input: {
+  tenantId: string
+  displayName: string
+  bio?: string
+  location?: string
+  verification?: SellerProfile['verification']
+}): Promise<SellerProfile> {
   const db = await getDatabase()
 
   const profile: SellerProfile = {
-    tenantId,
-    displayName,
+    tenantId: input.tenantId,
+    displayName: input.displayName,
+    bio: input.bio,
+    location: input.location,
+    verification: input.verification || {
+      status: 'unverified',
+    },
     stats: {
       totalSales: 0,
       avgRating: 0,
@@ -253,7 +266,7 @@ export async function createSellerProfile(tenantId: string, displayName: string)
       onTimeDeliveryRate: 0,
       repeatCustomerRate: 0,
     },
-    badges: ['verified'],
+    badges: [],
     memberSince: new Date(),
     customizationAvailable: false,
     createdAt: new Date(),

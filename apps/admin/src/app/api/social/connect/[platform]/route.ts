@@ -3,6 +3,12 @@ import { getCurrentTenant } from '@/lib/session'
 import { lateClient } from '@madebuy/social'
 import type { SocialPlatform } from '@madebuy/shared'
 
+export const dynamic = 'force-dynamic'
+
+/**
+ * POST /api/social/connect/[platform]
+ * Initiate OAuth flow for a social platform using Late.dev's connect flow
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: { platform: string } }
@@ -24,20 +30,17 @@ export async function POST(
       )
     }
 
-    // Get base URL from environment or request
-    const protocol = request.headers.get('x-forwarded-proto') || 'http'
-    const host = request.headers.get('host')
+    // Build redirect URI for Late.dev callback
+    const host = request.headers.get('host') || 'localhost:3300'
+    const isLocalDev = host.startsWith('localhost')
+    const protocol = isLocalDev ? 'http' : 'https'
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`
-    const redirectUri = `${baseUrl}/api/social/callback`
+    const redirectUri = `${baseUrl}/api/late/callback`
 
-    // Get OAuth URL from Late API
-    const response = await lateClient.getOAuthUrl({
-      platform,
-      redirectUri,
-      state: `${tenant.id}:${platform}`, // Include tenant ID in state for callback
-    })
+    // Get connect URL from Late.dev
+    const authUrl = await lateClient.getConnectUrl(platform, redirectUri)
 
-    return NextResponse.json({ authUrl: response.authUrl })
+    return NextResponse.json({ authUrl })
   } catch (error) {
     console.error('OAuth initiation error:', error)
     return NextResponse.json(

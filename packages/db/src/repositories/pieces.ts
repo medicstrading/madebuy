@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Piece, CreatePieceInput, UpdatePieceInput, PieceFilters } from '@madebuy/shared'
+import type { Piece, CreatePieceInput, UpdatePieceInput, PieceFilters, ProductVariant } from '@madebuy/shared'
 
 function generateSlug(name: string): string {
   return name
@@ -11,6 +11,12 @@ function generateSlug(name: string): string {
 
 export async function createPiece(tenantId: string, data: CreatePieceInput): Promise<Piece> {
   const db = await getDatabase()
+
+  // Generate IDs for variants if provided
+  const variants: ProductVariant[] | undefined = data.variants?.map(v => ({
+    ...v,
+    id: nanoid(),
+  }))
 
   const piece: Piece = {
     id: nanoid(),
@@ -30,6 +36,11 @@ export async function createPiece(tenantId: string, data: CreatePieceInput): Pro
     price: data.price,
     currency: data.currency || 'AUD',
     cogs: undefined,
+    stock: data.stock,
+    // Variants
+    hasVariants: data.hasVariants || false,
+    variantOptions: data.variantOptions,
+    variants,
     status: data.status || 'draft',
     mediaIds: [],
     isFeatured: data.isFeatured || false,
@@ -137,4 +148,98 @@ export async function findPiecesByEtsyListingId(listingId: string): Promise<Piec
   return await db.collection('pieces')
     .find({ 'integrations.etsy.listingId': listingId })
     .toArray() as any[]
+}
+
+// Variant-specific functions
+
+/**
+ * Get a specific variant from a piece
+ */
+export async function getVariant(
+  tenantId: string,
+  pieceId: string,
+  variantId: string
+): Promise<ProductVariant | null> {
+  const piece = await getPiece(tenantId, pieceId)
+  if (!piece?.variants) return null
+  return piece.variants.find(v => v.id === variantId) || null
+}
+
+/**
+ * Update a specific variant's stock
+ */
+export async function updateVariantStock(
+  tenantId: string,
+  pieceId: string,
+  variantId: string,
+  stockChange: number
+): Promise<boolean> {
+  const db = await getDatabase()
+
+  // Find the piece and variant
+  const piece = await getPiece(tenantId, pieceId)
+  if (!piece?.variants) return false
+
+  const variantIndex = piece.variants.findIndex(v => v.id === variantId)
+  if (variantIndex === -1) return false
+
+  const variant = piece.variants[variantIndex]
+  const currentStock = variant.stock ?? 0
+  const newStock = currentStock + stockChange
+
+  // Don't allow negative stock
+  if (newStock < 0) return false
+
+  // Update the variant's stock
+  const result = await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId },
+    {
+      $set: {
+        [`variants.${variantIndex}.stock`]: newStock,
+        [`variants.${variantIndex}.isAvailable`]: newStock > 0,
+        updatedAt: new Date(),
+      }
+    }
+  )
+
+  return result.modifiedCount > 0
+}
+
+/**
+ * Get available stock for a piece or variant
+ * Returns the effective stock considering variant-level stock
+ */
+export async function getAvailableStock(
+  tenantId: string,
+  pieceId: string,
+  variantId?: string
+): Promise<number | undefined> {
+  const piece = await getPiece(tenantId, pieceId)
+  if (!piece) return undefined
+
+  // If it's a variant product with a specific variant requested
+  if (piece.hasVariants && variantId && piece.variants) {
+    const variant = piece.variants.find(v => v.id === variantId)
+    return variant?.stock
+  }
+
+  // Otherwise return the piece-level stock
+  return piece.stock
+}
+
+/**
+ * Check if a piece/variant has sufficient stock
+ */
+export async function hasStock(
+  tenantId: string,
+  pieceId: string,
+  quantity: number,
+  variantId?: string
+): Promise<boolean> {
+  const stock = await getAvailableStock(tenantId, pieceId, variantId)
+
+  // undefined stock means unlimited
+  if (stock === undefined) return true
+
+  return stock >= quantity
 }

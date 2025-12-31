@@ -74,10 +74,37 @@ export interface MarketplaceReview {
 }
 
 /**
+ * Seller Verification Status
+ */
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected'
+
+export interface SellerVerification {
+  status: VerificationStatus
+  submittedAt?: Date
+  verifiedAt?: Date
+  rejectedAt?: Date
+  rejectionReason?: string
+
+  // Verification documents (for internal review)
+  documents?: {
+    businessName?: string
+    abn?: string // Australian Business Number
+    idDocument?: string // mediaId (encrypted/secure storage)
+    proofOfAddress?: string // mediaId
+  }
+
+  // Verification level
+  level?: 'basic' | 'business' // Basic = identity, Business = ABN verified
+}
+
+/**
  * Seller Public Profile (for marketplace)
  */
 export interface SellerProfile {
   tenantId: string
+
+  // Verification
+  verification: SellerVerification
 
   // Display info
   displayName: string // Public name

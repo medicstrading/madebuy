@@ -58,13 +58,17 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [isFavorited, setIsFavorited] = useState(false)
 
-  // Fetch product data
+  // Fetch product data via API routes (not direct DB)
   useEffect(() => {
     async function fetchData() {
       try {
-        const { marketplace, tenants } = await import('@madebuy/db')
-
-        const productData = await marketplace.getMarketplaceProduct(productId)
+        // Fetch product via API
+        const productRes = await fetch(`/api/marketplace/product/${productId}`)
+        if (!productRes.ok) {
+          setLoading(false)
+          return
+        }
+        const { product: productData } = await productRes.json()
         if (!productData) {
           setLoading(false)
           return
@@ -72,17 +76,15 @@ export default function ProductDetailPage() {
 
         setProduct(productData)
 
-        // Fetch seller info
-        const tenantData = await tenants.getTenantById(productData.tenantId)
-        setTenant(tenantData)
+        // Fetch seller info via API
+        const sellerRes = await fetch(`/api/marketplace/seller/${productData.tenantId}`)
+        if (sellerRes.ok) {
+          const sellerData = await sellerRes.json()
+          setTenant(sellerData.tenant)
+          setSellerProfile(sellerData.profile)
+        }
 
-        const profile = await marketplace.getSellerProfile(productData.tenantId)
-        setSellerProfile(profile)
-
-        // Record view
-        await marketplace.recordMarketplaceView(productId)
-
-        // Track for recently viewed
+        // Track for recently viewed (client-side only)
         trackProductView({
           id: productData.id,
           name: productData.name,
@@ -92,15 +94,14 @@ export default function ProductDetailPage() {
           image: productData.images?.[0],
         })
 
-        // Fetch related products
-        const related = await marketplace.listMarketplaceProducts({
-          category: productData.category,
-          limit: 8,
-          page: 1,
-        })
-        setRelatedProducts(
-          related.products.filter((p: any) => p.id !== productId).slice(0, 6)
-        )
+        // Fetch related products via API
+        const relatedRes = await fetch(`/api/marketplace/products?category=${productData.category}&limit=8`)
+        if (relatedRes.ok) {
+          const { products } = await relatedRes.json()
+          setRelatedProducts(
+            (products || []).filter((p: any) => p.id !== productId).slice(0, 6)
+          )
+        }
 
         setLoading(false)
       } catch (error) {

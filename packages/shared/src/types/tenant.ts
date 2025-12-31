@@ -57,9 +57,33 @@ export interface Tenant {
   // Website customization
   websiteDesign?: TenantWebsiteDesign
 
+  // Shipping configuration
+  shippingConfig?: ShippingConfig
+
   // Timestamps
   createdAt: Date
   updatedAt: Date
+}
+
+export interface ShippingMethod {
+  id: string
+  name: string
+  description?: string
+  price: number // in dollars
+  currency: string
+  estimatedDays: {
+    min: number
+    max: number
+  }
+  countries: string[] // ISO country codes, empty = all
+  enabled: boolean
+}
+
+export interface ShippingConfig {
+  methods: ShippingMethod[]
+  freeShippingThreshold?: number // Free shipping over this amount
+  localPickupEnabled: boolean
+  localPickupAddress?: string
 }
 
 export type DomainStatus = 'none' | 'pending_nameservers' | 'active'
@@ -252,6 +276,7 @@ export interface UpdateTenantInput {
   domainStatus?: DomainStatus
   socialConnections?: SocialConnection[]
   websiteDesign?: TenantWebsiteDesign
+  shippingConfig?: ShippingConfig
 }
 
 // Re-export MakerType for convenience

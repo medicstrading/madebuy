@@ -1,12 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { pieces, media } from '@madebuy/db'
+import { pieces, media, stockReservations, tenants } from '@madebuy/db'
+import { rateLimiters } from '@/lib/rate-limit'
+import type { ShippingMethod, ProductVariant } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 })
 
+// Default shipping methods if tenant hasn't configured any
+const DEFAULT_SHIPPING_METHODS: ShippingMethod[] = [
+  {
+    id: 'standard',
+    name: 'Standard Shipping',
+    description: 'Delivered in 5-10 business days',
+    price: 9.95,
+    currency: 'AUD',
+    estimatedDays: { min: 5, max: 10 },
+    countries: [],
+    enabled: true,
+  },
+  {
+    id: 'express',
+    name: 'Express Shipping',
+    description: 'Delivered in 2-3 business days',
+    price: 19.95,
+    currency: 'AUD',
+    estimatedDays: { min: 2, max: 3 },
+    countries: [],
+    enabled: true,
+  },
+]
+
+// Helper to format variant options for display
+function formatVariantOptions(options: Record<string, string>): string {
+  return Object.entries(options)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(', ')
+}
+
 export async function POST(request: NextRequest) {
+  // Rate limit: 10 requests per minute
+  const rateLimitResponse = rateLimiters.checkout(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const body = await request.json()
     const { tenantId, items, customerInfo, shippingAddress, notes, successUrl, cancelUrl } = body
@@ -18,13 +55,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify all pieces exist and are available
+    // Generate a temporary session ID for reservations
+    // Will be replaced with actual Stripe session ID after creation
+    const tempSessionId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`
+
+    // Verify all pieces exist, are available, and reserve stock
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+    const reservedItems: { pieceId: string; variantId?: string; quantity: number }[] = []
 
     for (const item of items) {
       const piece = await pieces.getPiece(tenantId, item.pieceId)
 
       if (!piece) {
+        // Release any reservations made so far
+        await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
           { error: `Piece ${item.pieceId} not found` },
           { status: 404 }
@@ -32,18 +76,60 @@ export async function POST(request: NextRequest) {
       }
 
       if (piece.status !== 'available') {
+        await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
           { error: `${piece.name} is no longer available` },
           { status: 400 }
         )
       }
 
-      if (piece.stock !== undefined && piece.stock < item.quantity) {
+      // Handle variant products
+      let selectedVariant: ProductVariant | undefined
+      if (piece.hasVariants && item.variantId) {
+        selectedVariant = piece.variants?.find(v => v.id === item.variantId)
+        if (!selectedVariant) {
+          await stockReservations.cancelReservation(tempSessionId)
+          return NextResponse.json(
+            { error: `Variant ${item.variantId} not found for ${piece.name}` },
+            { status: 404 }
+          )
+        }
+        if (!selectedVariant.isAvailable) {
+          await stockReservations.cancelReservation(tempSessionId)
+          return NextResponse.json(
+            { error: `Selected variant for ${piece.name} is not available` },
+            { status: 400 }
+          )
+        }
+      } else if (piece.hasVariants && !item.variantId) {
+        // Variant product but no variant selected
+        await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
-          { error: `Insufficient stock for ${piece.name}` },
+          { error: `Please select a variant for ${piece.name}` },
           { status: 400 }
         )
       }
+
+      // Try to reserve stock (handles race conditions, supports variants)
+      const reservation = await stockReservations.reserveStock(
+        tenantId,
+        item.pieceId,
+        item.quantity,
+        tempSessionId,
+        30, // 30 minutes expiration
+        item.variantId // Pass variantId for variant-level stock
+      )
+
+      if (!reservation) {
+        // Release any reservations made so far
+        await stockReservations.cancelReservation(tempSessionId)
+        return NextResponse.json(
+          { error: `Insufficient stock for ${piece.name}${selectedVariant ? ` (${formatVariantOptions(selectedVariant.options)})` : ''}` },
+          { status: 400 }
+        )
+      }
+
+      reservedItems.push({ pieceId: item.pieceId, variantId: item.variantId, quantity: item.quantity })
 
       // Fetch primary media if available
       let imageUrl: string | undefined
@@ -59,18 +145,90 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Determine price (variant can override base price)
+      const effectivePrice = selectedVariant?.price ?? item.price
+
+      // Build product name with variant info
+      let productName = piece.name
+      if (selectedVariant) {
+        productName += ` (${formatVariantOptions(selectedVariant.options)})`
+      }
+
       // Create Stripe line item
       lineItems.push({
         price_data: {
           currency: (item.currency || piece.currency || 'aud').toLowerCase(),
           product_data: {
-            name: piece.name,
+            name: productName,
             description: piece.description || undefined,
             images: imageUrl ? [imageUrl] : undefined,
+            metadata: selectedVariant ? {
+              variantId: selectedVariant.id,
+              variantSku: selectedVariant.sku || '',
+            } : undefined,
           },
-          unit_amount: Math.round(item.price * 100), // Convert to cents
+          unit_amount: Math.round(effectivePrice * 100), // Convert to cents
         },
         quantity: item.quantity,
+      })
+    }
+
+    // Calculate subtotal for free shipping threshold
+    const subtotal = items.reduce((sum: number, item: { price: number; quantity: number }) =>
+      sum + (item.price * item.quantity), 0
+    )
+
+    // Fetch tenant's shipping configuration
+    const tenant = await tenants.getTenantById(tenantId)
+    const shippingConfig = tenant?.shippingConfig
+    const shippingMethods = shippingConfig?.methods?.filter(m => m.enabled) || DEFAULT_SHIPPING_METHODS
+
+    // Check for free shipping threshold
+    const freeShippingThreshold = shippingConfig?.freeShippingThreshold
+    const qualifiesForFreeShipping = freeShippingThreshold && subtotal >= freeShippingThreshold
+
+    // Build Stripe shipping options
+    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = shippingMethods.map(method => {
+      // Apply free shipping if threshold is met
+      const shippingAmount = qualifiesForFreeShipping ? 0 : Math.round(method.price * 100)
+
+      return {
+        shipping_rate_data: {
+          type: 'fixed_amount' as const,
+          fixed_amount: {
+            amount: shippingAmount,
+            currency: (method.currency || 'AUD').toLowerCase(),
+          },
+          display_name: method.name + (qualifiesForFreeShipping ? ' (FREE)' : ''),
+          delivery_estimate: {
+            minimum: {
+              unit: 'business_day' as const,
+              value: method.estimatedDays.min,
+            },
+            maximum: {
+              unit: 'business_day' as const,
+              value: method.estimatedDays.max,
+            },
+          },
+        },
+      }
+    })
+
+    // Add local pickup if enabled
+    if (shippingConfig?.localPickupEnabled) {
+      shippingOptions.push({
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: {
+            amount: 0,
+            currency: 'aud',
+          },
+          display_name: 'Local Pickup',
+          delivery_estimate: {
+            minimum: { unit: 'business_day', value: 1 },
+            maximum: { unit: 'business_day', value: 2 },
+          },
+        },
       })
     }
 
@@ -85,22 +243,24 @@ export async function POST(request: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['AU', 'NZ', 'US', 'GB'],
       },
+      shipping_options: shippingOptions,
       metadata: {
         tenantId,
         customerName: customerInfo.name,
         customerPhone: customerInfo.phone || '',
-        shippingAddressLine1: shippingAddress.line1,
-        shippingAddressLine2: shippingAddress.line2 || '',
-        shippingCity: shippingAddress.city,
-        shippingState: shippingAddress.state,
-        shippingPostalCode: shippingAddress.postalCode,
-        shippingCountry: shippingAddress.country,
+        shippingAddressLine1: shippingAddress?.line1 || '',
+        shippingAddressLine2: shippingAddress?.line2 || '',
+        shippingCity: shippingAddress?.city || '',
+        shippingState: shippingAddress?.state || '',
+        shippingPostalCode: shippingAddress?.postalCode || '',
+        shippingCountry: shippingAddress?.country || '',
         notes: notes || '',
         items: JSON.stringify(items),
+        reservationSessionId: tempSessionId, // Link to stock reservations
       },
     })
 
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: session.url, sessionId: session.id })
   } catch (error) {
     console.error('Checkout error:', error)
     return NextResponse.json(

@@ -16,8 +16,16 @@ export interface Enquiry {
   status: EnquiryStatus
   notes?: string
 
+  // Where the form was shown
   source: 'shop' | 'custom_domain'
   sourceDomain?: string
+
+  // Traffic attribution (UTM-based)
+  trafficSource?: string // e.g., 'instagram', 'marketplace', 'google'
+  trafficMedium?: string
+  trafficCampaign?: string
+  landingPage?: string
+  sessionId?: string
 
   createdAt: Date
   updatedAt: Date
@@ -33,6 +41,12 @@ export interface CreateEnquiryInput {
   pieceName?: string
   source: 'shop' | 'custom_domain'
   sourceDomain?: string
+  // Traffic attribution (from cookies)
+  trafficSource?: string
+  trafficMedium?: string
+  trafficCampaign?: string
+  landingPage?: string
+  sessionId?: string
 }
 
 export interface UpdateEnquiryInput {

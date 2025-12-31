@@ -244,11 +244,11 @@ export default function SettingsPage() {
         <h3 className="mb-2 text-sm font-semibold text-blue-900">Tips</h3>
         <ul className="space-y-1 text-sm text-blue-800">
           <li>
-            • Changing your maker type will update your preset categories, but won't affect
+            • Changing your maker type will update your preset categories, but won&apos;t affect
             existing products
           </li>
           <li>• You can add custom categories on top of any preset template</li>
-          <li>• Removing a category won't delete products using that category</li>
+          <li>• Removing a category won&apos;t delete products using that category</li>
         </ul>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { orders, pieces, tenants } from '@madebuy/db'
+import { orders, pieces, tenants, stockReservations } from '@madebuy/db'
 import type { CreateOrderInput } from '@madebuy/shared'
 import { sendOrderConfirmation } from '@/lib/email'
 
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       const customerName = session.metadata?.customerName
       const customerPhone = session.metadata?.customerPhone
       const notes = session.metadata?.notes
+      const reservationSessionId = session.metadata?.reservationSessionId
 
       if (!tenantId || !itemsJson) {
         console.error('Missing required metadata in session')
@@ -47,6 +48,14 @@ export async function POST(request: NextRequest) {
       }
 
       const items = JSON.parse(itemsJson)
+
+      // Complete stock reservations (decrements actual stock atomically)
+      if (reservationSessionId) {
+        const completed = await stockReservations.completeReservation(reservationSessionId)
+        if (!completed) {
+          console.warn(`No reservations found for session ${reservationSessionId}`)
+        }
+      }
 
       // Build order items with full piece data
       const orderItems = []
@@ -65,12 +74,7 @@ export async function POST(request: NextRequest) {
           category: piece.category,
           description: piece.description,
         })
-
-        // Update stock if tracked
-        if (piece.stock !== undefined) {
-          const newStock = Math.max(0, piece.stock - item.quantity)
-          await pieces.updatePiece(tenantId, piece.id, { stock: newStock })
-        }
+        // Stock is now handled by completeReservation above
       }
 
       // Get shipping address from session
@@ -140,6 +144,19 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({ received: true, orderId: order.id })
+    }
+
+    // Handle expired checkout sessions - release stock reservations
+    if (event.type === 'checkout.session.expired') {
+      const session = event.data.object as Stripe.Checkout.Session
+      const reservationSessionId = session.metadata?.reservationSessionId
+
+      if (reservationSessionId) {
+        await stockReservations.cancelReservation(reservationSessionId)
+        console.log(`Released stock reservations for expired session ${reservationSessionId}`)
+      }
+
+      return NextResponse.json({ received: true })
     }
 
     // Handle other event types if needed

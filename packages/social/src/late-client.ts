@@ -1,12 +1,114 @@
+/**
+ * Late.dev API Client
+ * https://getlate.dev/docs
+ *
+ * Late is a unified social media scheduling platform supporting:
+ * - Instagram (feed, reels, stories)
+ * - Facebook (pages, groups)
+ * - TikTok, LinkedIn, YouTube, Twitter, Threads, Pinterest, Reddit, Mastodon
+ */
+
 import type { SocialPlatform, PlatformResult } from '@madebuy/shared'
 
-const LATE_API_BASE = 'https://api.late.ai/v1' // Placeholder - replace with actual Late API endpoint
-const LATE_API_KEY = process.env.LATE_API_KEY
+// =============================================================================
+// Types
+// =============================================================================
 
-if (!LATE_API_KEY) {
-  console.warn('⚠️  LATE_API_KEY not configured. Social publishing will fail.')
+export type LatePlatformType =
+  | 'instagram'
+  | 'facebook'
+  | 'tiktok'
+  | 'linkedin'
+  | 'youtube'
+  | 'twitter'
+  | 'threads'
+  | 'pinterest'
+  | 'reddit'
+  | 'mastodon'
+
+export interface LatePost {
+  content: string
+  scheduledFor?: string // ISO 8601 timestamp, omit for immediate publish
+  platforms: LatePlatform[]
+  mediaItems?: LateMedia[] // Late.dev uses 'mediaItems' not 'media'
 }
 
+export interface LatePlatform {
+  platform: LatePlatformType
+  accountId: string // Late account ID for the platform
+  settings?: {
+    // Instagram-specific
+    firstComment?: string
+    collaborators?: string[]
+    location?: {
+      name: string
+      latitude?: number
+      longitude?: number
+    }
+
+    // Facebook-specific
+    targeting?: {
+      geoLocations?: string[]
+      locales?: string[]
+      ageMin?: number
+      ageMax?: number
+    }
+  }
+}
+
+export interface LateMedia {
+  url: string
+  type: 'image' | 'video' | 'gif'
+  altText?: string
+  thumbnail?: string // For videos
+}
+
+export interface LatePostResponse {
+  success: boolean
+  postId?: string
+  scheduledId?: string
+  platformPosts?: Array<{
+    platform: string
+    accountId: string
+    platformPostId?: string
+    platformPostUrl?: string // Late.dev returns this for Pinterest
+    permalink?: string
+    error?: string
+  }>
+  error?: string
+}
+
+export interface LateAccount {
+  id: string
+  platform: string
+  username: string
+  displayName: string
+  profileImage?: string
+  isActive: boolean
+  permissions: string[]
+  createdAt: string
+}
+
+export interface LateAccountsResponse {
+  accounts: LateAccount[]
+}
+
+export interface LateProfile {
+  _id: string
+  userId: string
+  name: string
+  description?: string
+  isDefault: boolean
+  color?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface LateProfilesResponse {
+  profiles: LateProfile[]
+}
+
+// Legacy types for backwards compatibility
 export interface LatePublishRequest {
   platforms: SocialPlatform[]
   caption: string
@@ -44,91 +146,436 @@ export interface LateOAuthTokenResponse {
   scope?: string
 }
 
-/**
- * Late API Client for multi-platform social media publishing
- *
- * NOTE: This is a placeholder implementation. The actual Late API
- * may have different endpoints and request/response formats.
- * Update this file based on Late API documentation.
- */
+// =============================================================================
+// Late.dev API Client
+// =============================================================================
+
 export class LateClient {
+  private baseUrl = 'https://getlate.dev/api/v1'
   private apiKey: string
-  private baseUrl: string
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || LATE_API_KEY || ''
-    this.baseUrl = LATE_API_BASE
+    this.apiKey = apiKey || process.env.LATE_API_KEY || ''
+
+    if (!this.apiKey) {
+      throw new Error('Late API key is required. Set LATE_API_KEY environment variable.')
+    }
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`
+  // ===========================================================================
+  // Profile Methods
+  // ===========================================================================
+
+  /**
+   * Get all profiles
+   */
+  async getProfiles(): Promise<LateProfilesResponse> {
+    const response = await this.request('GET', '/profiles')
+    return response
+  }
+
+  /**
+   * Get default profile ID
+   */
+  async getDefaultProfileId(): Promise<string> {
+    const data = await this.getProfiles()
+    const defaultProfile = data.profiles.find(p => p.isDefault) || data.profiles[0]
+
+    if (!defaultProfile) {
+      throw new Error('No profiles found in Late.dev account')
+    }
+
+    return defaultProfile._id
+  }
+
+  // ===========================================================================
+  // Account Methods
+  // ===========================================================================
+
+  /**
+   * Get all connected accounts
+   */
+  async getAccounts(): Promise<LateAccountsResponse> {
+    const response = await this.request('GET', '/accounts')
+    return response
+  }
+
+  /**
+   * Get accounts for a specific platform
+   */
+  async getAccountsByPlatform(platform: string): Promise<LateAccount[]> {
+    const data = await this.getAccounts()
+    return data.accounts.filter(acc => acc.platform === platform)
+  }
+
+  /**
+   * Connect a new account (returns OAuth URL)
+   * Uses Late.dev's documented OAuth flow: GET /v1/connect/{platform}
+   */
+  async getConnectUrl(platform: string, redirectUri?: string): Promise<string> {
+    // Get the actual profileId from Late.dev API
+    const profileId = await this.getDefaultProfileId()
+
+    const redirect_url = redirectUri || process.env.NEXT_PUBLIC_SITE_URL
+
+    // Build query parameters - conditionally include redirect_url if defined
+    const params = new URLSearchParams({
+      profileId,
+      ...(redirect_url && { redirect_url })
+    })
+
+    // Use GET request with query params, not POST with body
+    const url = `${this.baseUrl}/connect/${platform}?${params.toString()}`
 
     const response = await fetch(url, {
-      ...options,
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+        'Authorization': `Bearer ${this.apiKey}`
+      }
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Late API error: ${response.status} ${error}`)
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}`
+      throw new Error(errorMessage)
     }
 
-    return await response.json()
+    const data = await response.json()
+    return data.authUrl
   }
 
   /**
-   * Publish content to multiple social platforms
+   * Disconnect an account
+   */
+  async disconnectAccount(accountId: string): Promise<void> {
+    await this.request('DELETE', `/accounts/${accountId}`)
+  }
+
+  // ===========================================================================
+  // Post Methods
+  // ===========================================================================
+
+  /**
+   * Create and publish/schedule a post
+   */
+  async createPost(post: LatePost): Promise<LatePostResponse> {
+    try {
+      console.log('[Late.dev] createPost request:', JSON.stringify(post, null, 2))
+      const response = await this.request('POST', '/posts', post)
+      console.log('[Late.dev] createPost response:', JSON.stringify(response, null, 2))
+
+      return {
+        success: true,
+        postId: response.id,
+        scheduledId: response.scheduledId,
+        platformPosts: response.platformPosts
+      }
+    } catch (error: any) {
+      console.error('[Late.dev] post error - RAW ERROR OBJECT:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+      console.error('[Late.dev] post error - typeof:', typeof error)
+      console.error('[Late.dev] post error - error.message:', error.message)
+      console.error('[Late.dev] post error - error.error:', error.error)
+      console.error('[Late.dev] post error - error.toString():', error.toString())
+
+      // Extract the most detailed error message available
+      const errorMessage = error.message ||
+                          error.error ||
+                          (typeof error === 'string' ? error : null) ||
+                          'Failed to publish via Late.dev'
+
+      console.error('[Late.dev] final error message being returned:', errorMessage)
+
+      return {
+        success: false,
+        error: errorMessage
+      }
+    }
+  }
+
+  /**
+   * Legacy publish method for backwards compatibility
+   * Converts LatePublishRequest to LatePost format
    */
   async publish(request: LatePublishRequest): Promise<LatePublishResponse> {
-    return await this.request<LatePublishResponse>('/publish', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    })
+    const post: LatePost = {
+      content: request.caption,
+      scheduledFor: request.scheduledFor?.toISOString(),
+      platforms: request.platforms.map(platform => ({
+        platform: platform as LatePlatformType,
+        accountId: '' // Caller needs to provide account IDs via createPost instead
+      })),
+      mediaItems: request.mediaUrls?.map(url => ({
+        url,
+        type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as 'image' | 'video'
+      }))
+    }
+
+    const result = await this.createPost(post)
+
+    return {
+      id: result.postId || '',
+      status: result.success ? (request.scheduledFor ? 'scheduled' : 'published') : 'failed',
+      results: result.platformPosts?.map(pp => ({
+        platform: pp.platform as SocialPlatform,
+        status: pp.error ? 'failed' as const : 'success' as const,
+        postId: pp.platformPostId,
+        postUrl: pp.platformPostUrl || pp.permalink,
+        error: pp.error
+      })) || []
+    }
   }
+
+  /**
+   * Upload media to Late.dev
+   * Returns URL that can be used in post.mediaItems
+   */
+  async uploadMedia(file: File | Blob, type: 'image' | 'video'): Promise<string> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('type', type)
+
+    const response = await fetch(`${this.baseUrl}/media`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to upload media')
+    }
+
+    const data = await response.json()
+    return data.url
+  }
+
+  /**
+   * Get post status
+   */
+  async getPost(postId: string): Promise<any> {
+    return await this.request('GET', `/posts/${postId}`)
+  }
+
+  /**
+   * Delete a scheduled post
+   */
+  async deletePost(postId: string): Promise<void> {
+    await this.request('DELETE', `/posts/${postId}`)
+  }
+
+  /**
+   * Get publishing status (legacy alias)
+   */
+  async getPublishStatus(publishId: string): Promise<LatePublishResponse> {
+    const post = await this.getPost(publishId)
+    return {
+      id: post.id,
+      status: post.status || 'published',
+      results: post.platformPosts?.map((pp: any) => ({
+        platform: pp.platform as SocialPlatform,
+        status: pp.error ? 'failed' as const : 'success' as const,
+        postId: pp.platformPostId,
+        postUrl: pp.platformPostUrl || pp.permalink,
+        error: pp.error
+      })) || []
+    }
+  }
+
+  /**
+   * Cancel a scheduled post (legacy alias)
+   */
+  async cancelScheduledPost(publishId: string): Promise<void> {
+    await this.deletePost(publishId)
+  }
+
+  // ===========================================================================
+  // Legacy OAuth Methods (kept for backwards compatibility)
+  // ===========================================================================
 
   /**
    * Get OAuth authorization URL for a platform
+   * @deprecated Use getConnectUrl instead
    */
   async getOAuthUrl(request: LateOAuthUrlRequest): Promise<LateOAuthUrlResponse> {
-    return await this.request<LateOAuthUrlResponse>('/oauth/authorize', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    })
+    const authUrl = await this.getConnectUrl(request.platform, request.redirectUri)
+    return { authUrl }
   }
 
   /**
    * Exchange OAuth code for access token
+   * Note: Late.dev handles this internally, tokens are stored in your Late.dev account
    */
   async getOAuthToken(request: LateOAuthTokenRequest): Promise<LateOAuthTokenResponse> {
-    return await this.request<LateOAuthTokenResponse>('/oauth/token', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    })
+    return await this.request('POST', '/oauth/token', request)
   }
 
-  /**
-   * Get publishing status
-   */
-  async getPublishStatus(publishId: string): Promise<LatePublishResponse> {
-    return await this.request<LatePublishResponse>(`/publish/${publishId}`)
-  }
+  // ===========================================================================
+  // Internal Request Handler
+  // ===========================================================================
 
-  /**
-   * Cancel a scheduled post
-   */
-  async cancelScheduledPost(publishId: string): Promise<void> {
-    await this.request(`/publish/${publishId}`, {
-      method: 'DELETE',
+  private async request(method: string, endpoint: string, data?: any): Promise<any> {
+    const url = `${this.baseUrl}${endpoint}`
+
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json'
+    }
+
+    const options: RequestInit = {
+      method,
+      headers,
+      cache: 'no-store' // Disable Next.js fetch caching for real-time data
+    }
+
+    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+      options.body = JSON.stringify(data)
+    }
+
+    console.log('[Late.dev] API Request:', {
+      method,
+      url,
+      hasBody: !!options.body
     })
+
+    const response = await fetch(url, options)
+
+    console.log('[Late.dev] API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      contentType: response.headers.get('content-type')
+    })
+
+    if (!response.ok) {
+      // Try to parse as JSON, but also capture raw text in case it's not JSON
+      let errorData: any = {}
+      let rawBody = ''
+
+      try {
+        const text = await response.text()
+        rawBody = text
+        console.error('[Late.dev] RAW RESPONSE TEXT:', text)
+        console.error('[Late.dev] RAW RESPONSE TEXT LENGTH:', text.length)
+        errorData = JSON.parse(text)
+        console.error('[Late.dev] PARSED JSON:', JSON.stringify(errorData, null, 2))
+      } catch (e) {
+        // Response is not JSON, use raw text
+        console.error('[Late.dev] Response is NOT valid JSON, error:', e)
+        errorData = { raw: rawBody }
+      }
+
+      // Convert headers to object for logging
+      const headersObj: Record<string, string> = {}
+      response.headers.forEach((value, key) => {
+        headersObj[key] = value
+      })
+
+      console.error('[Late.dev] API Error Response - STATUS:', response.status, response.statusText)
+      console.error('[Late.dev] API Error Response - RAW BODY:', rawBody)
+      console.error('[Late.dev] API Error Response - PARSED errorData:', JSON.stringify(errorData, null, 2))
+      console.error('[Late.dev] API Error Response - errorData.error:', errorData.error)
+      console.error('[Late.dev] API Error Response - errorData.message:', errorData.message)
+      console.error('[Late.dev] API Error Response - HEADERS:', headersObj)
+
+      // Extract error message from various possible fields
+      const errorMessage = errorData.message ||
+                          errorData.error ||
+                          errorData.details ||
+                          errorData.error_description ||
+                          (typeof errorData === 'string' ? errorData : null) ||
+                          (rawBody && rawBody.length < 500 ? rawBody : null) ||
+                          `Late.dev API error: HTTP ${response.status} ${response.statusText}`
+
+      console.error('[Late.dev] API Error Response - FINAL ERROR MESSAGE:', errorMessage)
+
+      // Include raw response in error for debugging
+      const detailedError = `${errorMessage} [Status: ${response.status}, Body: ${rawBody.substring(0, 200)}]`
+      throw new Error(detailedError)
+    }
+
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return {}
+    }
+
+    return await response.json()
   }
 }
 
-// Singleton instance
-export const lateClient = new LateClient()
+// =============================================================================
+// Singleton Instance
+// =============================================================================
+
+let lateClientInstance: LateClient | null = null
+
+export function getLateClient(): LateClient {
+  if (!lateClientInstance) {
+    lateClientInstance = new LateClient()
+  }
+  return lateClientInstance
+}
+
+// Legacy singleton export for backwards compatibility
+export const lateClient = new Proxy({} as LateClient, {
+  get(_, prop) {
+    return (getLateClient() as any)[prop]
+  }
+})
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+/**
+ * Helper: Publish immediately to multiple platforms
+ */
+export async function publishToLate(
+  content: string,
+  platforms: Array<{ platform: string; accountId: string }>,
+  mediaUrls?: string[]
+): Promise<LatePostResponse> {
+  const client = getLateClient()
+
+  const post: LatePost = {
+    content,
+    platforms: platforms.map(p => ({
+      platform: p.platform as LatePlatformType,
+      accountId: p.accountId
+    })),
+    mediaItems: mediaUrls?.map(url => ({
+      url,
+      type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as 'image' | 'video'
+    }))
+  }
+
+  return await client.createPost(post)
+}
+
+/**
+ * Helper: Schedule a post for later
+ */
+export async function scheduleToLate(
+  content: string,
+  scheduledFor: Date,
+  platforms: Array<{ platform: string; accountId: string }>,
+  mediaUrls?: string[]
+): Promise<LatePostResponse> {
+  const client = getLateClient()
+
+  const post: LatePost = {
+    content,
+    scheduledFor: scheduledFor.toISOString(),
+    platforms: platforms.map(p => ({
+      platform: p.platform as LatePlatformType,
+      accountId: p.accountId
+    })),
+    mediaItems: mediaUrls?.map(url => ({
+      url,
+      type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as 'image' | 'video'
+    }))
+  }
+
+  return await client.createPost(post)
+}

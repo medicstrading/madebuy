@@ -16,6 +16,8 @@ export * from './promotion'
 export * from './publish'
 export * from './enquiry'
 export * from './blog'
+export * from './analytics'
+export * from './tracking'
 
 // Re-export commonly used types for convenience
 export type {
@@ -36,6 +38,8 @@ export type {
   PieceFilters,
   PieceIntegrations,
   EtsyListingIntegration,
+  VariantOption,
+  ProductVariant,
 } from './piece'
 
 export type {
@@ -117,3 +121,15 @@ export type {
   EtsyListingIntegration as EtsyProductIntegration,
   SellerBadge,
 } from './product'
+
+export type {
+  TrafficSource,
+  TrackingEventType,
+  TrackingEvent,
+  DailyAnalytics,
+  SourceStats,
+  SourceAnalyticsSummary,
+  TrackedLinks,
+  AttributionData,
+  UTMParams,
+} from './tracking'

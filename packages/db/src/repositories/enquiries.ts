@@ -15,6 +15,12 @@ export async function createEnquiry(tenantId: string, data: CreateEnquiryInput):
     pieceName: data.pieceName,
     source: data.source,
     sourceDomain: data.sourceDomain,
+    // Traffic attribution
+    trafficSource: data.trafficSource,
+    trafficMedium: data.trafficMedium,
+    trafficCampaign: data.trafficCampaign,
+    landingPage: data.landingPage,
+    sessionId: data.sessionId,
     status: 'new',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -98,4 +104,32 @@ export async function deleteEnquiry(tenantId: string, id: string): Promise<void>
 export async function countEnquiries(tenantId: string): Promise<number> {
   const db = await getDatabase()
   return await db.collection('enquiries').countDocuments({ tenantId })
+}
+
+/**
+ * Ensure indexes exist (call on app startup)
+ */
+export async function ensureIndexes(): Promise<void> {
+  const db = await getDatabase()
+
+  await db.collection('enquiries').createIndex(
+    { tenantId: 1, createdAt: -1 },
+    { background: true }
+  )
+  await db.collection('enquiries').createIndex(
+    { tenantId: 1, id: 1 },
+    { unique: true, background: true }
+  )
+  await db.collection('enquiries').createIndex(
+    { tenantId: 1, status: 1 },
+    { background: true }
+  )
+  await db.collection('enquiries').createIndex(
+    { tenantId: 1, pieceId: 1 },
+    { background: true }
+  )
+  await db.collection('enquiries').createIndex(
+    { tenantId: 1, trafficSource: 1 },
+    { background: true }
+  )
 }

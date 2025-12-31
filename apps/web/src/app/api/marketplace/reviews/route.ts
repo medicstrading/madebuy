@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { marketplace } from '@madebuy/db'
+import { rateLimiters } from '@/lib/rate-limit'
 
 /**
  * POST /api/marketplace/reviews
@@ -19,6 +20,10 @@ import { marketplace } from '@madebuy/db'
  * }
  */
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 requests per minute (prevent review spam)
+  const rateLimitResponse = rateLimiters.reviews(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const body = await request.json()
 

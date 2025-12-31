@@ -35,6 +35,11 @@ export interface Piece {
   // Inventory
   stock?: number // Quantity available. Undefined = unlimited stock
 
+  // Variants (optional - for products with size/color/etc options)
+  hasVariants?: boolean
+  variantOptions?: VariantOption[] // e.g., [{name: "Size", values: ["S", "M", "L"]}]
+  variants?: ProductVariant[] // Individual variant combinations with stock/price
+
   // Status
   status: PieceStatus
 
@@ -75,6 +80,26 @@ export interface Piece {
 
 export type PieceStatus = 'draft' | 'available' | 'reserved' | 'sold'
 
+/**
+ * Variant Option - defines a single option type (e.g., Size, Color)
+ */
+export interface VariantOption {
+  name: string // e.g., "Size", "Color", "Material"
+  values: string[] // e.g., ["S", "M", "L"] or ["Red", "Blue", "Green"]
+}
+
+/**
+ * Product Variant - a specific combination of options with its own stock/price
+ */
+export interface ProductVariant {
+  id: string
+  options: Record<string, string> // e.g., { "Size": "M", "Color": "Red" }
+  sku?: string
+  price?: number // Override base price (if different from parent)
+  stock?: number // Variant-specific stock
+  isAvailable: boolean
+}
+
 // Social Video Embeds - imported from product.ts to avoid duplication
 
 export interface EtsyListingIntegration {
@@ -105,6 +130,10 @@ export interface CreatePieceInput {
   tags?: string[]
   status?: PieceStatus
   isFeatured?: boolean
+  // Variants
+  hasVariants?: boolean
+  variantOptions?: VariantOption[]
+  variants?: Omit<ProductVariant, 'id'>[] // IDs will be generated on creation
   // DEPRECATED: Legacy fields for backward compatibility
   stones?: string[]
   metals?: string[]

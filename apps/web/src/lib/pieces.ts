@@ -21,11 +21,11 @@ export async function populatePieceWithMedia(piece: Piece): Promise<PieceWithMed
     ? validImages.find(img => img && img.id === piece.primaryMediaId) || validImages[0]
     : validImages[0]
 
-  // Combine materials
+  // Combine materials (handle undefined arrays)
   const materials = [
-    ...piece.stones,
-    ...piece.metals,
-    ...piece.techniques,
+    ...(piece.stones || []),
+    ...(piece.metals || []),
+    ...(piece.techniques || []),
   ].filter(Boolean)
 
   return {

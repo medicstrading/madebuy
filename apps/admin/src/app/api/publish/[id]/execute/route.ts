@@ -1,8 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { publish, media, blog } from '@madebuy/db'
-import { lateClient } from '@madebuy/social'
+import { lateClient, type LateMedia, type LatePlatform, type LatePlatformType } from '@madebuy/social'
 import type { SocialPlatform, PlatformResult } from '@madebuy/shared'
+
+// Video file extensions for determining media type
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v']
+
+/**
+ * Determine if a URL points to a video file
+ */
+function isVideo(url: string): boolean {
+  const lowerUrl = url.toLowerCase()
+  return VIDEO_EXTENSIONS.some(ext => lowerUrl.includes(ext))
+}
+
+/**
+ * Get account ID for a platform from environment variables or Late API
+ */
+async function getAccountIdForPlatform(
+  platform: Exclude<SocialPlatform, 'website-blog'>,
+  socialConnections?: { platform: SocialPlatform; lateAccountId?: string; isActive: boolean }[]
+): Promise<string | null> {
+  // First, check if tenant has a stored lateAccountId for this platform
+  if (socialConnections) {
+    const connection = socialConnections.find(
+      c => c.platform === platform && c.isActive && c.lateAccountId
+    )
+    if (connection?.lateAccountId) {
+      return connection.lateAccountId
+    }
+  }
+
+  // Fall back to environment variables
+  const envKey = `LATE_${platform.toUpperCase()}_ACCOUNT_ID`
+  const envAccountId = process.env[envKey]
+  if (envAccountId) {
+    return envAccountId
+  }
+
+  // Last resort: query Late API for accounts
+  try {
+    const accounts = await lateClient.getAccountsByPlatform(platform)
+    return accounts[0]?.id || null
+  } catch (error) {
+    console.error(`Failed to get account ID for ${platform}:`, error)
+    return null
+  }
+}
 
 export async function POST(
   request: NextRequest,
@@ -47,38 +92,74 @@ export async function POST(
       // Publish to social media platforms via Late.dev
       if (socialPlatforms.length > 0) {
         try {
-          // Get tenant access tokens for each platform
-          const tenantAccessTokens: Partial<Record<SocialPlatform, string>> = {}
-          if (tenant.socialConnections) {
-            for (const conn of tenant.socialConnections) {
-              const platform = conn.platform
-              // Only include platforms that are in socialPlatforms (excludes website-blog)
-              if (platform !== 'website-blog' && socialPlatforms.includes(platform)) {
-                tenantAccessTokens[platform] = conn.accessToken
-              }
+          // Build platform targets with account IDs
+          const platformTargets: LatePlatform[] = []
+          const missingPlatforms: string[] = []
+
+          for (const platform of socialPlatforms) {
+            const accountId = await getAccountIdForPlatform(platform, tenant.socialConnections)
+
+            if (accountId) {
+              platformTargets.push({ platform: platform as LatePlatformType, accountId })
+            } else {
+              missingPlatforms.push(platform)
             }
           }
 
-          // Publish to social platforms using Late API
-          const lateResponse = await lateClient.publish({
-            platforms: socialPlatforms,
-            caption: publishRecord.caption,
-            mediaUrls: validMediaFiles.map(m => m!.variants.original.url),
-            scheduledFor: publishRecord.scheduledFor || undefined,
-            tenantAccessTokens: tenantAccessTokens as Record<SocialPlatform, string>,
-          })
-
-          // Add social media results
-          results.push(...lateResponse.results)
-        } catch (socialError) {
-          // If social publishing fails, mark all social platforms as failed
-          const errorMessage = socialError instanceof Error ? socialError.message : 'Social publishing failed'
-          socialPlatforms.forEach(platform => {
+          // Add failed results for platforms without account IDs
+          for (const platform of missingPlatforms) {
             results.push({
-              platform,
+              platform: platform as SocialPlatform,
               status: 'failed',
-              error: errorMessage,
+              error: `No connected account found for ${platform}. Please connect your ${platform} account in Settings.`,
             })
+          }
+
+          // Only proceed if we have at least one platform with an account ID
+          if (platformTargets.length > 0) {
+            // Build media items from valid media files
+            const mediaUrls = validMediaFiles.map(m => m!.variants.original.url)
+            const mediaItems: LateMedia[] = mediaUrls.map(url => ({
+              type: isVideo(url) ? 'video' as const : 'image' as const,
+              url
+            }))
+
+            // Create post using the new Late API format
+            const lateResponse = await lateClient.createPost({
+              content: publishRecord.caption,
+              platforms: platformTargets,
+              mediaItems: mediaItems.length > 0 ? mediaItems : undefined,
+              scheduledFor: publishRecord.scheduledFor?.toISOString(),
+            })
+
+            // Convert Late API results to PlatformResult format
+            if (lateResponse.platformPosts) {
+              for (const lateResult of lateResponse.platformPosts) {
+                results.push({
+                  platform: lateResult.platform as SocialPlatform,
+                  status: lateResult.error ? 'failed' : 'success',
+                  postId: lateResult.platformPostId,
+                  postUrl: lateResult.platformPostUrl || lateResult.permalink,
+                  error: lateResult.error,
+                })
+              }
+            }
+          }
+        } catch (socialError) {
+          // If social publishing fails, mark all remaining social platforms as failed
+          const errorMessage = socialError instanceof Error ? socialError.message : 'Social publishing failed'
+
+          // Only add failures for platforms that weren't already added
+          const alreadyResultedPlatforms = new Set(results.map(r => r.platform))
+
+          socialPlatforms.forEach(platform => {
+            if (!alreadyResultedPlatforms.has(platform)) {
+              results.push({
+                platform,
+                status: 'failed',
+                error: errorMessage,
+              })
+            }
           })
         }
       }
@@ -125,7 +206,8 @@ export async function POST(
 
       // Determine final status
       const allSuccess = results.every(r => r.status === 'success')
-      const finalStatus = allSuccess ? 'published' : (results.some(r => r.status === 'success') ? 'published' : 'failed')
+      const anySuccess = results.some(r => r.status === 'success')
+      const finalStatus = allSuccess ? 'published' : (anySuccess ? 'published' : 'failed')
 
       // Update with results
       await publish.updatePublishRecord(tenant.id, params.id, {
