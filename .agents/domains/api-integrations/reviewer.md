@@ -1,35 +1,40 @@
 # API Integrations Reviewer
 
-**Domain:** External APIs, suppliers, social media
+**Domain:** Third-party APIs, webhooks, external services
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-- [ ] Rate limiting handled
-- [ ] Retry logic with backoff
-- [ ] Circuit breaker pattern
-- [ ] Error handling
-- [ ] Response caching
-- [ ] API versioning
-- [ ] Credential management
+1. **Reliability**
+   - Timeout configured?
+   - Retry logic with backoff?
+   - Circuit breaker for failing services?
+
+2. **Error Handling**
+   - API errors caught and logged?
+   - Fallback behavior defined?
+   - User-friendly error messages?
+
+3. **Security**
+   - API keys in environment variables?
+   - Rate limiting respected?
+   - Webhook signatures verified?
 
 ---
 
 ## Output Format
 
-```
-## API Integration Review: [Integration]
+```markdown
+## API Integration Review: [Service]
 
-### Summary
-[1-2 sentences]
+### Reliability: [PASS/FAIL]
+- [Observations]
 
-### Reliability Concerns
-1. [Issue]
+### Error Handling: [PASS/FAIL]
+- [Observations]
 
-### Recommendations
-1. [Fix]
-
-### Risk Level: [LOW/MEDIUM/HIGH]
+### Security: [PASS/FAIL]
+- [Observations]
 ```

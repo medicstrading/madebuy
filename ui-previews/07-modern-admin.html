@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MadeBuy Seller Dashboard - Modern Clean</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --white: #FFFFFF;
+      --gray-50: #F9FAFB;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB;
+      --gray-400: #9CA3AF;
+      --gray-500: #6B7280;
+      --gray-600: #4B5563;
+      --gray-700: #374151;
+      --gray-800: #1F2937;
+      --gray-900: #111827;
+
+      --blue-50: #EFF6FF;
+      --blue-100: #DBEAFE;
+      --blue-500: #3B82F6;
+      --blue-600: #2563EB;
+
+      --green-50: #F0FDF4;
+      --green-500: #22C55E;
+      --green-600: #16A34A;
+
+      --amber-50: #FFFBEB;
+      --amber-500: #F59E0B;
+
+      --red-50: #FEF2F2;
+      --red-500: #EF4444;
+
+      --purple-50: #FAF5FF;
+      --purple-500: #A855F7;
+
+      --font: 'Inter', -apple-system, sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--gray-50);
+      color: var(--gray-900);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--white);
+      border-right: 1px solid var(--gray-200);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--blue-600);
+    }
+
+    .sidebar-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: none;
+    }
+
+    .nav-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-400);
+      margin-bottom: 0.75rem;
+      padding-left: 0.75rem;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 2px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.625rem 0.75rem;
+      border-radius: var(--radius-sm);
+      color: var(--gray-600);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .nav-link:hover {
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    .nav-link.active {
+      background: var(--blue-50);
+      color: var(--blue-600);
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      padding: 0.125rem 0.5rem;
+      background: var(--blue-100);
+      color: var(--blue-600);
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 10px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--gray-50);
+      border-radius: var(--radius);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-500) 0%, var(--purple-500) 100%);
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .user-plan {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+    }
+
+    .user-menu {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .user-menu:hover {
+      background: var(--gray-200);
+    }
+
+    .user-menu svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--gray-500);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      margin-left: 280px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .search-box {
+      position: relative;
+      width: 320px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.625rem 1rem 0.625rem 2.5rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      background: var(--gray-50);
+      transition: all 0.15s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--blue-500);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      stroke: var(--gray-400);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--gray-200);
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.15s;
+    }
+
+    .header-btn:hover {
+      border-color: var(--gray-300);
+      background: var(--gray-50);
+    }
+
+    .header-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--gray-600);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .header-btn .dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      background: var(--red-500);
+      border-radius: 50%;
+      border: 2px solid var(--white);
+    }
+
+    .btn {
+      font-family: var(--font);
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.625rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .btn-primary {
+      background: var(--blue-600);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-500);
+    }
+
+    .btn-outline {
+      background: var(--white);
+      color: var(--gray-700);
+      border: 1px solid var(--gray-200);
+    }
+
+    .btn-outline:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-300);
+    }
+
+    /* Content */
+    .content {
+      padding: 2rem;
+    }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--blue-600) 0%, var(--purple-500) 100%);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      color: var(--white);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .welcome-text h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .btn-white {
+      background: var(--white);
+      color: var(--blue-600);
+    }
+
+    .btn-white:hover {
+      background: var(--gray-100);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: all 0.15s;
+    }
+
+    .stat-card:hover {
+      border-color: var(--gray-300);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .stat-icon-blue { background: var(--blue-50); }
+    .stat-icon-blue svg { stroke: var(--blue-500); }
+
+    .stat-icon-green { background: var(--green-50); }
+    .stat-icon-green svg { stroke: var(--green-500); }
+
+    .stat-icon-amber { background: var(--amber-50); }
+    .stat-icon-amber svg { stroke: var(--amber-500); }
+
+    .stat-icon-purple { background: var(--purple-50); }
+    .stat-icon-purple svg { stroke: var(--purple-500); }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.5rem;
+      border-radius: 20px;
+    }
+
+    .stat-trend-up {
+      background: var(--green-50);
+      color: var(--green-600);
+    }
+
+    .stat-trend-down {
+      background: var(--red-50);
+      color: var(--red-500);
+    }
+
+    .stat-trend svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    /* Content Grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .card-link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--blue-600);
+      text-decoration: none;
+    }
+
+    .card-link:hover {
+      text-decoration: underline;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    /* Orders Table */
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .orders-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--gray-500);
+      background: var(--gray-50);
+    }
+
+    .orders-table th:first-child {
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+
+    .orders-table th:last-child {
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .orders-table td {
+      padding: 1rem;
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .orders-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .orders-table tr:hover td {
+      background: var(--gray-50);
+    }
+
+    .order-product {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .order-image {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+    }
+
+    .order-name {
+      font-weight: 500;
+    }
+
+    .order-id {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      padding: 0.25rem 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 20px;
+    }
+
+    .status-pending {
+      background: var(--amber-50);
+      color: var(--amber-500);
+    }
+
+    .status-processing {
+      background: var(--blue-50);
+      color: var(--blue-500);
+    }
+
+    .status-shipped {
+      background: var(--purple-50);
+      color: var(--purple-500);
+    }
+
+    .status-delivered {
+      background: var(--green-50);
+      color: var(--green-500);
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .quick-action {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--gray-50);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s;
+    }
+
+    .quick-action:hover {
+      background: var(--blue-50);
+    }
+
+    .quick-action-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .quick-action-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--blue-600);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .quick-action-text h4 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.125rem;
+    }
+
+    .quick-action-text p {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    /* Activity */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .activity-item {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .activity-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .activity-icon svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .activity-icon-order { background: var(--green-50); }
+    .activity-icon-order svg { stroke: var(--green-500); }
+
+    .activity-icon-review { background: var(--amber-50); }
+    .activity-icon-review svg { stroke: var(--amber-500); }
+
+    .activity-icon-view { background: var(--blue-50); }
+    .activity-icon-view svg { stroke: var(--blue-500); }
+
+    .activity-content {
+      flex: 1;
+      padding-top: 0.125rem;
+    }
+
+    .activity-text {
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .activity-text strong {
+      font-weight: 600;
+    }
+
+    .activity-time {
+      font-size: 0.75rem;
+      color: var(--gray-400);
+      margin-top: 0.25rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1280px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main {
+        margin-left: 0;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="logo">Made<span>Buy</span></a>
+      </div>
+
+      <nav class="nav-section">
+        <div class="nav-label">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#" class="nav-link active">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              Products
+              <span class="nav-badge">24</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              Orders
+              <span class="nav-badge">3</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Media
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <nav class="nav-section">
+        <div class="nav-label">Marketing</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              Marketplace
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Promotions
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              Social
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Blog
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <nav class="nav-section">
+        <div class="nav-label">Settings</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Store Design
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Account
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar"></div>
+          <div class="user-info">
+            <div class="user-name">Sarah Chen</div>
+            <div class="user-plan">Maker Plan</div>
+          </div>
+          <button class="user-menu">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <h1 class="page-title">Dashboard</h1>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search products, orders...">
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="header-btn">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dot"></span>
+          </button>
+          <a href="#" class="btn btn-outline">
+            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View Store
+          </a>
+          <a href="#" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Product
+          </a>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div class="welcome-text">
+            <h2>Good morning, Sarah!</h2>
+            <p>Your store had 48 views yesterday. Keep up the great work!</p>
+          </div>
+          <a href="#" class="btn btn-white">View Analytics</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon stat-icon-blue">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="stat-trend stat-trend-up">
+                <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                +12.5%
+              </div>
+            </div>
+            <div class="stat-value">$2,847</div>
+            <div class="stat-label">Revenue this month</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon stat-icon-green">
+                <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
+              <div class="stat-trend stat-trend-up">
+                <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                +8.2%
+              </div>
+            </div>
+            <div class="stat-value">47</div>
+            <div class="stat-label">Orders this month</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon stat-icon-amber">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="stat-trend stat-trend-up">
+                <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                +24.3%
+              </div>
+            </div>
+            <div class="stat-value">1,284</div>
+            <div class="stat-label">Store views</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon stat-icon-purple">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="stat-trend stat-trend-down">
+                <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+                -2.1%
+              </div>
+            </div>
+            <div class="stat-value">4.9</div>
+            <div class="stat-label">Average rating</div>
+          </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+          <!-- Orders Table -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Recent Orders</h3>
+              <a href="#" class="card-link">View all</a>
+            </div>
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="order-product">
+                      <div class="order-image"></div>
+                      <div>
+                        <div class="order-name">Ceramic Vase</div>
+                        <div class="order-id">#ORD-2847</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Emma Wilson</td>
+                  <td>$89.00</td>
+                  <td><span class="status-badge status-pending">Pending</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="order-product">
+                      <div class="order-image"></div>
+                      <div>
+                        <div class="order-name">Linen Runner</div>
+                        <div class="order-id">#ORD-2846</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Michael Brown</td>
+                  <td>$65.00</td>
+                  <td><span class="status-badge status-shipped">Shipped</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="order-product">
+                      <div class="order-image"></div>
+                      <div>
+                        <div class="order-name">Serving Board</div>
+                        <div class="order-id">#ORD-2845</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Sophie Taylor</td>
+                  <td>$120.00</td>
+                  <td><span class="status-badge status-delivered">Delivered</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="order-product">
+                      <div class="order-image"></div>
+                      <div>
+                        <div class="order-name">Silver Ring</div>
+                        <div class="order-id">#ORD-2844</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>James Anderson</td>
+                  <td>$145.00</td>
+                  <td><span class="status-badge status-processing">Processing</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Right Column -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Quick Actions -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Quick Actions</h3>
+              </div>
+              <div class="card-body">
+                <div class="quick-actions">
+                  <a href="#" class="quick-action">
+                    <div class="quick-action-icon">
+                      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </div>
+                    <div class="quick-action-text">
+                      <h4>Add New Product</h4>
+                      <p>List a new item for sale</p>
+                    </div>
+                  </a>
+                  <a href="#" class="quick-action">
+                    <div class="quick-action-icon">
+                      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </div>
+                    <div class="quick-action-text">
+                      <h4>Share to Social</h4>
+                      <p>Promote a product</p>
+                    </div>
+                  </a>
+                  <a href="#" class="quick-action">
+                    <div class="quick-action-icon">
+                      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </div>
+                    <div class="quick-action-text">
+                      <h4>Edit Store</h4>
+                      <p>Customize your storefront</p>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Recent Activity</h3>
+              </div>
+              <div class="card-body">
+                <div class="activity-list">
+                  <div class="activity-item">
+                    <div class="activity-icon activity-icon-order">
+                      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                    <div class="activity-content">
+                      <p class="activity-text"><strong>New order</strong> from Emma Wilson</p>
+                      <p class="activity-time">2 minutes ago</p>
+                    </div>
+                  </div>
+                  <div class="activity-item">
+                    <div class="activity-icon activity-icon-review">
+                      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <div class="activity-content">
+                      <p class="activity-text"><strong>5-star review</strong> on Ceramic Vase</p>
+                      <p class="activity-time">1 hour ago</p>
+                    </div>
+                  </div>
+                  <div class="activity-item">
+                    <div class="activity-icon activity-icon-view">
+                      <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <div class="activity-content">
+                      <p class="activity-text"><strong>48 views</strong> on your store today</p>
+                      <p class="activity-time">3 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

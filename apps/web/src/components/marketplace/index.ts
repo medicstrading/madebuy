@@ -14,3 +14,10 @@ export { ActiveFilters } from './ActiveFilters'
 export { MobileProductCTA } from './MobileProductCTA'
 export { ProductReviews } from './ProductReviews'
 export { RelatedItems } from './RelatedItems'
+
+// Etsy-inspired components (warm, artisanal design)
+export { EtsyProductCard } from './EtsyProductCard'
+export { MixedGrid, MixedGridAlt, MixedGridDouble } from './MixedGrid'
+export { MegaMenu, MegaMenuMobile } from './MegaMenu'
+export { RecentlyViewed, useRecentlyViewed, trackProductView } from './RecentlyViewed'
+export { SearchAutocomplete } from './SearchAutocomplete'

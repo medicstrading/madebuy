@@ -88,3 +88,92 @@ export async function deleteTenant(id: string): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').deleteOne({ id })
 }
+
+/**
+ * Update maker type and categories for a tenant
+ */
+export async function updateMakerSettings(
+  id: string,
+  settings: {
+    makerType?: Tenant['makerType']
+    customCategories?: string[]
+    customMaterialCategories?: string[]
+  }
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id },
+    {
+      $set: {
+        ...settings,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+/**
+ * Add a custom category to a tenant's list
+ */
+export async function addCustomCategory(
+  id: string,
+  category: string,
+  type: 'product' | 'material' = 'product'
+): Promise<void> {
+  const db = await getDatabase()
+  const field = type === 'product' ? 'customCategories' : 'customMaterialCategories'
+  await db.collection('tenants').updateOne(
+    { id },
+    {
+      $addToSet: { [field]: category },
+      $set: { updatedAt: new Date() }
+    }
+  )
+}
+
+/**
+ * Remove a custom category from a tenant's list
+ */
+export async function removeCustomCategory(
+  id: string,
+  category: string,
+  type: 'product' | 'material' = 'product'
+): Promise<void> {
+  const db = await getDatabase()
+  const field = type === 'product' ? 'customCategories' : 'customMaterialCategories'
+  await db.collection('tenants').updateOne(
+    { id },
+    {
+      $pull: { [field]: category } as any,
+      $set: { updatedAt: new Date() }
+    }
+  )
+}
+
+/**
+ * Get all tenants without a maker type (for migration)
+ */
+export async function getTenantsWithoutMakerType(): Promise<Tenant[]> {
+  const db = await getDatabase()
+  const docs = await db.collection('tenants').find({
+    makerType: { $exists: false }
+  }).toArray()
+  return docs as unknown as Tenant[]
+}
+
+/**
+ * Migration: Set default maker type for existing tenants
+ */
+export async function migrateToMakerType(defaultType: Tenant['makerType'] = 'jewelry'): Promise<number> {
+  const db = await getDatabase()
+  const result = await db.collection('tenants').updateMany(
+    { makerType: { $exists: false } },
+    {
+      $set: {
+        makerType: defaultType,
+        updatedAt: new Date()
+      }
+    }
+  )
+  return result.modifiedCount
+}

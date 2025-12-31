@@ -1,32 +1,50 @@
 # Vercel Reviewer
 
-**Domain:** Vercel deployments, domains, env vars
-**Type:** Advisory (non-editing)
+**Domain:** Vercel deployments, edge functions, environment config
+**Type:** Advisory + Active (uses Vercel MCP when available)
 
 ---
 
 ## Review Checklist
 
-- [ ] Build command correct
-- [ ] Output directory correct
-- [ ] Env vars set (dev/preview/prod)
-- [ ] Domain configured
-- [ ] Edge functions appropriate
-- [ ] ISR/SSG/SSR strategy
+1. **Configuration**
+   - vercel.json correct?
+   - Build settings appropriate?
+   - Environment variables set?
+
+2. **Performance**
+   - Edge functions where beneficial?
+   - ISR configured appropriately?
+   - Image optimization enabled?
+
+3. **Domains**
+   - Custom domains configured?
+   - SSL working?
+   - Redirects in place?
+
+---
+
+## Commands (with Vercel MCP)
+
+```
+List deployments
+Check environment variables
+Get deployment logs
+```
 
 ---
 
 ## Output Format
 
-```
-## Vercel Review: [Feature]
+```markdown
+## Vercel Review: [Project]
 
-### Configuration
-[Settings to check]
+### Configuration: [PASS/FAIL]
+- [Observations]
 
-### Env Vars
-[Missing or misconfigured]
+### Environment Variables
+- [Missing/Incorrect vars]
 
 ### Recommendations
-1. [Fix]
+- [Improvements]
 ```

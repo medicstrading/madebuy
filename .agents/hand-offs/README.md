@@ -1,11 +1,23 @@
 # Hand-offs Directory
 
-Inter-agent communication files.
+This directory contains output from sub-agents (task-agent, researchers).
+
+## Naming Convention
 
 ```
-hand-offs/
-└── [task-id]/
-    ├── context.md
-    ├── research-*.md
-    └── summary.md
+feat-[feature-name]/     # New feature research
+fix-[issue-name]/        # Bug investigation
+debug-[problem]/         # Debugging session
+review-[area]/           # Code review output
 ```
+
+## Contents
+
+Each hand-off folder typically contains:
+- `research.md` - Analysis and findings
+- `plan.md` - Implementation plan (if applicable)
+- `summary.md` - Final summary for main agent
+
+## Cleanup
+
+Delete hand-off folders after implementing their recommendations.

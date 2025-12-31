@@ -1,35 +1,40 @@
 # Payments Reviewer
 
-**Domain:** Stripe, PayPal, webhooks, subscriptions
+**Domain:** Payment integrations, Stripe, PayPal, financial transactions
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-- [ ] Webhook signature verification
-- [ ] Idempotency keys used
-- [ ] Error handling for failed payments
-- [ ] Refund logic
-- [ ] Subscription lifecycle
-- [ ] PCI compliance
-- [ ] Test mode vs live mode
+1. **Security**
+   - PCI compliance considered?
+   - Sensitive data not logged?
+   - Webhook signatures verified?
+
+2. **Error Handling**
+   - Failed payments handled gracefully?
+   - Retry logic for transient failures?
+   - User notified of issues?
+
+3. **Reconciliation**
+   - Transaction records kept?
+   - Refund flow implemented?
+   - Dispute handling?
 
 ---
 
 ## Output Format
 
-```
-## Payments Review: [Feature]
+```markdown
+## Payments Review: [Integration]
 
-### Summary
-[1-2 sentences]
+### Security: [PASS/FAIL]
+- [Observations]
 
-### Security Concerns
-1. [Issue]
+### Reliability: [PASS/FAIL]
+- [Observations]
 
 ### Recommendations
-1. [Fix]
-
-### Risk Level: [LOW/MEDIUM/HIGH]
+- [Improvements]
 ```

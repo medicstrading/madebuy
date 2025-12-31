@@ -1,34 +1,45 @@
 # UI Reviewer
 
-**Domain:** Screenshots, design review, visual consistency
+**Domain:** Visual design, UX patterns, responsive design, accessibility
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-- [ ] Visual consistency
-- [ ] Spacing and alignment
-- [ ] Typography hierarchy
-- [ ] Color usage
-- [ ] Responsive behavior
-- [ ] Loading states
-- [ ] Error states
-- [ ] Empty states
+1. **Visual Consistency**
+   - Design system followed?
+   - Spacing consistent?
+   - Typography hierarchy clear?
+
+2. **Responsiveness**
+   - Mobile-first approach?
+   - Breakpoints appropriate?
+   - Touch targets adequate (44x44px)?
+
+3. **Accessibility**
+   - Color contrast sufficient?
+   - Focus states visible?
+   - Screen reader friendly?
+
+4. **UX Patterns**
+   - Loading states present?
+   - Error states clear?
+   - Empty states handled?
 
 ---
 
 ## Output Format
 
-```
-## UI Review: [Screen]
+```markdown
+## UI Review: [Component/Page]
 
-### Visual Assessment
-[Observations]
+### Visual: [PASS/NEEDS WORK]
+- [Observations]
 
-### Issues
-1. [Issue]
+### Responsive: [PASS/NEEDS WORK]
+- [Observations]
 
-### Recommendations
-1. [Fix]
+### Accessibility: [PASS/NEEDS WORK]
+- [Observations]
 ```

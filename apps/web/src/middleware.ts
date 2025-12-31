@@ -1,9 +1,32 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Reserved paths that should NOT be treated as tenant slugs
+const RESERVED_PATHS = [
+  '/marketplace',
+  '/api',
+  '/test-turnstile',
+  '/login',
+  '/signup',
+  '/register',
+  '/about',
+  '/contact',
+  '/privacy',
+  '/terms',
+]
+
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const url = request.nextUrl
+  const pathname = url.pathname
+
+  // Check if this is a reserved path - don't process as tenant
+  const isReservedPath = RESERVED_PATHS.some(
+    (reserved) => pathname === reserved || pathname.startsWith(`${reserved}/`)
+  )
+  if (isReservedPath) {
+    return NextResponse.next()
+  }
 
   // Development: localhost with tenant subdomain
   // Example: acme.localhost:3302

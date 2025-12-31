@@ -1,0 +1,44 @@
+# MadeBuy User Journeys
+
+```mermaid
+flowchart TD
+    subgraph MakerJourney["🎨 Maker Journey"]
+        M1["Discover MadeBuy<br/>(Reddit, Word of Mouth)"]
+        M2["Sign Up<br/>(Free Tier - 25 products)"]
+        M3["Set Up Profile<br/>& Storefront"]
+        M4["Add Products<br/>& Materials"]
+        M5["Connect Social<br/>Accounts"]
+        M6["Go Live<br/>username.madebuy.com.au"]
+        M7["Receive Enquiries"]
+        M8["Correspond<br/>& Invoice"]
+        M9["Upgrade Tier<br/>as Sales Grow"]
+        M10["Add Custom Domain<br/>(Pro+ tier)"]
+
+        M1 --> M2 --> M3 --> M4 --> M5 --> M6
+        M6 --> M7 --> M8
+        M8 --> M9 --> M10
+    end
+
+    subgraph BuyerJourney["🛒 Buyer Journey"]
+        B1["Find Shop<br/>(Search, Social, Direct)"]
+        B2["Browse<br/>Product Catalog"]
+        B3["View Product<br/>Details & Images"]
+        B4["Submit Enquiry"]
+        B5["Direct Conversation<br/>with Maker"]
+        B6["Receive Invoice"]
+        B7["Complete Payment"]
+        B8["Receive Item"]
+
+        B1 --> B2 --> B3 --> B4 --> B5 --> B6 --> B7 --> B8
+    end
+
+    subgraph PricingTiers["💰 Tier Progression"]
+        T1["FREE<br/>$0/mo<br/>25 products"]
+        T2["MAKER<br/>$19/mo<br/>200 products"]
+        T3["PRO<br/>$39/mo<br/>Unlimited + Custom Domain"]
+        T4["BUSINESS<br/>$79/mo<br/>Full Features + Etsy Sync"]
+        T5["ENTERPRISE<br/>$199 + 1% over $10K<br/>API, Team, SLA"]
+
+        T1 --> T2 --> T3 --> T4 --> T5
+    end
+```

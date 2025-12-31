@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MadeBuy Product Cards - Design Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-cream: #FDF8F3;
+      --color-cream-dark: #F5EDE4;
+      --color-terracotta: #C75D3A;
+      --color-terracotta-dark: #A84A2B;
+      --color-sage: #7D9B76;
+      --color-sage-light: #A8C4A2;
+      --color-charcoal: #2D2926;
+      --color-charcoal-light: #4A4543;
+      --color-sand: #E8DDD4;
+      --color-ochre: #D4A853;
+      --color-white: #FFFFFF;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-cream);
+      color: var(--color-charcoal);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--color-charcoal-light);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .section {
+      max-width: 1400px;
+      margin: 0 auto 4rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--color-sand);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--color-terracotta);
+      border-radius: 50%;
+    }
+
+    /* ==================== */
+    /* STYLE 1: Standard Cards */
+    /* ==================== */
+    .grid-standard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .card-standard {
+      background: var(--color-white);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .card-standard:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(45, 41, 38, 0.15);
+    }
+
+    .card-standard .card-image {
+      aspect-ratio: 4/5;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-standard .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      transition: transform 0.4s ease;
+    }
+
+    .card-standard:hover .image-placeholder {
+      transform: scale(1.05);
+    }
+
+    .card-standard:nth-child(1) .image-placeholder { background: linear-gradient(145deg, #E8D5C4 0%, #C4A77D 100%); }
+    .card-standard:nth-child(2) .image-placeholder { background: linear-gradient(145deg, #D4E8D6 0%, #7D9B76 100%); }
+    .card-standard:nth-child(3) .image-placeholder { background: linear-gradient(145deg, #E8E0D4 0%, #A68B5B 100%); }
+    .card-standard:nth-child(4) .image-placeholder { background: linear-gradient(145deg, #D4D8E8 0%, #5A7A94 100%); }
+
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-radius: 4px;
+    }
+
+    .badge-featured {
+      background: var(--color-terracotta);
+      color: white;
+    }
+
+    .badge-new {
+      background: var(--color-sage);
+      color: white;
+    }
+
+    .badge-sale {
+      background: var(--color-ochre);
+      color: var(--color-charcoal);
+    }
+
+    .card-wishlist {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.2s ease;
+    }
+
+    .card-standard:hover .card-wishlist {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .card-wishlist svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--color-charcoal);
+      stroke-width: 1.5;
+      fill: none;
+      transition: all 0.2s ease;
+    }
+
+    .card-wishlist:hover svg {
+      stroke: var(--color-terracotta);
+      fill: var(--color-terracotta);
+    }
+
+    .card-wishlist.active svg {
+      stroke: var(--color-terracotta);
+      fill: var(--color-terracotta);
+    }
+
+    .card-content {
+      padding: 1rem;
+    }
+
+    .card-seller {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .seller-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-sage-light);
+    }
+
+    .seller-name {
+      font-size: 0.8rem;
+      color: var(--color-charcoal-light);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 500;
+      line-height: 1.3;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-price {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .card-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      color: var(--color-charcoal-light);
+    }
+
+    .card-rating svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--color-ochre);
+    }
+
+    /* ==================== */
+    /* STYLE 2: Minimal Cards */
+    /* ==================== */
+    .grid-minimal {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    .card-minimal {
+      cursor: pointer;
+    }
+
+    .card-minimal .card-image {
+      aspect-ratio: 1;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .card-minimal .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      transition: all 0.5s ease;
+    }
+
+    .card-minimal:nth-child(1) .image-placeholder { background: linear-gradient(180deg, #F5EDE4 0%, #C9A9A6 100%); }
+    .card-minimal:nth-child(2) .image-placeholder { background: linear-gradient(180deg, #E8E0D4 0%, #8B7355 100%); }
+    .card-minimal:nth-child(3) .image-placeholder { background: linear-gradient(180deg, #D4E8D6 0%, #6B8B6E 100%); }
+    .card-minimal:nth-child(4) .image-placeholder { background: linear-gradient(180deg, #E8D5C4 0%, #A68B5B 100%); }
+
+    .card-minimal:hover .image-placeholder {
+      transform: scale(1.03);
+    }
+
+    .card-minimal .card-wishlist {
+      background: var(--color-white);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-minimal:hover .card-wishlist {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .card-minimal .card-title {
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-minimal .card-price {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-charcoal-light);
+    }
+
+    /* ==================== */
+    /* STYLE 3: Featured/Hero Cards */
+    /* ==================== */
+    .grid-featured {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: repeat(2, 220px);
+      gap: 1.5rem;
+    }
+
+    .card-featured {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .card-featured:first-child {
+      grid-row: span 2;
+    }
+
+    .card-featured .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      transition: transform 0.5s ease;
+    }
+
+    .card-featured:nth-child(1) .image-placeholder { background: linear-gradient(135deg, #C4A77D 0%, #8B6B55 100%); }
+    .card-featured:nth-child(2) .image-placeholder { background: linear-gradient(135deg, #9BB5CE 0%, #5A7A94 100%); }
+    .card-featured:nth-child(3) .image-placeholder { background: linear-gradient(135deg, #A3C4A8 0%, #6B8B6E 100%); }
+    .card-featured:nth-child(4) .image-placeholder { background: linear-gradient(135deg, #C9A9A6 0%, #8B6B68 100%); }
+    .card-featured:nth-child(5) .image-placeholder { background: linear-gradient(135deg, #D4B896 0%, #A68B5B 100%); }
+
+    .card-featured:hover .image-placeholder {
+      transform: scale(1.05);
+    }
+
+    .card-featured::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%);
+      z-index: 1;
+    }
+
+    .card-featured .card-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem;
+      z-index: 2;
+      color: white;
+    }
+
+    .card-featured .card-seller {
+      margin-bottom: 0.5rem;
+    }
+
+    .card-featured .seller-name {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .card-featured .card-title {
+      font-size: 1.1rem;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-featured:first-child .card-title {
+      font-size: 1.5rem;
+    }
+
+    .card-featured .card-price {
+      color: var(--color-ochre);
+      font-size: 1.1rem;
+    }
+
+    .card-featured:first-child .card-price {
+      font-size: 1.25rem;
+    }
+
+    .card-featured .card-wishlist {
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      z-index: 3;
+    }
+
+    .card-featured .card-wishlist svg {
+      stroke: white;
+    }
+
+    .card-featured:hover .card-wishlist {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ==================== */
+    /* STYLE 4: Horizontal/List Cards */
+    /* ==================== */
+    .grid-horizontal {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card-horizontal {
+      display: grid;
+      grid-template-columns: 180px 1fr auto;
+      gap: 1.5rem;
+      background: var(--color-white);
+      border-radius: 12px;
+      overflow: hidden;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      align-items: center;
+    }
+
+    .card-horizontal:hover {
+      box-shadow: 0 8px 24px rgba(45, 41, 38, 0.1);
+      transform: translateX(4px);
+    }
+
+    .card-horizontal .card-image {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .card-horizontal .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .card-horizontal:nth-child(1) .image-placeholder { background: linear-gradient(135deg, #B8A9C9 0%, #7A6B8B 100%); }
+    .card-horizontal:nth-child(2) .image-placeholder { background: linear-gradient(135deg, #D4E8D6 0%, #7D9B76 100%); }
+    .card-horizontal:nth-child(3) .image-placeholder { background: linear-gradient(135deg, #E8D5C4 0%, #C4A77D 100%); }
+
+    .card-horizontal .card-info {
+      flex: 1;
+    }
+
+    .card-horizontal .card-seller {
+      margin-bottom: 0.5rem;
+    }
+
+    .card-horizontal .card-title {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-horizontal .card-description {
+      font-size: 0.85rem;
+      color: var(--color-charcoal-light);
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .card-horizontal .card-tags {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .card-tag {
+      padding: 4px 10px;
+      background: var(--color-cream-dark);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--color-charcoal-light);
+    }
+
+    .card-horizontal .card-actions {
+      text-align: right;
+    }
+
+    .card-horizontal .card-price {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-horizontal .card-rating {
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .btn-add-cart {
+      padding: 0.6rem 1.25rem;
+      background: var(--color-terracotta);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-add-cart:hover {
+      background: var(--color-terracotta-dark);
+      transform: translateY(-2px);
+    }
+
+    /* ==================== */
+    /* STYLE 5: Quick View Cards */
+    /* ==================== */
+    .grid-quickview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .card-quickview {
+      background: var(--color-white);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .card-quickview .card-image {
+      aspect-ratio: 3/4;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-quickview .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      transition: transform 0.4s ease;
+    }
+
+    .card-quickview:nth-child(1) .image-placeholder { background: linear-gradient(160deg, #E8E0D4 0%, #8B7355 100%); }
+    .card-quickview:nth-child(2) .image-placeholder { background: linear-gradient(160deg, #C9A9A6 0%, #8B6B68 100%); }
+    .card-quickview:nth-child(3) .image-placeholder { background: linear-gradient(160deg, #9BB5CE 0%, #5A7A94 100%); }
+
+    .card-quickview:hover .image-placeholder {
+      transform: scale(1.05);
+    }
+
+    .card-quickview .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(45, 41, 38, 0);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .card-quickview:hover .card-overlay {
+      background: rgba(45, 41, 38, 0.4);
+      opacity: 1;
+    }
+
+    .btn-quickview {
+      padding: 0.75rem 1.5rem;
+      background: var(--color-white);
+      color: var(--color-charcoal);
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+
+    .card-quickview:hover .btn-quickview {
+      transform: translateY(0);
+    }
+
+    .btn-quickview:hover {
+      background: var(--color-terracotta);
+      color: white;
+    }
+
+    .btn-quickview-secondary {
+      padding: 0.6rem 1.25rem;
+      background: transparent;
+      color: white;
+      border: 1.5px solid white;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transform: translateY(10px);
+      transition: all 0.3s ease 0.05s;
+    }
+
+    .card-quickview:hover .btn-quickview-secondary {
+      transform: translateY(0);
+    }
+
+    .btn-quickview-secondary:hover {
+      background: white;
+      color: var(--color-charcoal);
+    }
+
+    .card-quickview .card-content {
+      padding: 1.25rem;
+    }
+
+    .card-quickview .card-title {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-quickview .card-variants {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .variant-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+
+    .variant-dot:hover, .variant-dot.active {
+      border-color: var(--color-charcoal);
+    }
+
+    .variant-dot:nth-child(1) { background: #C4A77D; }
+    .variant-dot:nth-child(2) { background: #8B6B68; }
+    .variant-dot:nth-child(3) { background: #5A7A94; }
+    .variant-dot:nth-child(4) { background: #2D2926; }
+
+    /* ==================== */
+    /* STYLE 6: Compact Grid Cards */
+    /* ==================== */
+    .grid-compact {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+    }
+
+    .card-compact {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .card-compact:hover {
+      transform: translateY(-4px);
+    }
+
+    .card-compact .card-image {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      position: relative;
+    }
+
+    .card-compact .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .card-compact:nth-child(1) .image-placeholder { background: linear-gradient(135deg, #E8D5C4 0%, #C4A77D 100%); }
+    .card-compact:nth-child(2) .image-placeholder { background: linear-gradient(135deg, #D4E8D6 0%, #7D9B76 100%); }
+    .card-compact:nth-child(3) .image-placeholder { background: linear-gradient(135deg, #C9A9A6 0%, #8B6B68 100%); }
+    .card-compact:nth-child(4) .image-placeholder { background: linear-gradient(135deg, #9BB5CE 0%, #5A7A94 100%); }
+    .card-compact:nth-child(5) .image-placeholder { background: linear-gradient(135deg, #D4B896 0%, #A68B5B 100%); }
+    .card-compact:nth-child(6) .image-placeholder { background: linear-gradient(135deg, #B8A9C9 0%, #7A6B8B 100%); }
+
+    .card-compact .card-title {
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      line-height: 1.3;
+      margin-bottom: 0.25rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-compact .card-price {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .grid-standard, .grid-minimal { grid-template-columns: repeat(2, 1fr); }
+      .grid-featured { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+      .grid-featured .card-featured:first-child { grid-row: span 1; }
+      .grid-quickview { grid-template-columns: repeat(2, 1fr); }
+      .grid-compact { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .grid-standard, .grid-minimal, .grid-quickview { grid-template-columns: 1fr; }
+      .grid-featured { grid-template-columns: 1fr; }
+      .card-horizontal { grid-template-columns: 120px 1fr; }
+      .card-horizontal .card-actions { display: none; }
+      .grid-compact { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="page-title">Product Card Variations</h1>
+  <p class="page-subtitle">Different card styles for various contexts across MadeBuy</p>
+
+  <!-- Style 1: Standard Cards -->
+  <section class="section">
+    <h2 class="section-title">Standard Product Cards</h2>
+    <div class="grid-standard">
+      <article class="card-standard">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <span class="card-badge badge-featured">Featured</span>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <div class="card-content">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Earthen Studio</span>
+          </div>
+          <h3 class="card-title">Hand-thrown Ceramic Vase</h3>
+          <div class="card-meta">
+            <span class="card-price">$89.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.9 (47)
+            </span>
+          </div>
+        </div>
+      </article>
+      <article class="card-standard">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <span class="card-badge badge-new">New</span>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <div class="card-content">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Wild Sage Textiles</span>
+          </div>
+          <h3 class="card-title">Organic Linen Table Runner</h3>
+          <div class="card-meta">
+            <span class="card-price">$65.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              5.0 (32)
+            </span>
+          </div>
+        </div>
+      </article>
+      <article class="card-standard">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <button class="card-wishlist active">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <div class="card-content">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Timber & Thread</span>
+          </div>
+          <h3 class="card-title">Walnut Serving Board</h3>
+          <div class="card-meta">
+            <span class="card-price">$120.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.8 (18)
+            </span>
+          </div>
+        </div>
+      </article>
+      <article class="card-standard">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <span class="card-badge badge-sale">20% Off</span>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <div class="card-content">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Luna Silver Co</span>
+          </div>
+          <h3 class="card-title">Sterling Silver Wave Ring</h3>
+          <div class="card-meta">
+            <span class="card-price">$145.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.9 (63)
+            </span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Style 2: Minimal Cards -->
+  <section class="section">
+    <h2 class="section-title">Minimal Cards (Clean Aesthetic)</h2>
+    <div class="grid-minimal">
+      <article class="card-minimal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <h3 class="card-title">Handwoven Cotton Blanket</h3>
+        <span class="card-price">$180.00</span>
+      </article>
+      <article class="card-minimal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <h3 class="card-title">Leather Journal Cover</h3>
+        <span class="card-price">$75.00</span>
+      </article>
+      <article class="card-minimal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <h3 class="card-title">Botanical Print Set</h3>
+        <span class="card-price">$95.00</span>
+      </article>
+      <article class="card-minimal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <button class="card-wishlist">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <h3 class="card-title">Copper Plant Pot</h3>
+        <span class="card-price">$55.00</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- Style 3: Featured/Hero Cards -->
+  <section class="section">
+    <h2 class="section-title">Featured Hero Layout</h2>
+    <div class="grid-featured">
+      <article class="card-featured">
+        <div class="image-placeholder">Hero Product</div>
+        <button class="card-wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="card-content">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Mountain Forge</span>
+          </div>
+          <h3 class="card-title">Hand-forged Chef's Knife</h3>
+          <span class="card-price">$295.00</span>
+        </div>
+      </article>
+      <article class="card-featured">
+        <div class="image-placeholder">Product</div>
+        <button class="card-wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="card-content">
+          <h3 class="card-title">Indigo Dyed Scarf</h3>
+          <span class="card-price">$85.00</span>
+        </div>
+      </article>
+      <article class="card-featured">
+        <div class="image-placeholder">Product</div>
+        <button class="card-wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="card-content">
+          <h3 class="card-title">Herb Garden Kit</h3>
+          <span class="card-price">$45.00</span>
+        </div>
+      </article>
+      <article class="card-featured">
+        <div class="image-placeholder">Product</div>
+        <button class="card-wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="card-content">
+          <h3 class="card-title">Wool Throw Pillow</h3>
+          <span class="card-price">$68.00</span>
+        </div>
+      </article>
+      <article class="card-featured">
+        <div class="image-placeholder">Product</div>
+        <button class="card-wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="card-content">
+          <h3 class="card-title">Beeswax Candle Set</h3>
+          <span class="card-price">$42.00</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Style 4: Horizontal/List Cards -->
+  <section class="section">
+    <h2 class="section-title">Horizontal List View</h2>
+    <div class="grid-horizontal">
+      <article class="card-horizontal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+        </div>
+        <div class="card-info">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Lavender Fields Studio</span>
+          </div>
+          <h3 class="card-title">Hand-painted Silk Scarf</h3>
+          <p class="card-description">Beautiful botanical motifs on pure silk. Each piece is one-of-a-kind, hand-painted using natural dyes.</p>
+          <div class="card-tags">
+            <span class="card-tag">Silk</span>
+            <span class="card-tag">Hand-painted</span>
+            <span class="card-tag">Natural Dyes</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <div class="card-price">$165.00</div>
+          <div class="card-rating">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            4.9 (28)
+          </div>
+          <button class="btn-add-cart">Add to Cart</button>
+        </div>
+      </article>
+      <article class="card-horizontal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+        </div>
+        <div class="card-info">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Green Thumb Ceramics</span>
+          </div>
+          <h3 class="card-title">Terracotta Planter Set</h3>
+          <p class="card-description">Set of 3 hand-thrown planters in graduating sizes. Perfect for herbs or succulents.</p>
+          <div class="card-tags">
+            <span class="card-tag">Ceramic</span>
+            <span class="card-tag">Set of 3</span>
+            <span class="card-tag">Handmade</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <div class="card-price">$95.00</div>
+          <div class="card-rating">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            5.0 (41)
+          </div>
+          <button class="btn-add-cart">Add to Cart</button>
+        </div>
+      </article>
+      <article class="card-horizontal">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+        </div>
+        <div class="card-info">
+          <div class="card-seller">
+            <div class="seller-avatar"></div>
+            <span class="seller-name">Coastal Leather Co</span>
+          </div>
+          <h3 class="card-title">Vegetable-tanned Wallet</h3>
+          <p class="card-description">Slim profile wallet in full-grain leather. Ages beautifully with use.</p>
+          <div class="card-tags">
+            <span class="card-tag">Leather</span>
+            <span class="card-tag">Handstitched</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <div class="card-price">$110.00</div>
+          <div class="card-rating">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            4.8 (56)
+          </div>
+          <button class="btn-add-cart">Add to Cart</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Style 5: Quick View Cards -->
+  <section class="section">
+    <h2 class="section-title">Quick View Overlay Cards</h2>
+    <div class="grid-quickview">
+      <article class="card-quickview">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <div class="card-overlay">
+            <button class="btn-quickview">Quick View</button>
+            <button class="btn-quickview-secondary">Add to Wishlist</button>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Woven Basket Large</h3>
+          <div class="card-variants">
+            <span class="variant-dot active"></span>
+            <span class="variant-dot"></span>
+            <span class="variant-dot"></span>
+            <span class="variant-dot"></span>
+          </div>
+          <div class="card-meta">
+            <span class="card-price">$78.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.7 (19)
+            </span>
+          </div>
+        </div>
+      </article>
+      <article class="card-quickview">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <div class="card-overlay">
+            <button class="btn-quickview">Quick View</button>
+            <button class="btn-quickview-secondary">Add to Wishlist</button>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Linen Apron</h3>
+          <div class="card-variants">
+            <span class="variant-dot active"></span>
+            <span class="variant-dot"></span>
+            <span class="variant-dot"></span>
+          </div>
+          <div class="card-meta">
+            <span class="card-price">$58.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.9 (34)
+            </span>
+          </div>
+        </div>
+      </article>
+      <article class="card-quickview">
+        <div class="card-image">
+          <div class="image-placeholder">Product</div>
+          <div class="card-overlay">
+            <button class="btn-quickview">Quick View</button>
+            <button class="btn-quickview-secondary">Add to Wishlist</button>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">Porcelain Mug Set</h3>
+          <div class="card-variants">
+            <span class="variant-dot active"></span>
+            <span class="variant-dot"></span>
+          </div>
+          <div class="card-meta">
+            <span class="card-price">$65.00</span>
+            <span class="card-rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              5.0 (52)
+            </span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Style 6: Compact Grid -->
+  <section class="section">
+    <h2 class="section-title">Compact Grid (High Density)</h2>
+    <div class="grid-compact">
+      <article class="card-compact">
+        <div class="card-image">
+          <div class="image-placeholder">Item</div>
+        </div>
+        <h3 class="card-title">Ceramic Soap Dish</h3>
+        <span class="card-price">$24.00</span>
+      </article>
+      <article class="card-compact">
+        <div class="card-image">
+          <div class="image-placeholder">Item</div>
+        </div>
+        <h3 class="card-title">Wooden Spoon Set</h3>
+        <span class="card-price">$38.00</span>
+      </article>
+      <article class="card-compact">
+        <div class="card-image">
+          <div class="image-placeholder">Item</div>
+        </div>
+        <h3 class="card-title">Linen Napkins (4)</h3>
+        <span class="card-price">$45.00</span>
+      </article>
+      <article class="card-compact">
+        <div class="card-image">
+          <div class="image-placeholder">Item</div>
+        </div>
+        <h3 class="card-title">Beeswax Wraps</h3>
+        <span class="card-price">$28.00</span>
+      </article>
+      <article class="card-compact">
+        <div class="card-image">
+          <div class="image-placeholder">Item</div>
+        </div>
+        <h3 class="card-title">Cork Coasters Set</h3>
+        <span class="card-price">$22.00</span>
+      </article>
+      <article class="card-compact">
+        <div class="card-image">
+          <div class="image-placeholder">Item</div>
+        </div>
+        <h3 class="card-title">Herb Labels</h3>
+        <span class="card-price">$18.00</span>
+      </article>
+    </div>
+  </section>
+
+</body>
+</html>

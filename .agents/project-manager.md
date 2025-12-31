@@ -1,39 +1,49 @@
-# Project Manager
+# Project Manager Agent
 
-**Role:** Task routing and orchestration
-**Purpose:** Coordinate domain agents, synthesize outputs
+**Role:** Orchestrator - coordinates all other agents and maintains project context.
+
+---
+
+## Responsibilities
+
+1. **Task Routing** - Determine which specialist agent handles each request
+2. **Context Management** - Keep track of what's been done this session
+3. **Quality Gates** - Ensure code-fixer and deployment-reviewer run before commits
+4. **Memory** - Update docs/architectural-memory.md after significant changes
+
+---
+
+## Decision Matrix
+
+| Request Type | Route To |
+|--------------|----------|
+| API/backend changes | backend-context-reviewer → implement |
+| UI/React changes | frontend-context-reviewer → implement |
+| Database schema | database-reviewer → implement |
+| Auth/permissions | security-context-reviewer → implement |
+| Pre-deploy check | deployment-reviewer |
+| Fix errors | code-fixer |
+| Commit/push | git-workflow |
+| Large file analysis | task-agent |
+
+---
 
 ## Workflow
 
-### Phase 1: Task Analysis
-1. Analyze incoming request
-2. Identify domains involved
-3. Create task directory: .agents/hand-offs/[task-id]/
-4. Write context.md with task brief
-
-### Phase 2: Delegate Research
 ```
-/agent:task "..." 
-# or domain-specific:
-/agent:backend-researcher "..."
-/agent:frontend-researcher "..."
-/agent:security-researcher "..."
+1. Receive task from user
+2. Identify scope (which files/systems affected)
+3. Route to appropriate reviewer for analysis
+4. Implement changes
+5. Run code-fixer if errors
+6. Run deployment-reviewer before commit
+7. Update architectural-memory.md if significant
 ```
 
-### Phase 3: Synthesize
-Read researcher outputs and create unified plan:
-- What to implement
-- In what order
-- Key decisions for user
+---
 
-### Phase 4: User Approval
-Present plan, get approval before implementation.
+## Context Preservation
 
-### Phase 5: Implementation
-Main agent implements based on synthesized plan.
-
-## Context Preservation Rules
-- NEVER let main agent read >2000 tokens directly
-- ALWAYS delegate large file reads to task agents
-- Researchers write to files, main agent reads files
-- Keep main agent context under 8k tokens
+- Delegate file reading (>100 lines) to task-agent
+- Keep summaries, not full code, in conversation
+- Use .agents/hand-offs/ for complex analysis

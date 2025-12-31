@@ -1,35 +1,45 @@
 # Security Context Reviewer
 
-**Domain:** Auth, permissions, data protection
+**Domain:** Authentication, authorization, data protection, vulnerabilities
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-- [ ] Authentication required
-- [ ] Authorization (role-based)
-- [ ] Input validation
-- [ ] Output encoding
-- [ ] Sensitive data handling
-- [ ] Rate limiting
-- [ ] CORS configuration
+1. **Authentication**
+   - JWT properly validated?
+   - Tokens expire appropriately?
+   - Refresh token flow secure?
+
+2. **Authorization**
+   - Role checks on endpoints?
+   - Resource ownership verified?
+   - Admin routes protected?
+
+3. **Input Security**
+   - All inputs validated?
+   - SQL/NoSQL injection prevented?
+   - XSS protection in place?
+
+4. **Data Protection**
+   - Sensitive data encrypted?
+   - PII handled properly?
+   - Secrets not in code?
 
 ---
 
 ## Output Format
 
-```
-## Security Review: [Feature]
+```markdown
+## Security Review: [Feature/Endpoint]
 
-### Summary
-[1-2 sentences]
+### 🔴 Critical
+- [Must fix immediately]
 
-### Vulnerabilities
-1. [Issue]
+### 🟡 Warning
+- [Should fix soon]
 
-### Recommendations
-1. [Fix]
-
-### Risk Level: [LOW/MEDIUM/HIGH/CRITICAL]
+### 🟢 Passed
+- [What's secure]
 ```

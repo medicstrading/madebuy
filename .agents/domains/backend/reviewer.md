@@ -1,32 +1,52 @@
 # Backend Context Reviewer
 
-**Domain:** FastAPI, APIs, services, business logic
-**Type:** Advisory (non-editing)
+**Domain:** APIs, services, business logic, database operations
+**Type:** Advisory (non-editing) - provides analysis and recommendations
+
+---
+
+## When Invoked
+
+User says: "Act as backend-context-reviewer and [task]"
 
 ---
 
 ## Review Checklist
 
-- [ ] API endpoint design (REST conventions)
-- [ ] Request/response validation (Pydantic)
-- [ ] Error handling
-- [ ] Authentication/authorization
-- [ ] Database queries (N+1, indexes)
-- [ ] Caching strategy
-- [ ] Logging
+1. **API Design**
+   - RESTful conventions followed?
+   - Proper HTTP methods and status codes?
+   - Input validation present?
+
+2. **Error Handling**
+   - Try/catch blocks where needed?
+   - Errors logged appropriately?
+   - User-friendly error messages?
+
+3. **Security**
+   - Auth checks on protected routes?
+   - Input sanitization?
+   - No sensitive data in logs?
+
+4. **Performance**
+   - Database queries optimized?
+   - Pagination implemented?
+   - Caching where appropriate?
 
 ---
 
 ## Output Format
 
-```
-## Backend Review: [Feature]
+```markdown
+## Backend Review: [Feature/File]
 
-### Summary
-[1-2 sentences]
+### ✅ Good
+- [What's done well]
 
-### Recommendations
-1. [Recommendation]
+### ⚠️ Issues
+- [Issue 1]: [Description] → [Fix]
+- [Issue 2]: [Description] → [Fix]
 
-### Risk Level: [LOW/MEDIUM/HIGH]
+### 💡 Suggestions
+- [Optional improvement]
 ```

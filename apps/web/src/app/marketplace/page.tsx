@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Star, TrendingUp, Sparkles } from 'lucide-react'
+import { ArrowRight, Star, Heart, Check, Users, Package, Percent } from 'lucide-react'
 import { MARKETPLACE_CATEGORIES } from '@madebuy/shared/src/types/marketplace'
+import { MixedGrid, MixedGridAlt, EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
+import { mapMarketplaceProduct } from '@/lib/productMapping'
 
 export const metadata = {
   title: 'MadeBuy Marketplace - Handmade Goods from Independent Makers',
@@ -9,23 +11,22 @@ export const metadata = {
 }
 
 export default async function MarketplaceHomePage() {
-  // Fetch featured and trending products from database
   const { marketplace, tenants } = await import('@madebuy/db')
 
+  // Fetch more products for denser grids
   const [featuredResult, trendingResult] = await Promise.all([
     marketplace.listMarketplaceProducts({
       sortBy: 'rating',
-      limit: 4,
+      limit: 17, // 5 for MixedGrid + 12 for dense grid
       page: 1,
     }),
     marketplace.listMarketplaceProducts({
       sortBy: 'popular',
-      limit: 6,
+      limit: 12,
       page: 1,
     })
   ])
 
-  // Enrich products with seller info and normalize fields
   const enrichProduct = async (product: any) => {
     const tenant = await tenants.getTenantById(product.tenantId)
     return {
@@ -43,303 +44,339 @@ export default async function MarketplaceHomePage() {
     Promise.all(trendingResult.products.map(enrichProduct)),
   ])
 
-  const featuredData = { products: featuredProducts }
-  const trendingData = { products: trendingProducts }
+  // Map to card format
+  const featuredCards = featuredProducts.map(mapMarketplaceProduct)
+  const trendingCards = trendingProducts.map(mapMarketplaceProduct)
 
   return (
-    <div className="space-y-12">
+    <div>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-purple-700 py-20 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="mb-4 text-5xl font-bold">
-            Discover Handmade Magic
-          </h1>
-          <p className="mb-8 text-xl text-blue-100">
-            Shop unique products from independent makers and creators
-          </p>
-          <div className="flex items-center justify-center gap-4">
+      <section className="relative bg-mb-cream pt-12 pb-16 lg:pt-16 lg:pb-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-mb-slate tracking-tight">
+              Discover <span className="text-mb-blue">Handmade</span> Magic
+            </h1>
+            <p className="mt-6 text-lg text-mb-slate-light leading-relaxed">
+              Shop unique products from independent makers and creators. Support small businesses with zero transaction fees.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/marketplace/browse"
+                className="flex items-center gap-2 rounded-full bg-mb-blue px-8 py-4 text-base font-medium text-white hover:bg-mb-blue-dark transition-colors shadow-lg shadow-mb-blue/25"
+              >
+                Browse Products
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="flex items-center gap-2 rounded-full border-2 border-mb-sand bg-white px-8 py-4 text-base font-medium text-mb-slate hover:border-mb-blue hover:text-mb-blue transition-all"
+              >
+                Start Selling
+              </Link>
+            </div>
+
+            {/* Stats Row */}
+            <div className="mt-14 flex items-center justify-center gap-8 sm:gap-16">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-mb-slate">1,000+</div>
+                <div className="text-sm text-mb-slate-light mt-1">Products</div>
+              </div>
+              <div className="h-8 w-px bg-mb-sand" />
+              <div className="text-center">
+                <div className="text-3xl font-bold text-mb-slate">200+</div>
+                <div className="text-sm text-mb-slate-light mt-1">Makers</div>
+              </div>
+              <div className="h-8 w-px bg-mb-sand" />
+              <div className="text-center">
+                <div className="text-3xl font-bold text-mb-accent">0%</div>
+                <div className="text-sm text-mb-slate-light mt-1">Fees</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Pills */}
+      <section className="border-y border-mb-sand bg-white py-5">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
             <Link
               href="/marketplace/browse"
-              className="flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-blue-600 shadow-lg hover:bg-gray-100"
+              className="flex-shrink-0 rounded-full bg-mb-blue px-5 py-2.5 text-sm font-medium text-white"
             >
-              Browse Products
-              <ArrowRight className="h-5 w-5" />
+              All
             </Link>
-            <Link
-              href="/auth/signup"
-              className="rounded-lg border-2 border-white px-6 py-3 font-semibold hover:bg-white/10"
-            >
-              Start Selling
-            </Link>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-12 grid grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold">1,000+</div>
-              <div className="text-blue-100">Products</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold">200+</div>
-              <div className="text-blue-100">Makers</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold">0%</div>
-              <div className="text-blue-100">Transaction Fees</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Grid */}
-      <section className="container mx-auto px-4">
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-gray-900">Shop by Category</h2>
-          <Link
-            href="/marketplace/categories"
-            className="text-blue-600 hover:text-blue-700 hover:underline"
-          >
-            View All
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {MARKETPLACE_CATEGORIES.slice(0, 10).map((category) => (
-            <Link
-              key={category.id}
-              href={`/marketplace/categories/${category.slug}`}
-              className="group flex flex-col items-center rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm transition-all hover:border-blue-300 hover:shadow-md"
-            >
-              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100">
-                {/* Icon placeholder - could use actual icons based on category.icon */}
-                <Sparkles className="h-8 w-8" />
-              </div>
-              <h3 className="font-semibold text-gray-900">{category.name}</h3>
-              <p className="mt-1 text-xs text-gray-500">
-                {category.subcategories.length} types
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="container mx-auto px-4">
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Star className="h-6 w-6 text-yellow-500" />
-            <h2 className="text-3xl font-bold text-gray-900">Featured Products</h2>
-          </div>
-          <Link
-            href="/marketplace/browse?sortBy=rating"
-            className="text-blue-600 hover:text-blue-700 hover:underline"
-          >
-            View All
-          </Link>
-        </div>
-
-        {featuredData.products.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredData.products.slice(0, 4).map((product: any) => (
+            {MARKETPLACE_CATEGORIES.slice(0, 8).map((category) => (
               <Link
-                key={product.id}
-                href={`/marketplace/product/${product.id}`}
-                className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-lg"
+                key={category.id}
+                href={`/marketplace/categories/${category.slug}`}
+                className="flex-shrink-0 rounded-full border border-mb-sand bg-white px-5 py-2.5 text-sm font-medium text-mb-slate hover:border-mb-blue hover:text-mb-blue transition-all"
               >
-                <div className="relative aspect-square overflow-hidden bg-gray-100">
-                  {product.images && product.images[0] ? (
-                    <Image
-                      src={product.images[0]}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                      <Sparkles className="h-16 w-16 text-gray-400" />
-                    </div>
-                  )}
-                  {product.badge && (
-                    <div className="absolute right-2 top-2 rounded-full bg-yellow-500 px-2 py-1 text-xs font-semibold text-white">
-                      {product.badge}
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="mb-1 line-clamp-2 font-semibold text-gray-900 group-hover:text-blue-600">
-                    {product.name}
-                  </h3>
-                  <p className="mb-3 text-sm text-gray-600 line-clamp-1">
-                    by {product.seller?.businessName || 'Unknown'}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-gray-900">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    {product.rating && (
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span>{product.rating.toFixed(1)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {category.name}
               </Link>
             ))}
           </div>
-        ) : (
-          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-16 text-center">
-            <Sparkles className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              No Products Yet
-            </h3>
-            <p className="mb-6 text-gray-600">
-              Be the first to list your handmade products on MadeBuy!
-            </p>
-            <Link
-              href="/auth/signup"
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-            >
-              Start Selling
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        )}
+        </div>
       </section>
 
-      {/* Trending This Week */}
-      <section className="bg-gray-50 py-12">
-        <div className="container mx-auto px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-              <h2 className="text-3xl font-bold text-gray-900">Trending This Week</h2>
-            </div>
-            <Link
-              href="/marketplace/browse?sortBy=popular"
-              className="text-blue-600 hover:text-blue-700 hover:underline"
-            >
-              View All
-            </Link>
-          </div>
+      {/* Featured Products - MixedGrid Layout */}
+      <section className="py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {featuredCards.length > 0 ? (
+            <>
+              {/* MixedGrid: 1 hero + 4 small */}
+              <MixedGrid
+                products={featuredCards.slice(0, 5)}
+                title="Editor's Picks"
+                subtitle="Handpicked items from local artisans"
+                viewAllHref="/marketplace/browse?sortBy=rating"
+              />
 
-          {trendingData.products.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-              {trendingData.products.map((product: any) => (
-                <Link
-                  key={product.id}
-                  href={`/marketplace/product/${product.id}`}
-                  className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md"
-                >
-                  <div className="relative aspect-square overflow-hidden bg-gray-100">
-                    {product.images && product.images[0] ? (
-                      <Image
-                        src={product.images[0]}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-105"
+              {/* Dense Grid: More featured products */}
+              {featuredCards.length > 5 && (
+                <div className="mt-10">
+                  <h3 className="mb-6 text-lg font-semibold text-mb-slate">More to Explore</h3>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                    {featuredCards.slice(5, 17).map((product) => (
+                      <EtsyProductCard
+                        key={product.id}
+                        product={product}
+                        variant="compact"
                       />
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-gradient-to-br from-green-100 to-blue-100">
-                        <TrendingUp className="h-12 w-12 text-gray-400" />
-                      </div>
-                    )}
+                    ))}
                   </div>
-                  <div className="p-3">
-                    <h3 className="mb-1 line-clamp-1 text-sm font-semibold text-gray-900 group-hover:text-blue-600">
-                      {product.name}
-                    </h3>
-                    <span className="text-sm font-bold text-gray-900">
-                      ${product.price.toFixed(2)}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="rounded-lg border-2 border-dashed border-gray-300 bg-white py-12 text-center">
-              <TrendingUp className="mx-auto mb-3 h-10 w-10 text-gray-400" />
-              <p className="text-sm text-gray-600">
-                Trending products will appear here once makers start listing!
-              </p>
-            </div>
+            <EmptyProductsPlaceholder />
           )}
         </div>
       </section>
 
-      {/* Why Choose MadeBuy */}
-      <section className="container mx-auto px-4">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-gray-900">
-            Why Shop on MadeBuy?
-          </h2>
-          <p className="text-lg text-gray-600">
-            Supporting independent makers has never been easier
-          </p>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-3">
-          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-              <Sparkles className="h-8 w-8 text-blue-600" />
+      {/* Top Sellers */}
+      <section className="border-y border-mb-sand bg-mb-cream py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 className="text-2xl font-bold text-mb-slate">Top Sellers</h2>
+              <p className="mt-1 text-mb-slate-light">Meet the makers behind the products</p>
             </div>
-            <h3 className="mb-3 text-xl font-bold text-gray-900">
-              Unique & Handmade
-            </h3>
-            <p className="text-gray-600">
-              Every item is crafted with care by talented independent makers. No mass production, just authentic handmade quality.
-            </p>
+            <Link
+              href="/marketplace/sellers"
+              className="flex items-center gap-1 text-sm font-medium text-mb-blue hover:text-mb-blue-dark transition-colors"
+            >
+              View all
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <Star className="h-8 w-8 text-green-600" />
-            </div>
-            <h3 className="mb-3 text-xl font-bold text-gray-900">
-              Support Creators
-            </h3>
-            <p className="text-gray-600">
-              100% of your purchase goes to the maker. We don&apos;t charge transaction fees, so creators keep what they earn.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
-            <h3 className="mb-3 text-xl font-bold text-gray-900">
-              Curated Quality
-            </h3>
-            <p className="text-gray-600">
-              We verify every seller and their products. Shop with confidence knowing you&apos;re getting authentic, high-quality items.
-            </p>
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="group rounded-2xl border border-mb-sand bg-white p-6 hover:shadow-lg hover:border-mb-blue/30 transition-all">
+                <div className="flex flex-col items-center text-center">
+                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-mb-sky to-mb-sky-dark mb-4" />
+                  <h3 className="font-semibold text-mb-slate group-hover:text-mb-blue transition-colors">Artisan Studio {i}</h3>
+                  <p className="text-sm text-mb-slate-light mt-1">Handmade Jewelry</p>
+                  <div className="flex items-center gap-1 mt-3 text-sm text-mb-slate-light">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-mb-slate">4.9</span>
+                    <span>(120)</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16">
-        <div className="container mx-auto px-4 text-center text-white">
-          <h2 className="mb-4 text-4xl font-bold">Ready to Start Selling?</h2>
-          <p className="mb-8 text-xl text-purple-100">
-            Join hundreds of makers already selling on MadeBuy. No transaction fees, ever.
-          </p>
-          <div className="flex items-center justify-center gap-4">
-            <Link
-              href="/auth/signup"
-              className="rounded-lg bg-white px-8 py-3 font-semibold text-purple-600 shadow-lg hover:bg-gray-100"
-            >
-              Create Your Store
-            </Link>
-            <Link
-              href="/pricing"
-              className="rounded-lg border-2 border-white px-8 py-3 font-semibold hover:bg-white/10"
-            >
-              View Pricing
-            </Link>
+      {/* Trending Products - MixedGridAlt Layout */}
+      <section className="py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {trendingCards.length > 0 ? (
+            <>
+              {/* MixedGridAlt: Hero on right */}
+              <MixedGridAlt
+                products={trendingCards.slice(0, 5)}
+                title="Trending Now"
+                subtitle="What's hot this week"
+                viewAllHref="/marketplace/browse?sortBy=popular"
+              />
+
+              {/* More trending in dense grid */}
+              {trendingCards.length > 5 && (
+                <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  {trendingCards.slice(5, 11).map((product) => (
+                    <EtsyProductCard
+                      key={product.id}
+                      product={product}
+                      variant="compact"
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <EmptyProductsPlaceholder />
+          )}
+        </div>
+      </section>
+
+      {/* Recently Viewed */}
+      <section className="border-t border-mb-sand py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <RecentlyViewed />
+        </div>
+      </section>
+
+      {/* Dark CTA Section */}
+      <section className="bg-gray-900 py-20 lg:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-white">
+                Ready to Start Selling?
+              </h2>
+              <p className="mt-4 text-lg text-gray-400 leading-relaxed">
+                Join hundreds of makers already selling on MadeBuy. Get your own storefront, list unlimited products, and keep 100% of your earnings.
+              </p>
+              <ul className="mt-8 space-y-4">
+                {[
+                  'Zero transaction fees',
+                  'Your own branded storefront',
+                  'Marketplace exposure',
+                  'Easy inventory management',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-gray-300">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/auth/signup"
+                  className="flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-base font-medium text-gray-900 hover:bg-gray-100 transition-colors"
+                >
+                  Create Your Store
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="flex items-center justify-center gap-2 rounded-full border-2 border-gray-700 px-8 py-4 text-base font-medium text-white hover:border-gray-600 transition-colors"
+                >
+                  View Pricing
+                </Link>
+              </div>
+            </div>
+            <div className="hidden lg:block">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="rounded-2xl bg-gray-800 p-6">
+                    <Users className="h-8 w-8 text-blue-400 mb-3" />
+                    <div className="text-2xl font-bold text-white">200+</div>
+                    <div className="text-gray-400">Active Sellers</div>
+                  </div>
+                  <div className="rounded-2xl bg-gray-800 p-6">
+                    <Percent className="h-8 w-8 text-green-400 mb-3" />
+                    <div className="text-2xl font-bold text-white">0%</div>
+                    <div className="text-gray-400">Transaction Fees</div>
+                  </div>
+                </div>
+                <div className="space-y-4 pt-8">
+                  <div className="rounded-2xl bg-gray-800 p-6">
+                    <Package className="h-8 w-8 text-purple-400 mb-3" />
+                    <div className="text-2xl font-bold text-white">1,000+</div>
+                    <div className="text-gray-400">Listed Products</div>
+                  </div>
+                  <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 p-6">
+                    <Star className="h-8 w-8 text-white mb-3" />
+                    <div className="text-2xl font-bold text-white">4.9</div>
+                    <div className="text-blue-100">Average Rating</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+    </div>
+  )
+}
+
+function ProductCard({ product }: { product: any }) {
+  return (
+    <Link
+      href={`/marketplace/product/${product.id}`}
+      className="group relative rounded-2xl border border-gray-100 bg-white overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+    >
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
+        {product.images && product.images[0] ? (
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+            <Package className="h-12 w-12 text-gray-300" />
+          </div>
+        )}
+        {/* Wishlist Button */}
+        <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white">
+          <Heart className="h-4 w-4 text-gray-600" />
+        </button>
+        {/* Badge */}
+        {product.badge && (
+          <div className="absolute left-3 top-3 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-medium text-white">
+            {product.badge}
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <p className="text-xs text-gray-500 mb-1">
+          {product.seller?.businessName}
+        </p>
+        <h3 className="font-medium text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          {product.name}
+        </h3>
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-lg font-semibold text-gray-900">
+            ${product.price.toFixed(2)}
+          </span>
+          {product.rating > 0 && (
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span>{product.rating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function EmptyProductsPlaceholder() {
+  return (
+    <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
+      <Package className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+      <h3 className="mb-2 text-lg font-semibold text-gray-900">
+        No Products Yet
+      </h3>
+      <p className="mb-6 text-gray-500 max-w-sm mx-auto">
+        Be the first to list your handmade products on MadeBuy!
+      </p>
+      <Link
+        href="/auth/signup"
+        className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 font-medium text-white hover:bg-gray-800 transition-colors"
+      >
+        Start Selling
+        <ArrowRight className="h-4 w-4" />
+      </Link>
     </div>
   )
 }

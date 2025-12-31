@@ -1,43 +1,40 @@
 # Database Reviewer (MongoDB)
 
-**Domain:** MongoDB, schemas, queries, indexes
+**Domain:** MongoDB schemas, queries, indexes, aggregations
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-- [ ] Schema design
-- [ ] Index strategy
-- [ ] Query optimization
-- [ ] Data validation
-- [ ] Migration safety
-- [ ] Backup considerations
+1. **Schema Design**
+   - Appropriate embedding vs referencing?
+   - Required fields marked?
+   - Indexes for query patterns?
 
----
+2. **Query Efficiency**
+   - Using projections?
+   - Avoiding N+1 queries?
+   - Aggregation pipeline optimized?
 
-## Common Issues
-
-1. Missing indexes on query fields
-2. N+1 query patterns
-3. Unbounded array growth
-4. No TTL on temporary data
+3. **Data Integrity**
+   - Validation rules in place?
+   - Unique constraints where needed?
+   - Timestamps (createdAt, updatedAt)?
 
 ---
 
 ## Output Format
 
-```
-## Database Review: [Feature]
+```markdown
+## Database Review: [Collection/Query]
 
-### Summary
-[1-2 sentences]
+### Schema Assessment
+- [Observations]
 
-### Schema Recommendations
-[Changes]
+### Query Analysis
+- [Performance notes]
 
-### Index Recommendations
-[Indexes needed]
-
-### Risk Level: [LOW/MEDIUM/HIGH]
+### Recommendations
+- [Index suggestions, schema changes]
 ```

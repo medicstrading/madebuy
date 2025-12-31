@@ -1,0 +1,157 @@
+# MadeBuy Application Architecture
+
+```mermaid
+flowchart TB
+    subgraph Users["User Types"]
+        Visitor["🌐 Visitor"]
+        Maker["🎨 Maker/Seller"]
+        Buyer["🛒 Buyer"]
+    end
+
+    subgraph Entry["Entry Points"]
+        Landing["madebuy.com.au<br/>Marketing Site"]
+        Storefront["username.madebuy.com.au<br/>Maker Storefront"]
+        CustomDomain["customdomain.com<br/>White-label Store"]
+        Dashboard["dashboard.madebuy.com.au<br/>Maker Dashboard"]
+    end
+
+    subgraph Auth["Authentication"]
+        Signup["Signup Flow"]
+        Login["Login"]
+        OAuth["Social OAuth<br/>(Facebook, Google)"]
+    end
+
+    subgraph DashboardModules["Maker Dashboard Modules"]
+        subgraph Inventory["📦 Inventory"]
+            Products["Product Catalog"]
+            Variants["Variants<br/>(size, color, material)"]
+            Stock["Stock Tracking"]
+            LowStockAlerts["Low Stock Alerts"]
+        end
+        
+        subgraph Materials["🧵 Materials & Supplies"]
+            RawMaterials["Raw Materials<br/>(beads, wire, gems)"]
+            CostTracking["Cost Tracking"]
+            COGS["Cost of Goods<br/>Calculation"]
+            ReorderAlerts["Reorder Alerts"]
+        end
+        
+        subgraph Social["📱 Social Media"]
+            Connections["Connect Accounts<br/>(FB, IG, Pinterest, TikTok)"]
+            OneClickPost["One-Click Post<br/>from Catalog"]
+            AICaption["AI-Generated<br/>Captions"]
+            Scheduling["Post Scheduling"]
+        end
+        
+        subgraph Marketing["📢 Promotions"]
+            DiscountCodes["Discount Codes"]
+            Campaigns["Campaigns"]
+            TrackROI["Track Promotion ROI"]
+        end
+        
+        subgraph CRM["💬 Client Correspondence"]
+            CustomerDB["Customer Database"]
+            EnquiryMgmt["Enquiry Management"]
+            EmailTemplates["Email Templates"]
+            OrderComms["Order Communications"]
+        end
+        
+        subgraph Invoicing["📄 Invoicing"]
+            GenerateInvoice["Generate Invoices"]
+            PaymentStatus["Payment Tracking"]
+            PDFExport["PDF Export"]
+            Reminders["Payment Reminders"]
+        end
+        
+        subgraph Website["🌐 Website Management"]
+            StorefrontEditor["Storefront Editor"]
+            Branding["Logo, Colors, About"]
+            DomainSetup["Custom Domain Setup"]
+            SEO["SEO Tools"]
+        end
+    end
+
+    subgraph PublicStorefront["Public Storefront Flow"]
+        Browse["Browse Products"]
+        ProductPage["Product Details"]
+        EnquiryForm["Enquiry Form<br/>(No Cart)"]
+        Contact["Direct Contact"]
+    end
+
+    subgraph Backend["Backend Services"]
+        API["FastAPI Backend"]
+        MongoDB[(MongoDB<br/>Atlas)]
+        Redis[(Redis Cache<br/>Upstash)]
+        R2["Cloudflare R2<br/>Image Storage"]
+    end
+
+    subgraph Integrations["External Integrations"]
+        LateAPI["Late API<br/>Social Posting"]
+        Resend["Resend<br/>Email Service"]
+        Cloudflare["Cloudflare<br/>DNS/CDN/OAuth"]
+    end
+
+    subgraph Infrastructure["Infrastructure"]
+        Vultr["Vultr VPS<br/>Sydney Region"]
+        CDN["Cloudflare CDN"]
+    end
+
+    %% User Flows
+    Visitor --> Landing
+    Visitor --> Storefront
+    Buyer --> Storefront
+    Buyer --> CustomDomain
+    Maker --> Dashboard
+
+    Landing --> Signup
+    Signup --> Dashboard
+    Login --> Dashboard
+    OAuth --> Dashboard
+
+    %% Dashboard to Modules
+    Dashboard --> Inventory
+    Dashboard --> Materials
+    Dashboard --> Social
+    Dashboard --> Marketing
+    Dashboard --> CRM
+    Dashboard --> Invoicing
+    Dashboard --> Website
+
+    %% Module Connections
+    Products --> Variants
+    Products --> Stock
+    Stock --> LowStockAlerts
+    RawMaterials --> CostTracking
+    CostTracking --> COGS
+    RawMaterials --> ReorderAlerts
+    Connections --> OneClickPost
+    Products --> OneClickPost
+    OneClickPost --> AICaption
+    AICaption --> Scheduling
+    CustomerDB --> EnquiryMgmt
+    EnquiryMgmt --> EmailTemplates
+    GenerateInvoice --> PDFExport
+    PaymentStatus --> Reminders
+    Website --> StorefrontEditor
+    Website --> DomainSetup
+
+    %% Storefront Flow
+    Storefront --> Browse
+    CustomDomain --> Browse
+    Browse --> ProductPage
+    ProductPage --> EnquiryForm
+    EnquiryForm --> Contact
+
+    %% Backend Connections
+    API --> MongoDB
+    API --> Redis
+    API --> R2
+    Social --> LateAPI
+    CRM --> Resend
+    DomainSetup --> Cloudflare
+
+    %% Infrastructure
+    API --> Vultr
+    Storefront --> CDN
+    R2 --> CDN
+```

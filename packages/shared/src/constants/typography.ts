@@ -20,15 +20,15 @@ export interface TypographyConfig {
 export const TYPOGRAPHY_PRESETS: Record<TypographyPreset, TypographyConfig> = {
   modern: {
     name: 'Modern',
-    description: 'Clean and contemporary with Inter',
+    description: 'Clean and contemporary with Outfit',
     heading: {
-      fontFamily: "'Inter', sans-serif",
-      googleFont: 'Inter',
-      weights: [600, 700, 800],
+      fontFamily: "'Outfit', sans-serif",
+      googleFont: 'Outfit',
+      weights: [500, 600, 700],
     },
     body: {
-      fontFamily: "'Inter', sans-serif",
-      googleFont: 'Inter',
+      fontFamily: "'Outfit', sans-serif",
+      googleFont: 'Outfit',
       weights: [400, 500],
     },
   },

@@ -35,16 +35,14 @@ export interface Material {
   updatedAt: Date
 }
 
-export type MaterialCategory =
-  | 'stone'
-  | 'metal'
-  | 'wire'
-  | 'chain'
-  | 'finding'
-  | 'bead'
-  | 'tool'
-  | 'packaging'
-  | 'other'
+/**
+ * MaterialCategory is now a string to support dynamic categories per maker type.
+ * Categories are defined in tenant.customMaterialCategories and MAKER_MATERIAL_PRESETS.
+ *
+ * Legacy jewelry-specific values (for reference):
+ * 'stone' | 'metal' | 'wire' | 'chain' | 'finding' | 'bead' | 'tool' | 'packaging' | 'other'
+ */
+export type MaterialCategory = string
 
 export type MaterialUnit = 'gram' | 'piece' | 'meter' | 'set' | 'ml' | 'kg'
 
@@ -90,7 +88,7 @@ export interface UpdateMaterialInput {
 }
 
 export interface MaterialFilters {
-  category?: MaterialCategory
+  category?: string // Dynamic category based on maker type
   isLowStock?: boolean
   search?: string
 }

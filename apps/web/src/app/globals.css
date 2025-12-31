@@ -1,3 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --font-outfit: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Modern design tokens */
+    --radius-sm: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 200ms ease;
+  }
+}
+
+@layer utilities {
+  .font-outfit {
+    font-family: var(--font-outfit);
+  }
+
+  /* Hide scrollbar for carousel components */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Etsy-style animations */
+  .animate-in {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideInFromTop {
+    from { transform: translateY(-8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes slideInFromBottom {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes slideInFromRight {
+    from { transform: translateX(8px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes slideInFromLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
+  .fade-in { animation-name: fadeIn; }
+  .slide-in-from-top-2 { animation-name: slideInFromTop; }
+  .slide-in-from-bottom-2 { animation-name: slideInFromBottom; }
+  .slide-in-from-right-4 { animation-name: slideInFromRight; }
+  .slide-in-from-left { animation-name: slideInFromLeft; }
+}
+
+/* MadeBuy marketplace theme variables (blue-based) */
+:root {
+  --mb-blue: #2563eb;
+  --mb-blue-dark: #1d4ed8;
+  --mb-blue-light: #3b82f6;
+  --mb-navy: #1e3a5f;
+  --mb-sky: #e0f2fe;
+  --mb-sky-dark: #bae6fd;
+  --mb-cream: #f8fafc;
+  --mb-slate: #475569;
+  --mb-slate-light: #64748b;
+  --mb-sand: #e2e8f0;
+  --mb-accent: #10b981;
+  --mb-accent-dark: #059669;
+}

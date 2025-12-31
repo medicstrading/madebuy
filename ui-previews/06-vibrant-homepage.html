@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MadeBuy - Vibrant Modern Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --white: #FFFFFF;
+      --off-white: #FAFBFC;
+      --gray-100: #F1F5F9;
+      --gray-200: #E2E8F0;
+      --gray-400: #94A3B8;
+      --gray-600: #475569;
+      --gray-800: #1E293B;
+      --gray-900: #0F172A;
+
+      /* Vibrant palette */
+      --coral: #FF6B6B;
+      --coral-dark: #EE5A5A;
+      --mint: #4ECDC4;
+      --mint-dark: #3DB9B0;
+      --purple: #A855F7;
+      --yellow: #FBBF24;
+      --blue: #3B82F6;
+
+      /* Gradients */
+      --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-coral: linear-gradient(135deg, #FF6B6B 0%, #ee5a5a 100%);
+      --gradient-mint: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+      --gradient-purple: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%);
+
+      --font: 'Sora', -apple-system, sans-serif;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-full: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--white);
+      color: var(--gray-900);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Nav */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(20px);
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--gradient-coral);
+      border-radius: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--gray-900); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--gray-100);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .nav-icon:hover { background: var(--gray-200); }
+
+    .nav-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--gray-600);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .nav-icon .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 20px;
+      height: 20px;
+      background: var(--coral);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn {
+      font-family: var(--font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+    }
+
+    .btn-coral {
+      background: var(--gradient-coral);
+      color: var(--white);
+      box-shadow: 0 4px 14px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-coral:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--gray-700);
+      border: 2px solid var(--gray-200);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--gray-400);
+    }
+
+    .btn-lg {
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border-radius: var(--radius);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 10rem 2rem 6rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--gray-600);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-badge span {
+      padding: 0.25rem 0.75rem;
+      background: var(--mint);
+      color: white;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .hero h1 {
+      font-size: 4.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero h1 .highlight {
+      background: var(--gradient-coral);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--gray-600);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+
+    .hero-images {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .hero-img {
+      aspect-ratio: 3/4;
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+
+    .hero-img:hover {
+      transform: translateY(-8px);
+    }
+
+    .hero-img:nth-child(1) { transform: translateY(2rem); }
+    .hero-img:nth-child(2) { transform: translateY(-1rem); }
+    .hero-img:nth-child(3) { transform: translateY(1rem); }
+    .hero-img:nth-child(4) { transform: translateY(-2rem); }
+
+    .hero-img:nth-child(1):hover { transform: translateY(1rem); }
+    .hero-img:nth-child(2):hover { transform: translateY(-2rem); }
+    .hero-img:nth-child(3):hover { transform: translateY(0); }
+    .hero-img:nth-child(4):hover { transform: translateY(-3rem); }
+
+    .hero-img-bg {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .hero-img:nth-child(1) .hero-img-bg { background: var(--gradient-coral); }
+    .hero-img:nth-child(2) .hero-img-bg { background: var(--gradient-mint); }
+    .hero-img:nth-child(3) .hero-img-bg { background: var(--gradient-purple); }
+    .hero-img:nth-child(4) .hero-img-bg { background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%); }
+
+    /* Stats */
+    .stats {
+      padding: 4rem 2rem;
+      background: var(--gray-900);
+    }
+
+    .stats-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value span {
+      color: var(--coral);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+
+    /* Categories */
+    .categories {
+      padding: 6rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .section-link {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--coral);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .section-link:hover { text-decoration: underline; }
+
+    .section-link svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+    }
+
+    .category-card {
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .category-card:hover {
+      transform: scale(1.05);
+    }
+
+    .category-card-bg {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      padding: 1rem;
+    }
+
+    .category-card:nth-child(1) .category-card-bg { background: linear-gradient(145deg, #fce7f3 0%, #fbcfe8 100%); }
+    .category-card:nth-child(2) .category-card-bg { background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%); }
+    .category-card:nth-child(3) .category-card-bg { background: linear-gradient(145deg, #d1fae5 0%, #a7f3d0 100%); }
+    .category-card:nth-child(4) .category-card-bg { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); }
+    .category-card:nth-child(5) .category-card-bg { background: linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%); }
+    .category-card:nth-child(6) .category-card-bg { background: linear-gradient(145deg, #fee2e2 0%, #fecaca 100%); }
+
+    .category-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    /* Products */
+    .products {
+      padding: 4rem 2rem 6rem;
+      background: var(--off-white);
+    }
+
+    .products-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .product-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .product-image {
+      aspect-ratio: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-image-bg {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(0,0,0,0.2);
+      transition: transform 0.4s;
+    }
+
+    .product-card:hover .product-image-bg {
+      transform: scale(1.05);
+    }
+
+    .product-card:nth-child(1) .product-image-bg { background: linear-gradient(145deg, #fce7f3 0%, #f9a8d4 100%); }
+    .product-card:nth-child(2) .product-image-bg { background: linear-gradient(145deg, #cffafe 0%, #67e8f9 100%); }
+    .product-card:nth-child(3) .product-image-bg { background: linear-gradient(145deg, #fef9c3 0%, #fde047 100%); }
+    .product-card:nth-child(4) .product-image-bg { background: linear-gradient(145deg, #e0e7ff 0%, #a5b4fc 100%); }
+    .product-card:nth-child(5) .product-image-bg { background: linear-gradient(145deg, #d1fae5 0%, #6ee7b7 100%); }
+    .product-card:nth-child(6) .product-image-bg { background: linear-gradient(145deg, #fee2e2 0%, #fca5a5 100%); }
+    .product-card:nth-child(7) .product-image-bg { background: linear-gradient(145deg, #dbeafe 0%, #93c5fd 100%); }
+    .product-card:nth-child(8) .product-image-bg { background: linear-gradient(145deg, #f3e8ff 0%, #d8b4fe 100%); }
+
+    .product-badge {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: 0.375rem 0.75rem;
+      background: var(--white);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .product-wishlist {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 40px;
+      height: 40px;
+      background: var(--white);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .product-card:hover .product-wishlist {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .product-wishlist svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--gray-600);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .product-wishlist:hover svg {
+      stroke: var(--coral);
+      fill: var(--coral);
+    }
+
+    .product-content {
+      padding: 1.25rem;
+    }
+
+    .product-seller {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-seller-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--gray-200);
+    }
+
+    .product-seller-name {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    .product-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+
+    .product-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .product-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+      color: var(--gray-500);
+    }
+
+    .product-rating svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--yellow);
+    }
+
+    /* CTA */
+    .cta {
+      padding: 6rem 2rem;
+      background: var(--gradient-hero);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .cta::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -10%;
+      width: 400px;
+      height: 400px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+
+    .cta-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .cta-text {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 2.5rem;
+    }
+
+    .cta-features {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .cta-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .cta-feature svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--mint);
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .btn-white {
+      background: var(--white);
+      color: var(--gray-900);
+      padding: 1rem 2.5rem;
+      font-size: 1rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+
+    .btn-white:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Footer */
+    .footer {
+      padding: 4rem 2rem 2rem;
+      background: var(--gray-900);
+      color: var(--white);
+    }
+
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap: 4rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-brand .logo {
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .footer-brand p {
+      font-size: 0.95rem;
+      color: var(--gray-400);
+      max-width: 280px;
+    }
+
+    .footer-col h4 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+      color: var(--gray-400);
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-col a {
+      font-size: 0.95rem;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-col a:hover {
+      color: var(--coral);
+    }
+
+    .footer-bottom {
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--gray-400);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero h1 { font-size: 3rem; }
+      .hero-images { grid-template-columns: repeat(2, 1fr); }
+      .hero-img:nth-child(1), .hero-img:nth-child(2), .hero-img:nth-child(3), .hero-img:nth-child(4) { transform: none; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .categories-grid { grid-template-columns: repeat(3, 1fr); }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero { padding-top: 8rem; }
+      .hero h1 { font-size: 2.25rem; }
+      .hero-images { grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .stat-value { font-size: 2rem; }
+      .categories-grid { grid-template-columns: repeat(2, 1fr); }
+      .products-grid { grid-template-columns: 1fr; }
+      .cta-title { font-size: 2rem; }
+      .cta-features { flex-direction: column; gap: 1rem; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon"></div>
+        MadeBuy
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">Browse</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">Sellers</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="nav-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <button class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <button class="nav-icon">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="badge">2</span>
+        </button>
+        <a href="#" class="btn btn-coral">Start Selling</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span>New</span>
+      Now serving all of Australia
+    </div>
+    <h1>Discover <span class="highlight">unique</span> creations from local makers</h1>
+    <p>Shop handcrafted goods directly from Australian artisans. Zero transaction fees means better prices for everyone.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-coral btn-lg">Start Shopping</a>
+      <a href="#" class="btn btn-outline btn-lg">Open Your Shop</a>
+    </div>
+    <div class="hero-images">
+      <div class="hero-img">
+        <div class="hero-img-bg">Jewellery</div>
+      </div>
+      <div class="hero-img">
+        <div class="hero-img-bg">Ceramics</div>
+      </div>
+      <div class="hero-img">
+        <div class="hero-img-bg">Art</div>
+      </div>
+      <div class="hero-img">
+        <div class="hero-img-bg">Home</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="stats-inner">
+      <div class="stat">
+        <div class="stat-value">2,400<span>+</span></div>
+        <div class="stat-label">Active Sellers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">18k<span>+</span></div>
+        <div class="stat-label">Products</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">0<span>%</span></div>
+        <div class="stat-label">Transaction Fees</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4.9<span>★</span></div>
+        <div class="stat-label">Average Rating</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <div class="section-header">
+      <h2 class="section-title">Shop by Category</h2>
+      <a href="#" class="section-link">
+        View all
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <div class="categories-grid">
+      <div class="category-card">
+        <div class="category-card-bg">
+          <span class="category-name">Jewellery</span>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-card-bg">
+          <span class="category-name">Ceramics</span>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-card-bg">
+          <span class="category-name">Home Decor</span>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-card-bg">
+          <span class="category-name">Candles</span>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-card-bg">
+          <span class="category-name">Art</span>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-card-bg">
+          <span class="category-name">Fashion</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="products">
+    <div class="products-inner">
+      <div class="section-header">
+        <h2 class="section-title">Trending This Week</h2>
+        <a href="#" class="section-link">
+          View all
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="products-grid">
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <span class="product-badge">Bestseller</span>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Pink Petals</span>
+            </div>
+            <h3 class="product-title">Rose Gold Earrings</h3>
+            <div class="product-meta">
+              <span class="product-price">$78.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                4.9
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Ocean Studio</span>
+            </div>
+            <h3 class="product-title">Turquoise Ceramic Bowl</h3>
+            <div class="product-meta">
+              <span class="product-price">$65.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                5.0
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <span class="product-badge">New</span>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Sunny Days</span>
+            </div>
+            <h3 class="product-title">Beeswax Candle Set</h3>
+            <div class="product-meta">
+              <span class="product-price">$42.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                4.8
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Violet Dreams</span>
+            </div>
+            <h3 class="product-title">Abstract Art Print</h3>
+            <div class="product-meta">
+              <span class="product-price">$95.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                4.9
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Green Leaf Co</span>
+            </div>
+            <h3 class="product-title">Macrame Plant Hanger</h3>
+            <div class="product-meta">
+              <span class="product-price">$55.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                5.0
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Coral Reef</span>
+            </div>
+            <h3 class="product-title">Woven Beach Bag</h3>
+            <div class="product-meta">
+              <span class="product-price">$89.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                4.7
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Sky Blue</span>
+            </div>
+            <h3 class="product-title">Linen Table Runner</h3>
+            <div class="product-meta">
+              <span class="product-price">$68.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                4.9
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">
+            <div class="product-image-bg">Product</div>
+            <button class="product-wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="product-content">
+            <div class="product-seller">
+              <div class="product-seller-avatar"></div>
+              <span class="product-seller-name">Lavender Fields</span>
+            </div>
+            <h3 class="product-title">Silk Scrunchie Set</h3>
+            <div class="product-meta">
+              <span class="product-price">$32.00</span>
+              <span class="product-rating">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                5.0
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="cta-inner">
+      <h2 class="cta-title">Ready to start selling?</h2>
+      <p class="cta-text">Join thousands of Australian makers building their dream business on MadeBuy.</p>
+      <div class="cta-features">
+        <div class="cta-feature">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Zero transaction fees
+        </div>
+        <div class="cta-feature">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Your own storefront
+        </div>
+        <div class="cta-feature">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Marketplace exposure
+        </div>
+      </div>
+      <a href="#" class="btn btn-white btn-lg">Create Your Shop — Free</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <div class="logo-icon"></div>
+            MadeBuy
+          </a>
+          <p>Australia's home for unique handcrafted goods from talented local makers.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="#">Browse All</a></li>
+            <li><a href="#">Categories</a></li>
+            <li><a href="#">New Arrivals</a></li>
+            <li><a href="#">Trending</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Sell</h4>
+          <ul>
+            <li><a href="#">Start Selling</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">Seller Guide</a></li>
+            <li><a href="#">Login</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2024 MadeBuy</span>
+        <span>Privacy · Terms · Accessibility</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

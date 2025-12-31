@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Material } from '@madebuy/shared'
-import { Plus, Trash2, Calculator } from 'lucide-react'
+import { Plus, Trash2, Calculator, Loader2 } from 'lucide-react'
+import { useTenantCategories, FALLBACK_PRODUCT_CATEGORIES } from '@/hooks/useTenantCategories'
 
 interface PieceFormProps {
   tenantId: string
@@ -19,6 +20,12 @@ interface MaterialUsageEntry {
 export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
+
+  // Get dynamic categories based on maker type
+  const { productCategories, isLoading: categoriesLoading } = useTenantCategories()
+
+  // Use fetched categories or fallback to jewelry categories
+  const categories = productCategories.length > 0 ? productCategories : FALLBACK_PRODUCT_CATEGORIES
 
   // Piece data
   const [formData, setFormData] = useState({
@@ -175,22 +182,32 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
               Category *
             </label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select a category</option>
-              <option value="Rings">Rings</option>
-              <option value="Necklaces">Necklaces</option>
-              <option value="Earrings">Earrings</option>
-              <option value="Bracelets">Bracelets</option>
-              <option value="Pendants">Pendants</option>
-              <option value="Other">Other</option>
-            </select>
+            {categoriesLoading ? (
+              <div className="flex items-center gap-2 h-[42px] rounded-lg border border-gray-300 px-3 bg-gray-50">
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                <span className="text-sm text-gray-500">Loading categories...</span>
+              </div>
+            ) : (
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select a category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+                <option value="Other">Other</option>
+              </select>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              Manage categories in Settings &rarr; Product Categories
+            </p>
           </div>
 
           {/* Status */}

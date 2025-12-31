@@ -3,7 +3,7 @@ import { pieces, media } from '@madebuy/db'
 import { populatePiecesWithMedia } from '@/lib/pieces'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, MapPin, Star, ArrowLeft } from 'lucide-react'
 import { HeroBanner } from '@/components/storefront/HeroBanner'
 import { ClassicStoreLayout } from '@/components/storefront/layouts/ClassicStoreLayout'
 import { MinimalShowcaseLayout } from '@/components/storefront/layouts/MinimalShowcaseLayout'
@@ -45,45 +45,57 @@ export default async function ShopHomePage({ params }: { params: { tenant: strin
       : ClassicStoreLayout
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {logoUrl && (
-                <div className="relative h-12 w-auto">
+    <div className="min-h-screen bg-white tenant-theme">
+      {/* Modern Header */}
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-4">
+            {/* Back to Marketplace */}
+            <Link
+              href="/marketplace"
+              className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Marketplace</span>
+            </Link>
+
+            {/* Store Name & Logo */}
+            <Link href={`/${params.tenant}`} className="flex items-center gap-3">
+              {logoUrl ? (
+                <div className="relative h-9 w-9 overflow-hidden rounded-lg">
                   <Image
                     src={logoUrl}
                     alt={tenant.businessName}
-                    width={150}
-                    height={48}
-                    className="h-full w-auto object-contain"
+                    fill
+                    className="object-cover"
                   />
                 </div>
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-500">
+                  <span className="text-lg font-bold text-white">
+                    {tenant.businessName.charAt(0)}
+                  </span>
+                </div>
               )}
-              <div className="flex flex-col">
-                <h1 className="text-2xl font-bold text-gray-900">{tenant.businessName}</h1>
-                {tenant.description && (
-                  <p className="text-sm text-gray-600">{tenant.description}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
+              <span className="text-lg font-semibold text-gray-900">{tenant.businessName}</span>
+            </Link>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
               {tenant.websiteDesign?.blog?.enabled && (
                 <Link
                   href={`/${params.tenant}/blog`}
-                  className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors hidden sm:block"
                 >
                   {tenant.websiteDesign.blog.title || 'Blog'}
                 </Link>
               )}
               <Link
                 href={`/${params.tenant}/cart`}
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/90"
+                className="flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
               >
-                <ShoppingCart className="h-5 w-5" />
-                Cart
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden sm:inline">Cart</span>
               </Link>
             </div>
           </div>
@@ -92,24 +104,98 @@ export default async function ShopHomePage({ params }: { params: { tenant: strin
 
       {/* Hero Banner */}
       {tenant.websiteDesign?.banner && (
-        <HeroBanner banner={tenant.websiteDesign.banner} tenantSlug={params.tenant} />
+        <HeroBanner banner={tenant.websiteDesign.banner} tenantSlug={params.tenant} logoUrl={logoUrl} tenant={tenant} />
+      )}
+
+      {/* Store Stats Bar (for Classic layout) */}
+      {layout === 'grid' && (
+        <div className="border-b border-gray-100 bg-gray-50">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-sm">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium text-gray-900">4.9</span>
+                <span>(120 reviews)</span>
+              </div>
+              <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+              <div className="text-gray-600">
+                <span className="font-medium text-gray-900">{allPieces.length}</span> Products
+              </div>
+              {tenant.location && (
+                <>
+                  <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <MapPin className="h-4 w-4" />
+                    {tenant.location}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Main Content - Dynamic Layout */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <LayoutComponent pieces={allPieces} tenantSlug={params.tenant} tenant={tenant} />
       </main>
 
-      {/* Footer */}
-      <footer className="mt-12 border-t bg-white py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© {new Date().getFullYear()} {tenant.businessName}. All rights reserved.</p>
-          <p className="mt-1">
-            Powered by{' '}
-            <a href="https://madebuy.com.au" className="text-blue-600 hover:underline">
-              MadeBuy
-            </a>
-          </p>
+      {/* Modern Footer */}
+      <footer className="border-t border-gray-100 bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col items-center gap-6 text-center">
+            {/* Store Info */}
+            <div className="flex items-center gap-3">
+              {logoUrl ? (
+                <div className="relative h-10 w-10 overflow-hidden rounded-lg">
+                  <Image
+                    src={logoUrl}
+                    alt={tenant.businessName}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-500">
+                  <span className="text-lg font-bold text-white">
+                    {tenant.businessName.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <span className="text-lg font-semibold text-gray-900">{tenant.businessName}</span>
+            </div>
+
+            {tenant.description && (
+              <p className="text-sm text-gray-500 max-w-md">{tenant.description}</p>
+            )}
+
+            {/* Links */}
+            <div className="flex items-center gap-6 text-sm">
+              <Link href={`/${params.tenant}`} className="text-gray-500 hover:text-gray-900 transition-colors">
+                Shop
+              </Link>
+              <Link href={`/${params.tenant}/contact`} className="text-gray-500 hover:text-gray-900 transition-colors">
+                Contact
+              </Link>
+              {tenant.websiteDesign?.blog?.enabled && (
+                <Link href={`/${params.tenant}/blog`} className="text-gray-500 hover:text-gray-900 transition-colors">
+                  Blog
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-10 pt-6 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-400">
+              © {new Date().getFullYear()} {tenant.businessName}. All rights reserved.
+            </p>
+            <p className="text-sm text-gray-400">
+              Powered by{' '}
+              <Link href="https://madebuy.com.au" className="text-gray-500 hover:text-gray-700 transition-colors">
+                MadeBuy
+              </Link>
+            </p>
+          </div>
         </div>
       </footer>
     </div>

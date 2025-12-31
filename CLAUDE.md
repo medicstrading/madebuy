@@ -1,134 +1,134 @@
-# MadeBuy - Project Configuration
+# CLAUDE.md
 
-## ⛔ PROJECT IDENTITY - READ FIRST
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**This is:** MadeBuy - Etsy Alternative Marketplace for Makers
-**This is NOT:** Loutan Beauty, Sara's jewelry site, sarasite
+## Project Identity
 
-**Tagline:** "Shopify features + Etsy exposure, zero transaction fees"
-**Domain:** madebuy.com.au
-**Path:** ~/c/madebuy
+**MadeBuy** - Multi-vendor marketplace for Australian makers (Etsy alternative)
+- Domain: madebuy.com.au
+- Tagline: "Shopify features + Etsy exposure, zero transaction fees"
 
----
+## Commands
 
-## 🔒 PORTS (FIXED)
+```bash
+# Development (use these exact ports)
+pnpm --filter admin dev --port 3300    # Admin dashboard
+pnpm --filter web dev --port 3301      # Public marketplace
 
-| App | Port | URL | Start Command |
-|-----|------|-----|---------------|
-| Admin | 3300 | http://localhost:3300 | `pnpm --filter admin dev --port 3300` |
-| Website | 3301 | http://localhost:3301 | `pnpm --filter web dev --port 3301` |
+# Build
+pnpm build                              # Build all
+pnpm build:admin                        # Build admin only
+pnpm build:web                          # Build web only
 
-**DO NOT use ports 3000, 3001** - those are Sarasite's.
+# Lint
+pnpm lint
 
----
+# Production (PM2)
+pnpm pm2:start                          # Start all
+pnpm pm2:logs                           # View logs
+pnpm deploy:local                       # Build + restart
 
-## What This Project IS
-
-✅ Multi-vendor marketplace
-✅ Etsy alternative for Australian makers
-✅ Seller storefronts ({user}.madebuy.com.au)
-✅ IP protection (image hashing, timestamps)
-✅ Etsy product sync/import
-✅ Fair dispute resolution (48hr review)
-✅ Subscription-based (no transaction fees)
-
-## What This Project IS NOT
-
-❌ Sara's personal jewelry site
-❌ Single-vendor store
-❌ Loutan Beauty
-❌ Sarasite
-
----
-
-## Business Model
-
-### Pricing Tiers
-| Tier | Price | Features |
-|------|-------|----------|
-| Free | $0 | 10 products, store only |
-| Maker | $19/mo | Unlimited, marketplace listing |
-| Pro | $39/mo | Custom domain, analytics, priority |
-| Business | $79/mo | Multi-store, API access |
-
-### Key Differentiators
-1. **IP Protection** - Image hashing + timestamps on upload
-2. **Etsy Sync** - Import products, sync inventory
-3. **Fair Disputes** - 48-hour review, not instant buyer wins
-4. **Zero Transaction Fees** - Flat subscription only
-5. **Multi-tenant** - {user}.madebuy.com.au storefronts
-
----
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Backend | FastAPI (Python) |
-| Frontend | React 18 + TypeScript |
-| Database | MongoDB |
-| Storage | Cloudflare R2 |
-| Styling | Tailwind CSS |
-| Deploy | Vultr VPS + Docker + Caddy |
-
-## Structure (Monorepo)
-```
-madebuy/
-├── apps/
-│   ├── admin/          # Seller dashboard (port 3300)
-│   ├── api/            # FastAPI backend
-│   └── web/            # Public marketplace (port 3301)
-├── packages/
-│   ├── shared/         # Types, utilities
-│   ├── ui/             # Shared components
-│   └── database/       # MongoDB schemas
-└── services/
-    ├── social/         # Late API integration
-    └── email/          # Resend
+# Database
+docker run -d --name madebuy-mongo -p 27017:27017 mongo:7    # Local MongoDB
+pnpm create:tenant                      # Create test tenant
 ```
 
----
+**Fixed ports:** Admin=3300, Web=3301 (do not use 3000/3001)
 
-## Feature Boundaries
+## Architecture
 
-### ALLOWED Features (Marketplace)
-- Seller registration/onboarding
-- Product listings with search/filter
-- Multi-vendor storefronts
-- Marketplace browse/discovery
-- Subscription management
-- IP protection tools
-- Etsy import/sync
-- Dispute resolution
-- Analytics for sellers
+### Monorepo Structure (pnpm workspaces)
+```
+apps/
+  admin/     → Seller dashboard (Next.js 14, port 3300)
+  web/       → Public marketplace + tenant storefronts (Next.js 14, port 3301)
+packages/
+  db/        → MongoDB repositories (all database access goes through here)
+  shared/    → TypeScript types and constants
+  storage/   → Cloudflare R2 image upload/retrieval
+  social/    → Social media publishing (Late API integration)
+  marketplaces/ → Etsy integration
+```
 
-### FORBIDDEN (These belong to Sarasite)
-- Sara-specific jewelry features
-- Loutan Beauty branding
-- Single-owner inventory management
+### Multi-Tenancy Pattern
 
-If asked about "Sara", "jewelry", "Loutan" → **STOP and confirm project**
+The web app uses dynamic routing for tenant storefronts:
+- `/[tenant]/` → Individual seller storefront (e.g., `/handmade-jewelry/`)
+- `/[tenant]/[slug]` → Product detail page
+- `/marketplace/` → Unified marketplace browse
 
----
+Tenants are identified by `slug` in URLs and `id` in the database. Each tenant has their own products (pieces), media, orders, etc.
 
-## Agents
+### Database Layer (`@madebuy/db`)
 
-When asked to "Act as [agent]", read from `.agents/domains/[agent]/`
+All database operations use repository functions, never direct MongoDB access in routes:
 
-| Agent | Purpose |
-|-------|---------|
-| task | General research (context preservation) |
-| backend-researcher | API/DB patterns |
-| frontend-researcher | UI/Component patterns |
-| security-researcher | Auth, permissions |
-| deployment-reviewer | Pre-deploy, Docker, Vultr |
-| project-manager | Multi-domain coordination |
+```typescript
+import { pieces, tenants, media } from '@madebuy/db'
 
----
+// Repositories always require tenantId for data isolation
+const allPieces = await pieces.listPieces(tenantId)
+const piece = await pieces.createPiece(tenantId, data)
+```
 
-## Before Making Changes
+Collections: `tenants`, `pieces`, `media`, `orders`, `materials`, `promotions`, `enquiries`, `publish_records`, `blog`
 
-1. Confirm this is marketplace-related work
-2. If it sounds like Sara's jewelry → STOP, ask user
-3. Check you're in ~/c/madebuy
-4. Use correct ports (3300, 3301)
+### Auth Pattern (Admin App)
+
+NextAuth.js with credentials provider. Tenants authenticate via email/password:
+
+```typescript
+import { getCurrentTenant } from '@/lib/session'
+
+export async function GET() {
+  const tenant = await getCurrentTenant()
+  if (!tenant) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // tenant.id is used for all data queries
+}
+```
+
+### Types (`@madebuy/shared`)
+
+All entity types are in `packages/shared/src/types/`:
+- `Tenant` - Seller account with features, plan, branding
+- `Piece` - Product/item for sale
+- `Media` - Images stored in R2
+- `Order`, `Material`, `Promotion`, etc.
+
+Import types: `import type { Piece, Tenant } from '@madebuy/shared'`
+
+### Storage (`@madebuy/storage`)
+
+Images upload to Cloudflare R2. Media records in MongoDB reference R2 keys:
+
+```typescript
+import { uploadToR2, getSignedUrl } from '@madebuy/storage'
+```
+
+## Key Patterns
+
+**API Routes:** Located in `apps/*/src/app/api/`. Follow Next.js 14 App Router conventions. Always check tenant auth first.
+
+**Repository Pattern:** Database operations in `packages/db/src/repositories/`. Functions take `tenantId` as first param for multi-tenant isolation.
+
+**Imports:** Use `@madebuy/db`, `@madebuy/shared`, `@madebuy/storage` for cross-package imports. Use `@/` for app-internal imports.
+
+## Environment Variables
+
+Required in `apps/admin/.env.local` and `apps/web/.env.local`:
+- `MONGODB_URI` - MongoDB connection string
+- `MONGODB_DB` - Database name (usually `madebuy`)
+- `NEXTAUTH_URL` - App URL (admin: localhost:3300, web: localhost:3301)
+- `NEXTAUTH_SECRET` - Auth secret
+- `R2_*` - Cloudflare R2 credentials
+
+## Business Context
+
+**Subscription tiers:** Free (10 products), Maker ($19), Pro ($39), Business ($79)
+
+**Key features by tier:**
+- `marketplaceListing` - Can list in unified marketplace (Maker+)
+- `customDomain` - Custom domain support (Pro+)
+- `unlimitedPieces` - No product limit (Maker+)
+
+Feature flags stored in `tenant.features` object.

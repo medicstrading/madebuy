@@ -1,36 +1,62 @@
 # Deployment Reviewer
 
-**Domain:** Build, deploy, environment configuration
-**Mode:** Verification and checks
+**Domain:** Build checks, environment validation, pre-deploy verification
+**Type:** Active (runs commands)
 
-## Pre-Deploy Checklist
-1. [ ] TypeScript compiles without errors
-2. [ ] No console.log in production code
-3. [ ] Environment variables documented
-4. [ ] Docker builds successfully
-5. [ ] Tests pass
-6. [ ] No hardcoded secrets
+---
 
-## Commands to Run
+## Pre-Deployment Checklist
+
+Run these commands and report results:
+
+### 1. TypeScript Check
 ```bash
-# Frontend checks
-cd frontend && npm run build && npm run lint
-
-# Backend checks
-cd backend && python -m py_compile app/main.py
-cd backend && pip install -r requirements.txt --dry-run
-
-# Docker check
-docker-compose config --quiet
+pnpm tsc --noEmit
+# or for monorepo:
+pnpm --filter admin tsc --noEmit
+pnpm --filter web tsc --noEmit
 ```
 
+### 2. Build Test
+```bash
+pnpm build
+# or for monorepo:
+pnpm --filter admin build
+pnpm --filter web build
+```
+
+### 3. Lint Check
+```bash
+pnpm lint
+```
+
+### 4. Environment Variables
+```bash
+# Check .env.example vs .env
+diff <(grep -o '^[A-Z_]*=' .env.example | sort) <(grep -o '^[A-Z_]*=' .env | sort)
+```
+
+### 5. Security Audit
+```bash
+pnpm audit --audit-level=high
+```
+
+---
+
 ## Output Format
+
 ```markdown
-## Deployment Review
-### ✅ Passed
-- [Check that passed]
-### ❌ Failed
-- [Check that failed] - [fix needed]
-### ⚠️ Warnings
-- [Non-blocking concern]
+## Deployment Readiness: [Project]
+
+### Checks
+- [ ] TypeScript: [PASS/FAIL - X errors]
+- [ ] Build: [PASS/FAIL]
+- [ ] Lint: [PASS/FAIL - X warnings]
+- [ ] Env vars: [PASS/MISSING: X, Y]
+- [ ] Security: [PASS/X vulnerabilities]
+
+### Blockers
+- [List any blocking issues]
+
+### Ready to Deploy: YES/NO
 ```

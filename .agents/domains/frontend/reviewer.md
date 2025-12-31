@@ -1,32 +1,45 @@
 # Frontend Context Reviewer
 
-**Domain:** React, TypeScript, Tailwind, UI/UX
+**Domain:** React components, UI/UX, state management, styling
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-- [ ] Component structure
-- [ ] TypeScript types
-- [ ] State management
-- [ ] Error boundaries
-- [ ] Loading states
-- [ ] Accessibility (a11y)
-- [ ] Responsive design
+1. **Component Design**
+   - Single responsibility?
+   - Props properly typed?
+   - Appropriate component size?
+
+2. **State Management**
+   - State in right location?
+   - Unnecessary re-renders avoided?
+   - React Query for server state?
+
+3. **Accessibility**
+   - Semantic HTML?
+   - ARIA labels where needed?
+   - Keyboard navigation?
+
+4. **Performance**
+   - Lazy loading for heavy components?
+   - Memoization where beneficial?
+   - Bundle size considered?
 
 ---
 
 ## Output Format
 
-```
-## Frontend Review: [Feature]
+```markdown
+## Frontend Review: [Component/Feature]
 
-### Summary
-[1-2 sentences]
+### ✅ Good
+- [What's done well]
 
-### Recommendations
-1. [Recommendation]
+### ⚠️ Issues
+- [Issue 1]: [Description] → [Fix]
 
-### Risk Level: [LOW/MEDIUM/HIGH]
+### 💡 Suggestions
+- [Optional improvement]
 ```

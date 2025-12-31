@@ -13,10 +13,14 @@ export interface Piece {
   slug: string // URL-safe version
   description?: string
 
-  // Materials
-  stones: string[]
-  metals: string[]
-  techniques: string[]
+  // Materials (generic for all maker types)
+  materials: string[] // Generic materials list (replaces stones/metals)
+  techniques: string[] // Techniques/methods used (applies to all makers)
+
+  // DEPRECATED: Legacy jewelry-specific fields (kept for migration)
+  // These will be combined into 'materials' during migration
+  stones?: string[]
+  metals?: string[]
 
   // Details
   dimensions?: string
@@ -89,8 +93,7 @@ export interface PieceIntegrations {
 export interface CreatePieceInput {
   name: string
   description?: string
-  stones?: string[]
-  metals?: string[]
+  materials?: string[] // Generic materials (replaces stones/metals)
   techniques?: string[]
   dimensions?: string
   weight?: string
@@ -102,6 +105,9 @@ export interface CreatePieceInput {
   tags?: string[]
   status?: PieceStatus
   isFeatured?: boolean
+  // DEPRECATED: Legacy fields for backward compatibility
+  stones?: string[]
+  metals?: string[]
 }
 
 export interface UpdatePieceInput extends Partial<CreatePieceInput> {
@@ -140,5 +146,5 @@ export interface PieceListOptions extends PieceFilters {
 export interface PieceWithMedia extends Piece {
   primaryImage?: MediaItem
   allImages: MediaItem[]
-  materials?: string[] // Combined from stones, metals, etc.
+  // Note: materials is now native to Piece interface
 }

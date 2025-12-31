@@ -1,3 +1,5 @@
+import type { MakerType } from '../constants/makerPresets'
+
 /**
  * Tenant - Multi-tenant user/shop owner
  */
@@ -13,6 +15,11 @@ export interface Tenant {
   tagline?: string
   description?: string
   location?: string
+
+  // Maker type & categories
+  makerType?: MakerType
+  customCategories?: string[] // Custom product categories (added on top of presets)
+  customMaterialCategories?: string[] // Custom material categories
 
   // Branding
   primaryColor: string
@@ -220,6 +227,7 @@ export interface CreateTenantInput {
   businessName: string
   primaryColor?: string
   accentColor?: string
+  makerType?: MakerType
 }
 
 export interface UpdateTenantInput {
@@ -227,6 +235,9 @@ export interface UpdateTenantInput {
   tagline?: string
   description?: string
   location?: string
+  makerType?: MakerType
+  customCategories?: string[]
+  customMaterialCategories?: string[]
   primaryColor?: string
   accentColor?: string
   logoMediaId?: string
@@ -242,3 +253,6 @@ export interface UpdateTenantInput {
   socialConnections?: SocialConnection[]
   websiteDesign?: TenantWebsiteDesign
 }
+
+// Re-export MakerType for convenience
+export type { MakerType } from '../constants/makerPresets'

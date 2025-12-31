@@ -1,40 +1,41 @@
 # DevOps Reviewer
 
-**Domain:** Docker, CI/CD, infrastructure
+**Domain:** Docker, CI/CD, infrastructure, deployment pipelines
 **Type:** Advisory (non-editing)
 
 ---
 
 ## Review Checklist
 
-### Docker
-- [ ] Multi-stage builds
-- [ ] Non-root user
-- [ ] Health checks
-- [ ] .dockerignore present
+1. **Docker**
+   - Multi-stage builds?
+   - .dockerignore present?
+   - Non-root user?
+   - Health checks?
 
-### CI/CD
-- [ ] Tests run before deploy
-- [ ] Secrets not hardcoded
-- [ ] Environment separation
+2. **CI/CD**
+   - Tests run in pipeline?
+   - Build caching?
+   - Environment separation?
 
-### Infrastructure
-- [ ] SSL configured
-- [ ] Backups configured
-- [ ] Monitoring in place
+3. **Infrastructure**
+   - Resources appropriately sized?
+   - Scaling configured?
+   - Monitoring in place?
 
 ---
 
 ## Output Format
 
-```
-## DevOps Review: [Feature]
+```markdown
+## DevOps Review: [Component]
 
-### Docker Recommendations
-1. [Recommendation]
+### Docker Assessment
+- [Observations]
 
-### CI/CD Recommendations
-1. [Recommendation]
+### CI/CD Assessment
+- [Observations]
 
-### Risk Level: [LOW/MEDIUM/HIGH]
+### Recommendations
+- [Improvements]
 ```

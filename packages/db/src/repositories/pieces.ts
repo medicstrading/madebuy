@@ -18,9 +18,12 @@ export async function createPiece(tenantId: string, data: CreatePieceInput): Pro
     name: data.name,
     slug: generateSlug(data.name),
     description: data.description,
+    // Generic materials (new field)
+    materials: data.materials || [],
+    techniques: data.techniques || [],
+    // Legacy fields (kept for migration)
     stones: data.stones || [],
     metals: data.metals || [],
-    techniques: data.techniques || [],
     dimensions: data.dimensions,
     weight: data.weight,
     chainLength: data.chainLength,
