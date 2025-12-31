@@ -5,6 +5,28 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Sentry** | `@sentry/mcp-server` | Error tracking, security alerts, performance monitoring |
+
+### Install Commands
+```bash
+claude mcp add sentry -e SENTRY_AUTH_TOKEN=xxx -e SENTRY_ORG=xxx -- npx -y @sentry/mcp-server
+```
+
+### How to Use MCPs
+
+**Sentry** - Monitor security issues and errors:
+```
+"use sentry to check for recent authentication errors"
+"use sentry to list unhandled exceptions in production"
+"use sentry to get error details for issue #12345"
+```
+
+---
+
 ## Review Checklist
 
 1. **Authentication**

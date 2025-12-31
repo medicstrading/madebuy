@@ -5,6 +5,46 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Playwright** | `@anthropic/mcp-server-playwright` | Visual testing, screenshots, responsive checks |
+| **Figma** | `figma-mcp` | Design system access, component specs |
+| **Chrome DevTools** | `chrome-devtools-mcp` | Live browser inspection, accessibility audit |
+
+### Install Commands
+```bash
+claude mcp add playwright -- npx -y @anthropic/mcp-server-playwright
+claude mcp add figma -e FIGMA_ACCESS_TOKEN=xxx -- npx -y figma-mcp
+claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp
+```
+
+### How to Use MCPs
+
+**Playwright** - Visual testing:
+```
+"use playwright to take screenshots at all breakpoints"
+"use playwright to compare visual regression"
+"use playwright to test dark mode toggle"
+```
+
+**Figma** - Design reference:
+```
+"use figma to get the color palette from the design system"
+"use figma to check spacing tokens"
+"use figma to compare implementation to design"
+```
+
+**Chrome DevTools** - Live inspection:
+```
+"use chrome-devtools to run Lighthouse accessibility audit"
+"use chrome-devtools to inspect computed styles"
+"use chrome-devtools to check contrast ratios"
+```
+
+---
+
 ## Review Checklist
 
 1. **Visual Consistency**

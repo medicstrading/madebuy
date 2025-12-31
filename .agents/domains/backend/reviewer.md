@@ -5,6 +5,38 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Context7** | `@upstash/context7-mcp` | FastAPI, Express, Next.js API docs |
+| **PostgreSQL** | `@modelcontextprotocol/server-postgres` | Query and inspect PostgreSQL databases |
+| **MongoDB** | `mongodb-mcp` | Query and inspect MongoDB databases |
+| **Supabase** | `@supabase/mcp-server-supabase` | Supabase backend operations |
+
+### Install Commands
+```bash
+claude mcp add context7 -- npx -y @upstash/context7-mcp
+claude mcp add postgres -e DATABASE_URL=xxx -- npx -y @modelcontextprotocol/server-postgres
+claude mcp add supabase -e SUPABASE_URL=xxx -e SUPABASE_KEY=xxx -- npx -y @supabase/mcp-server-supabase
+```
+
+### How to Use MCPs
+
+**Context7** - Look up API framework documentation:
+```
+"use context7 to check FastAPI dependency injection patterns"
+"use context7 to look up Next.js API route handlers"
+```
+
+**Database MCPs** - Inspect schema and data:
+```
+"use postgres to list tables and their schemas"
+"use supabase to check RLS policies on the users table"
+```
+
+---
+
 ## When Invoked
 
 User says: "Act as backend-context-reviewer and [task]"

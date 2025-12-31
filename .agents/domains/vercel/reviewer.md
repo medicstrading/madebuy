@@ -5,6 +5,37 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Vercel** | `vercel-mcp` | Deployments, environment variables, logs |
+| **Chrome DevTools** | `chrome-devtools-mcp` | Inspect deployed site performance |
+
+### Install Commands
+```bash
+claude mcp add vercel -e VERCEL_TOKEN=xxx -- npx -y vercel-mcp
+claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp
+```
+
+### How to Use MCPs
+
+**Vercel** - Deployment operations:
+```
+"use vercel to list all deployments for this project"
+"use vercel to check environment variables in production"
+"use vercel to get logs from the latest deployment"
+"use vercel to promote preview to production"
+```
+
+**Chrome DevTools** - Performance inspection:
+```
+"use chrome-devtools to analyze Core Web Vitals"
+"use chrome-devtools to check network waterfall"
+```
+
+---
+
 ## Review Checklist
 
 1. **Configuration**

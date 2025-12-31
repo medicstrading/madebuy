@@ -5,6 +5,43 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Vercel** | `vercel-mcp` | Check deployments, logs, environment variables |
+| **Sentry** | `@sentry/mcp-server` | Monitor errors after deployment |
+| **GitHub** | `@modelcontextprotocol/server-github` | Check CI/CD status, PR checks |
+
+### Install Commands
+```bash
+claude mcp add vercel -e VERCEL_TOKEN=xxx -- npx -y vercel-mcp
+claude mcp add sentry -e SENTRY_AUTH_TOKEN=xxx -e SENTRY_ORG=xxx -- npx -y @sentry/mcp-server
+claude mcp add github -e GITHUB_TOKEN=xxx -- npx -y @modelcontextprotocol/server-github
+```
+
+### How to Use MCPs
+
+**Vercel** - Check deployment status:
+```
+"use vercel to list recent deployments"
+"use vercel to check environment variables for production"
+"use vercel to get deployment logs"
+```
+
+**GitHub** - Check CI/CD:
+```
+"use github to check status of PR checks"
+"use github to get the latest commit status"
+```
+
+**Sentry** - Post-deploy monitoring:
+```
+"use sentry to check for new errors after deployment"
+```
+
+---
+
 ## Pre-Deployment Checklist
 
 Run these commands and report results:

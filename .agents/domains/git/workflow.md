@@ -5,6 +5,28 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **GitHub** | `@modelcontextprotocol/server-github` | PR creation, issue linking, repo operations |
+
+### Install Commands
+```bash
+claude mcp add github -e GITHUB_TOKEN=xxx -- npx -y @modelcontextprotocol/server-github
+```
+
+### How to Use MCPs
+
+**GitHub** - Repository operations:
+```
+"use github to create a PR from this branch"
+"use github to link this commit to issue #42"
+"use github to check if there are any open PRs for this branch"
+```
+
+---
+
 ## Commit Convention
 
 ```

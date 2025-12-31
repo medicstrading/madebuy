@@ -4,6 +4,35 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Context7** | `@upstash/context7-mcp` | Documentation lookup for frameworks/libraries |
+| **Sequential Thinking** | `@modelcontextprotocol/server-sequential-thinking` | Break down complex tasks step-by-step |
+
+### Install Commands
+```bash
+claude mcp add context7 -- npx -y @upstash/context7-mcp
+claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking
+```
+
+### How to Use MCPs
+
+**Context7** - Always fetch docs BEFORE implementing:
+```
+"use context7 to look up Next.js App Router patterns"
+"use context7 to check MongoDB aggregation syntax"
+```
+
+**Sequential Thinking** - For complex planning:
+```
+"use sequential-thinking to break down the checkout flow implementation"
+"use sequential-thinking to plan the database migration"
+```
+
+---
+
 ## Responsibilities
 
 1. **Task Routing** - Determine which specialist agent handles each request
@@ -32,12 +61,13 @@
 
 ```
 1. Receive task from user
-2. Identify scope (which files/systems affected)
-3. Route to appropriate reviewer for analysis
-4. Implement changes
-5. Run code-fixer if errors
-6. Run deployment-reviewer before commit
-7. Update architectural-memory.md if significant
+2. Use sequential-thinking to break down complex tasks
+3. Use context7 to fetch relevant documentation
+4. Route to appropriate reviewer for analysis
+5. Implement changes
+6. Run code-fixer if errors
+7. Run deployment-reviewer before commit
+8. Update architectural-memory.md if significant
 ```
 
 ---

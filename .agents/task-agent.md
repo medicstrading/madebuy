@@ -6,6 +6,35 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Context7** | `@upstash/context7-mcp` | Documentation lookup during research |
+| **Brave Search** | `@modelcontextprotocol/server-brave-search` | Web research for patterns/solutions |
+| **Sequential Thinking** | `@modelcontextprotocol/server-sequential-thinking` | Break down complex analysis |
+
+### Install Commands
+```bash
+claude mcp add context7 -- npx -y @upstash/context7-mcp
+claude mcp add brave-search -e BRAVE_API_KEY=xxx -- npx -y @modelcontextprotocol/server-brave-search
+claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking
+```
+
+### How to Use MCPs
+
+**Context7** - Research library patterns:
+```
+"use context7 to look up React Query caching patterns"
+```
+
+**Brave Search** - Find solutions online:
+```
+"use brave-search to find examples of MongoDB aggregation pipelines"
+```
+
+---
+
 ## When to Use
 
 - Reading files >100 lines

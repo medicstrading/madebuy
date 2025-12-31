@@ -5,6 +5,36 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Filesystem** | `@modelcontextprotocol/server-filesystem` | Read and edit source files |
+| **Git** | `git-mcp` | Track changes, revert if needed |
+
+### Install Commands
+```bash
+claude mcp add filesystem -- npx -y @modelcontextprotocol/server-filesystem /path/to/project
+claude mcp add git -- npx -y git-mcp
+```
+
+### How to Use MCPs
+
+**Filesystem** - File operations:
+```
+"use filesystem to read the file with errors"
+"use filesystem to apply the fix to line 42"
+```
+
+**Git** - Version control:
+```
+"use git to show the diff of changes made"
+"use git to revert the last change if fix didn't work"
+"use git to stash changes before attempting risky fix"
+```
+
+---
+
 ## Rules
 
 1. **Minimal changes** - Fix only what's broken

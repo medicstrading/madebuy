@@ -5,6 +5,36 @@
 
 ---
 
+## Required MCP Servers
+
+| MCP | Package | Purpose |
+|-----|---------|---------|
+| **Playwright** | `@anthropic/mcp-server-playwright` | E2E browser testing, visual regression |
+| **Puppeteer** | `@modelcontextprotocol/server-puppeteer` | Browser automation for testing |
+
+### Install Commands
+```bash
+claude mcp add playwright -- npx -y @anthropic/mcp-server-playwright
+claude mcp add puppeteer -- npx -y @modelcontextprotocol/server-puppeteer
+```
+
+### How to Use MCPs
+
+**Playwright** - Run E2E tests:
+```
+"use playwright to run the login flow test"
+"use playwright to take screenshots of responsive breakpoints"
+"use playwright to test the checkout process end-to-end"
+```
+
+**Puppeteer** - Browser automation:
+```
+"use puppeteer to verify the form submission works"
+"use puppeteer to check for console errors on page load"
+```
+
+---
+
 ## Review Checklist
 
 1. **Coverage**
