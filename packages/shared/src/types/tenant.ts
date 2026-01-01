@@ -51,6 +51,18 @@ export interface Tenant {
   subscriptionId?: string
   subscriptionStatus?: SubscriptionStatus
 
+  // Stripe Connect (for receiving payments)
+  stripeConnectAccountId?: string
+  stripeConnectStatus?: StripeConnectStatus
+  stripeConnectOnboardingComplete?: boolean
+  stripeConnectChargesEnabled?: boolean
+  stripeConnectPayoutsEnabled?: boolean
+
+  // Tax/GST settings (Australian business)
+  gstRegistered?: boolean
+  abn?: string                    // Australian Business Number
+  gstInclusivePricing?: boolean   // Whether prices include GST
+
   // Feature flags
   features: TenantFeatures
 
@@ -89,6 +101,7 @@ export interface ShippingConfig {
 export type DomainStatus = 'none' | 'pending_nameservers' | 'active'
 export type Plan = 'free' | 'pro' | 'business' | 'enterprise'
 export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due'
+export type StripeConnectStatus = 'pending' | 'active' | 'restricted' | 'disabled'
 
 export interface SocialConnection {
   platform: SocialPlatform

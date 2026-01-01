@@ -18,6 +18,8 @@ export * from './enquiry'
 export * from './blog'
 export * from './analytics'
 export * from './tracking'
+export * from './transaction'
+export * from './payout'
 
 // Re-export commonly used types for convenience
 export type {
@@ -40,6 +42,11 @@ export type {
   EtsyListingIntegration,
   VariantOption,
   ProductVariant,
+  ProductVariation,
+  VariationOption,
+  VariantCombination,
+  PersonalizationField,
+  DigitalFile,
 } from './piece'
 
 export type {
@@ -133,3 +140,92 @@ export type {
   AttributionData,
   UTMParams,
 } from './tracking'
+
+export type {
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+  TransactionFees,
+  CreateTransactionInput,
+  TransactionFilters,
+  TransactionSummary,
+  DailyRevenueData,
+} from './transaction'
+
+export type {
+  Payout,
+  PayoutStatus,
+  PayoutMethod,
+  CreatePayoutInput,
+  PayoutFilters,
+  PayoutSummary,
+  PayoutStats,
+} from './payout'
+
+export * from './customer'
+export * from './emailCampaign'
+
+export type {
+  Customer,
+  CustomerSegment,
+  SegmentRule,
+  CustomerFilters,
+  CustomerStats,
+  CustomerLTV,
+  CohortData,
+  CreateCustomerInput,
+  UpdateCustomerInput,
+} from './customer'
+
+export type {
+  EmailCampaign,
+  EmailTrigger,
+  EmailCampaignStatus,
+  EmailCampaignStats,
+  EmailSubscriber,
+  EmailAutomation,
+  AutomationCondition,
+  CreateEmailCampaignInput,
+  UpdateEmailCampaignInput,
+  EmailCampaignFilters,
+  EmailMarketingStats,
+} from './emailCampaign'
+
+export * from './shipping'
+
+export type {
+  ShippingCarrier,
+  ShippingProfile,
+  WeightRate,
+  Shipment,
+  ShipmentStatus,
+  ShipmentDimensions,
+  SendleQuote,
+  SendleOrder,
+  SendleLabel,
+  SendleContact,
+  SendleTracking,
+  SendleTrackingEvent,
+  CreateShipmentInput,
+  CreateLabelInput,
+  ShippingProfileInput,
+  SendleIntegration,
+} from './shipping'
+
+export * from './wishlist'
+export * from './review'
+
+export type {
+  WishlistItem,
+  WishlistFilters,
+  AddToWishlistInput,
+} from './wishlist'
+
+export type {
+  Review,
+  ReviewStatus,
+  ReviewSummary as BuyerReviewSummary,
+  CreateReviewInput,
+  UpdateReviewInput,
+  ReviewFilters,
+} from './review'

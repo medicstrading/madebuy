@@ -39,6 +39,23 @@ export interface Order {
   paymentIntentId?: string
   stripeSessionId?: string
 
+  // Payment tracking (Stripe references)
+  stripePaymentIntentId?: string
+  stripeChargeId?: string
+
+  // Fee breakdown (all amounts in cents)
+  fees?: {
+    stripe: number      // Stripe processing fee
+    platform: number    // Always 0 for MadeBuy - our differentiator
+    total: number       // Total fees
+  }
+  netAmount?: number    // What seller actually receives (total - fees)
+
+  // UTM attribution for analytics
+  trafficSource?: string
+  trafficMedium?: string
+  trafficCampaign?: string
+
   // Fulfillment
   status: OrderStatus
   trackingNumber?: string

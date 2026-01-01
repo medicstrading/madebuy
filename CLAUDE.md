@@ -5,8 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Identity
 
 **MadeBuy** - Multi-vendor marketplace for Australian makers (Etsy alternative)
-- Domain: madebuy.com.au
-- Tagline: "Shopify features + Etsy exposure, zero transaction fees"
+- **Path:** ~/nuc-projects/madebuy
+- **Domain:** madebuy.com.au
+- **Tagline:** "Shopify features + Etsy exposure, zero transaction fees"
+- **Ports:** Admin=3300, Web=3301
 
 ## Commands
 
