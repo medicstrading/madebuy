@@ -2,6 +2,8 @@
  * Order - E-commerce orders for pieces
  */
 
+import type { PersonalizationValue } from './piece'
+
 export interface Order {
   id: string
   tenantId: string
@@ -61,6 +63,11 @@ export interface Order {
   trackingNumber?: string
   carrier?: string
 
+  // Digital product delivery
+  hasDigitalItems?: boolean       // Order contains at least one digital product
+  isDigitalOnly?: boolean         // Order contains ONLY digital products (no shipping needed)
+  digitalDeliveredAt?: Date       // When download links were sent
+
   // Notes
   customerNotes?: string
   adminNotes?: string
@@ -84,6 +91,19 @@ export interface OrderItem {
   // Snapshot at time of order
   description?: string
   category: string
+
+  // Variant info (if applicable)
+  variantId?: string
+  variantSku?: string
+  variantAttributes?: Record<string, string>  // e.g., { "Size": "M", "Color": "Blue" }
+
+  // Personalization (for custom/made-to-order products)
+  personalizations?: PersonalizationValue[]
+  personalizationTotal?: number               // Sum of all personalization price adjustments (cents)
+
+  // Digital product fields
+  isDigital?: boolean
+  downloadRecordId?: string       // Reference to download_records collection
 }
 
 export interface Address {

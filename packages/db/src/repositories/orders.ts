@@ -80,6 +80,8 @@ export async function listOrders(
     status?: Order['status']
     paymentStatus?: Order['paymentStatus']
     customerEmail?: string
+    limit?: number
+    offset?: number
   }
 ): Promise<Order[]> {
   const db = await getDatabase()
@@ -98,10 +100,19 @@ export async function listOrders(
     query.customerEmail = filters.customerEmail
   }
 
-  const results = await db.collection('orders')
+  let cursor = db.collection('orders')
     .find(query)
     .sort({ createdAt: -1 })
-    .toArray()
+
+  if (filters?.offset) {
+    cursor = cursor.skip(filters.offset)
+  }
+
+  if (filters?.limit) {
+    cursor = cursor.limit(filters.limit)
+  }
+
+  const results = await cursor.toArray()
 
   return results as any[]
 }

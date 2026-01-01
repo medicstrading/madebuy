@@ -45,19 +45,19 @@ export async function GET() {
 
     // Filter to relevant account types and format for UI
     const accounts: XeroAccount[] = (response.body.accounts || [])
-      .filter((acc: Account) => ['REVENUE', 'EXPENSE', 'DIRECTCOSTS', 'BANK', 'CURRENT'].includes(acc.type as string))
+      .filter((acc: Account) => acc.type && ['REVENUE', 'EXPENSE', 'DIRECTCOSTS', 'BANK', 'CURRENT'].includes(String(acc.type)))
       .map((acc: Account) => ({
         code: acc.code,
         name: acc.name,
-        type: acc.type,
+        type: acc.type?.toString(),
         description: acc.description
       }));
 
     // Group by type for easier UI rendering
     const grouped = {
       revenue: accounts.filter((a: XeroAccount) => a.type === 'REVENUE'),
-      expense: accounts.filter((a: XeroAccount) => ['EXPENSE', 'DIRECTCOSTS'].includes(a.type as string)),
-      bank: accounts.filter((a: XeroAccount) => ['BANK', 'CURRENT'].includes(a.type as string))
+      expense: accounts.filter((a: XeroAccount) => a.type && ['EXPENSE', 'DIRECTCOSTS'].includes(a.type)),
+      bank: accounts.filter((a: XeroAccount) => a.type && ['BANK', 'CURRENT'].includes(a.type))
     };
 
     return NextResponse.json(grouped);

@@ -96,7 +96,7 @@ export async function listCampaigns(
     db.collection('email_campaigns').countDocuments(query),
   ])
 
-  return { campaigns: campaigns as EmailCampaign[], total }
+  return { campaigns: campaigns as unknown as EmailCampaign[], total }
 }
 
 /**
@@ -308,7 +308,7 @@ export async function listSubscribers(
     db.collection('email_subscribers').countDocuments(query),
   ])
 
-  return { subscribers: subscribers as EmailSubscriber[], total }
+  return { subscribers: subscribers as unknown as EmailSubscriber[], total }
 }
 
 /**
@@ -375,7 +375,7 @@ export async function listAutomations(
     .collection('email_automations')
     .find({ tenantId })
     .sort({ createdAt: -1 })
-    .toArray()) as EmailAutomation[]
+    .toArray()) as unknown as EmailAutomation[]
 }
 
 /**
@@ -404,7 +404,7 @@ export async function getActiveAutomationsByTrigger(
   return (await db
     .collection('email_automations')
     .find({ tenantId, trigger, isActive: true })
-    .toArray()) as EmailAutomation[]
+    .toArray()) as unknown as EmailAutomation[]
 }
 
 // ==========================================

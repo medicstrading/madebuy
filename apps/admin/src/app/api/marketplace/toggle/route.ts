@@ -79,7 +79,10 @@ export async function POST(request: NextRequest) {
       // Create seller profile if doesn't exist
       const existingProfile = await marketplace.getSellerProfile(tenant.id)
       if (!existingProfile) {
-        await marketplace.createSellerProfile(tenant.id, tenant.businessName)
+        await marketplace.createSellerProfile({
+          tenantId: tenant.id,
+          displayName: tenant.businessName
+        })
       }
 
       // Initialize marketplace stats if doesn't exist

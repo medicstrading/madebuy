@@ -57,7 +57,7 @@ export async function createOrUpdateCustomer(
       averageOrderValue: newAverageOrderValue,
       lastOrderAt: now,
       updatedAt: now,
-    } as Customer
+    } as unknown as Customer
   }
 
   // Create new customer
@@ -92,7 +92,7 @@ export async function getCustomerByEmail(
   email: string
 ): Promise<Customer | null> {
   const db = await getDatabase()
-  return (await db.collection('customers').findOne({ tenantId, email })) as Customer | null
+  return (await db.collection('customers').findOne({ tenantId, email })) as unknown as Customer | null
 }
 
 /**
@@ -103,7 +103,7 @@ export async function getCustomerById(
   id: string
 ): Promise<Customer | null> {
   const db = await getDatabase()
-  return (await db.collection('customers').findOne({ tenantId, id })) as Customer | null
+  return (await db.collection('customers').findOne({ tenantId, id })) as unknown as Customer | null
 }
 
 /**
@@ -154,7 +154,7 @@ export async function listCustomers(
     db.collection('customers').countDocuments(query),
   ])
 
-  return { customers: customers as Customer[], total }
+  return { customers: customers as unknown as Customer[], total }
 }
 
 /**
@@ -523,5 +523,5 @@ export async function exportCustomers(
     .collection('customers')
     .find(query)
     .sort({ totalSpent: -1 })
-    .toArray()) as Customer[]
+    .toArray()) as unknown as Customer[]
 }

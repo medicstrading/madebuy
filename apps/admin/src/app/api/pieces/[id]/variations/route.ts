@@ -6,8 +6,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireTenant } from '@/lib/session'
 import { pieces, variants } from '@madebuy/db'
-import type { ProductVariation, VariantCombination } from '@madebuy/shared'
+import type { ProductVariation, VariantCombination, EnhancedProductVariant } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+
+/**
+ * Convert EnhancedProductVariant to VariantCombination for legacy compatibility
+ */
+function toVariantCombination(variant: EnhancedProductVariant): VariantCombination {
+  return {
+    id: variant.id,
+    pieceId: variant.pieceId,
+    options: variant.attributes,
+    sku: variant.sku,
+    price: variant.price ?? 0,
+    stock: variant.stock,
+    mediaId: variant.imageId ?? undefined,
+  }
+}
 
 interface RouteParams {
   params: { id: string }
@@ -106,24 +121,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         piece.price || 0,
         baseSku
       )
-      newCombinations = await variants.bulkCreateVariants(
+      const created = await variants.bulkCreateVariants(
         tenant.id,
         pieceId,
         generated
       )
+      newCombinations = created.map(toVariantCombination)
     } else if (combinations.length > 0) {
       // Use manually provided combinations
-      newCombinations = await variants.bulkCreateVariants(
+      const created = await variants.bulkCreateVariants(
         tenant.id,
         pieceId,
-        combinations.map((c: any) => ({
-          options: c.options,
-          sku: c.sku,
-          price: c.price,
-          stock: c.stock || 0,
-          mediaId: c.mediaId,
+        combinations.map((c: Record<string, unknown>) => ({
+          attributes: (c.options || c.attributes || {}) as Record<string, string>,
+          sku: c.sku as string,
+          price: (c.price as number) || null,
+          stock: (c.stock as number) || 0,
+          imageId: (c.mediaId || c.imageId) as string | null | undefined,
         }))
       )
+      newCombinations = created.map(toVariantCombination)
     }
 
     return NextResponse.json({
@@ -245,18 +262,24 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (variantId) {
       // Delete specific variant combination
-      const success = await variants.deleteVariant(
-        tenant.id,
-        pieceId,
-        variantId
-      )
-      if (!success) {
-        return NextResponse.json(
-          { error: 'Variant not found' },
-          { status: 404 }
+      // deleteVariant throws NotFoundError if not found
+      try {
+        await variants.deleteVariant(
+          tenant.id,
+          pieceId,
+          variantId
         )
+        return NextResponse.json({ success: true })
+      } catch (deleteError) {
+        // Check if it's a NotFoundError
+        if (deleteError instanceof Error && deleteError.name === 'NotFoundError') {
+          return NextResponse.json(
+            { error: 'Variant not found' },
+            { status: 404 }
+          )
+        }
+        throw deleteError
       }
-      return NextResponse.json({ success: true })
     }
 
     return NextResponse.json(

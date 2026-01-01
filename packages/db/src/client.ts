@@ -103,6 +103,30 @@ async function ensureIndexes(db: Db) {
   await db.collection('payouts').createIndex({ stripePayoutId: 1 }, { unique: true })
   await db.collection('payouts').createIndex({ tenantId: 1, arrivalDate: -1 })
 
+  // Download Records (digital products)
+  await db.collection('download_records').createIndex({ tenantId: 1 })
+  await db.collection('download_records').createIndex({ tenantId: 1, orderId: 1 })
+  await db.collection('download_records').createIndex({ tenantId: 1, pieceId: 1 })
+  await db.collection('download_records').createIndex({ downloadToken: 1 }, { unique: true })
+  await db.collection('download_records').createIndex(
+    { tokenExpiresAt: 1 },
+    { expireAfterSeconds: 0, partialFilterExpression: { tokenExpiresAt: { $exists: true } } }
+  )
+
+  // Variant Combinations (product variants with SKU, stock, price)
+  await db.collection('variant_combinations').createIndex({ tenantId: 1 })
+  await db.collection('variant_combinations').createIndex({ tenantId: 1, pieceId: 1 })
+  await db.collection('variant_combinations').createIndex({ tenantId: 1, sku: 1 }, { unique: true })
+  await db.collection('variant_combinations').createIndex({ tenantId: 1, id: 1 })
+  await db.collection('variant_combinations').createIndex(
+    { tenantId: 1, stock: 1 },
+    { partialFilterExpression: { isDeleted: { $ne: true } } }
+  )
+  await db.collection('variant_combinations').createIndex(
+    { tenantId: 1, isDeleted: 1, stock: 1 },
+    { name: 'low_stock_lookup' }
+  )
+
   console.log('✅ Database indexes created')
 }
 

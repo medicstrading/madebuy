@@ -26,3 +26,6 @@ export * from './validation'
 
 // Export Xero integration
 export * from './xero'
+
+// Export digital delivery service
+export * from './services/digital-delivery'

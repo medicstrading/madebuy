@@ -64,6 +64,7 @@ export interface CreateAccountingConnectionInput {
   externalTenantId: string
   externalTenantName?: string
   accountMappings: AccountMappings
+  status?: AccountingConnectionStatus
 }
 
 /**

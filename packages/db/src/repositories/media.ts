@@ -1,6 +1,13 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { MediaItem, CreateMediaInput, UpdateMediaInput, MediaFilters } from '@madebuy/shared'
+import type {
+  MediaItem,
+  CreateMediaInput,
+  UpdateMediaInput,
+  MediaFilters,
+  ReorderResult,
+  VideoProcessingStatus,
+} from '@madebuy/shared'
 
 export async function createMedia(tenantId: string, data: CreateMediaInput): Promise<MediaItem> {
   const db = await getDatabase()
@@ -11,17 +18,24 @@ export async function createMedia(tenantId: string, data: CreateMediaInput): Pro
     type: data.type,
     mimeType: data.mimeType,
     originalFilename: data.originalFilename,
+    sizeBytes: data.sizeBytes,
     variants: data.variants,
     platformOptimized: data.platformOptimized || [],
     caption: data.caption,
     hashtags: data.hashtags || [],
     altText: data.altText,
     pieceId: data.pieceId,
+    displayOrder: data.displayOrder ?? 0,
+    isPrimary: data.isPrimary ?? false,
     tags: data.tags || [],
     isFavorite: false,
     publishedTo: [],
     source: data.source || 'upload',
     importedFrom: data.importedFrom,
+    // Video-specific fields
+    video: data.video,
+    processingStatus: data.processingStatus,
+    dominantColor: data.dominantColor,
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -37,7 +51,7 @@ export async function getMedia(tenantId: string, id: string): Promise<MediaItem 
 
 export async function listMedia(
   tenantId: string,
-  filters?: MediaFilters
+  filters?: MediaFilters & { sortBy?: 'createdAt' | 'updatedAt' | 'displayOrder'; sortOrder?: 'asc' | 'desc' }
 ): Promise<MediaItem[]> {
   const db = await getDatabase()
 
@@ -59,9 +73,21 @@ export async function listMedia(
     query.tags = { $in: filters.tags }
   }
 
+  if (filters?.processingStatus) {
+    query.processingStatus = filters.processingStatus
+  }
+
+  if (filters?.isPrimary !== undefined) {
+    query.isPrimary = filters.isPrimary
+  }
+
+  // Determine sort field and order
+  const sortField = filters?.sortBy || 'createdAt'
+  const sortOrder = filters?.sortOrder === 'asc' ? 1 : -1
+
   const results = await db.collection('media')
     .find(query)
-    .sort({ createdAt: -1 })
+    .sort({ [sortField]: sortOrder })
     .toArray()
 
   return results as any[]
@@ -116,4 +142,212 @@ export async function addPublishDestination(
 export async function countMedia(tenantId: string): Promise<number> {
   const db = await getDatabase()
   return await db.collection('media').countDocuments({ tenantId })
+}
+
+// ============================================================================
+// Display Order & Primary Media Functions
+// ============================================================================
+
+/**
+ * Update display order for multiple media items atomically
+ * @param tenantId - Tenant ID
+ * @param pieceId - Piece ID
+ * @param orderedIds - Array of media IDs in desired order
+ */
+export async function updateDisplayOrder(
+  tenantId: string,
+  pieceId: string,
+  orderedIds: string[]
+): Promise<ReorderResult> {
+  const db = await getDatabase()
+
+  // Use bulkWrite for atomic updates
+  const bulkOps = orderedIds.map((id, index) => ({
+    updateOne: {
+      filter: { tenantId, id, pieceId },
+      update: {
+        $set: {
+          displayOrder: index,
+          isPrimary: index === 0, // First item is always primary
+          updatedAt: new Date(),
+        },
+      },
+    },
+  }))
+
+  const result = await db.collection('media').bulkWrite(bulkOps)
+
+  return {
+    success: result.modifiedCount > 0 || result.matchedCount === orderedIds.length,
+    updatedCount: result.modifiedCount,
+  }
+}
+
+/**
+ * Get all media for a piece, ordered by displayOrder
+ * @param tenantId - Tenant ID
+ * @param pieceId - Piece ID
+ */
+export async function getMediaByPiece(
+  tenantId: string,
+  pieceId: string
+): Promise<MediaItem[]> {
+  const db = await getDatabase()
+
+  const results = await db.collection('media')
+    .find({ tenantId, pieceId })
+    .sort({ displayOrder: 1 })
+    .toArray()
+
+  return results as any[]
+}
+
+/**
+ * Set a specific media item as primary for a piece
+ * @param tenantId - Tenant ID
+ * @param pieceId - Piece ID
+ * @param mediaId - ID of media to set as primary
+ */
+export async function setPrimaryMedia(
+  tenantId: string,
+  pieceId: string,
+  mediaId: string
+): Promise<void> {
+  const db = await getDatabase()
+
+  // First, unset primary on all media for this piece
+  await db.collection('media').updateMany(
+    { tenantId, pieceId },
+    { $set: { isPrimary: false, updatedAt: new Date() } }
+  )
+
+  // Then set the specified media as primary
+  await db.collection('media').updateOne(
+    { tenantId, id: mediaId, pieceId },
+    { $set: { isPrimary: true, displayOrder: 0, updatedAt: new Date() } }
+  )
+}
+
+// ============================================================================
+// Video Processing Functions
+// ============================================================================
+
+/**
+ * Get videos that need processing (pending status)
+ */
+export async function getVideosPendingProcessing(): Promise<MediaItem[]> {
+  const db = await getDatabase()
+
+  const results = await db.collection('media')
+    .find({
+      type: 'video',
+      processingStatus: 'pending',
+    })
+    .sort({ createdAt: 1 }) // Process oldest first
+    .limit(10) // Batch of 10
+    .toArray()
+
+  return results as any[]
+}
+
+/**
+ * Update video processing status
+ */
+export async function updateVideoProcessingStatus(
+  tenantId: string,
+  mediaId: string,
+  status: VideoProcessingStatus,
+  error?: string
+): Promise<void> {
+  const db = await getDatabase()
+
+  const updates: any = {
+    processingStatus: status,
+    updatedAt: new Date(),
+  }
+
+  if (error) {
+    updates.processingError = error
+  } else if (status === 'complete') {
+    // Clear any previous error on success
+    updates.processingError = null
+  }
+
+  await db.collection('media').updateOne(
+    { tenantId, id: mediaId },
+    { $set: updates }
+  )
+}
+
+/**
+ * Update video metadata after processing
+ */
+export async function updateVideoMetadata(
+  tenantId: string,
+  mediaId: string,
+  videoMetadata: MediaItem['video'],
+  thumbnailVariants?: MediaItem['variants']
+): Promise<void> {
+  const db = await getDatabase()
+
+  const updates: any = {
+    video: videoMetadata,
+    processingStatus: 'complete' as VideoProcessingStatus,
+    updatedAt: new Date(),
+  }
+
+  // If thumbnail variants provided, merge them with existing variants
+  if (thumbnailVariants) {
+    const media = await getMedia(tenantId, mediaId)
+    if (media) {
+      updates.variants = {
+        ...media.variants,
+        ...thumbnailVariants,
+      }
+    }
+  }
+
+  await db.collection('media').updateOne(
+    { tenantId, id: mediaId },
+    { $set: updates }
+  )
+}
+
+/**
+ * Get next display order for a piece
+ */
+export async function getNextDisplayOrder(
+  tenantId: string,
+  pieceId: string
+): Promise<number> {
+  const db = await getDatabase()
+
+  const result = await db.collection('media')
+    .find({ tenantId, pieceId })
+    .sort({ displayOrder: -1 })
+    .limit(1)
+    .toArray()
+
+  if (result.length === 0) {
+    return 0
+  }
+
+  return (result[0].displayOrder ?? -1) + 1
+}
+
+/**
+ * Delete multiple media items
+ */
+export async function deleteMediaBulk(
+  tenantId: string,
+  mediaIds: string[]
+): Promise<number> {
+  const db = await getDatabase()
+
+  const result = await db.collection('media').deleteMany({
+    tenantId,
+    id: { $in: mediaIds },
+  })
+
+  return result.deletedCount
 }

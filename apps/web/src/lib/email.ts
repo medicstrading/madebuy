@@ -1,5 +1,12 @@
 import { Resend } from 'resend'
-import type { Order, Tenant } from '@madebuy/shared'
+import type { Order, Tenant, DownloadRecord, DigitalFile } from '@madebuy/shared'
+import {
+  buildDownloadEmailHtml,
+  buildDownloadEmailText,
+  getDownloadPageUrl,
+  getFileDownloadUrl,
+  type DownloadEmailData,
+} from '@madebuy/shared'
 
 let resend: Resend | null = null
 
@@ -147,6 +154,70 @@ export async function sendOrderConfirmation(order: Order, tenant: Tenant) {
     return result
   } catch (error) {
     console.error('Failed to send order confirmation email:', error)
+    throw error
+  }
+}
+
+/**
+ * Send digital product download email
+ */
+export interface SendDownloadEmailParams {
+  order: Order
+  tenant: Tenant
+  downloadRecord: DownloadRecord
+  productName: string
+  files: DigitalFile[]
+  downloadLimit?: number
+  expiryDate?: Date
+}
+
+export async function sendDownloadEmail(params: SendDownloadEmailParams) {
+  const { order, tenant, downloadRecord, productName, files, downloadLimit, expiryDate } = params
+
+  const fromEmail = tenant.email || process.env.DEFAULT_FROM_EMAIL || 'orders@madebuy.com.au'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${tenant.slug}.madebuy.com.au`
+
+  const downloadPageUrl = getDownloadPageUrl(baseUrl, downloadRecord.downloadToken)
+
+  const emailData: DownloadEmailData = {
+    customerName: order.customerName || 'there',
+    productName,
+    downloadPageUrl,
+    files: files.map(file => ({
+      name: file.name,
+      fileName: file.fileName,
+      sizeBytes: file.sizeBytes,
+      directDownloadUrl: getFileDownloadUrl(baseUrl, downloadRecord.downloadToken, file.id),
+    })),
+    expiryDate,
+    downloadLimit,
+    sellerName: tenant.shopName || tenant.businessName || 'the seller',
+    orderNumber: order.orderNumber,
+  }
+
+  const htmlContent = buildDownloadEmailHtml(emailData)
+  const textContent = buildDownloadEmailText(emailData)
+
+  const client = getResendClient()
+
+  if (!client) {
+    console.warn('Resend API key not configured, skipping download email')
+    return null
+  }
+
+  try {
+    const result = await client.emails.send({
+      from: `${tenant.businessName || tenant.shopName} <${fromEmail}>`,
+      to: order.customerEmail,
+      subject: `Your Download: ${productName}`,
+      html: htmlContent,
+      text: textContent,
+    })
+
+    console.log('Download email sent:', result)
+    return result
+  } catch (error) {
+    console.error('Failed to send download email:', error)
     throw error
   }
 }

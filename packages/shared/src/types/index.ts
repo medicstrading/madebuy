@@ -20,6 +20,7 @@ export * from './analytics'
 export * from './tracking'
 export * from './transaction'
 export * from './payout'
+export * from './download'
 
 // Re-export commonly used types for convenience
 export type {
@@ -45,8 +46,14 @@ export type {
   ProductVariation,
   VariationOption,
   VariantCombination,
+  PersonalizationFieldType,
   PersonalizationField,
+  PersonalizationConfig,
+  PersonalizationValue,
   DigitalFile,
+  DigitalProductConfig,
+  CreateDigitalFileInput,
+  UpdateDigitalFileInput,
 } from './piece'
 
 export type {
@@ -56,6 +63,23 @@ export type {
   MediaVariants,
   CreateMediaInput,
   UpdateMediaInput,
+  VideoMetadata,
+  VideoProcessingStatus,
+  MediaFilters,
+  MediaListOptions,
+  ReorderMediaInput,
+  ReorderResult,
+} from './media'
+
+export {
+  VALID_IMAGE_TYPES,
+  VALID_VIDEO_TYPES,
+  MAX_IMAGE_SIZE,
+  MAX_VIDEO_SIZE,
+  MAX_VIDEO_DURATION,
+  MAX_MEDIA_PER_PIECE,
+  VIDEO_EXTENSIONS,
+  IMAGE_EXTENSIONS,
 } from './media'
 
 export type {
@@ -237,3 +261,12 @@ export type {
   UpdateAccountingConnectionInput,
   UpdateSyncStatusInput,
 } from './accountingConnection'
+
+export type {
+  DownloadRecord,
+  DownloadEvent,
+  DownloadValidationResult,
+  DownloadFilters,
+  DownloadStats,
+  CreateDownloadRecordInput,
+} from './download'

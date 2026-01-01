@@ -1,6 +1,6 @@
 /**
  * @madebuy/storage
- * Storage utilities (R2 and Local) and image processing for MadeBuy platform
+ * Storage utilities (R2 and Local) and image/video processing for MadeBuy platform
  */
 
 // Export R2 utilities
@@ -43,3 +43,16 @@ export {
   type ProtectedUploadOptions,
   type ProtectedUploadResult,
 } from './protected-upload'
+
+// Export video processing utilities
+export {
+  processVideo,
+  extractVideoMetadata,
+  generateThumbnail,
+  validateVideoDuration,
+  getOptimalCapturePoints,
+  THUMBNAIL_SIZES,
+  type VideoProcessingOptions,
+  type VideoProcessingResult,
+  type ExtractedMetadata,
+} from './video-processing'

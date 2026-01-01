@@ -37,10 +37,16 @@ export interface Review {
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
 export interface ReviewSummary {
-  averageRating: number;
+  avgRating: number;
   totalReviews: number;
-  ratingDistribution: Record<number, number>;
-  verifiedPurchaseCount?: number;
+  ratingDistribution: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
+  verifiedPurchasePercentage: number;
 }
 
 export interface CreateReviewInput {

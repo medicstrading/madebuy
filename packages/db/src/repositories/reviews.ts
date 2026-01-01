@@ -204,28 +204,30 @@ export async function getReviewSummary(tenantId: string, pieceId: string): Promi
 
   if (reviews.length === 0) {
     return {
-      averageRating: 0,
+      avgRating: 0,
       totalReviews: 0,
       ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-      verifiedPurchaseCount: 0,
+      verifiedPurchasePercentage: 0,
     }
   }
 
-  const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
   let totalRating = 0
   let verifiedCount = 0
 
   reviews.forEach(review => {
     totalRating += review.rating
-    distribution[review.rating]++
+    if (review.rating >= 1 && review.rating <= 5) {
+      distribution[review.rating as 1 | 2 | 3 | 4 | 5]++
+    }
     if (review.verifiedPurchase) verifiedCount++
   })
 
   return {
-    averageRating: Math.round((totalRating / reviews.length) * 10) / 10,
+    avgRating: Math.round((totalRating / reviews.length) * 10) / 10,
     totalReviews: reviews.length,
     ratingDistribution: distribution,
-    verifiedPurchaseCount: verifiedCount,
+    verifiedPurchasePercentage: reviews.length > 0 ? Math.round((verifiedCount / reviews.length) * 100) : 0,
   }
 }
 
@@ -241,28 +243,30 @@ export async function getTenantReviewSummary(tenantId: string): Promise<ReviewSu
 
   if (reviews.length === 0) {
     return {
-      averageRating: 0,
+      avgRating: 0,
       totalReviews: 0,
       ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-      verifiedPurchaseCount: 0,
+      verifiedPurchasePercentage: 0,
     }
   }
 
-  const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
   let totalRating = 0
   let verifiedCount = 0
 
   reviews.forEach(review => {
     totalRating += review.rating
-    distribution[review.rating]++
+    if (review.rating >= 1 && review.rating <= 5) {
+      distribution[review.rating as 1 | 2 | 3 | 4 | 5]++
+    }
     if (review.verifiedPurchase) verifiedCount++
   })
 
   return {
-    averageRating: Math.round((totalRating / reviews.length) * 10) / 10,
+    avgRating: Math.round((totalRating / reviews.length) * 10) / 10,
     totalReviews: reviews.length,
     ratingDistribution: distribution,
-    verifiedPurchaseCount: verifiedCount,
+    verifiedPurchasePercentage: reviews.length > 0 ? Math.round((verifiedCount / reviews.length) * 100) : 0,
   }
 }
 
@@ -347,7 +351,7 @@ async function recalculatePieceRating(tenantId: string, pieceId: string): Promis
     { tenantId, id: pieceId },
     {
       $set: {
-        'marketplace.avgRating': summary.averageRating,
+        'marketplace.avgRating': summary.avgRating,
         'marketplace.totalReviews': summary.totalReviews,
         updatedAt: new Date()
       }
@@ -359,7 +363,7 @@ async function recalculatePieceRating(tenantId: string, pieceId: string): Promis
     { tenantId, id: pieceId },
     {
       $set: {
-        'marketplace.avgRating': summary.averageRating,
+        'marketplace.avgRating': summary.avgRating,
         'marketplace.totalReviews': summary.totalReviews,
         updatedAt: new Date()
       }
