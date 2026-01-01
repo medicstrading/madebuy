@@ -29,20 +29,26 @@ module.exports = withSentryConfig(nextConfig, {
   // Only upload sourcemaps in production
   silent: !process.env.CI,
 
-  // Upload a larger set of source maps for prettier stack traces
-  widenClientFileUpload: true,
-
   // Route browser requests to Sentry through a proxy
   tunnelRoute: '/monitoring',
 
   // Hide source maps from generated client bundles
   hideSourceMaps: true,
 
-  // Automatically annotate React components
+  // Disabled - adds overhead and can cause build issues
   reactComponentAnnotation: {
-    enabled: true,
+    enabled: false,
   },
 
   // Disable Sentry in development
   disableLogger: true,
+
+  // Bundle size optimizations - tree-shake unused Sentry code
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayWorker: true,
+    excludeReplayShadowDOM: true,
+    excludeReplayIframe: true,
+    excludeReplayCanvas: true,
+  },
 })

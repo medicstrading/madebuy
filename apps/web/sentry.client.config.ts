@@ -6,9 +6,9 @@ Sentry.init({
   // Performance Monitoring
   tracesSampleRate: 0.1, // 10% of transactions
 
-  // Session Replay (optional - uses quota)
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  // Session Replay disabled - saves ~50KB gzipped
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
 
   // Only send errors in production
   enabled: process.env.NODE_ENV === "production",

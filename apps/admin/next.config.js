@@ -26,22 +26,26 @@ module.exports = withSentryConfig(nextConfig, {
   // Only upload sourcemaps in production
   silent: !process.env.CI,
 
-  // Upload a larger set of source maps for prettier stack traces
-  widenClientFileUpload: true,
-
   // Route browser requests to Sentry through a proxy
   tunnelRoute: '/monitoring',
 
   // Hide source maps from generated client bundles
   hideSourceMaps: true,
 
-  // Automatically annotate React components
-  // Disabled - causes "Could not find module in React Client Manifest" errors
-  // with client components in route groups like (auth)
+  // Disabled - causes build issues with client components in route groups
   reactComponentAnnotation: {
     enabled: false,
   },
 
   // Disable Sentry in development
   disableLogger: true,
+
+  // Bundle size optimizations - tree-shake unused Sentry code
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayWorker: true,
+    excludeReplayShadowDOM: true,
+    excludeReplayIframe: true,
+    excludeReplayCanvas: true,
+  },
 })
