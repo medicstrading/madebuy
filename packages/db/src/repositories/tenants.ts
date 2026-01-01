@@ -59,6 +59,29 @@ export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
   return await db.collection('tenants').findOne({ slug }) as Tenant | null
 }
 
+export async function getTenantByStripeAccountId(stripeAccountId: string): Promise<Tenant | null> {
+  const db = await getDatabase()
+  return await db.collection('tenants').findOne({ stripeConnectAccountId: stripeAccountId }) as Tenant | null
+}
+
+export async function updateTenantStripeStatus(
+  tenantId: string,
+  status: 'pending' | 'active' | 'restricted' | 'disabled',
+  onboardingComplete: boolean
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        stripeConnectStatus: status,
+        stripeConnectOnboardingComplete: onboardingComplete,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
 export async function getTenantByDomain(domain: string): Promise<Tenant | null> {
   // First try custom domain
   let tenant = await getTenantByCustomDomain(domain)

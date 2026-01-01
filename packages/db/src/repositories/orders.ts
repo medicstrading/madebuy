@@ -166,3 +166,100 @@ export async function countOrders(tenantId: string): Promise<number> {
   const db = await getDatabase()
   return await db.collection('orders').countDocuments({ tenantId })
 }
+
+/**
+ * Get orders that need to be synced to accounting software
+ * Returns paid orders from the last N days that haven't been synced
+ */
+export async function getOrdersForSync(
+  tenantId: string,
+  days: number = 30
+): Promise<Order[]> {
+  const db = await getDatabase()
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - days)
+
+  const results = await db.collection('orders')
+    .find({
+      tenantId,
+      paymentStatus: 'paid',
+      createdAt: { $gte: cutoffDate },
+      // Not already synced to any accounting provider
+      $or: [
+        { syncedToAccounting: { $exists: false } },
+        { syncedToAccounting: null },
+        { 'syncedToAccounting.xero': { $exists: false } }
+      ]
+    })
+    .sort({ createdAt: -1 })
+    .toArray()
+
+  return results as unknown as Order[]
+}
+
+/**
+ * Mark an order as synced to an accounting provider
+ */
+export async function markAsSynced(
+  orderId: string,
+  provider: 'xero' | 'myob' | 'quickbooks',
+  externalId: string | undefined
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('orders').updateOne(
+    { id: orderId },
+    {
+      $set: {
+        [`syncedToAccounting.${provider}`]: {
+          syncedAt: new Date(),
+          externalId: externalId || null
+        },
+        updatedAt: new Date()
+      }
+    }
+  )
+}
+
+/**
+ * Get orders that failed to sync (for retry)
+ */
+export async function getFailedSyncOrders(
+  tenantId: string,
+  provider: 'xero' | 'myob' | 'quickbooks'
+): Promise<Order[]> {
+  const db = await getDatabase()
+
+  const results = await db.collection('orders')
+    .find({
+      tenantId,
+      paymentStatus: 'paid',
+      [`syncedToAccounting.${provider}.error`]: { $exists: true }
+    })
+    .sort({ createdAt: -1 })
+    .toArray()
+
+  return results as unknown as Order[]
+}
+
+/**
+ * Mark an order sync as failed (for retry tracking)
+ */
+export async function markSyncFailed(
+  orderId: string,
+  provider: 'xero' | 'myob' | 'quickbooks',
+  error: string
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('orders').updateOne(
+    { id: orderId },
+    {
+      $set: {
+        [`syncedToAccounting.${provider}`]: {
+          error,
+          failedAt: new Date()
+        },
+        updatedAt: new Date()
+      }
+    }
+  )
+}

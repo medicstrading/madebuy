@@ -40,6 +40,18 @@ export interface Piece {
   variantOptions?: VariantOption[] // e.g., [{name: "Size", values: ["S", "M", "L"]}]
   variants?: ProductVariant[] // Individual variant combinations with stock/price
 
+  // Variations (enhanced variant system with SKU combinations)
+  variations?: ProductVariation[]
+  hasVariations?: boolean
+
+  // Personalization
+  personalizationEnabled?: boolean
+  personalizationFields?: PersonalizationField[]
+
+  // Digital product
+  isDigital?: boolean
+  digitalFiles?: DigitalFile[]
+
   // Status
   status: PieceStatus
 
@@ -100,6 +112,65 @@ export interface ProductVariant {
   isAvailable: boolean
 }
 
+/**
+ * ProductVariation - defines a variation type (e.g., Size, Color)
+ */
+export interface ProductVariation {
+  id: string
+  name: string // e.g., "Size", "Color"
+  options: VariationOption[]
+}
+
+/**
+ * VariationOption - a single option within a variation type
+ */
+export interface VariationOption {
+  id: string
+  value: string // e.g., "Small", "Red"
+  priceAdjustment?: number // +/- cents from base price
+  sku?: string // SKU suffix for this option
+  stock?: number // Stock for this specific option
+  mediaId?: string // Show different image for this option
+}
+
+/**
+ * VariantCombination - a specific combination of variation options with its own SKU/price/stock
+ */
+export interface VariantCombination {
+  id: string
+  pieceId: string
+  options: Record<string, string> // { "Size": "Small", "Color": "Red" }
+  sku: string
+  price: number // Final price in cents
+  stock: number
+  mediaId?: string
+}
+
+/**
+ * PersonalizationField - defines a field for customer personalization
+ */
+export interface PersonalizationField {
+  id: string
+  label: string
+  type: 'text' | 'textarea' | 'select' | 'file'
+  required: boolean
+  maxLength?: number
+  options?: string[] // For select type
+  placeholder?: string
+}
+
+/**
+ * DigitalFile - a digital file attached to a product
+ */
+export interface DigitalFile {
+  id: string
+  name: string
+  size: number // Size in bytes
+  mimeType: string
+  r2Key: string // Cloudflare R2 storage key
+  downloadCount?: number
+}
+
 // Social Video Embeds - imported from product.ts to avoid duplication
 
 export interface EtsyListingIntegration {
@@ -130,10 +201,19 @@ export interface CreatePieceInput {
   tags?: string[]
   status?: PieceStatus
   isFeatured?: boolean
-  // Variants
+  // Variants (legacy)
   hasVariants?: boolean
   variantOptions?: VariantOption[]
   variants?: Omit<ProductVariant, 'id'>[] // IDs will be generated on creation
+  // Variations (enhanced variant system)
+  hasVariations?: boolean
+  variations?: Omit<ProductVariation, 'id'>[]
+  // Personalization
+  personalizationEnabled?: boolean
+  personalizationFields?: Omit<PersonalizationField, 'id'>[]
+  // Digital product
+  isDigital?: boolean
+  digitalFiles?: Omit<DigitalFile, 'id'>[]
   // DEPRECATED: Legacy fields for backward compatibility
   stones?: string[]
   metals?: string[]

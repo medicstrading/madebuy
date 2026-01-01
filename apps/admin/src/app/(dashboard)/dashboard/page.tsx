@@ -2,6 +2,7 @@ import { requireTenant } from '@/lib/session'
 import { Package, Image, ShoppingCart, Mail, TrendingUp, TrendingDown, Plus, Share, Settings, ArrowRight, Eye, Star, Clock } from 'lucide-react'
 import { pieces, media, orders, enquiries } from '@madebuy/db'
 import Link from 'next/link'
+import { FinanceWidgets } from '@/components/dashboard/FinanceWidgets'
 
 async function getDashboardStats(tenantId: string) {
   const [piecesCount, mediaCount, ordersCount, enquiriesCount, recentOrders] = await Promise.all([
@@ -85,6 +86,9 @@ export default async function DashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* Finance Widgets */}
+      <FinanceWidgets />
 
       {/* Orders & Quick Actions Row */}
       <div className="grid gap-6 lg:grid-cols-3">

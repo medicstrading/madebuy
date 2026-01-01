@@ -1,96 +1,84 @@
 {
   "project_name": "madebuy",
-  "last_task": "Phase 2 Financial Reporting - COMPLETE",
+  "last_task": "Phase 3 Xero Integration - COMPLETE",
   "status": "completed",
   "current_branch": "main",
   "notes": [
     "⚠️ INFRA FIX 2025-12-31: Dev server now runs from ~/claude-project/ (was ~/projects/). SSHFS edits now reach running server.",
     "Implementation plan: IMPLEMENTATION_PLAN.md (9 phases total)",
     "✅ Phase 1 COMPLETE: Financial Foundation",
-    "✅ Phase 2 COMPLETE: Financial Reporting"
+    "✅ Phase 2 COMPLETE: Financial Reporting",
+    "✅ Phase 3 COMPLETE: Xero Integration"
   ],
   "phase1_progress": {
     "name": "Financial Foundation",
-    "status": "complete",
-    "completed": [
-      "✅ Transaction type defined (packages/shared/src/types/transaction.ts)",
-      "✅ Payout type defined (packages/shared/src/types/payout.ts)",
-      "✅ Order type enhanced with fees, stripePaymentIntentId, netAmount",
-      "✅ Tenant type enhanced with stripeConnectAccountId, GST fields",
-      "✅ Stripe config (packages/shared/src/stripe/config.ts)",
-      "✅ Stripe Connect helpers (packages/shared/src/stripe/connect.ts)",
-      "✅ Stripe payouts module (packages/shared/src/stripe/payouts.ts)",
-      "✅ Stripe transactions module (packages/shared/src/stripe/transactions.ts)",
-      "✅ Transactions repository (packages/db/src/repositories/transactions.ts)",
-      "✅ Payouts repository (packages/db/src/repositories/payouts.ts)",
-      "✅ Seller onboarding API routes (apps/admin/src/app/api/stripe/connect/)",
-      "✅ Seller onboarding UI (apps/admin/src/app/(dashboard)/dashboard/settings/payments/)",
-      "✅ Connect webhook handler (apps/web/src/app/api/webhooks/stripe-connect/)",
-      "✅ Transaction logging in checkout webhook (apps/web/src/app/api/webhooks/stripe/)"
-    ],
-    "key_files": [
-      "packages/shared/src/types/transaction.ts",
-      "packages/shared/src/types/payout.ts",
-      "packages/shared/src/stripe/connect.ts",
-      "packages/db/src/repositories/transactions.ts",
-      "packages/db/src/repositories/payouts.ts",
-      "apps/admin/src/app/api/stripe/connect/route.ts",
-      "apps/admin/src/app/(dashboard)/dashboard/settings/payments/page.tsx",
-      "apps/web/src/app/api/webhooks/stripe-connect/route.ts",
-      "apps/web/src/app/api/webhooks/stripe/route.ts"
-    ]
+    "status": "complete"
   },
   "phase2_progress": {
     "name": "Financial Reporting",
+    "status": "complete"
+  },
+  "phase3_progress": {
+    "name": "Xero Integration",
     "status": "complete",
     "completed": [
-      "✅ Revenue analytics API (apps/admin/src/app/api/analytics/revenue/route.ts)",
-      "✅ Revenue dashboard widget (apps/admin/src/components/dashboard/RevenueWidget.tsx)",
-      "✅ Payouts analytics API (apps/admin/src/app/api/analytics/payouts/route.ts)",
-      "✅ Payouts dashboard widget (apps/admin/src/components/dashboard/PayoutsWidget.tsx)",
-      "✅ Transaction ledger page with filters (apps/admin/src/app/(dashboard)/dashboard/ledger/page.tsx)",
-      "✅ Ledger filters component (apps/admin/src/components/ledger/LedgerFilters.tsx)",
-      "✅ Transaction table component (apps/admin/src/components/ledger/TransactionTable.tsx)",
-      "✅ CSV export API (apps/admin/src/app/api/ledger/export/csv/route.ts)",
-      "✅ PDF statement API (apps/admin/src/app/api/ledger/export/pdf/route.ts)",
-      "✅ Export buttons component (apps/admin/src/components/ledger/ExportButtons.tsx)",
-      "✅ GST report API (apps/admin/src/app/api/reports/gst/route.ts)",
-      "✅ BAS report API (apps/admin/src/app/api/reports/bas/route.ts)",
-      "✅ Reports page (apps/admin/src/app/(dashboard)/dashboard/reports/page.tsx)",
-      "✅ Reports link added to sidebar"
+      "✅ AccountingConnection type (packages/shared/src/types/accountingConnection.ts)",
+      "✅ Accounting connections repository (packages/db/src/repositories/accountingConnections.ts)",
+      "✅ Xero OAuth connect route (apps/admin/src/app/api/xero/connect/route.ts)",
+      "✅ Xero OAuth callback route (apps/admin/src/app/api/xero/callback/route.ts)",
+      "✅ Xero client with token management (packages/shared/src/xero/client.ts)",
+      "✅ Xero invoice creation (packages/shared/src/xero/invoices.ts)",
+      "✅ Xero expense recording (packages/shared/src/xero/expenses.ts)",
+      "✅ Xero payment application (packages/shared/src/xero/payments.ts)",
+      "✅ Xero sync orchestration (packages/shared/src/xero/sync.ts)",
+      "✅ Account mapping API (apps/admin/src/app/api/xero/accounts/, mappings/, disconnect/)",
+      "✅ Manual sync API (apps/admin/src/app/api/xero/sync/route.ts)",
+      "✅ Accounting settings UI (apps/admin/src/app/(dashboard)/dashboard/settings/accounting/page.tsx)"
     ]
   },
-  "phase3_next": {
-    "name": "Xero Integration",
+  "phase4_next": {
+    "name": "Seller Experience Enhancement",
     "status": "pending",
-    "overview": "Connect Xero for accounting, sync invoices and payments",
+    "overview": "Product variations, personalization, digital products",
     "items": [
-      "Xero OAuth2 connection flow",
-      "Invoice sync to Xero",
-      "Payment reconciliation",
-      "Chart of accounts mapping"
+      "Product variant matrix UI",
+      "Personalization fields",
+      "Digital product flow",
+      "Video upload",
+      "AI title suggestions"
     ]
   },
   "recent_files": [
-    "apps/admin/src/components/dashboard/RevenueWidget.tsx",
-    "apps/admin/src/components/dashboard/PayoutsWidget.tsx",
-    "apps/admin/src/app/(dashboard)/dashboard/ledger/page.tsx",
-    "apps/admin/src/components/ledger/LedgerFilters.tsx",
-    "apps/admin/src/components/ledger/TransactionTable.tsx",
-    "apps/admin/src/app/api/reports/gst/route.ts",
-    "apps/admin/src/app/(dashboard)/dashboard/reports/page.tsx"
+    "packages/shared/src/types/accountingConnection.ts",
+    "packages/db/src/repositories/accountingConnections.ts",
+    "packages/shared/src/xero/client.ts",
+    "packages/shared/src/xero/invoices.ts",
+    "packages/shared/src/xero/expenses.ts",
+    "packages/shared/src/xero/payments.ts",
+    "packages/shared/src/xero/sync.ts",
+    "apps/admin/src/app/api/xero/connect/route.ts",
+    "apps/admin/src/app/api/xero/callback/route.ts",
+    "apps/admin/src/app/(dashboard)/dashboard/settings/accounting/page.tsx"
   ],
   "key_decisions": {
     "stripe": "Express accounts - Stripe handles KYC",
     "fees_au": "1.7% + $0.30 domestic, 3.5% + $0.30 international",
     "platform_fees": "Zero - MadeBuy differentiator",
     "shipping": "Sendle for MVP (Phase 5)",
-    "accounting": "Xero primary (Phase 3)"
+    "accounting": "Xero primary (Phase 3 COMPLETE), MYOB future"
   },
   "research_docs": [
     ".agents/hand-offs/stripe-connect-research.md",
     ".agents/hand-offs/xero-integration-research.md",
     ".agents/hand-offs/shipping-research.md"
   ],
-  "updated_at": "2026-01-01T12:00:00Z"
+  "env_vars_needed": [
+    "XERO_CLIENT_ID",
+    "XERO_CLIENT_SECRET"
+  ],
+  "dependencies_added": [
+    "xero-node",
+    "bottleneck"
+  ],
+  "updated_at": "2026-01-01T13:00:00Z"
 }

@@ -85,6 +85,24 @@ async function ensureIndexes(db: Db) {
   await db.collection('enquiries').createIndex({ tenantId: 1, status: 1 })
   await db.collection('enquiries').createIndex({ tenantId: 1, createdAt: -1 })
 
+  // Accounting Connections
+  await db.collection('accounting_connections').createIndex(
+    { tenantId: 1, provider: 1 },
+    { unique: true }
+  )
+  await db.collection('accounting_connections').createIndex({ tenantId: 1, createdAt: -1 })
+  await db.collection('accounting_connections').createIndex(
+    { status: 1, tokenExpiresAt: 1 },
+    { partialFilterExpression: { status: 'connected' } }
+  )
+
+  // Payouts
+  await db.collection('payouts').createIndex({ tenantId: 1 })
+  await db.collection('payouts').createIndex({ tenantId: 1, createdAt: -1 })
+  await db.collection('payouts').createIndex({ tenantId: 1, status: 1 })
+  await db.collection('payouts').createIndex({ stripePayoutId: 1 }, { unique: true })
+  await db.collection('payouts').createIndex({ tenantId: 1, arrivalDate: -1 })
+
   console.log('✅ Database indexes created')
 }
 

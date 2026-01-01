@@ -5,7 +5,7 @@ import { rateLimiters } from '@/lib/rate-limit'
 import type { ShippingMethod, ProductVariant } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-12-18.acacia',
 })
 
 // Default shipping methods if tenant hasn't configured any
@@ -178,9 +178,27 @@ export async function POST(request: NextRequest) {
       sum + (item.price * item.quantity), 0
     )
 
-    // Fetch tenant's shipping configuration
+    // Fetch tenant's data including shipping and Stripe Connect configuration
     const tenant = await tenants.getTenantById(tenantId)
-    const shippingConfig = tenant?.shippingConfig
+    if (!tenant) {
+      await stockReservations.cancelReservation(tempSessionId)
+      return NextResponse.json(
+        { error: 'Store not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if seller has completed Stripe Connect onboarding
+    const hasStripeConnect = tenant.stripeConnectAccountId && tenant.stripeConnectChargesEnabled
+    if (!hasStripeConnect) {
+      await stockReservations.cancelReservation(tempSessionId)
+      return NextResponse.json(
+        { error: 'This store is not yet set up to accept payments. Please contact the seller.' },
+        { status: 400 }
+      )
+    }
+
+    const shippingConfig = tenant.shippingConfig
     const shippingMethods = shippingConfig?.methods?.filter(m => m.enabled) || DEFAULT_SHIPPING_METHODS
 
     // Check for free shipping threshold
@@ -232,7 +250,9 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session with Connect destination charges
+    // Funds go directly to the seller's connected account
+    // MadeBuy takes 0% platform fee (our key differentiator)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -244,6 +264,19 @@ export async function POST(request: NextRequest) {
         allowed_countries: ['AU', 'NZ', 'US', 'GB'],
       },
       shipping_options: shippingOptions,
+      // Stripe Connect: Route payment to seller's account
+      payment_intent_data: {
+        // Zero platform fee - MadeBuy's differentiator
+        application_fee_amount: 0,
+        // Transfer funds to the seller's connected account
+        transfer_data: {
+          destination: tenant.stripeConnectAccountId!,
+        },
+        // Store reservation session for webhook to access
+        metadata: {
+          reservationSessionId: tempSessionId,
+        },
+      },
       metadata: {
         tenantId,
         customerName: customerInfo.name,

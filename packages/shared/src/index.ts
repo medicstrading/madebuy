@@ -23,3 +23,6 @@ export * from './integrations'
 
 // Export validation schemas
 export * from './validation'
+
+// Export Xero integration
+export * from './xero'

@@ -213,7 +213,9 @@ export type {
 } from './shipping'
 
 export * from './wishlist'
-export * from './review'
+// Note: review.ts ReviewSummary conflicts with marketplace.ts - use explicit exports below
+export type { Review, ReviewStatus, CreateReviewInput, UpdateReviewInput, ReviewFilters } from './review'
+export * from './accountingConnection'
 
 export type {
   WishlistItem,
@@ -222,10 +224,16 @@ export type {
 } from './wishlist'
 
 export type {
-  Review,
-  ReviewStatus,
   ReviewSummary as BuyerReviewSummary,
-  CreateReviewInput,
-  UpdateReviewInput,
-  ReviewFilters,
 } from './review'
+
+export type {
+  AccountingConnection,
+  AccountingProvider,
+  AccountingConnectionStatus,
+  SyncStatus,
+  AccountMappings,
+  CreateAccountingConnectionInput,
+  UpdateAccountingConnectionInput,
+  UpdateSyncStatusInput,
+} from './accountingConnection'

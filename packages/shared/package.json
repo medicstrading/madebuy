@@ -9,8 +9,10 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
+    "bottleneck": "^2.19.5",
     "date-fns": "^3.3.1",
-    "stripe": "^14.14.0"
+    "stripe": "^14.14.0",
+    "xero-node": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
