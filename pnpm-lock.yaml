@@ -60,6 +60,9 @@ importers:
       '@madebuy/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      '@sentry/core':
+        specifier: 8.55.0
+        version: 8.55.0
       '@tiptap/extension-image':
         specifier: ^3.14.0
         version: 3.14.0(@tiptap/core@3.14.0)
@@ -172,6 +175,9 @@ importers:
       '@marsidev/react-turnstile':
         specifier: ^1.4.0
         version: 1.4.1(react-dom@18.3.1)(react@18.3.1)
+      '@sentry/core':
+        specifier: 8.55.0
+        version: 8.55.0
       lucide-react:
         specifier: ^0.309.0
         version: 0.309.0(react@18.3.1)
@@ -2836,7 +2842,6 @@ packages:
   /@sentry/core@8.55.0:
     resolution: {integrity: sha512-6g7jpbefjHYs821Z+EBJ8r4Z7LT5h80YSWRJaylGS4nW5W5Z2KXzpdnyFarv37O7QjauzVC2E+PABmpkw5/JGA==}
     engines: {node: '>=14.18'}
-    dev: true
 
   /@sentry/nextjs@8.55.0(@opentelemetry/context-async-hooks@1.30.1)(@opentelemetry/core@1.30.1)(@opentelemetry/instrumentation@0.57.2)(@opentelemetry/sdk-trace-base@1.30.1)(next@14.2.35)(react@18.3.1)(webpack@5.104.1):
     resolution: {integrity: sha512-poUjt8KF/6RKn0AwBYgtFu764nduziCYpuLgfDNTs7qAMWBMq3tTnDiXxjwJCDnaPeZRAK2pfoAEZxWSXf+22w==}

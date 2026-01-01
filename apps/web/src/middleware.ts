@@ -179,6 +179,14 @@ function handleTenantRouting(
     return NextResponse.next()
   }
 
+  // Development: IP address access (e.g., 192.168.x.x:3301)
+  // Allow path-based tenant routing (/tenant-slug/...)
+  const ipPattern = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/
+  if (ipPattern.test(hostname)) {
+    // Let Next.js handle [tenant] route directly via path
+    return NextResponse.next()
+  }
+
   // Production: custom domains
   // Example: acme.madebuy.com.au OR custom.domain.com
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'madebuy.com.au'

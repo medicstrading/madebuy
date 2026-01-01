@@ -17,7 +17,8 @@ interface HeaderProps {
 }
 
 export function Header({ user, tenant }: HeaderProps) {
-  const storefrontUrl = tenant ? `http://localhost:3301/${tenant.slug}` : null
+  const webBaseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3301'
+  const storefrontUrl = tenant ? `${webBaseUrl}/${tenant.slug}` : null
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-gray-100 bg-white px-6">
@@ -61,11 +62,11 @@ export function Header({ user, tenant }: HeaderProps) {
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500">
             <span className="text-sm font-semibold text-white">
-              {user.name.charAt(0).toUpperCase()}
+              {(user.name || user.email || 'U').charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="hidden sm:block text-sm">
-            <p className="font-medium text-gray-900">{user.name}</p>
+            <p className="font-medium text-gray-900">{user.name || user.email}</p>
           </div>
         </div>
 

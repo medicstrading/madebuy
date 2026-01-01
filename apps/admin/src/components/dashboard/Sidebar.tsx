@@ -24,6 +24,21 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+interface SidebarProps {
+  tenant?: {
+    storeName?: string
+    businessName?: string
+    plan?: string
+  } | null
+}
+
+const planLabels: Record<string, string> = {
+  free: 'Free Plan',
+  maker: 'Maker Plan',
+  pro: 'Pro Plan',
+  business: 'Business Plan',
+}
+
 const navigationGroups = [
   {
     label: 'Main',
@@ -59,7 +74,7 @@ const navigationGroups = [
   }
 ]
 
-export function Sidebar() {
+export function Sidebar({ tenant }: SidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -117,11 +132,17 @@ export function Sidebar() {
       <div className="border-t border-gray-100 p-4">
         <div className="flex items-center gap-3 rounded-lg bg-gray-50 px-3 py-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500">
-            <span className="text-sm font-semibold text-white">MB</span>
+            <span className="text-sm font-semibold text-white">
+              {(tenant?.storeName || tenant?.businessName || 'MB').charAt(0).toUpperCase()}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">My Store</p>
-            <p className="text-xs text-gray-500">Free Plan</p>
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {tenant?.storeName || tenant?.businessName || 'My Store'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {planLabels[tenant?.plan || 'free'] || 'Free Plan'}
+            </p>
           </div>
         </div>
       </div>

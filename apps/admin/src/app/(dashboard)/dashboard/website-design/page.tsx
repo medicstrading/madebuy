@@ -88,12 +88,9 @@ export default function WebsiteDesignPage() {
       .catch(console.error)
   }, [])
 
-  // Construct the storefront URL - use web app port in development
-  const storefrontUrl = tenantSlug
-    ? (process.env.NODE_ENV === 'development'
-        ? `http://localhost:3301/${tenantSlug}`
-        : `/${tenantSlug}`)
-    : '#'
+  // Construct the storefront URL
+  const webBaseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3301'
+  const storefrontUrl = tenantSlug ? `${webBaseUrl}/${tenantSlug}` : '#'
 
   return (
     <div className="flex gap-6 min-h-[calc(100vh-8rem)]">

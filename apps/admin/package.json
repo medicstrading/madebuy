@@ -17,6 +17,7 @@
     "@madebuy/shared": "workspace:*",
     "@madebuy/social": "workspace:*",
     "@madebuy/storage": "workspace:*",
+    "@sentry/core": "8.55.0",
     "@tiptap/extension-image": "^3.14.0",
     "@tiptap/extension-link": "^3.14.0",
     "@tiptap/extension-placeholder": "^3.14.0",
