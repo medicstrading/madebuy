@@ -179,6 +179,25 @@ function handleTenantRouting(
     return NextResponse.next()
   }
 
+  // Development: .nuc domain (Caddy reverse proxy on local network)
+  // madebuy.nuc -> marketplace root (no tenant required)
+  // tenant.madebuy.nuc -> tenant storefront
+  if (hostname.endsWith('.nuc')) {
+    const parts = hostname.replace('.nuc', '').split('.')
+    // madebuy.nuc = root marketplace
+    if (parts.length === 1 && parts[0] === 'madebuy') {
+      return NextResponse.next()
+    }
+    // tenant.madebuy.nuc = tenant storefront
+    if (parts.length === 2 && parts[1] === 'madebuy') {
+      const tenant = parts[0]
+      url.pathname = `/${tenant}${url.pathname}`
+      return NextResponse.rewrite(url)
+    }
+    // Other .nuc domains - treat as path routing
+    return NextResponse.next()
+  }
+
   // Development: IP address access (e.g., 192.168.x.x:3301)
   // Allow path-based tenant routing (/tenant-slug/...)
   const ipPattern = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/

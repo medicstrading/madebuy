@@ -1,4 +1,4 @@
-import { createWorker, type Worker } from 'tesseract.js'
+import type { Worker } from 'tesseract.js'
 import sharp from 'sharp'
 
 /**
@@ -38,6 +38,9 @@ export async function extractTextFromInvoice(
   try {
     // Preprocess image
     const processedBuffer = await preprocessImage(imageBuffer)
+
+    // Dynamic import tesseract.js to avoid bundling 15MB+ library
+    const { createWorker } = await import('tesseract.js')
 
     // Create Tesseract worker
     worker = await createWorker('eng', 1, {

@@ -120,7 +120,7 @@ async function ensureIndexes(db: Db) {
   await db.collection('variant_combinations').createIndex({ tenantId: 1, id: 1 })
   await db.collection('variant_combinations').createIndex(
     { tenantId: 1, stock: 1 },
-    { partialFilterExpression: { isDeleted: { $ne: true } } }
+    { partialFilterExpression: { isDeleted: false } }
   )
   await db.collection('variant_combinations').createIndex(
     { tenantId: 1, isDeleted: 1, stock: 1 },

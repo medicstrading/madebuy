@@ -36,8 +36,10 @@ module.exports = withSentryConfig(nextConfig, {
   hideSourceMaps: true,
 
   // Automatically annotate React components
+  // Disabled - causes "Could not find module in React Client Manifest" errors
+  // with client components in route groups like (auth)
   reactComponentAnnotation: {
-    enabled: true,
+    enabled: false,
   },
 
   // Disable Sentry in development

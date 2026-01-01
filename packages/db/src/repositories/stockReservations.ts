@@ -154,7 +154,19 @@ export async function completeReservation(sessionId: string): Promise<boolean> {
   const piecesCollection = db.collection('pieces')
 
   // Find all reservations for this session
-  const reservations = await collection.find({ sessionId }).toArray()
+  const reservations = await collection
+    .find({ sessionId })
+    .project({
+      _id: 1,
+      tenantId: 1,
+      pieceId: 1,
+      variantId: 1,
+      quantity: 1,
+      sessionId: 1,
+      expiresAt: 1,
+      createdAt: 1,
+    })
+    .toArray()
 
   if (reservations.length === 0) {
     return false
@@ -295,7 +307,19 @@ export async function getReservationsBySession(
   sessionId: string
 ): Promise<StockReservation[]> {
   const collection = await getCollection()
-  const docs = await collection.find({ sessionId }).toArray()
+  const docs = await collection
+    .find({ sessionId })
+    .project({
+      _id: 1,
+      tenantId: 1,
+      pieceId: 1,
+      variantId: 1,
+      quantity: 1,
+      sessionId: 1,
+      expiresAt: 1,
+      createdAt: 1,
+    })
+    .toArray()
 
   return docs.map((doc) => ({
     id: doc._id.toHexString(),

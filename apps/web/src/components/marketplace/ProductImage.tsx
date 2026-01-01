@@ -1,5 +1,9 @@
 import Image from 'next/image'
 
+// Tiny 1x1 pixel placeholder for blur effect
+const BLUR_DATA_URL =
+  'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBEQCEAwEPwAB//9k='
+
 interface ProductImageProps {
   src: string
   alt: string
@@ -8,6 +12,8 @@ interface ProductImageProps {
   className?: string
   priority?: boolean
   fill?: boolean
+  sizes?: string
+  blurDataURL?: string
 }
 
 /**
@@ -24,6 +30,8 @@ export function ProductImage({
   className = '',
   priority = false,
   fill = false,
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  blurDataURL = BLUR_DATA_URL,
 }: ProductImageProps) {
   return (
     <div
@@ -37,7 +45,10 @@ export function ProductImage({
         width={fill ? undefined : width}
         height={fill ? undefined : height}
         fill={fill}
+        sizes={sizes}
         priority={priority}
+        placeholder="blur"
+        blurDataURL={blurDataURL}
         draggable={false}
         className={`pointer-events-none ${className}`}
         style={{ userSelect: 'none' }}
