@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
-import { safeValidatePersonalizationConfig } from '@madebuy/shared'
+import { safeValidatePersonalizationConfig } from '@madebuy/shared/src/validation'
 import { nanoid } from 'nanoid'
 
 /**

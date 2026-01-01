@@ -4,7 +4,7 @@ import { STRIPE_CONFIG, STRIPE_CONNECT_CONFIG } from './config';
 // Initialize Stripe with API version
 export function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, {
-    apiVersion: '2024-12-18.acacia' as Stripe.LatestApiVersion,
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 }

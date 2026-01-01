@@ -134,3 +134,15 @@ Required in `apps/admin/.env.local` and `apps/web/.env.local`:
 - `unlimitedPieces` - No product limit (Maker+)
 
 Feature flags stored in `tenant.features` object.
+
+## Agents
+
+Most agents are loaded from global `~/.claude/agents/`. Project-specific overrides:
+
+| Agent | Location | Purpose |
+|-------|----------|---------|
+| deployment-reviewer | `.agents/domains/deployment/reviewer.md` | Next.js/Vercel pre-deploy checks |
+
+**Quick deployment check:** `~/.claude/scripts/deploy-check.sh` (auto-detects Next.js)
+
+**Remote build (faster):** `build-remote madebuy` or `bm` (runs on NUC directly)

@@ -113,6 +113,9 @@ export const rateLimiters = {
   // Checkout: 10 requests per minute
   checkout: rateLimit({ limit: 10, windowMs: 60000, keyPrefix: 'checkout' }),
 
+  // Shipping quotes: 30 per minute (allows for address changes during checkout)
+  shipping: rateLimit({ limit: 30, windowMs: 60000, keyPrefix: 'shipping' }),
+
   // Reviews: 5 per minute
   reviews: rateLimit({ limit: 5, windowMs: 60000, keyPrefix: 'reviews' }),
 

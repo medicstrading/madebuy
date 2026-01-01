@@ -326,7 +326,7 @@ export default function ReportsPage() {
             <h3 className="text-sm font-semibold text-blue-800">How to lodge your BAS</h3>
             <ul className="mt-2 text-sm text-blue-700 space-y-1">
               <li>1. Log in to your ATO Business Portal or myGov</li>
-              <li>2. Select "Lodge BAS"</li>
+              <li>2. Select &quot;Lodge BAS&quot;</li>
               <li>3. Enter the figures from this worksheet</li>
               <li>4. Review and submit</li>
             </ul>

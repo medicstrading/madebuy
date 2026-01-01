@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { transactions, orders, tenants, stockReservations } from '@madebuy/db'
-import { calculateFees } from '@madebuy/shared/stripe/connect'
+import { calculateFees } from '@madebuy/shared/src/stripe'
 import type { CreateTransactionInput } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
 })
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
@@ -151,46 +151,42 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Create order record
   const shippingDetails = session.shipping_details || session.customer_details
   const orderData = {
-    stripeSessionId: session.id,
-    stripePaymentIntentId: paymentIntent.id,
-    transactionId: transaction.id,
-    status: 'paid' as const,
-    customer: {
-      name: session.customer_details?.name || session.metadata?.customerName || '',
-      email: session.customer_email || '',
-      phone: session.customer_details?.phone || session.metadata?.customerPhone || '',
-    },
-    shippingAddress: shippingDetails?.address
-      ? {
-          line1: shippingDetails.address.line1 || '',
-          line2: shippingDetails.address.line2 || '',
-          city: shippingDetails.address.city || '',
-          state: shippingDetails.address.state || '',
-          postalCode: shippingDetails.address.postal_code || '',
-          country: shippingDetails.address.country || 'AU',
-        }
-      : undefined,
+    customerEmail: session.customer_email || '',
+    customerName: session.customer_details?.name || session.metadata?.customerName || '',
+    customerPhone: session.customer_details?.phone || session.metadata?.customerPhone || '',
     items: items.map((item: { pieceId: string; variantId?: string; quantity: number; price: number }) => ({
       pieceId: item.pieceId,
       variantId: item.variantId,
       quantity: item.quantity,
       price: item.price,
     })),
-    subtotal: session.amount_subtotal ? session.amount_subtotal / 100 : 0,
-    shipping: session.total_details?.amount_shipping
-      ? session.total_details.amount_shipping / 100
-      : 0,
-    total: amountCents / 100,
-    notes: session.metadata?.notes || '',
-    paymentMethod: 'stripe',
-    fees: {
-      stripe: stripeFee / 100,
-      platform: 0,
-      total: stripeFee / 100,
+    shippingAddress: {
+      line1: shippingDetails?.address?.line1 || '',
+      line2: shippingDetails?.address?.line2 || '',
+      city: shippingDetails?.address?.city || '',
+      state: shippingDetails?.address?.state || '',
+      postcode: shippingDetails?.address?.postal_code || '',
+      country: shippingDetails?.address?.country || 'AU',
     },
+    shippingMethod: session.metadata?.shippingMethod || 'standard',
+    shippingType: (session.metadata?.shippingType || 'domestic') as 'domestic' | 'international' | 'local_pickup',
+    customerNotes: session.metadata?.notes || '',
   }
 
-  const order = await orders.createOrder(tenantId, orderData)
+  // Calculate shipping and tax from session
+  const shippingAmount = session.total_details?.amount_shipping
+    ? session.total_details.amount_shipping / 100
+    : 0
+  const taxAmount = session.total_details?.amount_tax
+    ? session.total_details.amount_tax / 100
+    : 0
+
+  const order = await orders.createOrder(tenantId, orderData, {
+    shipping: shippingAmount,
+    tax: taxAmount,
+    discount: 0,
+    currency: (session.currency || 'aud').toUpperCase(),
+  })
   console.log(`Created order ${order.id} for session ${session.id}`)
 
   // Update transaction with order ID
@@ -201,8 +197,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Confirm stock reservations (convert from temporary to permanent)
   const reservationSessionId = session.metadata?.reservationSessionId
   if (reservationSessionId) {
-    await stockReservations.confirmReservation(reservationSessionId)
-    console.log(`Confirmed stock reservation ${reservationSessionId}`)
+    await stockReservations.completeReservation(reservationSessionId)
+    console.log(`Completed stock reservation ${reservationSessionId}`)
   }
 }
 
@@ -343,10 +339,11 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
 
   console.log(`Created refund transaction ${refundTransaction.id} for charge ${charge.id}`)
 
-  // Update order status if fully refunded
+  // Update order payment status if fully refunded
   if (charge.refunded && originalTransaction.orderId) {
     await orders.updateOrder(originalTransaction.tenantId, originalTransaction.orderId, {
-      status: 'refunded',
+      paymentStatus: 'refunded',
+      status: 'cancelled', // Order is cancelled when fully refunded
     })
     console.log(`Updated order ${originalTransaction.orderId} to refunded`)
   }

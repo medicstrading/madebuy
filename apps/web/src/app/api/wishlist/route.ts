@@ -56,7 +56,8 @@ export async function GET(request: NextRequest) {
               id: piece.id,
               name: piece.name,
               price: piece.price,
-              images: piece.images || [],
+              mediaIds: piece.mediaIds || [],
+              primaryMediaId: piece.primaryMediaId,
               slug: piece.slug,
             } : null
           }

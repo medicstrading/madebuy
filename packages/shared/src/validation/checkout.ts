@@ -45,8 +45,11 @@ export const CheckoutRequestSchema = z.object({
 // Inferred types
 export type CartItem = z.infer<typeof CartItemSchema>
 export type CustomerInfo = z.infer<typeof CustomerInfoSchema>
-export type ShippingAddress = z.infer<typeof ShippingAddressSchema>
+export type CheckoutShippingAddress = z.infer<typeof ShippingAddressSchema>
 export type CheckoutRequest = z.infer<typeof CheckoutRequestSchema>
+
+/** @deprecated Use CheckoutShippingAddress instead - conflicts with types/shipping.ts */
+export type ShippingAddress = CheckoutShippingAddress
 
 /**
  * Validate checkout request

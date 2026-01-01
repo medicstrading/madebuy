@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireTenant } from '@/lib/session'
-import { Sendle } from '@madebuy/shared'
+import { Sendle } from '@madebuy/shared/src/integrations'
 import type { SendleIntegration } from '@madebuy/shared'
 
 /**

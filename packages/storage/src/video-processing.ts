@@ -6,7 +6,6 @@
  */
 
 import ffmpeg from 'fluent-ffmpeg'
-import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import { promises as fs } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -16,8 +15,20 @@ import { uploadToR2 } from './r2'
 import { uploadToLocal } from './local-storage'
 import type { VideoMetadata, MediaVariant } from '@madebuy/shared'
 
-// Set ffmpeg path
-ffmpeg.setFfmpegPath(ffmpegInstaller.path)
+// Lazy initialize ffmpeg path to avoid build-time issues
+let ffmpegInitialized = false
+function ensureFfmpegPath() {
+  if (!ffmpegInitialized) {
+    try {
+      // Dynamic import to avoid build-time execution
+      const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg')
+      ffmpeg.setFfmpegPath(ffmpegInstaller.path)
+      ffmpegInitialized = true
+    } catch (error) {
+      console.warn('ffmpeg not available:', error)
+    }
+  }
+}
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
 
@@ -62,6 +73,7 @@ export interface ExtractedMetadata {
  * Extract video metadata using ffprobe
  */
 export async function extractVideoMetadata(videoPath: string): Promise<ExtractedMetadata> {
+  ensureFfmpegPath()
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
       if (err) {
@@ -109,6 +121,7 @@ export async function generateThumbnail(
   outputPath: string,
   timestamp: number | string
 ): Promise<void> {
+  ensureFfmpegPath()
   return new Promise((resolve, reject) => {
     ffmpeg(videoPath)
       .screenshots({
@@ -225,6 +238,7 @@ async function generateThumbnailAtTimestamp(
   outputPath: string,
   timestamp: string
 ): Promise<void> {
+  ensureFfmpegPath()
   return new Promise((resolve, reject) => {
     ffmpeg(videoPath)
       .seekInput(timestamp)

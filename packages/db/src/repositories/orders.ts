@@ -74,6 +74,15 @@ export async function getOrderByPaymentIntent(paymentIntentId: string): Promise<
   return await db.collection('orders').findOne({ paymentIntentId }) as Order | null
 }
 
+/**
+ * Get order by order number (global lookup, no tenant required)
+ * Order numbers are unique across all tenants
+ */
+export async function getOrderByOrderNumber(orderNumber: string): Promise<Order | null> {
+  const db = await getDatabase()
+  return await db.collection('orders').findOne({ orderNumber }) as Order | null
+}
+
 export async function listOrders(
   tenantId: string,
   filters?: {

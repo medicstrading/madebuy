@@ -21,7 +21,6 @@ export function HeroBanner({ banner, tenantSlug, logoUrl, tenant }: HeroBannerPr
   }
 
   const hasUploadedImage = banner.mediaId && banner.mediaId.trim() !== ''
-  const hasGradient = banner.mediaUrl && banner.mediaUrl.startsWith('linear-gradient')
 
   return (
     <div className={`relative w-full ${heightClasses[banner.height || 'medium']} overflow-hidden bg-gray-900`}>
@@ -36,16 +35,8 @@ export function HeroBanner({ banner, tenantSlug, logoUrl, tenant }: HeroBannerPr
         />
       )}
 
-      {/* Gradient Background (from preset) */}
-      {!hasUploadedImage && hasGradient && (
-        <div
-          className="absolute inset-0"
-          style={{ background: banner.mediaUrl }}
-        />
-      )}
-
-      {/* Default Grey Gradient (no image or preset selected) */}
-      {!hasUploadedImage && !hasGradient && (
+      {/* Default Grey Gradient (no image selected) */}
+      {!hasUploadedImage && (
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
           {/* Subtle dot pattern */}
           <div

@@ -5,7 +5,7 @@ import { rateLimiters } from '@/lib/rate-limit'
 import type { ShippingMethod, ProductVariant } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
 })
 
 // Default shipping methods if tenant hasn't configured any

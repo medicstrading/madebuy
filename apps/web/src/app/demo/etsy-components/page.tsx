@@ -8,8 +8,23 @@ import { RecentlyViewed } from '@/components/marketplace/RecentlyViewed'
 import { SearchAutocomplete } from '@/components/marketplace/SearchAutocomplete'
 import { Menu } from 'lucide-react'
 
+// Product type matching MixedGrid
+interface DemoProduct {
+  id: string
+  name: string
+  slug: string
+  price: number
+  originalPrice?: number
+  currency: string
+  images: string[]
+  rating: number
+  reviewCount: number
+  seller: { name: string; slug: string }
+  badges: ('bestseller' | 'freeShipping' | 'sale' | 'ad')[]
+}
+
 // Sample product data
-const SAMPLE_PRODUCTS = [
+const SAMPLE_PRODUCTS: DemoProduct[] = [
   {
     id: '1',
     name: 'Handcrafted Sterling Silver Crescent Moon Necklace with Moonstone',
@@ -24,7 +39,7 @@ const SAMPLE_PRODUCTS = [
     rating: 4.8,
     reviewCount: 247,
     seller: { name: 'Moonlight Artisan Co', slug: 'moonlight-artisan' },
-    badges: ['bestseller', 'freeShipping'] as const,
+    badges: ['bestseller', 'freeShipping'],
   },
   {
     id: '2',
@@ -36,7 +51,7 @@ const SAMPLE_PRODUCTS = [
     rating: 4.9,
     reviewCount: 182,
     seller: { name: 'Golden Hour Studio', slug: 'golden-hour' },
-    badges: ['freeShipping'] as const,
+    badges: ['freeShipping'],
   },
   {
     id: '3',
@@ -48,7 +63,7 @@ const SAMPLE_PRODUCTS = [
     rating: 4.7,
     reviewCount: 89,
     seller: { name: 'Vintage Gem Works', slug: 'vintage-gem' },
-    badges: ['sale'] as const,
+    badges: ['sale'],
   },
   {
     id: '4',
@@ -60,7 +75,7 @@ const SAMPLE_PRODUCTS = [
     rating: 4.6,
     reviewCount: 156,
     seller: { name: 'Pearl & Stone', slug: 'pearl-stone' },
-    badges: [] as const,
+    badges: [],
   },
   {
     id: '5',
@@ -72,7 +87,7 @@ const SAMPLE_PRODUCTS = [
     rating: 4.8,
     reviewCount: 203,
     seller: { name: 'Simply Silver AU', slug: 'simply-silver' },
-    badges: ['bestseller'] as const,
+    badges: ['bestseller'],
   },
   {
     id: '6',
@@ -85,7 +100,7 @@ const SAMPLE_PRODUCTS = [
     rating: 4.9,
     reviewCount: 312,
     seller: { name: 'Gem & Bloom', slug: 'gem-bloom' },
-    badges: ['bestseller', 'sale'] as const,
+    badges: ['bestseller', 'sale'],
   },
 ]
 

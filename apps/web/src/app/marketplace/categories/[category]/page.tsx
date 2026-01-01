@@ -74,7 +74,10 @@ export default async function CategoryPage({
     limit: 24,
   }
 
-  const { products, total, pages } = await marketplace.listMarketplaceProducts(filters)
+  const result = await marketplace.listMarketplaceProducts(filters)
+  const { products } = result
+  const total = result.pagination.total
+  const pages = result.pagination.totalPages
   const sortBy = searchParams.sortBy || 'recent'
   const currentPage = filters.page
 

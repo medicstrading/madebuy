@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
-import { createStripeClient, createAccountLink } from '@madebuy/shared'
+import { createStripeClient, createAccountLink } from '@madebuy/shared/src/stripe'
 
-const stripe = createStripeClient(process.env.STRIPE_SECRET_KEY!)
+function getStripe() {
+  return createStripeClient(process.env.STRIPE_SECRET_KEY!)
+}
 
 // POST - Generate onboarding link
 export async function POST() {
@@ -29,6 +31,7 @@ export async function POST() {
     const refreshUrl = `${baseUrl}/settings/payments?refresh=true`
     const returnUrl = `${baseUrl}/settings/payments?onboarding=complete`
 
+    const stripe = getStripe()
     const accountLink = await createAccountLink(
       stripe,
       tenant.stripeConnectAccountId,

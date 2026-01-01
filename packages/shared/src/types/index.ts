@@ -30,6 +30,8 @@ export type {
   TenantFeatures,
   TenantIntegrations,
   EtsyIntegration,
+  ShippingMethod,
+  ShippingConfig,
 } from './tenant'
 
 export type {
@@ -215,25 +217,46 @@ export type {
   EmailMarketingStats,
 } from './emailCampaign'
 
-export * from './shipping'
-
+// Shipping types - explicit exports to avoid conflicts with sendle module
 export type {
   ShippingCarrier,
   ShippingProfile,
+  ShippingRateType,
+  ShippingZone,
+  ShippingAddress,
+  ShippingQuote,
   WeightRate,
   Shipment,
   ShipmentStatus,
   ShipmentDimensions,
+  ShipmentPackage,
+  ShipmentFilters,
+  ShipmentStats,
+  ShipmentTrackingEvent,
+  PaginationOptions,
   SendleQuote,
   SendleOrder,
   SendleLabel,
   SendleContact,
   SendleTracking,
   SendleTrackingEvent,
+  SendleWebhookPayload,
+  SendleIntegration,
+  PublicTrackingResponse,
   CreateShipmentInput,
+  CreateShippingProfileInput,
+  UpdateShippingProfileInput,
   CreateLabelInput,
   ShippingProfileInput,
-  SendleIntegration,
+  AustralianState,
+} from './shipping'
+
+export {
+  AU_STATES,
+  DEFAULT_AU_ZONES,
+  SENDLE_STATUS_MAP,
+  SHIPMENT_STATUS_MESSAGES,
+  CARRIER_NAMES,
 } from './shipping'
 
 export * from './wishlist'

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentTenant } from '@/lib/session';
 import { accountingConnections } from '@madebuy/db';
-import { createXeroClient, xeroApiCall, type TokenUpdateCallback } from '@madebuy/shared';
+import { createXeroClient, xeroApiCall, type TokenUpdateCallback } from '@madebuy/shared/src/xero';
 import type { Account } from 'xero-node';
 
 interface XeroAccount {

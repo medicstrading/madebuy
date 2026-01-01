@@ -100,7 +100,7 @@ export async function GET(
 
       // Seller info
       seller: tenant ? {
-        name: tenant.shopName || tenant.businessName,
+        name: tenant.businessName,
         slug: tenant.slug,
       } : null,
 

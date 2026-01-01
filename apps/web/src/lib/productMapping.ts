@@ -17,7 +17,7 @@ export interface CardProduct {
     name: string
     slug?: string
   }
-  badges: readonly ('freeShipping' | 'bestseller' | 'sale' | 'lowStock')[]
+  badges: ('freeShipping' | 'bestseller' | 'sale' | 'ad')[]
   href?: string
 }
 
@@ -38,8 +38,8 @@ export function mapPieceToProduct(
     id: piece.id,
     name: piece.name,
     slug: piece.slug,
-    price: piece.price,
-    originalPrice: piece.originalPrice,
+    price: piece.price ?? 0,
+    originalPrice: undefined, // Piece type doesn't have originalPrice
     currency: 'AUD',
     images: piece.allImages?.map(img => img.variants.large?.url || img.variants.original.url) ||
       (piece.primaryImage ? [piece.primaryImage.variants.large?.url || piece.primaryImage.variants.original.url] : []),
@@ -49,10 +49,7 @@ export function mapPieceToProduct(
       name: tenantName || 'Seller',
       slug: tenantSlug,
     },
-    badges: [
-      ...(piece.stock !== undefined && piece.stock <= 3 && piece.stock > 0 ? ['lowStock' as const] : []),
-      ...(piece.originalPrice ? ['sale' as const] : []),
-    ],
+    badges: [],
     href: `/${tenantSlug}/${piece.slug}`,
   }
 }

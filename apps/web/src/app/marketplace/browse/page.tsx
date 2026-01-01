@@ -52,8 +52,8 @@ export default async function BrowsePage({
   )
 
   const productCards = products.map(mapMarketplaceProduct)
-  const totalProducts = result.total
-  const totalPages = Math.ceil(totalProducts / limit)
+  const totalProducts = result.pagination.total
+  const totalPages = result.pagination.totalPages
 
   const startItem = (currentPage - 1) * limit + 1
   const endItem = Math.min(currentPage * limit, totalProducts)

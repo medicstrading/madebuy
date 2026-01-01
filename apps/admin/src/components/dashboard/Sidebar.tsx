@@ -20,6 +20,7 @@ import {
   Receipt,
   CreditCard,
   FileBarChart,
+  Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +31,7 @@ const navigationGroups = [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
+      { name: 'Fulfillment', href: '/dashboard/fulfillment', icon: Truck },
       { name: 'Ledger', href: '/dashboard/ledger', icon: Receipt },
       { name: 'Media', href: '/dashboard/media', icon: Image },
       { name: 'Materials', href: '/dashboard/materials', icon: Layers },

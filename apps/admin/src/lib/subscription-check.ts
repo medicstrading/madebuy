@@ -6,7 +6,7 @@ import {
   getUpgradeMessage,
   PLAN_NAMES,
   getPlanLimits,
-} from '@madebuy/shared'
+} from '@madebuy/shared/src/lib/subscription'
 import type { Tenant, TenantFeatures, Plan } from '@madebuy/shared'
 
 /**

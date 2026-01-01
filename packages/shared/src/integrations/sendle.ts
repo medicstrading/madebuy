@@ -4,6 +4,8 @@
  * https://api.sendle.com/api/documentation
  */
 
+/* eslint-disable no-undef */
+
 import type { Address } from '../types/order'
 import type { SendleQuote, SendleOrder, SendleTracking, SendleLabel } from '../types/shipping'
 

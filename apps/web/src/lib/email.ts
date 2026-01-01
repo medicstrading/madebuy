@@ -191,7 +191,7 @@ export async function sendDownloadEmail(params: SendDownloadEmailParams) {
     })),
     expiryDate,
     downloadLimit,
-    sellerName: tenant.shopName || tenant.businessName || 'the seller',
+    sellerName: tenant.businessName || 'the seller',
     orderNumber: order.orderNumber,
   }
 
@@ -207,7 +207,7 @@ export async function sendDownloadEmail(params: SendDownloadEmailParams) {
 
   try {
     const result = await client.emails.send({
-      from: `${tenant.businessName || tenant.shopName} <${fromEmail}>`,
+      from: `${tenant.businessName} <${fromEmail}>`,
       to: order.customerEmail,
       subject: `Your Download: ${productName}`,
       html: htmlContent,

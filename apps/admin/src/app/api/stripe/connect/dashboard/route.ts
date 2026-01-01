@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
-import { createStripeClient, createLoginLink } from '@madebuy/shared'
+import { createStripeClient, createLoginLink } from '@madebuy/shared/src/stripe'
 
-const stripe = createStripeClient(process.env.STRIPE_SECRET_KEY!)
+function getStripe() {
+  return createStripeClient(process.env.STRIPE_SECRET_KEY!)
+}
 
 // POST - Get Express dashboard login link
 export async function POST() {
@@ -32,6 +34,7 @@ export async function POST() {
       )
     }
 
+    const stripe = getStripe()
     const loginLink = await createLoginLink(stripe, tenant.stripeConnectAccountId)
 
     return NextResponse.json({

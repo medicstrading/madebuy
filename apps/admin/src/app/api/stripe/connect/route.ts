@@ -6,9 +6,11 @@ import {
   createConnectAccount,
   getAccountStatus,
   isAccountActive,
-} from '@madebuy/shared'
+} from '@madebuy/shared/src/stripe'
 
-const stripe = createStripeClient(process.env.STRIPE_SECRET_KEY!)
+function getStripe() {
+  return createStripeClient(process.env.STRIPE_SECRET_KEY!)
+}
 
 // GET - Check Connect account status
 export async function GET() {
@@ -35,6 +37,7 @@ export async function GET() {
     }
 
     // Fetch current account status from Stripe
+    const stripe = getStripe()
     const account = await stripe.accounts.retrieve(tenant.stripeConnectAccountId)
     const status = getAccountStatus(account)
     const active = isAccountActive(account)
@@ -98,6 +101,7 @@ export async function POST(request: NextRequest) {
     const businessType = body.businessType || 'individual'
 
     // Create Connect account
+    const stripe = getStripe()
     const account = await createConnectAccount(
       stripe,
       tenant.email,

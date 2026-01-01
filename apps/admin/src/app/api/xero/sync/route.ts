@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentTenant } from '@/lib/session';
 import { accountingConnections, orders, tenants } from '@madebuy/db';
-import { syncOrderToXero } from '@madebuy/shared';
+import { syncOrderToXero } from '@madebuy/shared/src/xero';
 
 /**
  * POST /api/xero/sync

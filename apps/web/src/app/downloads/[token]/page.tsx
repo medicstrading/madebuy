@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: DownloadPageProps): Promise<M
 
   return {
     title: piece ? `Download: ${piece.name}` : 'Your Download',
-    description: `Download your digital purchase${tenant ? ` from ${tenant.shopName || tenant.businessName}` : ''}`,
+    description: `Download your digital purchase${tenant ? ` from ${tenant.businessName}` : ''}`,
     robots: { index: false, follow: false }, // Don't index download pages
   }
 }
@@ -98,7 +98,7 @@ export default async function DownloadPage({ params }: DownloadPageProps) {
     },
 
     seller: tenant ? {
-      name: tenant.shopName || tenant.businessName || 'Seller',
+      name: tenant.businessName || 'Seller',
       slug: tenant.slug,
     } : null,
 

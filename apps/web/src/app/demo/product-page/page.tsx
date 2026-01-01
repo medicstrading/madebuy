@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+
+type ProductBadge = 'bestseller' | 'freeShipping' | 'sale' | 'ad'
+
 import {
   Heart,
   Share2,
@@ -78,7 +81,7 @@ Perfect for everyday wear or special occasions. Makes a thoughtful gift for moon
     chainLength: ['16 inch', '18 inch', '20 inch'],
     finish: ['Polished Silver', 'Oxidized Silver'],
   },
-  badges: ['bestseller', 'freeShipping'] as const,
+  badges: ['bestseller', 'freeShipping'] as ProductBadge[],
   inStock: true,
   lowStock: true,
   stockCount: 3,
@@ -96,7 +99,7 @@ const RELATED_PRODUCTS = [
     rating: 4.7,
     reviewCount: 156,
     seller: { name: 'Moonlight Artisan Co', slug: 'moonlight-artisan' },
-    badges: ['freeShipping'] as const,
+    badges: ['freeShipping'] as ProductBadge[],
   },
   {
     id: '3',
@@ -108,7 +111,7 @@ const RELATED_PRODUCTS = [
     rating: 4.9,
     reviewCount: 89,
     seller: { name: 'Moonlight Artisan Co', slug: 'moonlight-artisan' },
-    badges: ['bestseller'] as const,
+    badges: ['bestseller'] as ProductBadge[],
   },
   {
     id: '4',
@@ -121,7 +124,7 @@ const RELATED_PRODUCTS = [
     rating: 4.8,
     reviewCount: 203,
     seller: { name: 'Moonlight Artisan Co', slug: 'moonlight-artisan' },
-    badges: ['sale'] as const,
+    badges: ['sale'] as ProductBadge[],
   },
   {
     id: '5',
@@ -133,7 +136,7 @@ const RELATED_PRODUCTS = [
     rating: 4.6,
     reviewCount: 67,
     seller: { name: 'Moonlight Artisan Co', slug: 'moonlight-artisan' },
-    badges: [] as const,
+    badges: [] as ProductBadge[],
   },
 ]
 

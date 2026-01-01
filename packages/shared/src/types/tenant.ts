@@ -15,6 +15,7 @@ export interface Tenant {
   tagline?: string
   description?: string
   location?: string
+  phone?: string
 
   // Maker type & categories
   makerType?: MakerType
@@ -173,6 +174,9 @@ export interface LayoutContent {
   // Classic Store Layout
   categorySectionTitle?: string
   productsSectionTitle?: string
+  aboutTitle?: string
+  aboutDescription?: string
+  aboutImage?: string
 
   // Minimal Showcase Layout
   minimalHeroHeadline?: string
@@ -185,6 +189,7 @@ export interface LayoutContent {
   collectionBannerDescription?: string
   ourStoryTitle?: string
   ourStoryContent?: string
+  ourStoryImage?: string
   signaturePiecesTitle?: string
   signaturePiecesSubtitle?: string
 

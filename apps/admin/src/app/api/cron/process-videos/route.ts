@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { media } from '@madebuy/db'
 import { processVideo, validateVideoDuration } from '@madebuy/storage'
 import { getFromR2 } from '@madebuy/storage'
-import { MAX_VIDEO_DURATION } from '@madebuy/shared'
+// Max video duration in seconds
+const MAX_VIDEO_DURATION = 60
 
 /**
  * GET/POST /api/cron/process-videos

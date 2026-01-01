@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
 import { uploadToR2, uploadToLocal } from '@madebuy/storage'
-import {
-  VALID_VIDEO_TYPES,
-  MAX_VIDEO_SIZE,
-  MAX_MEDIA_PER_PIECE,
-} from '@madebuy/shared'
+// Media constants
+const VALID_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'] as const
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024  // 100MB
+const MAX_MEDIA_PER_PIECE = 20
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
 

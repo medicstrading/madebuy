@@ -1,84 +1,55 @@
 {
   "project_name": "madebuy",
-  "last_task": "Phase 3 Xero Integration - COMPLETE",
-  "status": "completed",
+  "last_task": "Phase 5: Shipping & Fulfillment - Error Checking",
+  "status": "in_progress",
   "current_branch": "main",
   "notes": [
-    "⚠️ INFRA FIX 2025-12-31: Dev server now runs from ~/claude-project/ (was ~/projects/). SSHFS edits now reach running server.",
     "Implementation plan: IMPLEMENTATION_PLAN.md (9 phases total)",
     "✅ Phase 1 COMPLETE: Financial Foundation",
     "✅ Phase 2 COMPLETE: Financial Reporting",
-    "✅ Phase 3 COMPLETE: Xero Integration"
+    "✅ Phase 3 COMPLETE: Xero Integration",
+    "✅ Phase 4 COMPLETE: Seller Experience Enhancement",
+    "🔄 Phase 5 IN PROGRESS: Shipping & Fulfillment"
   ],
-  "phase1_progress": {
-    "name": "Financial Foundation",
-    "status": "complete"
-  },
-  "phase2_progress": {
-    "name": "Financial Reporting",
-    "status": "complete"
-  },
-  "phase3_progress": {
-    "name": "Xero Integration",
-    "status": "complete",
-    "completed": [
-      "✅ AccountingConnection type (packages/shared/src/types/accountingConnection.ts)",
-      "✅ Accounting connections repository (packages/db/src/repositories/accountingConnections.ts)",
-      "✅ Xero OAuth connect route (apps/admin/src/app/api/xero/connect/route.ts)",
-      "✅ Xero OAuth callback route (apps/admin/src/app/api/xero/callback/route.ts)",
-      "✅ Xero client with token management (packages/shared/src/xero/client.ts)",
-      "✅ Xero invoice creation (packages/shared/src/xero/invoices.ts)",
-      "✅ Xero expense recording (packages/shared/src/xero/expenses.ts)",
-      "✅ Xero payment application (packages/shared/src/xero/payments.ts)",
-      "✅ Xero sync orchestration (packages/shared/src/xero/sync.ts)",
-      "✅ Account mapping API (apps/admin/src/app/api/xero/accounts/, mappings/, disconnect/)",
-      "✅ Manual sync API (apps/admin/src/app/api/xero/sync/route.ts)",
-      "✅ Accounting settings UI (apps/admin/src/app/(dashboard)/dashboard/settings/accounting/page.tsx)"
+  "phase5_progress": {
+    "name": "Shipping & Fulfillment",
+    "status": "error_checking",
+    "agents_completed": [
+      "✅ Shipping types & repository",
+      "✅ Sendle API integration",
+      "✅ Checkout shipping flow",
+      "✅ Seller fulfillment dashboard",
+      "✅ Buyer tracking experience"
+    ],
+    "fixes_applied": [
+      "reports/page.tsx - escaped quotes",
+      "Stripe connect routes - lazy getStripe()",
+      "video-processing.ts - lazy ffmpeg init",
+      "stripe/connect.ts - API version fix"
+    ],
+    "pending": [
+      "Complete admin build verification",
+      "Web app build check",
+      "Commit and push Phase 5"
     ]
   },
-  "phase4_next": {
-    "name": "Seller Experience Enhancement",
-    "status": "pending",
-    "overview": "Product variations, personalization, digital products",
-    "items": [
-      "Product variant matrix UI",
-      "Personalization fields",
-      "Digital product flow",
-      "Video upload",
-      "AI title suggestions"
-    ]
-  },
-  "recent_files": [
-    "packages/shared/src/types/accountingConnection.ts",
-    "packages/db/src/repositories/accountingConnections.ts",
-    "packages/shared/src/xero/client.ts",
-    "packages/shared/src/xero/invoices.ts",
-    "packages/shared/src/xero/expenses.ts",
-    "packages/shared/src/xero/payments.ts",
-    "packages/shared/src/xero/sync.ts",
-    "apps/admin/src/app/api/xero/connect/route.ts",
-    "apps/admin/src/app/api/xero/callback/route.ts",
-    "apps/admin/src/app/(dashboard)/dashboard/settings/accounting/page.tsx"
+  "key_files_created": [
+    "packages/shared/src/sendle/*",
+    "packages/shared/src/types/shipping.ts",
+    "packages/shared/src/services/shipping.ts",
+    "packages/db/src/repositories/shipments.ts",
+    "packages/db/src/repositories/shippingProfiles.ts",
+    "apps/admin/src/app/(dashboard)/dashboard/fulfillment/*",
+    "apps/admin/src/components/fulfillment/*",
+    "apps/web/src/app/tracking/*",
+    "apps/web/src/components/tracking/*"
   ],
   "key_decisions": {
     "stripe": "Express accounts - Stripe handles KYC",
     "fees_au": "1.7% + $0.30 domestic, 3.5% + $0.30 international",
     "platform_fees": "Zero - MadeBuy differentiator",
-    "shipping": "Sendle for MVP (Phase 5)",
+    "shipping": "Sendle for MVP (Australian carbon-neutral)",
     "accounting": "Xero primary (Phase 3 COMPLETE), MYOB future"
   },
-  "research_docs": [
-    ".agents/hand-offs/stripe-connect-research.md",
-    ".agents/hand-offs/xero-integration-research.md",
-    ".agents/hand-offs/shipping-research.md"
-  ],
-  "env_vars_needed": [
-    "XERO_CLIENT_ID",
-    "XERO_CLIENT_SECRET"
-  ],
-  "dependencies_added": [
-    "xero-node",
-    "bottleneck"
-  ],
-  "updated_at": "2026-01-01T13:00:00Z"
+  "updated_at": "2026-01-01T15:30:00Z"
 }

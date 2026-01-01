@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { getSubscriptionSummary } from '@/lib/subscription-check'
-import { PLAN_PRICES, PLAN_NAMES } from '@madebuy/shared'
+import { PLAN_PRICES, PLAN_NAMES } from '@madebuy/shared/src/lib/subscription'
 
 /**
  * GET /api/subscription
