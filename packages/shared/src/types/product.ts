@@ -181,30 +181,10 @@ export interface SocialVideo {
 }
 
 /**
- * Marketplace integrations (Etsy, Shopify, etc.)
+ * External integrations (archived 2026-01-02)
  */
 export interface ProductIntegrations {
-  etsy?: EtsyListingIntegration
-  shopify?: ShopifyProductIntegration
-  // Future: amazon, ebay, etc.
-}
-
-export interface EtsyListingIntegration {
-  listingId: string
-  listingUrl: string
-  state: 'draft' | 'active' | 'inactive' | 'sold_out' | 'expired'
-  lastSyncedAt: Date
-  etsyQuantity: number
-  syncEnabled: boolean
-}
-
-export interface ShopifyProductIntegration {
-  productId: string
-  productUrl: string
-  status: 'active' | 'draft' | 'archived'
-  lastSyncedAt: Date
-  shopifyInventory: number
-  syncEnabled: boolean
+  // Reserved for future integrations
 }
 
 // === INPUT/UPDATE TYPES ===

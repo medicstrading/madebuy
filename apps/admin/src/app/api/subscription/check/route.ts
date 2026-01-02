@@ -50,12 +50,8 @@ export async function POST(request: NextRequest) {
         const validFeatures: (keyof TenantFeatures)[] = [
           'socialPublishing',
           'aiCaptions',
-          'multiChannelOrders',
-          'advancedAnalytics',
           'unlimitedPieces',
           'customDomain',
-          'marketplaceListing',
-          'marketplaceFeatured',
         ]
         if (!validFeatures.includes(params.feature)) {
           return NextResponse.json({ error: 'Invalid feature' }, { status: 400 })

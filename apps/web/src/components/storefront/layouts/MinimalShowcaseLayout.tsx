@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/utils'
 import { ImageIcon, ArrowRight } from 'lucide-react'
 import type { PieceWithMedia } from '@/lib/pieces'
 import type { Tenant } from '@madebuy/shared'
-import { EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
+import { ProductCard, RecentlyViewed } from '@/components/storefront/ProductCard'
 import { mapPieceToProduct } from '@/lib/productMapping'
 
 interface MinimalShowcaseLayoutProps {
@@ -124,7 +124,7 @@ export function MinimalShowcaseLayout({ pieces, tenantSlug, tenant }: MinimalSho
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {pieces.slice(6).map((piece) => (
-                <EtsyProductCard
+                <ProductCard
                   key={piece.id}
                   product={mapPieceToProduct(piece, tenantSlug, tenant.businessName)}
                   variant="compact"

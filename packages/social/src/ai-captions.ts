@@ -1,15 +1,19 @@
 import OpenAI from 'openai'
 import type { AICaptionRequest, AICaptionResponse } from '@madebuy/shared'
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+// Lazy initialization to avoid build-time errors
+let openaiClient: OpenAI | null = null
 
-if (!OPENAI_API_KEY) {
-  console.warn('⚠️  OPENAI_API_KEY not configured. AI caption generation will fail.')
+function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY not configured')
+    }
+    openaiClient = new OpenAI({ apiKey })
+  }
+  return openaiClient
 }
-
-const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY,
-})
 
 export interface GenerateCaptionOptions extends AICaptionRequest {
   imageUrls?: string[]
@@ -81,7 +85,7 @@ ${includeHashtags ? 'Always include relevant hashtags at the end.' : 'Do not inc
   }
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: imageUrls.length > 0 ? 'gpt-4-vision-preview' : 'gpt-4-turbo-preview',
       messages,
       max_tokens: 300,
@@ -134,7 +138,7 @@ ${category ? `Category: ${category}` : ''}
 
 Return ONLY the hashtags, one per line, without the # symbol.`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       {
@@ -153,8 +157,8 @@ Return ONLY the hashtags, one per line, without the # symbol.`
   const hashtagText = response.choices[0]?.message?.content?.trim() || ''
   const hashtags = hashtagText
     .split('\n')
-    .map(tag => tag.trim().replace(/^#/, ''))
-    .filter(tag => tag.length > 0)
+    .map((tag: string) => tag.trim().replace(/^#/, ''))
+    .filter((tag: string) => tag.length > 0)
 
   return hashtags
 }

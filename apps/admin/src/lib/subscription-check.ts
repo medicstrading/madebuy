@@ -86,20 +86,6 @@ export function checkFeatureAccess(
 }
 
 /**
- * Check if tenant can list on marketplace
- */
-export function checkMarketplaceAccess(tenant: Tenant): SubscriptionCheckResult {
-  return checkFeatureAccess(tenant, 'marketplaceListing')
-}
-
-/**
- * Check if tenant can use featured placement
- */
-export function checkFeaturedAccess(tenant: Tenant): SubscriptionCheckResult {
-  return checkFeatureAccess(tenant, 'marketplaceFeatured')
-}
-
-/**
  * Check if tenant can use custom domain
  */
 export function checkCustomDomainAccess(tenant: Tenant): SubscriptionCheckResult {
@@ -164,11 +150,7 @@ function getFeaturesForPlan(plan: Plan) {
   return {
     socialPublishing: limits.socialPublishing,
     aiCaptions: limits.aiCaptions,
-    multiChannelOrders: plan !== 'free',
-    advancedAnalytics: limits.advancedAnalytics,
     unlimitedPieces: limits.pieces === -1,
     customDomain: limits.customDomain,
-    marketplaceListing: limits.marketplaceListing,
-    marketplaceFeatured: limits.marketplaceFeatured,
   }
 }

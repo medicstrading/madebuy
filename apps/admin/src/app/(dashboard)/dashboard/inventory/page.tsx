@@ -1,7 +1,7 @@
 import { requireTenant } from '@/lib/session'
 import { pieces, materials } from '@madebuy/db'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { Plus, Search, Store } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { DeletePieceButton } from '@/components/inventory/DeletePieceButton'
 
@@ -118,22 +118,6 @@ export default async function InventoryPage() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {piece.category}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      {piece.integrations?.etsy?.listingId ? (
-                        <a
-                          href={piece.integrations.etsy.listingUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700"
-                          title="View on Etsy"
-                        >
-                          <Store className="h-4 w-4" />
-                          <span className="text-xs">Etsy</span>
-                        </a>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {formatDate(piece.createdAt)}

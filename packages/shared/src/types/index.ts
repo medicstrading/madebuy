@@ -28,7 +28,6 @@ export type {
   SocialConnection,
   SocialPlatform,
   TenantFeatures,
-  TenantIntegrations,
 } from './tenant'
 
 export type {
@@ -186,3 +185,24 @@ export type {
 // analytics - see archive/packages/shared/src/types/
 // accountingConnection - see archive/packages/shared/src/types/
 // emailCampaign - see archive/packages/shared/src/types/
+
+// Stub types for archived functionality
+export interface CreateTransactionInput {
+  orderId: string
+  tenantId: string
+  type: string
+  amount: number
+  [key: string]: unknown
+}
+
+// ShippingMethod stub - was in archived shipping.ts
+export interface ShippingMethod {
+  id: string
+  name: string
+  description?: string
+  price: number
+  currency: string
+  estimatedDays: { min: number; max: number }
+  countries: string[]
+  enabled: boolean
+}

@@ -188,71 +188,47 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if seller has completed Stripe Connect onboarding
-    const hasStripeConnect = tenant.stripeConnectAccountId && tenant.stripeConnectChargesEnabled
-    if (!hasStripeConnect) {
-      await stockReservations.cancelReservation(tempSessionId)
-      return NextResponse.json(
-        { error: 'This store is not yet set up to accept payments. Please contact the seller.' },
-        { status: 400 }
-      )
-    }
+    // Basic Stripe checkout (single-tenant mode - simplified shipping)
 
-    const shippingConfig = tenant.shippingConfig
-    const shippingMethods = shippingConfig?.methods?.filter(m => m.enabled) || DEFAULT_SHIPPING_METHODS
-
-    // Check for free shipping threshold
-    const freeShippingThreshold = shippingConfig?.freeShippingThreshold
-    const qualifiesForFreeShipping = freeShippingThreshold && subtotal >= freeShippingThreshold
-
-    // Build Stripe shipping options
-    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = shippingMethods.map(method => {
-      // Apply free shipping if threshold is met
-      const shippingAmount = qualifiesForFreeShipping ? 0 : Math.round(method.price * 100)
-
-      return {
-        shipping_rate_data: {
-          type: 'fixed_amount' as const,
-          fixed_amount: {
-            amount: shippingAmount,
-            currency: (method.currency || 'AUD').toLowerCase(),
+    // Build Stripe shipping options using defaults
+    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = DEFAULT_SHIPPING_METHODS.map(method => ({
+      shipping_rate_data: {
+        type: 'fixed_amount' as const,
+        fixed_amount: {
+          amount: Math.round(method.price * 100),
+          currency: (method.currency || 'AUD').toLowerCase(),
+        },
+        display_name: method.name,
+        delivery_estimate: {
+          minimum: {
+            unit: 'business_day' as const,
+            value: method.estimatedDays.min,
           },
-          display_name: method.name + (qualifiesForFreeShipping ? ' (FREE)' : ''),
-          delivery_estimate: {
-            minimum: {
-              unit: 'business_day' as const,
-              value: method.estimatedDays.min,
-            },
-            maximum: {
-              unit: 'business_day' as const,
-              value: method.estimatedDays.max,
-            },
+          maximum: {
+            unit: 'business_day' as const,
+            value: method.estimatedDays.max,
           },
         },
-      }
+      },
+    }))
+
+    // Add local pickup option
+    shippingOptions.push({
+      shipping_rate_data: {
+        type: 'fixed_amount',
+        fixed_amount: {
+          amount: 0,
+          currency: 'aud',
+        },
+        display_name: 'Local Pickup',
+        delivery_estimate: {
+          minimum: { unit: 'business_day', value: 1 },
+          maximum: { unit: 'business_day', value: 2 },
+        },
+      },
     })
 
-    // Add local pickup if enabled
-    if (shippingConfig?.localPickupEnabled) {
-      shippingOptions.push({
-        shipping_rate_data: {
-          type: 'fixed_amount',
-          fixed_amount: {
-            amount: 0,
-            currency: 'aud',
-          },
-          display_name: 'Local Pickup',
-          delivery_estimate: {
-            minimum: { unit: 'business_day', value: 1 },
-            maximum: { unit: 'business_day', value: 2 },
-          },
-        },
-      })
-    }
-
-    // Create Stripe checkout session with Connect destination charges
-    // Funds go directly to the seller's connected account
-    // MadeBuy takes 0% platform fee (our key differentiator)
+    // Create Stripe checkout session (single-tenant mode)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -264,19 +240,6 @@ export async function POST(request: NextRequest) {
         allowed_countries: ['AU', 'NZ', 'US', 'GB'],
       },
       shipping_options: shippingOptions,
-      // Stripe Connect: Route payment to seller's account
-      payment_intent_data: {
-        // Zero platform fee - MadeBuy's differentiator
-        application_fee_amount: 0,
-        // Transfer funds to the seller's connected account
-        transfer_data: {
-          destination: tenant.stripeConnectAccountId!,
-        },
-        // Store reservation session for webhook to access
-        metadata: {
-          reservationSessionId: tempSessionId,
-        },
-      },
       metadata: {
         tenantId,
         customerName: customerInfo.name,

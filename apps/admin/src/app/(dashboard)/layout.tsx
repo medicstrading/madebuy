@@ -20,12 +20,11 @@ export default async function DashboardLayout({
     id: tenant.id,
     slug: tenant.slug,
     businessName: tenant.businessName || '',
-    storeName: tenant.storeName || '',
     plan: tenant.plan || 'free',
   }
 
   const user = {
-    name: tenant.businessName || tenant.storeName || '',
+    name: tenant.businessName || '',
     email: tenant.email || '',
   }
 

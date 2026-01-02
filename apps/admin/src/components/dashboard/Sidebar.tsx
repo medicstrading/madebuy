@@ -133,12 +133,12 @@ export function Sidebar({ tenant }: SidebarProps) {
         <div className="flex items-center gap-3 rounded-lg bg-gray-50 px-3 py-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500">
             <span className="text-sm font-semibold text-white">
-              {(tenant?.storeName || tenant?.businessName || 'MB').charAt(0).toUpperCase()}
+              {(tenant?.businessName || 'MB').charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {tenant?.storeName || tenant?.businessName || 'My Store'}
+              {tenant?.businessName || 'My Store'}
             </p>
             <p className="text-xs text-gray-500">
               {planLabels[tenant?.plan || 'free'] || 'Free Plan'}

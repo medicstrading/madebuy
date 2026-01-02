@@ -9,11 +9,8 @@ export interface PlanLimits {
   pieces: number // Max products (-1 = unlimited)
   mediaPerPiece: number // Max images per product
   customDomain: boolean
-  marketplaceListing: boolean
-  marketplaceFeatured: boolean
   socialPublishing: boolean
   aiCaptions: boolean
-  advancedAnalytics: boolean
   priority: 'standard' | 'priority' | 'vip'
 }
 
@@ -22,44 +19,32 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     pieces: 10,
     mediaPerPiece: 5,
     customDomain: false,
-    marketplaceListing: false,
-    marketplaceFeatured: false,
     socialPublishing: false,
     aiCaptions: false,
-    advancedAnalytics: false,
     priority: 'standard',
   },
   pro: {
     pieces: 100,
     mediaPerPiece: 10,
     customDomain: true,
-    marketplaceListing: true,
-    marketplaceFeatured: false,
     socialPublishing: true,
     aiCaptions: true,
-    advancedAnalytics: false,
     priority: 'priority',
   },
   business: {
     pieces: -1, // Unlimited
     mediaPerPiece: 20,
     customDomain: true,
-    marketplaceListing: true,
-    marketplaceFeatured: true,
     socialPublishing: true,
     aiCaptions: true,
-    advancedAnalytics: true,
     priority: 'vip',
   },
   enterprise: {
     pieces: -1, // Unlimited
     mediaPerPiece: 50,
     customDomain: true,
-    marketplaceListing: true,
-    marketplaceFeatured: true,
     socialPublishing: true,
     aiCaptions: true,
-    advancedAnalytics: true,
     priority: 'vip',
   },
 }
@@ -136,12 +121,8 @@ export function getFeaturesForPlan(plan: Plan): TenantFeatures {
   return {
     socialPublishing: limits.socialPublishing,
     aiCaptions: limits.aiCaptions,
-    multiChannelOrders: plan !== 'free',
-    advancedAnalytics: limits.advancedAnalytics,
     unlimitedPieces: limits.pieces === -1,
     customDomain: limits.customDomain,
-    marketplaceListing: limits.marketplaceListing,
-    marketplaceFeatured: limits.marketplaceFeatured,
   }
 }
 
@@ -191,12 +172,8 @@ export function getUpgradeMessage(currentPlan: Plan, feature: keyof TenantFeatur
   const featureNames: Record<keyof TenantFeatures, string> = {
     socialPublishing: 'Social publishing',
     aiCaptions: 'AI captions',
-    multiChannelOrders: 'Multi-channel orders',
-    advancedAnalytics: 'Advanced analytics',
     unlimitedPieces: 'Unlimited products',
     customDomain: 'Custom domain',
-    marketplaceListing: 'Marketplace listing',
-    marketplaceFeatured: 'Featured placement',
   }
 
   return `${featureNames[feature]} requires a ${requiredPlanName} plan or higher. Upgrade to unlock this feature.`

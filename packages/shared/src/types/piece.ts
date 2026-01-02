@@ -405,19 +405,9 @@ export interface UpdateDigitalFileInput {
   sortOrder?: number
 }
 
-// Social Video Embeds - imported from product.ts to avoid duplication
-
-export interface EtsyListingIntegration {
-  listingId: string
-  listingUrl: string
-  state: 'draft' | 'active' | 'inactive' | 'sold_out' | 'expired'
-  lastSyncedAt: Date
-  etsyQuantity: number
-  syncEnabled: boolean
-}
-
+// External integrations archived (2026-01-02)
 export interface PieceIntegrations {
-  etsy?: EtsyListingIntegration
+  // Reserved for future integrations
 }
 
 export interface CreatePieceInput {

@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/utils'
 import { ImageIcon, TrendingUp, ArrowRight, Heart } from 'lucide-react'
 import type { PieceWithMedia } from '@/lib/pieces'
 import type { Tenant } from '@madebuy/shared'
-import { EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
+import { ProductCard, RecentlyViewed } from '@/components/storefront/ProductCard'
 import { mapPieceToProduct } from '@/lib/productMapping'
 
 interface MagazineStyleLayoutProps {
@@ -154,7 +154,7 @@ export function MagazineStyleLayout({ pieces, tenantSlug, tenant }: MagazineStyl
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {gridPieces.map((piece) => (
-              <EtsyProductCard
+              <ProductCard
                 key={piece.id}
                 product={mapPieceToProduct(piece, tenantSlug, tenant.businessName)}
                 variant="compact"

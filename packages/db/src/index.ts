@@ -43,3 +43,7 @@ export * as downloads from './repositories/downloads'
 // emailCampaigns - see archive/packages/db/src/repositories/
 // stockReservations - see archive/packages/db/src/repositories/
 // shippingProfiles - see archive/packages/db/src/repositories/
+
+// Stub repositories for backwards compatibility (no-op implementations)
+export * as stockReservations from './repositories/stubs'
+export * as transactions from './repositories/stubs'

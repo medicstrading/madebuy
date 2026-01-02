@@ -43,26 +43,11 @@ export interface Tenant {
   // Social publishing connections
   socialConnections?: SocialConnection[]
 
-  // Marketplace integrations
-  integrations?: TenantIntegrations
-
   // Plan & billing
   plan: Plan
   stripeCustomerId?: string
   subscriptionId?: string
   subscriptionStatus?: SubscriptionStatus
-
-  // Stripe Connect (for receiving payments)
-  stripeConnectAccountId?: string
-  stripeConnectStatus?: StripeConnectStatus
-  stripeConnectOnboardingComplete?: boolean
-  stripeConnectChargesEnabled?: boolean
-  stripeConnectPayoutsEnabled?: boolean
-
-  // Tax/GST settings (Australian business)
-  gstRegistered?: boolean
-  abn?: string                    // Australian Business Number
-  gstInclusivePricing?: boolean   // Whether prices include GST
 
   // Feature flags
   features: TenantFeatures
@@ -70,39 +55,14 @@ export interface Tenant {
   // Website customization
   websiteDesign?: TenantWebsiteDesign
 
-  // Shipping configuration
-  shippingConfig?: ShippingConfig
-
   // Timestamps
   createdAt: Date
   updatedAt: Date
 }
 
-export interface ShippingMethod {
-  id: string
-  name: string
-  description?: string
-  price: number // in dollars
-  currency: string
-  estimatedDays: {
-    min: number
-    max: number
-  }
-  countries: string[] // ISO country codes, empty = all
-  enabled: boolean
-}
-
-export interface ShippingConfig {
-  methods: ShippingMethod[]
-  freeShippingThreshold?: number // Free shipping over this amount
-  localPickupEnabled: boolean
-  localPickupAddress?: string
-}
-
 export type DomainStatus = 'none' | 'pending_nameservers' | 'active'
 export type Plan = 'free' | 'pro' | 'business' | 'enterprise'
 export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due'
-export type StripeConnectStatus = 'pending' | 'active' | 'restricted' | 'disabled'
 
 export interface SocialConnection {
   platform: SocialPlatform
@@ -119,35 +79,11 @@ export interface SocialConnection {
 
 export type SocialPlatform = 'instagram' | 'facebook' | 'tiktok' | 'pinterest' | 'youtube' | 'website-blog'
 
-export interface EtsyIntegration {
-  shopId: string
-  shopName: string
-  accessToken: string
-  refreshToken: string
-  expiresAt: Date
-  tokenType: string
-  shippingProfileId?: string
-  autoSync: boolean
-  syncDirection: 'one_way' | 'two_way'
-  connectedAt: Date
-  lastSyncAt?: Date
-}
-
-export interface TenantIntegrations {
-  etsy?: EtsyIntegration
-}
-
 export interface TenantFeatures {
   socialPublishing: boolean
   aiCaptions: boolean
-  multiChannelOrders: boolean
-  advancedAnalytics: boolean
   unlimitedPieces: boolean
   customDomain: boolean
-
-  // Marketplace features (Pro+ only)
-  marketplaceListing: boolean // Can list products in unified marketplace
-  marketplaceFeatured: boolean // Can use featured placements (Business+ only)
 }
 
 export interface TenantWebsiteDesign {
@@ -294,7 +230,6 @@ export interface UpdateTenantInput {
   domainStatus?: DomainStatus
   socialConnections?: SocialConnection[]
   websiteDesign?: TenantWebsiteDesign
-  shippingConfig?: ShippingConfig
 }
 
 // Re-export MakerType for convenience

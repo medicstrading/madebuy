@@ -4,11 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Identity
 
-**MadeBuy** - Multi-vendor marketplace for Australian makers (Etsy alternative)
+**MadeBuy** - Inventory management + social publishing for Australian makers
 - **Path:** ~/nuc-projects/madebuy
 - **Domain:** madebuy.com.au
-- **Tagline:** "Shopify features + Etsy exposure, zero transaction fees"
+- **Tagline:** "Manage inventory, publish to social, sell from your storefront"
 - **Ports:** Admin=3300, Web=3301
+
+### Core Features
+1. **Piece/Product Inventory** - CRUD, media, variations, COGS tracking
+2. **Materials Inventory** - Track supplies, costs, invoice scanning
+3. **Social Publishing** - Schedule posts via Late API + AI captions (OpenAI)
+4. **Tenant Storefronts** - Individual seller shops with Stripe checkout
+5. **Subscription Billing** - Stripe-based tier system
 
 ## Commands
 
@@ -71,13 +78,12 @@ Report the error. Don't try to "fix" by deleting directories. The fix is usually
 ```
 apps/
   admin/     → Seller dashboard (Next.js 14, port 3300)
-  web/       → Public marketplace + tenant storefronts (Next.js 14, port 3301)
+  web/       → Tenant storefronts + checkout (Next.js 14, port 3301)
 packages/
   db/        → MongoDB repositories (all database access goes through here)
   shared/    → TypeScript types and constants
   storage/   → Cloudflare R2 image upload/retrieval
-  social/    → Social media publishing (Late API integration)
-  marketplaces/ → Etsy integration
+  social/    → Social media publishing (Late API + OpenAI)
 ```
 
 ### Multi-Tenancy Pattern
@@ -85,7 +91,8 @@ packages/
 The web app uses dynamic routing for tenant storefronts:
 - `/[tenant]/` → Individual seller storefront (e.g., `/handmade-jewelry/`)
 - `/[tenant]/[slug]` → Product detail page
-- `/marketplace/` → Unified marketplace browse
+- `/[tenant]/cart` → Shopping cart
+- `/[tenant]/checkout` → Stripe checkout
 
 Tenants are identified by `slug` in URLs and `id` in the database. Each tenant has their own products (pieces), media, orders, etc.
 
@@ -101,7 +108,7 @@ const allPieces = await pieces.listPieces(tenantId)
 const piece = await pieces.createPiece(tenantId, data)
 ```
 
-Collections: `tenants`, `pieces`, `media`, `orders`, `materials`, `promotions`, `enquiries`, `publish_records`, `blog`
+Collections: `tenants`, `pieces`, `media`, `orders`, `materials`, `customers`, `enquiries`, `publish_records`, `blog`
 
 ### Auth Pattern (Admin App)
 
@@ -157,9 +164,10 @@ Required in `apps/admin/.env.local` and `apps/web/.env.local`:
 **Subscription tiers:** Free (10 products), Maker ($19), Pro ($39), Business ($79)
 
 **Key features by tier:**
-- `marketplaceListing` - Can list in unified marketplace (Maker+)
-- `customDomain` - Custom domain support (Pro+)
+- `socialPublishing` - Post to social media (Maker+)
+- `aiCaptions` - AI-generated captions (Pro+)
 - `unlimitedPieces` - No product limit (Maker+)
+- `customDomain` - Custom domain support (Pro+)
 
 Feature flags stored in `tenant.features` object.
 

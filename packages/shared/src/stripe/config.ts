@@ -19,19 +19,3 @@ export const STRIPE_CONFIG = {
   MINIMUM_PAYOUT_AUD: 100,  // $1 in cents
 } as const;
 
-export const STRIPE_CONNECT_CONFIG = {
-  // Use Express accounts - Stripe handles onboarding/KYC
-  ACCOUNT_TYPE: 'express' as const,
-
-  // Required capabilities for AU sellers
-  CAPABILITIES: {
-    card_payments: { requested: true },
-    transfers: { requested: true },
-  },
-
-  // Business types we support
-  BUSINESS_TYPES: ['individual', 'company'] as const,
-
-  // Country
-  COUNTRY: 'AU',
-} as const;

@@ -23,12 +23,8 @@ export async function createTenant(email: string, passwordHash: string, business
     features: {
       socialPublishing: true,
       aiCaptions: true,
-      multiChannelOrders: false,
-      advancedAnalytics: false,
       unlimitedPieces: false,
       customDomain: false,
-      marketplaceListing: false,
-      marketplaceFeatured: false,
     },
     plan: 'free',
     createdAt: new Date(),
