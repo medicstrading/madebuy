@@ -80,12 +80,22 @@ function formatDate(dateString: string): string {
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<'gst' | 'bas'>('gst')
-  const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter())
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
+  // Initialize with null to prevent hydration mismatch - set real values in useEffect
+  const [selectedQuarter, setSelectedQuarter] = useState<string | null>(null)
+  const [selectedYear, setSelectedYear] = useState<string | null>(null)
+  const [years, setYears] = useState<string[]>([])
   const [gstReport, setGstReport] = useState<GSTReport | null>(null)
   const [basReport, setBasReport] = useState<BASReport | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Set date-based values after mount to prevent hydration mismatch
+  useEffect(() => {
+    const currentYear = new Date().getFullYear()
+    setSelectedQuarter(getCurrentQuarter())
+    setSelectedYear(currentYear.toString())
+    setYears(Array.from({ length: 5 }, (_, i) => (currentYear - i).toString()))
+  }, [])
 
   const fetchGSTReport = useCallback(async () => {
     setLoading(true)
@@ -128,14 +138,15 @@ export default function ReportsPage() {
   }, [selectedQuarter, selectedYear])
 
   useEffect(() => {
+    // Don't fetch until date values are initialized
+    if (!selectedQuarter || !selectedYear) return
+
     if (activeTab === 'gst') {
       fetchGSTReport()
     } else {
       fetchBASReport()
     }
-  }, [activeTab, fetchGSTReport, fetchBASReport])
-
-  const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString())
+  }, [activeTab, selectedQuarter, selectedYear, fetchGSTReport, fetchBASReport])
 
   return (
     <div className="space-y-6">

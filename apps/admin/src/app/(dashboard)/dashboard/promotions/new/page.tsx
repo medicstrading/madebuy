@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Tag, Percent, DollarSign, Truck } from 'lucide-react'
@@ -17,9 +17,15 @@ export default function NewPromotionPage() {
   const [value, setValue] = useState<number>(10)
   const [minPurchaseAmount, setMinPurchaseAmount] = useState<string>('')
   const [maxUses, setMaxUses] = useState<string>('')
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
+  // Initialize empty to prevent hydration mismatch, set in useEffect
+  const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [isActive, setIsActive] = useState(true)
+
+  // Set today's date after mount to prevent hydration mismatch
+  useEffect(() => {
+    setStartDate(new Date().toISOString().split('T')[0])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

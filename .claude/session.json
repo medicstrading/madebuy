@@ -1,20 +1,20 @@
 {
   "project_name": "madebuy",
-  "last_task": "QA fixes + optimizer analysis complete",
+  "last_task": "Link audit - created 9 pages, fixed 3 broken links",
   "status": "done",
   "current_branch": "main",
   "notes": [
-    "Fixed QA issues: cart, auth pages, favicon, broken images",
-    "Ran optimizer agent - all pages CLS 0.00, admin LCP 70ms",
-    "Performance report: .claude/perf-report-2026-01-02.md",
-    "Medium priority: add batch query for cart, add DB projections"
+    "Created missing pages: pricing, sellers, new, about, help, contact, terms, privacy, seller-stories",
+    "Fixed MegaMenu subcategory links (query params), seller social links (conditional), storefront View all",
+    "Link audit report: .claude/link-audit-2026-01-02.md",
+    "Performance report: .claude/perf-report-2026-01-02.md"
   ],
   "recent_files": [
-    "apps/web/src/app/marketplace/cart/page.tsx",
-    "apps/web/src/app/api/marketplace/products/batch/route.ts",
-    "apps/web/src/app/auth/signin/page.tsx",
-    "apps/web/src/app/icon.tsx",
-    ".claude/perf-report-2026-01-02.md"
+    "apps/web/src/app/pricing/page.tsx",
+    "apps/web/src/app/marketplace/sellers/page.tsx",
+    "apps/web/src/app/help/page.tsx",
+    "apps/web/src/components/marketplace/MegaMenu.tsx",
+    ".claude/link-audit-2026-01-02.md"
   ],
   "dev_urls": {
     "marketplace": "http://madebuy.nuc",
