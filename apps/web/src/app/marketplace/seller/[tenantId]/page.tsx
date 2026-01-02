@@ -228,25 +228,35 @@ export default async function SellerProfilePage({
               )}
 
               {/* Social Links */}
-              <div className="border-t pt-4">
-                <h2 className="mb-3 font-semibold text-gray-900">Follow</h2>
-                <div className="space-y-2">
-                  <a
-                    href="#"
-                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Website
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Instagram
-                  </a>
+              {(sellerData?.socialLinks?.website || sellerData?.socialLinks?.instagram) && (
+                <div className="border-t pt-4">
+                  <h2 className="mb-3 font-semibold text-gray-900">Follow</h2>
+                  <div className="space-y-2">
+                    {sellerData.socialLinks.website && (
+                      <a
+                        href={sellerData.socialLinks.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Website
+                      </a>
+                    )}
+                    {sellerData.socialLinks.instagram && (
+                      <a
+                        href={`https://instagram.com/${sellerData.socialLinks.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Instagram
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </aside>
 

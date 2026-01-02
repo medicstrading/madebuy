@@ -144,7 +144,7 @@ export function MagazineStyleLayout({ pieces, tenantSlug, tenant }: MagazineStyl
               {layoutContent.moreCollectionTitle || 'More to Explore'}
             </h2>
             <Link
-              href="#"
+              href={`/${tenantSlug}`}
               className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
               View all

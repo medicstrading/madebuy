@@ -263,7 +263,7 @@ export function MegaMenu({ categories = DEFAULT_CATEGORIES, className = '' }: Me
                   {activeData.subcategories.map((sub) => (
                     <Link
                       key={sub.slug}
-                      href={`/marketplace/categories/${activeData.slug}/${sub.slug}`}
+                      href={`/marketplace/categories/${activeData.slug}?subcategory=${sub.slug}`}
                       className="
                         group/link flex items-center gap-2 rounded-lg px-2 py-1.5
                         text-sm text-mb-slate transition-colors
@@ -409,7 +409,7 @@ export function MegaMenuMobile({
                     {category.subcategories.map((sub) => (
                       <Link
                         key={sub.slug}
-                        href={`/marketplace/categories/${category.slug}/${sub.slug}`}
+                        href={`/marketplace/categories/${category.slug}?subcategory=${sub.slug}`}
                         onClick={onClose}
                         className="block py-2 pl-8 text-sm text-mb-slate hover:text-mb-blue"
                       >
