@@ -3,28 +3,33 @@ import { Package, Image, ShoppingCart, Mail, TrendingUp, TrendingDown, Plus, Sha
 import { pieces, media, orders, enquiries } from '@madebuy/db'
 import Link from 'next/link'
 import { FinanceWidgets } from '@/components/dashboard/FinanceWidgets'
+import { unstable_cache } from 'next/cache'
 
-async function getDashboardStats(tenantId: string) {
-  const [piecesCount, mediaCount, ordersCount, enquiriesCount, recentOrders] = await Promise.all([
-    pieces.countPieces(tenantId),
-    media.countMedia(tenantId),
-    orders.countOrders(tenantId),
-    enquiries.countEnquiries(tenantId),
-    orders.listOrders(tenantId, { limit: 5 }),
-  ])
+const getCachedDashboardStats = unstable_cache(
+  async (tenantId: string) => {
+    const [piecesCount, mediaCount, ordersCount, enquiriesCount, recentOrders] = await Promise.all([
+      pieces.countPieces(tenantId),
+      media.countMedia(tenantId),
+      orders.countOrders(tenantId),
+      enquiries.countEnquiries(tenantId),
+      orders.listOrders(tenantId, { limit: 5 }),
+    ])
 
-  return {
-    pieces: piecesCount,
-    media: mediaCount,
-    orders: ordersCount,
-    enquiries: enquiriesCount,
-    recentOrders,
-  }
-}
+    return {
+      pieces: piecesCount,
+      media: mediaCount,
+      orders: ordersCount,
+      enquiries: enquiriesCount,
+      recentOrders,
+    }
+  },
+  ['dashboard-stats'],
+  { revalidate: 60, tags: ['dashboard'] }
+)
 
 export default async function DashboardPage() {
   const tenant = await requireTenant()
-  const stats = await getDashboardStats(tenant.id)
+  const stats = await getCachedDashboardStats(tenant.id)
 
   return (
     <div className="space-y-6">

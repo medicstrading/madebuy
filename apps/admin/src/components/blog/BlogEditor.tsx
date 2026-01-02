@@ -2,10 +2,19 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import type { MediaItem, BlogPost } from '@madebuy/shared'
-import { RichTextEditor } from './RichTextEditor'
 import { Save, Eye, Trash2, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
+
+// Lazy load TipTap editor to reduce initial bundle size (~200KB)
+const RichTextEditor = dynamic(
+  () => import('./RichTextEditor').then(mod => mod.RichTextEditor),
+  {
+    ssr: false,
+    loading: () => <div className="h-[400px] bg-gray-100 animate-pulse rounded-lg" />
+  }
+)
 
 interface BlogEditorProps {
   tenantId: string

@@ -5,14 +5,12 @@ import { ShoppingCart, Package, Truck, CheckCircle } from 'lucide-react'
 
 export default async function OrdersPage() {
   const tenant = await requireTenant()
-  const allOrders = await orders.listOrders(tenant.id)
 
-  const stats = {
-    pending: allOrders.filter(o => o.status === 'pending').length,
-    processing: allOrders.filter(o => o.status === 'processing').length,
-    shipped: allOrders.filter(o => o.status === 'shipped').length,
-    delivered: allOrders.filter(o => o.status === 'delivered').length,
-  }
+  // Fetch stats via aggregation and orders in parallel
+  const [stats, allOrders] = await Promise.all([
+    orders.getOrderStats(tenant.id),
+    orders.listOrders(tenant.id)
+  ])
 
   return (
     <div>

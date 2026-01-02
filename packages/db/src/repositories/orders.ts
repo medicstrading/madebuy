@@ -188,6 +188,33 @@ export async function countOrders(tenantId: string): Promise<number> {
 }
 
 /**
+ * Get order statistics by status using MongoDB aggregation
+ * Use this instead of fetching all orders and filtering client-side
+ */
+export async function getOrderStats(tenantId: string): Promise<{
+  pending: number
+  processing: number
+  shipped: number
+  delivered: number
+  total: number
+}> {
+  const db = await getDatabase()
+  const result = await db.collection('orders').aggregate([
+    { $match: { tenantId } },
+    { $group: { _id: '$status', count: { $sum: 1 } } }
+  ]).toArray()
+
+  const statusMap = new Map(result.map(r => [r._id, r.count]))
+  return {
+    pending: statusMap.get('pending') || 0,
+    processing: statusMap.get('processing') || 0,
+    shipped: statusMap.get('shipped') || 0,
+    delivered: statusMap.get('delivered') || 0,
+    total: result.reduce((sum, r) => sum + r.count, 0)
+  }
+}
+
+/**
  * Get orders that need to be synced to accounting software
  * Returns paid orders from the last N days that haven't been synced
  */

@@ -162,6 +162,27 @@ export async function calculatePieceCOGS(tenantId: string, pieceId: string): Pro
 }
 
 /**
+ * Batch calculate COGS for multiple pieces in a single query
+ * Use this instead of calling calculatePieceCOGS in a loop to avoid N+1 queries
+ */
+export async function calculateBatchCOGS(
+  tenantId: string,
+  pieceIds: string[]
+): Promise<Map<string, number>> {
+  if (pieceIds.length === 0) return new Map()
+
+  const db = await getDatabase()
+  const results = await db.collection('material_usages')
+    .aggregate([
+      { $match: { tenantId, pieceId: { $in: pieceIds } } },
+      { $group: { _id: '$pieceId', total: { $sum: '$totalCost' } } }
+    ])
+    .toArray()
+
+  return new Map(results.map(r => [r._id as string, r.total || 0]))
+}
+
+/**
  * Update material stock from invoice
  * Used when confirming invoice scan results
  */

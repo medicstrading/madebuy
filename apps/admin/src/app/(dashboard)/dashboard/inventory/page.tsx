@@ -9,13 +9,13 @@ export default async function InventoryPage() {
   const tenant = await requireTenant()
   const allPieces = await pieces.listPieces(tenant.id)
 
-  // Fetch COGS for each piece
-  const piecesWithCOGS = await Promise.all(
-    allPieces.map(async (piece) => {
-      const cogs = await materials.calculatePieceCOGS(tenant.id, piece.id)
-      return { ...piece, cogs }
-    })
-  )
+  // Batch fetch COGS for all pieces in single aggregation query
+  const pieceIds = allPieces.map(p => p.id)
+  const cogsMap = await materials.calculateBatchCOGS(tenant.id, pieceIds)
+  const piecesWithCOGS = allPieces.map(piece => ({
+    ...piece,
+    cogs: cogsMap.get(piece.id) || 0
+  }))
 
   return (
     <div>

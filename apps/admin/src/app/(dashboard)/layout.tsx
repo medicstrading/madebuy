@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser, getCurrentTenant } from '@/lib/session'
+import { getCurrentTenant } from '@/lib/session'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { Header } from '@/components/dashboard/Header'
 
@@ -8,13 +8,18 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getCurrentUser()
+  // Single call - getCurrentTenant already checks auth
+  const tenant = await getCurrentTenant()
 
-  if (!user) {
+  if (!tenant) {
     redirect('/login')
   }
 
-  const tenant = await getCurrentTenant()
+  // Derive user info from tenant to avoid duplicate DB call
+  const user = {
+    name: tenant.businessName || tenant.storeName || '',
+    email: tenant.email || '',
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
