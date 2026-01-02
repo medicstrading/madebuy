@@ -73,10 +73,11 @@ export function Header({ user, tenant }: HeaderProps) {
         {/* Sign Out */}
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+          className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
           title="Sign out"
         >
           <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Logout</span>
         </button>
       </div>
     </header>
