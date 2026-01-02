@@ -1,26 +1,26 @@
 /**
  * MadeBuy Shared Types
  * Central type definitions for the entire platform
+ *
+ * ARCHIVED (2026-01-02): marketplace, transaction, payout, shipping, review,
+ * wishlist, promotion, analytics, accountingConnection, emailCampaign
+ * See: archive/packages/shared/src/types/
  */
 
-// Export all types
+// Export active types
 export * from './tenant'
 export * from './piece'
 export * from './product'
-export * from './marketplace'
 export * from './media'
 export * from './material'
 export * from './invoice'
 export * from './order'
-export * from './promotion'
 export * from './publish'
 export * from './enquiry'
 export * from './blog'
-export * from './analytics'
 export * from './tracking'
-export * from './transaction'
-export * from './payout'
 export * from './download'
+export * from './customer'
 
 // Re-export commonly used types for convenience
 export type {
@@ -29,9 +29,6 @@ export type {
   SocialPlatform,
   TenantFeatures,
   TenantIntegrations,
-  EtsyIntegration,
-  ShippingMethod,
-  ShippingConfig,
 } from './tenant'
 
 export type {
@@ -42,7 +39,6 @@ export type {
   UpdatePieceInput,
   PieceFilters,
   PieceIntegrations,
-  EtsyListingIntegration,
   VariantOption,
   ProductVariant,
   ProductVariation,
@@ -111,12 +107,6 @@ export type {
 } from './order'
 
 export type {
-  Promotion,
-  PromotionType,
-  CreatePromotionInput,
-} from './promotion'
-
-export type {
   PublishRecord,
   PublishStatus,
   PlatformResult,
@@ -138,9 +128,6 @@ export type {
   BlogPublishConfig,
 } from './blog'
 
-// Re-export marketplace constants
-export { MARKETPLACE_CATEGORIES } from './marketplace'
-
 export type {
   Product,
   ProductStatus,
@@ -151,8 +138,6 @@ export type {
   UpdateProductInput,
   ProductFilters,
   ProductIntegrations,
-  EtsyListingIntegration as EtsyProductIntegration,
-  SellerBadge,
 } from './product'
 
 export type {
@@ -168,30 +153,6 @@ export type {
 } from './tracking'
 
 export type {
-  Transaction,
-  TransactionType,
-  TransactionStatus,
-  TransactionFees,
-  CreateTransactionInput,
-  TransactionFilters,
-  TransactionSummary,
-  DailyRevenueData,
-} from './transaction'
-
-export type {
-  Payout,
-  PayoutStatus,
-  PayoutMethod,
-  CreatePayoutInput,
-  PayoutFilters,
-  PayoutSummary,
-  PayoutStats,
-} from './payout'
-
-export * from './customer'
-export * from './emailCampaign'
-
-export type {
   Customer,
   CustomerSegment,
   SegmentRule,
@@ -204,88 +165,6 @@ export type {
 } from './customer'
 
 export type {
-  EmailCampaign,
-  EmailTrigger,
-  EmailCampaignStatus,
-  EmailCampaignStats,
-  EmailSubscriber,
-  EmailAutomation,
-  AutomationCondition,
-  CreateEmailCampaignInput,
-  UpdateEmailCampaignInput,
-  EmailCampaignFilters,
-  EmailMarketingStats,
-} from './emailCampaign'
-
-// Shipping types - explicit exports to avoid conflicts with sendle module
-export type {
-  ShippingCarrier,
-  ShippingProfile,
-  ShippingRateType,
-  ShippingZone,
-  ShippingAddress,
-  ShippingQuote,
-  WeightRate,
-  Shipment,
-  ShipmentStatus,
-  ShipmentDimensions,
-  ShipmentPackage,
-  ShipmentFilters,
-  ShipmentStats,
-  ShipmentTrackingEvent,
-  PaginationOptions,
-  SendleQuote,
-  SendleOrder,
-  SendleLabel,
-  SendleContact,
-  SendleTracking,
-  SendleTrackingEvent,
-  SendleWebhookPayload,
-  SendleIntegration,
-  PublicTrackingResponse,
-  CreateShipmentInput,
-  CreateShippingProfileInput,
-  UpdateShippingProfileInput,
-  CreateLabelInput,
-  ShippingProfileInput,
-  AustralianState,
-} from './shipping'
-
-export {
-  AU_STATES,
-  DEFAULT_AU_ZONES,
-  SENDLE_STATUS_MAP,
-  SHIPMENT_STATUS_MESSAGES,
-  CARRIER_NAMES,
-} from './shipping'
-
-export * from './wishlist'
-// Note: review.ts ReviewSummary conflicts with marketplace.ts - use explicit exports below
-export type { Review, ReviewStatus, CreateReviewInput, UpdateReviewInput, ReviewFilters } from './review'
-export * from './accountingConnection'
-
-export type {
-  WishlistItem,
-  WishlistFilters,
-  AddToWishlistInput,
-} from './wishlist'
-
-export type {
-  ReviewSummary as BuyerReviewSummary,
-} from './review'
-
-export type {
-  AccountingConnection,
-  AccountingProvider,
-  AccountingConnectionStatus,
-  SyncStatus,
-  AccountMappings,
-  CreateAccountingConnectionInput,
-  UpdateAccountingConnectionInput,
-  UpdateSyncStatusInput,
-} from './accountingConnection'
-
-export type {
   DownloadRecord,
   DownloadEvent,
   DownloadValidationResult,
@@ -293,3 +172,17 @@ export type {
   DownloadStats,
   CreateDownloadRecordInput,
 } from './download'
+
+// =============================================================================
+// ARCHIVED TYPES (removed 2026-01-02)
+// =============================================================================
+// marketplace - see archive/packages/shared/src/types/
+// transaction - see archive/packages/shared/src/types/
+// payout - see archive/packages/shared/src/types/
+// shipping - see archive/packages/shared/src/types/
+// review - see archive/packages/shared/src/types/
+// wishlist - see archive/packages/shared/src/types/
+// promotion - see archive/packages/shared/src/types/
+// analytics - see archive/packages/shared/src/types/
+// accountingConnection - see archive/packages/shared/src/types/
+// emailCampaign - see archive/packages/shared/src/types/

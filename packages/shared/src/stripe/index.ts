@@ -1,2 +1,2 @@
 export * from './config';
-export * from './connect';
+// Stripe Connect archived - see archive/packages/shared/src/stripe/connect.ts
