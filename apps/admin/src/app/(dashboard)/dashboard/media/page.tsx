@@ -1,8 +1,6 @@
 import { requireTenant } from '@/lib/session'
 import { media, pieces } from '@madebuy/db'
-import { formatDate } from '@/lib/utils'
-import { Image as ImageIcon, Video, Star, Folder, FolderOpen, Plus } from 'lucide-react'
-import Link from 'next/link'
+import { Image as ImageIcon, Video, Star, Folder, FolderOpen } from 'lucide-react'
 import type { MediaItem, Piece } from '@madebuy/shared'
 import { MediaLibraryClient } from '@/components/media/MediaLibraryClient'
 import { UnlinkedMediaGrid } from '@/components/media/UnlinkedMediaGrid'
@@ -95,15 +93,8 @@ export default async function MediaPage() {
           <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No media yet</h3>
           <p className="mt-2 text-sm text-gray-600">
-            Upload photos and videos to showcase your work.
+            Use the <strong>Upload Media</strong> button above to add photos and videos.
           </p>
-          <Link
-            href="/dashboard/media/upload"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Upload Media
-          </Link>
         </div>
       ) : (
         <div className="space-y-8">
