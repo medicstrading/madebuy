@@ -15,7 +15,15 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Derive user info from tenant to avoid duplicate DB call
+  // Serialize to plain objects for client components (avoid MongoDB ObjectId/Date hydration issues)
+  const serializedTenant = {
+    id: tenant.id,
+    slug: tenant.slug,
+    businessName: tenant.businessName || '',
+    storeName: tenant.storeName || '',
+    plan: tenant.plan || 'free',
+  }
+
   const user = {
     name: tenant.businessName || tenant.storeName || '',
     email: tenant.email || '',
@@ -23,9 +31,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar tenant={tenant} />
+      <Sidebar tenant={serializedTenant} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header user={user} tenant={tenant} />
+        <Header user={user} tenant={serializedTenant} />
         <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
           {children}
         </main>
