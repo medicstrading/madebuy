@@ -1,48 +1,30 @@
 {
   "project_name": "madebuy",
-  "last_task": "Performance optimizations - all completed and pushed",
+  "last_task": "QA fixes + optimizer analysis complete",
   "status": "done",
   "current_branch": "main",
   "notes": [
-    "✅ All 7 performance optimization tasks COMPLETE",
-    "✅ Commit af4f3fe pushed to main",
-    "MongoDB indexes added for marketplace queries",
-    "N+1 queries fixed (browse page, storefront media)",
-    "unstable_cache added to marketplace pages",
-    "Product detail converted to server component with ISR",
-    "Cache headers added to all marketplace APIs",
-    "NODE_OPTIONS 4GB memory added to build scripts"
+    "Fixed QA issues: cart, auth pages, favicon, broken images",
+    "Ran optimizer agent - all pages CLS 0.00, admin LCP 70ms",
+    "Performance report: .claude/perf-report-2026-01-02.md",
+    "Medium priority: add batch query for cart, add DB projections"
   ],
-  "optimization": {
-    "completed": [
-      "MongoDB indexes for tenants, products, seller_profiles, reviews, stats",
-      "getTenantsByIds() batch function - browse page 24+ calls → 2",
-      "populatePiecesWithMedia() batch refactor - eliminates N+1",
-      "unstable_cache on /marketplace, /browse, /product/[id]",
-      "Product detail SSR with ISR (5 min revalidation)",
-      "ProductImageGallery, ProductActions, TrackProductView client components",
-      "Cache-Control headers: products 60s, product detail 5min, categories 1hr",
-      "NODE_OPTIONS='--max_old_space_size=4096' in all build scripts"
-    ],
-    "still_todo": [
-      "Fix Sentry bundle bloat (main-app.js 11MB)",
-      "Add blur placeholders to remaining Image components"
-    ]
-  },
+  "recent_files": [
+    "apps/web/src/app/marketplace/cart/page.tsx",
+    "apps/web/src/app/api/marketplace/products/batch/route.ts",
+    "apps/web/src/app/auth/signin/page.tsx",
+    "apps/web/src/app/icon.tsx",
+    ".claude/perf-report-2026-01-02.md"
+  ],
   "dev_urls": {
     "marketplace": "http://madebuy.nuc",
     "admin": "http://madebuy-admin.nuc",
     "tenant_storefront": "http://madebuy.nuc/admin-test"
   },
-  "dev_servers": {
-    "admin": "http://192.168.50.110:3300",
-    "web": "http://192.168.50.110:3301"
-  },
   "test_account": {
     "email": "admin@test.com",
-    "password": "Admin2024!Secure",
-    "plan": "business",
-    "storefront": "http://192.168.50.110:3301/admin-test"
+    "password": "admin123",
+    "plan": "business"
   },
   "key_decisions": {
     "stripe": "Express accounts - Stripe handles KYC",
@@ -51,5 +33,5 @@
     "shipping": "Sendle for MVP (Australian carbon-neutral)",
     "accounting": "Xero primary (Phase 3 COMPLETE)"
   },
-  "updated_at": "2026-01-02T15:30:00Z"
+  "updated_at": "2026-01-02T20:45:00Z"
 }
