@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { MARKETPLACE_CATEGORIES } from '@madebuy/shared/src/types/marketplace'
 import { Sparkles, Package } from 'lucide-react'
 
+// Skip static generation - client components in layout use hooks
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Categories - MadeBuy Marketplace',
   description: 'Browse all product categories on MadeBuy marketplace.',

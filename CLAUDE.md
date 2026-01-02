@@ -37,6 +37,34 @@ pnpm create:tenant                      # Create test tenant
 
 **Fixed ports:** Admin=3300, Web=3301 (do not use 3000/3001)
 
+## Docker Development Environment
+
+**CRITICAL:** Dev servers run in Docker containers on NUC. Code is mounted via SSHFS.
+
+### Build Commands (MUST use docker exec)
+```bash
+# Find container name
+ssh nuc-dev "docker ps --format '{{.Names}}' | grep madebuy"
+
+# Run build INSIDE container
+ssh nuc-dev "docker exec madebuy-web-dev pnpm build"
+ssh nuc-dev "docker exec madebuy-admin-dev pnpm build"
+
+# Bundle analysis
+ssh nuc-dev "docker exec madebuy-web-dev sh -c 'ANALYZE=true pnpm build'"
+```
+
+### NEVER DO
+- ❌ **Delete .next, dist, or build directories** - They're owned by container root
+- ❌ Run `rm -rf` on any build artifacts
+- ❌ Run builds on host (`pnpm build` locally or on NUC host)
+- ❌ Suggest "cleaning" directories to fix permission issues
+
+### If Build Fails
+Report the error. Don't try to "fix" by deleting directories. The fix is usually:
+1. Restart the Docker container
+2. Or run the build inside the container with docker exec
+
 ## Architecture
 
 ### Monorepo Structure (pnpm workspaces)
@@ -146,3 +174,16 @@ Most agents are loaded from global `~/.claude/agents/`. Project-specific overrid
 **Quick deployment check:** `~/.claude/scripts/deploy-check.sh` (auto-detects Next.js)
 
 **Remote build (faster):** `build-remote madebuy` or `bm` (runs on NUC directly)
+
+---
+
+## Git Push Permission (MANDATORY)
+
+**NEVER push to GitHub without explicit user permission.**
+
+- `git add` / `git commit` - OK without asking
+- `git push` - **REQUIRES explicit permission**
+
+**Permission phrases:** "push it", "push to github", "push to remote", "git push"
+
+After committing, say: "Committed locally. Push to GitHub?" and **WAIT**.

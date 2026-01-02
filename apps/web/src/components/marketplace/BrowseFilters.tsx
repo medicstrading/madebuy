@@ -9,14 +9,14 @@ export function BrowseFilters() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '')
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
+  const [minPrice, setMinPrice] = useState(searchParams?.get('minPrice') || '')
+  const [maxPrice, setMaxPrice] = useState(searchParams?.get('maxPrice') || '')
 
-  const currentCategory = searchParams.get('category') || ''
-  const currentMinRating = searchParams.get('minRating') || ''
+  const currentCategory = searchParams?.get('category') || ''
+  const currentMinRating = searchParams?.get('minRating') || ''
 
   const handleFilterChange = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() || '')
 
     if (value === '') {
       params.delete(key)
@@ -28,7 +28,7 @@ export function BrowseFilters() {
   }
 
   const handlePriceFilter = () => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() || '')
 
     if (minPrice) {
       params.set('minPrice', minPrice)

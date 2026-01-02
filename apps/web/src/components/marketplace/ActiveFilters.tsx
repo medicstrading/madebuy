@@ -7,17 +7,17 @@ export function ActiveFilters() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const category = searchParams.get('category')
-  const subcategory = searchParams.get('subcategory')
-  const minPrice = searchParams.get('minPrice')
-  const maxPrice = searchParams.get('maxPrice')
-  const minRating = searchParams.get('minRating')
-  const query = searchParams.get('q')
+  const category = searchParams?.get('category')
+  const subcategory = searchParams?.get('subcategory')
+  const minPrice = searchParams?.get('minPrice')
+  const maxPrice = searchParams?.get('maxPrice')
+  const minRating = searchParams?.get('minRating')
+  const query = searchParams?.get('q')
 
   const hasFilters = category || subcategory || minPrice || maxPrice || minRating || query
 
   const removeFilter = (key: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() || '')
     params.delete(key)
     router.push(`/marketplace/browse?${params.toString()}`)
   }
@@ -59,7 +59,7 @@ export function ActiveFilters() {
         <FilterChip
           label={`Price: ${minPrice || '0'} - ${maxPrice || '∞'}`}
           onRemove={() => {
-            const params = new URLSearchParams(searchParams.toString())
+            const params = new URLSearchParams(searchParams?.toString() || '')
             params.delete('minPrice')
             params.delete('maxPrice')
             router.push(`/marketplace/browse?${params.toString()}`)

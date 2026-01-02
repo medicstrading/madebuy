@@ -5,6 +5,9 @@ import { MARKETPLACE_CATEGORIES } from '@madebuy/shared/src/types/marketplace'
 import { MixedGrid, MixedGridAlt, EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
 import { mapMarketplaceProduct } from '@/lib/productMapping'
 
+// Skip static generation - client components in layout use hooks
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'MadeBuy Marketplace - Handmade Goods from Independent Makers',
   description: 'Discover unique handmade products from talented creators. Art, jewelry, clothing, home decor, and more. No transaction fees for sellers.',

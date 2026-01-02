@@ -3,6 +3,9 @@ import { BrowseFilters } from '@/components/marketplace/BrowseFilters'
 import { ActiveFilters, EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
 import { mapMarketplaceProduct } from '@/lib/productMapping'
 
+// Skip static generation - client components in layout use hooks
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Browse Products - MadeBuy Marketplace',
   description: 'Browse all handmade products from independent makers and creators.',

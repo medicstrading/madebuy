@@ -21,7 +21,10 @@ const nextConfig = {
   },
 }
 
-module.exports = withSentryConfig(nextConfig, {
+// Set to true to bypass Sentry for debugging build issues
+const BYPASS_SENTRY = false
+
+const sentryConfig = {
   // Sentry webpack plugin options
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -51,4 +54,18 @@ module.exports = withSentryConfig(nextConfig, {
     excludeReplayIframe: true,
     excludeReplayCanvas: true,
   },
-})
+
+  // Webpack options for Next.js - App Router only project
+  webpack: {
+    // Disable Pages Router instrumentation (App Router only)
+    autoInstrumentServerFunctions: false,
+    // Exclude error routes from instrumentation
+    excludeServerRoutes: [
+      '/_error',
+      '/404',
+      '/500',
+    ],
+  },
+}
+
+module.exports = BYPASS_SENTRY ? nextConfig : withSentryConfig(nextConfig, sentryConfig)

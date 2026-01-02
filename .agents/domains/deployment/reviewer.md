@@ -1,5 +1,6 @@
 ---
 name: deployment-reviewer
+description: Next.js/Vercel pre-deployment verification
 ---
 
 # Deployment Reviewer

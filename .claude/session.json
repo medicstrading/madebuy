@@ -1,55 +1,65 @@
 {
   "project_name": "madebuy",
-  "last_task": "Phase 5: Shipping & Fulfillment - Error Checking",
-  "status": "in_progress",
+  "last_task": "Performance quick wins committed and pushed",
+  "status": "done",
   "current_branch": "main",
   "notes": [
-    "Implementation plan: IMPLEMENTATION_PLAN.md (9 phases total)",
-    "✅ Phase 1 COMPLETE: Financial Foundation",
-    "✅ Phase 2 COMPLETE: Financial Reporting",
-    "✅ Phase 3 COMPLETE: Xero Integration",
-    "✅ Phase 4 COMPLETE: Seller Experience Enhancement",
-    "🔄 Phase 5 IN PROGRESS: Shipping & Fulfillment"
+    "✅ Phase 1-5 COMPLETE",
+    "✅ Quick wins committed (1b9c05d) and pushed",
+    "⚠️ PERFORMANCE: main-app.js still 11MB - Sentry investigation pending"
   ],
-  "phase5_progress": {
-    "name": "Shipping & Fulfillment",
-    "status": "error_checking",
-    "agents_completed": [
-      "✅ Shipping types & repository",
-      "✅ Sendle API integration",
-      "✅ Checkout shipping flow",
-      "✅ Seller fulfillment dashboard",
-      "✅ Buyer tracking experience"
+  "optimization": {
+    "report_file": ".claude/perf-report-2026-01-01.md",
+    "critical_issue": "main-app.js is 11MB in web app (55x over target)",
+    "committed": [
+      "Dynamic import tesseract.js in invoice-ocr.ts",
+      "Memoized CartContext with useCallback/useMemo",
+      "Added .project() to stockReservations DB queries",
+      "Added blur placeholder + sizes to ProductImage",
+      "Fixed middleware for .nuc domain handling",
+      "Disabled Sentry reactComponentAnnotation",
+      "Fixed partialFilterExpression in variant_combinations index"
     ],
-    "fixes_applied": [
-      "reports/page.tsx - escaped quotes",
-      "Stripe connect routes - lazy getStripe()",
-      "video-processing.ts - lazy ffmpeg init",
-      "stripe/connect.ts - API version fix"
-    ],
-    "pending": [
-      "Complete admin build verification",
-      "Web app build check",
-      "Commit and push Phase 5"
+    "bundle_investigation": {
+      "status": "pending",
+      "likely_culprits": [
+        "@sentry/nextjs with Session Replay",
+        "Sentry reactComponentAnnotation (now disabled)",
+        "widenClientFileUpload setting"
+      ],
+      "next_steps": [
+        "Disable Session Replay (replaysSessionSampleRate: 0)",
+        "Test with Sentry completely disabled to measure impact",
+        "Run ANALYZE=true build on NUC",
+        "Consider lazy-loading Sentry SDK"
+      ]
+    },
+    "still_todo": [
+      "Fix Sentry bundle bloat",
+      "Add blur placeholders to remaining 31 Image components"
     ]
   },
-  "key_files_created": [
-    "packages/shared/src/sendle/*",
-    "packages/shared/src/types/shipping.ts",
-    "packages/shared/src/services/shipping.ts",
-    "packages/db/src/repositories/shipments.ts",
-    "packages/db/src/repositories/shippingProfiles.ts",
-    "apps/admin/src/app/(dashboard)/dashboard/fulfillment/*",
-    "apps/admin/src/components/fulfillment/*",
-    "apps/web/src/app/tracking/*",
-    "apps/web/src/components/tracking/*"
-  ],
+  "dev_urls": {
+    "marketplace": "http://madebuy.nuc",
+    "admin": "http://madebuy-admin.nuc",
+    "tenant_storefront": "http://madebuy.nuc/admin-test"
+  },
+  "dev_servers": {
+    "admin": "http://192.168.50.110:3300",
+    "web": "http://192.168.50.110:3301"
+  },
+  "test_account": {
+    "email": "admin@test.com",
+    "password": "Admin2024!Secure",
+    "plan": "business",
+    "storefront": "http://192.168.50.110:3301/admin-test"
+  },
   "key_decisions": {
     "stripe": "Express accounts - Stripe handles KYC",
     "fees_au": "1.7% + $0.30 domestic, 3.5% + $0.30 international",
     "platform_fees": "Zero - MadeBuy differentiator",
     "shipping": "Sendle for MVP (Australian carbon-neutral)",
-    "accounting": "Xero primary (Phase 3 COMPLETE), MYOB future"
+    "accounting": "Xero primary (Phase 3 COMPLETE)"
   },
-  "updated_at": "2026-01-01T15:30:00Z"
+  "updated_at": "2026-01-01T22:50:00Z"
 }

@@ -46,7 +46,7 @@ function mapToCardProduct(product: any) {
 
 export default function ProductDetailPage() {
   const params = useParams()
-  const productId = params.id as string
+  const productId = params?.id as string
 
   const [product, setProduct] = useState<any>(null)
   const [tenant, setTenant] = useState<any>(null)
