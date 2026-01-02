@@ -1,42 +1,32 @@
 {
   "project_name": "madebuy",
-  "last_task": "Performance quick wins committed and pushed",
+  "last_task": "Performance optimizations - all completed and pushed",
   "status": "done",
   "current_branch": "main",
   "notes": [
-    "✅ Phase 1-5 COMPLETE",
-    "✅ Quick wins committed (1b9c05d) and pushed",
-    "⚠️ PERFORMANCE: main-app.js still 11MB - Sentry investigation pending"
+    "✅ All 7 performance optimization tasks COMPLETE",
+    "✅ Commit af4f3fe pushed to main",
+    "MongoDB indexes added for marketplace queries",
+    "N+1 queries fixed (browse page, storefront media)",
+    "unstable_cache added to marketplace pages",
+    "Product detail converted to server component with ISR",
+    "Cache headers added to all marketplace APIs",
+    "NODE_OPTIONS 4GB memory added to build scripts"
   ],
   "optimization": {
-    "report_file": ".claude/perf-report-2026-01-01.md",
-    "critical_issue": "main-app.js is 11MB in web app (55x over target)",
-    "committed": [
-      "Dynamic import tesseract.js in invoice-ocr.ts",
-      "Memoized CartContext with useCallback/useMemo",
-      "Added .project() to stockReservations DB queries",
-      "Added blur placeholder + sizes to ProductImage",
-      "Fixed middleware for .nuc domain handling",
-      "Disabled Sentry reactComponentAnnotation",
-      "Fixed partialFilterExpression in variant_combinations index"
+    "completed": [
+      "MongoDB indexes for tenants, products, seller_profiles, reviews, stats",
+      "getTenantsByIds() batch function - browse page 24+ calls → 2",
+      "populatePiecesWithMedia() batch refactor - eliminates N+1",
+      "unstable_cache on /marketplace, /browse, /product/[id]",
+      "Product detail SSR with ISR (5 min revalidation)",
+      "ProductImageGallery, ProductActions, TrackProductView client components",
+      "Cache-Control headers: products 60s, product detail 5min, categories 1hr",
+      "NODE_OPTIONS='--max_old_space_size=4096' in all build scripts"
     ],
-    "bundle_investigation": {
-      "status": "pending",
-      "likely_culprits": [
-        "@sentry/nextjs with Session Replay",
-        "Sentry reactComponentAnnotation (now disabled)",
-        "widenClientFileUpload setting"
-      ],
-      "next_steps": [
-        "Disable Session Replay (replaysSessionSampleRate: 0)",
-        "Test with Sentry completely disabled to measure impact",
-        "Run ANALYZE=true build on NUC",
-        "Consider lazy-loading Sentry SDK"
-      ]
-    },
     "still_todo": [
-      "Fix Sentry bundle bloat",
-      "Add blur placeholders to remaining 31 Image components"
+      "Fix Sentry bundle bloat (main-app.js 11MB)",
+      "Add blur placeholders to remaining Image components"
     ]
   },
   "dev_urls": {
@@ -61,5 +51,5 @@
     "shipping": "Sendle for MVP (Australian carbon-neutral)",
     "accounting": "Xero primary (Phase 3 COMPLETE)"
   },
-  "updated_at": "2026-01-01T22:50:00Z"
+  "updated_at": "2026-01-02T15:30:00Z"
 }
