@@ -15,7 +15,12 @@ export async function GET(request: NextRequest) {
 
     const sellers = await marketplace.getTopSellers(limit)
 
-    return NextResponse.json({ sellers })
+    // Cache for 5 min, serve stale for up to 15 min while revalidating
+    return NextResponse.json({ sellers }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900',
+      },
+    })
   } catch (error) {
     console.error('Error fetching top sellers:', error)
     return NextResponse.json(

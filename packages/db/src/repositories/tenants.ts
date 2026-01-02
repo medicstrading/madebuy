@@ -200,3 +200,28 @@ export async function migrateToMakerType(defaultType: Tenant['makerType'] = 'jew
   )
   return result.modifiedCount
 }
+
+/**
+ * Batch fetch tenants by IDs (for N+1 query optimization)
+ * Returns a Map for O(1) lookup
+ */
+export async function getTenantsByIds(tenantIds: string[]): Promise<Map<string, Tenant>> {
+  if (tenantIds.length === 0) return new Map()
+
+  const db = await getDatabase()
+  const uniqueIds = [...new Set(tenantIds)]
+
+  const tenantDocs = await db.collection('tenants')
+    .find({ id: { $in: uniqueIds } })
+    .project({
+      id: 1,
+      slug: 1,
+      businessName: 1,
+      storeName: 1,
+      location: 1,
+      makerType: 1,
+    })
+    .toArray()
+
+  return new Map(tenantDocs.map(t => [t.id, t as unknown as Tenant]))
+}

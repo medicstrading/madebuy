@@ -90,7 +90,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ results })
+    // Short cache for search results (30s fresh, 2 min stale)
+    return NextResponse.json({ results }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120',
+      },
+    })
   } catch (error) {
     console.error('Search error:', error)
     return NextResponse.json({ results: [] })

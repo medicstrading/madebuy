@@ -4,48 +4,61 @@ import { ArrowRight, Star, Heart, Check, Users, Package, Percent } from 'lucide-
 import { MARKETPLACE_CATEGORIES } from '@madebuy/shared/src/types/marketplace'
 import { MixedGrid, MixedGridAlt, EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
 import { mapMarketplaceProduct } from '@/lib/productMapping'
+import { unstable_cache } from 'next/cache'
 
-// Skip static generation - client components in layout use hooks
-export const dynamic = 'force-dynamic'
+// Allow ISR with 5 minute revalidation
+export const revalidate = 300
 
 export const metadata = {
   title: 'MadeBuy Marketplace - Handmade Goods from Independent Makers',
   description: 'Discover unique handmade products from talented creators. Art, jewelry, clothing, home decor, and more. No transaction fees for sellers.',
 }
 
-export default async function MarketplaceHomePage() {
-  const { marketplace, tenants } = await import('@madebuy/db')
+// Cached data fetching with 5 minute TTL
+const getMarketplaceData = unstable_cache(
+  async () => {
+    const { marketplace, tenants } = await import('@madebuy/db')
 
-  // Fetch more products for denser grids
-  const [featuredResult, trendingResult] = await Promise.all([
-    marketplace.listMarketplaceProducts({
-      sortBy: 'rating',
-      limit: 17, // 5 for MixedGrid + 12 for dense grid
-      page: 1,
-    }),
-    marketplace.listMarketplaceProducts({
-      sortBy: 'popular',
-      limit: 12,
-      page: 1,
-    })
-  ])
+    // Fetch products for both sections in parallel
+    const [featuredResult, trendingResult] = await Promise.all([
+      marketplace.listMarketplaceProducts({
+        sortBy: 'rating',
+        limit: 17,
+        page: 1,
+      }),
+      marketplace.listMarketplaceProducts({
+        sortBy: 'popular',
+        limit: 12,
+        page: 1,
+      })
+    ])
 
-  const enrichProduct = async (product: any) => {
-    const tenant = await tenants.getTenantById(product.tenantId)
-    return {
+    // Collect all unique tenant IDs for batch fetching
+    const allProducts = [...featuredResult.products, ...trendingResult.products]
+    const tenantIds = [...new Set(allProducts.map((p: any) => p.tenantId))]
+    const tenantMap = await tenants.getTenantsByIds(tenantIds)
+
+    // Enrich products with seller info using batch-fetched data
+    const enrichProduct = (product: any) => ({
       ...product,
       rating: product.marketplace?.avgRating || product.rating || 0,
       seller: {
         tenantId: product.tenantId,
-        businessName: tenant?.businessName || 'Unknown Seller'
+        businessName: tenantMap.get(product.tenantId)?.businessName || 'Unknown Seller'
       }
-    }
-  }
+    })
 
-  const [featuredProducts, trendingProducts] = await Promise.all([
-    Promise.all(featuredResult.products.map(enrichProduct)),
-    Promise.all(trendingResult.products.map(enrichProduct)),
-  ])
+    return {
+      featured: featuredResult.products.map(enrichProduct),
+      trending: trendingResult.products.map(enrichProduct),
+    }
+  },
+  ['marketplace-home'],
+  { revalidate: 300, tags: ['marketplace'] }
+)
+
+export default async function MarketplaceHomePage() {
+  const { featured: featuredProducts, trending: trendingProducts } = await getMarketplaceData()
 
   // Map to card format
   const featuredCards = featuredProducts.map(mapMarketplaceProduct)

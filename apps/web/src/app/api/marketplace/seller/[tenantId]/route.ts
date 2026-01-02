@@ -49,7 +49,6 @@ export async function GET(
         id: tenant.id,
         slug: tenant.slug,
         businessName: tenant.businessName,
-        storeName: tenant.storeName,
         tagline: tenant.tagline,
         description: tenant.description,
         location: tenant.location,
@@ -60,6 +59,11 @@ export async function GET(
       products: productsResult.products,
       pagination: productsResult.pagination,
       stats,
+    }, {
+      headers: {
+        // Cache for 5 min, serve stale for up to 15 min while revalidating
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900',
+      },
     })
   } catch (error) {
     console.error('Error fetching seller profile:', error)

@@ -38,6 +38,8 @@ async function ensureIndexes(db: Db) {
 
   // Tenants
   await db.collection('tenants').createIndex({ email: 1 }, { unique: true })
+  await db.collection('tenants').createIndex({ slug: 1 }, { unique: true })
+  await db.collection('tenants').createIndex({ id: 1 }, { unique: true })
   await db.collection('tenants').createIndex({ customDomain: 1 }, { sparse: true })
 
   // Pieces - ALWAYS filter by tenantId first
@@ -112,6 +114,27 @@ async function ensureIndexes(db: Db) {
     { tokenExpiresAt: 1 },
     { expireAfterSeconds: 0, partialFilterExpression: { tokenExpiresAt: { $exists: true } } }
   )
+
+  // Products (marketplace - cross-tenant)
+  await db.collection('products').createIndex({ id: 1 }, { unique: true })
+  await db.collection('products').createIndex({ slug: 1 })
+  await db.collection('products').createIndex({ tenantId: 1 })
+  await db.collection('products').createIndex({ tenantId: 1, 'marketplace.listed': 1, 'marketplace.approvalStatus': 1 })
+  await db.collection('products').createIndex({ 'marketplace.listed': 1, 'marketplace.approvalStatus': 1 })
+  await db.collection('products').createIndex({ 'marketplace.listed': 1, 'marketplace.approvalStatus': 1, createdAt: -1 })
+  await db.collection('products').createIndex({ 'marketplace.listed': 1, 'marketplace.approvalStatus': 1, 'marketplace.categories': 1 })
+  await db.collection('products').createIndex({ 'marketplace.listed': 1, 'marketplace.approvalStatus': 1, price: 1 })
+
+  // Seller Profiles (marketplace)
+  await db.collection('seller_profiles').createIndex({ tenantId: 1 }, { unique: true })
+  await db.collection('seller_profiles').createIndex({ 'stats.totalSales': -1, 'stats.avgRating': -1 })
+
+  // Marketplace Reviews
+  await db.collection('marketplace_reviews').createIndex({ productId: 1, status: 1 })
+  await db.collection('marketplace_reviews').createIndex({ tenantId: 1 })
+
+  // Tenant Marketplace Stats
+  await db.collection('tenant_marketplace_stats').createIndex({ tenantId: 1 }, { unique: true })
 
   // Variant Combinations (product variants with SKU, stock, price)
   await db.collection('variant_combinations').createIndex({ tenantId: 1 })

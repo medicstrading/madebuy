@@ -38,10 +38,15 @@ export async function GET(
     // Get recent reviews (first page)
     const { reviews } = await marketplace.listProductReviews(productId, 1, 5)
 
+    // Cache for 5 min, serve stale for up to 15 min while revalidating
     return NextResponse.json({
       product,
       reviewSummary,
       recentReviews: reviews,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900',
+      },
     })
   } catch (error) {
     console.error('Error fetching product detail:', error)

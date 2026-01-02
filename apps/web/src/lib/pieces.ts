@@ -1,25 +1,25 @@
 import { pieces, media } from '@madebuy/db'
-import type { Piece, PieceWithMedia } from '@madebuy/shared'
+import type { Piece, PieceWithMedia, MediaItem } from '@madebuy/shared'
 
 // Re-export type for use in components
 export type { PieceWithMedia }
 
 /**
- * Populate a piece with its media objects
+ * Populate a piece with its media objects (uses batch-fetched media map)
  */
-export async function populatePieceWithMedia(piece: Piece): Promise<PieceWithMedia> {
-  // Fetch all media for this piece
-  const allImages = await Promise.all(
-    piece.mediaIds.map(id => media.getMedia(piece.tenantId, id))
-  )
-
-  // Filter out null results
-  const validImages = allImages.filter(img => img !== null)
+function populatePieceFromMediaMap(
+  piece: Piece,
+  mediaMap: Map<string, MediaItem>
+): PieceWithMedia {
+  // Get media from pre-fetched map
+  const allImages = piece.mediaIds
+    .map(id => mediaMap.get(id))
+    .filter((img): img is MediaItem => img !== undefined)
 
   // Find primary image
   const primaryImage = piece.primaryMediaId
-    ? validImages.find(img => img && img.id === piece.primaryMediaId) || validImages[0]
-    : validImages[0]
+    ? allImages.find(img => img.id === piece.primaryMediaId) || allImages[0]
+    : allImages[0]
 
   // Combine materials (handle undefined arrays)
   const materials = [
@@ -31,14 +31,48 @@ export async function populatePieceWithMedia(piece: Piece): Promise<PieceWithMed
   return {
     ...piece,
     primaryImage,
-    allImages: validImages as any[],
+    allImages: allImages as any[],
     materials,
   }
 }
 
 /**
- * Populate multiple pieces with their media objects
+ * Populate a single piece with its media objects
+ * Note: For multiple pieces, use populatePiecesWithMedia for better performance
  */
-export async function populatePiecesWithMedia(pieces: Piece[]): Promise<PieceWithMedia[]> {
-  return Promise.all(pieces.map(piece => populatePieceWithMedia(piece)))
+export async function populatePieceWithMedia(piece: Piece): Promise<PieceWithMedia> {
+  if (piece.mediaIds.length === 0) {
+    return populatePieceFromMediaMap(piece, new Map())
+  }
+
+  // Batch fetch all media for this piece in one query
+  const allMedia = await media.getMediaByIds(piece.tenantId, piece.mediaIds)
+  const mediaMap = new Map(allMedia.map(m => [m.id, m]))
+
+  return populatePieceFromMediaMap(piece, mediaMap)
+}
+
+/**
+ * Populate multiple pieces with their media objects
+ * Uses batch fetching to avoid N+1 queries
+ */
+export async function populatePiecesWithMedia(piecesArr: Piece[]): Promise<PieceWithMedia[]> {
+  if (piecesArr.length === 0) return []
+
+  // All pieces should belong to the same tenant in storefront context
+  const tenantId = piecesArr[0].tenantId
+
+  // Collect all unique media IDs from all pieces
+  const allMediaIds = [...new Set(piecesArr.flatMap(p => p.mediaIds))]
+
+  if (allMediaIds.length === 0) {
+    return piecesArr.map(piece => populatePieceFromMediaMap(piece, new Map()))
+  }
+
+  // Batch fetch all media in a single query (fixes N+1 problem)
+  const allMedia = await media.getMediaByIds(tenantId, allMediaIds)
+  const mediaMap = new Map(allMedia.map(m => [m.id, m]))
+
+  // Populate each piece using the pre-fetched media map
+  return piecesArr.map(piece => populatePieceFromMediaMap(piece, mediaMap))
 }

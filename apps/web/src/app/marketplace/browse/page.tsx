@@ -2,14 +2,46 @@ import Link from 'next/link'
 import { BrowseFilters } from '@/components/marketplace/BrowseFilters'
 import { ActiveFilters, EtsyProductCard, RecentlyViewed } from '@/components/marketplace'
 import { mapMarketplaceProduct } from '@/lib/productMapping'
+import { unstable_cache } from 'next/cache'
 
-// Skip static generation - client components in layout use hooks
-export const dynamic = 'force-dynamic'
+// Allow ISR with 60 second revalidation for browse results
+export const revalidate = 60
 
 export const metadata = {
   title: 'Browse Products - MadeBuy Marketplace',
   description: 'Browse all handmade products from independent makers and creators.',
 }
+
+// Cached browse results with dynamic key based on filters
+const getBrowseProducts = unstable_cache(
+  async (category: string | undefined, sortBy: string, page: number) => {
+    const { marketplace, tenants } = await import('@madebuy/db')
+
+    const result = await marketplace.listMarketplaceProducts({
+      category,
+      sortBy: sortBy as 'recent' | 'popular' | 'rating' | 'price_low' | 'price_high',
+      limit: 24,
+      page,
+    })
+
+    // Batch fetch all tenant info
+    const tenantIds = result.products.map((p: any) => p.tenantId)
+    const tenantMap = await tenants.getTenantsByIds(tenantIds)
+
+    const products = result.products.map((product: any) => ({
+      ...product,
+      rating: product.marketplace?.avgRating || 0,
+      seller: {
+        tenantId: product.tenantId,
+        businessName: tenantMap.get(product.tenantId)?.businessName || 'Unknown Seller',
+      },
+    }))
+
+    return { products, pagination: result.pagination }
+  },
+  ['browse-products'],
+  { revalidate: 60, tags: ['marketplace'] }
+)
 
 export default async function BrowsePage({
   searchParams,
@@ -25,38 +57,19 @@ export default async function BrowsePage({
     search?: string
   }
 }) {
-  const { marketplace, tenants } = await import('@madebuy/db')
-
   const currentPage = searchParams.page ? parseInt(searchParams.page) : 1
   const sortBy = searchParams.sortBy || 'recent'
-  const limit = 24
 
-  // Fetch products with filters
-  const result = await marketplace.listMarketplaceProducts({
-    category: searchParams.category,
-    sortBy: sortBy as 'recent' | 'popular' | 'rating' | 'price_low' | 'price_high',
-    limit,
-    page: currentPage,
-  })
-
-  // Enrich products with seller info
-  const products = await Promise.all(
-    result.products.map(async (product: any) => {
-      const tenant = await tenants.getTenantById(product.tenantId)
-      return {
-        ...product,
-        rating: product.marketplace?.avgRating || 0,
-        seller: {
-          tenantId: product.tenantId,
-          businessName: tenant?.businessName || 'Unknown Seller',
-        },
-      }
-    })
+  const { products, pagination } = await getBrowseProducts(
+    searchParams.category,
+    sortBy,
+    currentPage
   )
 
   const productCards = products.map(mapMarketplaceProduct)
-  const totalProducts = result.pagination.total
-  const totalPages = result.pagination.totalPages
+  const totalProducts = pagination.total
+  const totalPages = pagination.totalPages
+  const limit = pagination.limit
 
   const startItem = (currentPage - 1) * limit + 1
   const endItem = Math.min(currentPage * limit, totalProducts)
