@@ -8,19 +8,13 @@ import {
   Image,
   Layers,
   ShoppingCart,
-  Tag,
   Share2,
   FileText,
   Mail,
   Plug,
   Settings,
-  Store,
   Paintbrush,
   ChevronRight,
-  Receipt,
-  CreditCard,
-  FileBarChart,
-  Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -46,8 +40,6 @@ const navigationGroups = [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
-      { name: 'Fulfillment', href: '/dashboard/fulfillment', icon: Truck },
-      { name: 'Ledger', href: '/dashboard/ledger', icon: Receipt },
       { name: 'Media', href: '/dashboard/media', icon: Image },
       { name: 'Materials', href: '/dashboard/materials', icon: Layers },
     ]
@@ -56,8 +48,6 @@ const navigationGroups = [
     label: 'Marketing',
     items: [
       { name: 'Website Design', href: '/dashboard/website-design', icon: Paintbrush },
-      { name: 'Marketplace', href: '/dashboard/marketplace', icon: Store },
-      { name: 'Promotions', href: '/dashboard/promotions', icon: Tag },
       { name: 'Publish', href: '/dashboard/publish', icon: Share2 },
       { name: 'Blog', href: '/dashboard/blog', icon: FileText },
     ]
@@ -66,9 +56,7 @@ const navigationGroups = [
     label: 'Support',
     items: [
       { name: 'Enquiries', href: '/dashboard/enquiries', icon: Mail },
-      { name: 'Reports', href: '/dashboard/reports', icon: FileBarChart },
       { name: 'Connections', href: '/dashboard/connections', icon: Plug },
-      { name: 'Payments', href: '/dashboard/settings/payments', icon: CreditCard },
       { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ]
   }
