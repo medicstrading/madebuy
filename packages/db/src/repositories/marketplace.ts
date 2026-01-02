@@ -119,11 +119,12 @@ export async function listMarketplaceProducts(
  * Get product with seller info and reviews
  * Used for: product detail page
  */
-export async function getMarketplaceProduct(productId: string): Promise<ProductWithSeller | null> {
+export async function getMarketplaceProduct(productIdOrSlug: string): Promise<ProductWithSeller | null> {
   const db = await getDatabase()
 
+  // Look up by id or slug since product cards link via slug
   const product = await db.collection('products').findOne({
-    id: productId,
+    $or: [{ id: productIdOrSlug }, { slug: productIdOrSlug }],
     'marketplace.listed': true,
     'marketplace.approvalStatus': 'approved'
   }) as Product | null

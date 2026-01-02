@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { marketplace } from '@madebuy/db'
+import { marketplace, tenants } from '@madebuy/db'
 
 /**
  * GET /api/marketplace/seller/[tenantId]
@@ -14,16 +14,24 @@ export async function GET(
   { params }: { params: { tenantId: string } }
 ) {
   try {
-    const tenantId = params.tenantId
     const searchParams = request.nextUrl.searchParams
 
     const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 24
 
+    // Try to find tenant by id first, then by slug
+    let tenant = await tenants.getTenantById(params.tenantId)
+    if (!tenant) {
+      tenant = await tenants.getTenantBySlug(params.tenantId)
+    }
+
+    const tenantId = tenant?.id || params.tenantId
+
     // Get seller profile
     const profile = await marketplace.getSellerProfile(tenantId)
 
-    if (!profile) {
+    // Need either tenant or profile to be a valid seller
+    if (!tenant && !profile) {
       return NextResponse.json(
         { error: 'Seller not found' },
         { status: 404 }
@@ -37,6 +45,17 @@ export async function GET(
     const stats = await marketplace.getTenantMarketplaceStats(tenantId)
 
     return NextResponse.json({
+      tenant: tenant ? {
+        id: tenant.id,
+        slug: tenant.slug,
+        businessName: tenant.businessName,
+        storeName: tenant.storeName,
+        tagline: tenant.tagline,
+        description: tenant.description,
+        location: tenant.location,
+        makerType: tenant.makerType,
+        createdAt: tenant.createdAt,
+      } : null,
       profile,
       products: productsResult.products,
       pagination: productsResult.pagination,

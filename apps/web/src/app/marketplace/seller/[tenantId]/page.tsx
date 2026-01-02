@@ -5,8 +5,15 @@ import { notFound } from 'next/navigation'
 
 export async function generateMetadata({ params }: { params: { tenantId: string } }) {
   const { marketplace, tenants } = await import('@madebuy/db')
-  const tenant = await tenants.getTenantById(params.tenantId)
-  const sellerProfile = await marketplace.getSellerProfile(params.tenantId)
+
+  // Try by id first, then by slug
+  let tenant = await tenants.getTenantById(params.tenantId)
+  if (!tenant) {
+    tenant = await tenants.getTenantBySlug(params.tenantId)
+  }
+
+  const tenantId = tenant?.id || params.tenantId
+  const sellerProfile = await marketplace.getSellerProfile(tenantId)
 
   const sellerName = tenant?.businessName || sellerProfile?.displayName || 'Seller'
 
@@ -25,9 +32,14 @@ export default async function SellerProfilePage({
 }) {
   const { marketplace, tenants } = await import('@madebuy/db')
 
-  // Fetch seller data
-  const tenant = await tenants.getTenantById(params.tenantId)
-  const sellerProfile = await marketplace.getSellerProfile(params.tenantId)
+  // Fetch seller data - try by id first, then by slug
+  let tenant = await tenants.getTenantById(params.tenantId)
+  if (!tenant) {
+    tenant = await tenants.getTenantBySlug(params.tenantId)
+  }
+
+  const tenantId = tenant?.id || params.tenantId
+  const sellerProfile = await marketplace.getSellerProfile(tenantId)
 
   if (!tenant && !sellerProfile) {
     notFound()
@@ -35,7 +47,7 @@ export default async function SellerProfilePage({
 
   // Fetch seller's products
   const currentPage = parseInt(searchParams.page || '1', 10)
-  const productsResult = await marketplace.listSellerProducts(params.tenantId, currentPage, 12)
+  const productsResult = await marketplace.listSellerProducts(tenantId, currentPage, 12)
 
   const sellerName = tenant?.businessName || sellerProfile?.displayName || 'Unknown Seller'
   const memberSince = sellerProfile?.memberSince || tenant?.createdAt || new Date()
@@ -256,7 +268,7 @@ export default async function SellerProfilePage({
                 {productsResult.products.map((product: any) => (
                   <Link
                     key={product.id}
-                    href={`/marketplace/product/${product.id}`}
+                    href={`/marketplace/product/${product.slug || product.id}`}
                     className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
                   >
                     <div className="relative aspect-square overflow-hidden bg-gray-100">
