@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, Check, Sparkles, Store, Zap } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Start Selling - MadeBuy',
   description: 'Create your MadeBuy seller account and start selling handmade products',

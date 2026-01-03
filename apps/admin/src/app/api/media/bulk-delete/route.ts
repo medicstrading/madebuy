@@ -3,8 +3,6 @@ import { getCurrentTenant } from '@/lib/session'
 import { media, pieces } from '@madebuy/db'
 import { deleteFromR2 } from '@madebuy/storage'
 
-const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
-
 /**
  * POST /api/media/bulk-delete
  * Delete multiple media items at once
@@ -54,7 +52,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Delete files from storage
+    // Delete files from R2 storage
     const deletePromises: Promise<void>[] = []
 
     for (const item of mediaItems) {
@@ -62,39 +60,19 @@ export async function POST(request: NextRequest) {
       for (const variantKey of Object.keys(item.variants)) {
         const variant = item.variants[variantKey as keyof typeof item.variants]
         if (variant?.key) {
-          if (USE_LOCAL_STORAGE) {
-            // For local storage, delete the file
-            const fs = await import('fs/promises')
-            const path = await import('path')
-            const localPath = path.join(process.cwd(), 'uploads', variant.key)
-            deletePromises.push(
-              fs.unlink(localPath).catch(() => {
-                // Ignore errors for missing files
-              })
-            )
-          } else {
-            // Delete from R2
-            deletePromises.push(
-              deleteFromR2(variant.key).catch((err) => {
-                console.error(`Failed to delete ${variant.key} from R2:`, err)
-              })
-            )
-          }
+          deletePromises.push(
+            deleteFromR2(variant.key).catch((err) => {
+              console.error(`Failed to delete ${variant.key} from R2:`, err)
+            })
+          )
         }
       }
 
       // Delete video thumbnails if present
       if (item.video?.thumbnailKey) {
-        if (USE_LOCAL_STORAGE) {
-          const fs = await import('fs/promises')
-          const path = await import('path')
-          const localPath = path.join(process.cwd(), 'uploads', item.video.thumbnailKey)
-          deletePromises.push(fs.unlink(localPath).catch(() => {}))
-        } else {
-          deletePromises.push(
-            deleteFromR2(item.video.thumbnailKey).catch(() => {})
-          )
-        }
+        deletePromises.push(
+          deleteFromR2(item.video.thumbnailKey).catch(() => {})
+        )
       }
     }
 

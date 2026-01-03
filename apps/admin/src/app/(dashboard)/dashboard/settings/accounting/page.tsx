@@ -43,8 +43,8 @@ export default function AccountingSettingsPage() {
     bankAccount: ''
   });
 
-  const connected = searchParams.get('connected');
-  const error = searchParams.get('error');
+  const connected = searchParams?.get('connected');
+  const error = searchParams?.get('error');
 
   useEffect(() => {
     loadConnection();

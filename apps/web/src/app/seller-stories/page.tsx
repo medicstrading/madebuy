@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Seller Stories - MadeBuy',
   description: 'Hear from makers who have built their business on MadeBuy',

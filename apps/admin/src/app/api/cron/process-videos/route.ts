@@ -70,23 +70,12 @@ export async function GET(request: NextRequest) {
           throw new Error('Video file not found in storage')
         }
 
-        // Fetch video buffer from R2/storage
-        let videoBuffer: Buffer
-
-        try {
-          // For R2, we need to fetch the file
-          const videoData = await getFromR2(videoKey)
-          if (!videoData) {
-            throw new Error('Failed to fetch video from storage')
-          }
-          videoBuffer = Buffer.from(videoData)
-        } catch (fetchError) {
-          // If local storage is being used, try reading from disk
-          const fs = await import('fs/promises')
-          const path = await import('path')
-          const localPath = path.join(process.cwd(), 'uploads', videoKey)
-          videoBuffer = await fs.readFile(localPath)
+        // Fetch video buffer from R2 storage
+        const videoData = await getFromR2(videoKey)
+        if (!videoData) {
+          throw new Error('Failed to fetch video from storage')
         }
+        const videoBuffer = Buffer.from(videoData)
 
         // Process the video (extract metadata and generate thumbnails)
         const processingResult = await processVideo({

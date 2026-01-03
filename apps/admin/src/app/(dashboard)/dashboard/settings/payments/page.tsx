@@ -38,8 +38,8 @@ export default function PaymentsSettingsPage() {
   const [error, setError] = useState<string | null>(null)
 
   // Check for onboarding completion
-  const onboardingComplete = searchParams.get('onboarding') === 'complete'
-  const needsRefresh = searchParams.get('refresh') === 'true'
+  const onboardingComplete = searchParams?.get('onboarding') === 'complete'
+  const needsRefresh = searchParams?.get('refresh') === 'true'
 
   // Load Connect status
   const loadStatus = async () => {

@@ -28,7 +28,7 @@ interface InvoiceData {
 export default function InvoiceReviewPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const invoiceId = searchParams.get('invoiceId')
+  const invoiceId = searchParams?.get('invoiceId')
   const { toasts, removeToast, success, error: showError } = useToast()
 
   const [loading, setLoading] = useState(true)
