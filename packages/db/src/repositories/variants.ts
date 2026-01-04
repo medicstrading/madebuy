@@ -605,34 +605,35 @@ export async function bulkUpdateStock(
   }
 
   const db = await getDatabase()
-  let updated = 0
-  const failed: string[] = []
+  const now = new Date()
 
-  // Process updates in batches
-  for (const update of updates) {
-    const result = await db.collection(COLLECTION).updateOne(
-      {
+  // Use bulkWrite for efficient batch updates (O(1) instead of O(n) DB calls)
+  const bulkOps = updates.map(update => ({
+    updateOne: {
+      filter: {
         tenantId,
         id: update.variantId,
         isDeleted: { $ne: true },
       },
-      {
+      update: {
         $set: {
           stock: update.stock,
           isAvailable: update.stock > 0,
-          updatedAt: new Date(),
+          updatedAt: now,
         },
-      }
-    )
+      },
+    },
+  }))
 
-    if (result.matchedCount > 0) {
-      updated++
-    } else {
-      failed.push(update.variantId)
-    }
-  }
+  const result = await db.collection(COLLECTION).bulkWrite(bulkOps, { ordered: false })
 
-  console.log(`[variants] Bulk stock update: ${updated} updated, ${failed.length} failed`)
+  const updated = result.modifiedCount + result.upsertedCount
+  const failed = updates
+    .filter((_, i) => !result.modifiedCount)
+    .map(u => u.variantId)
+    .slice(0, updates.length - updated)
+
+  console.log(`[variants] Bulk stock update: ${updated} updated via bulkWrite`)
 
   return { updated, failed }
 }

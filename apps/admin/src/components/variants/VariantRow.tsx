@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, KeyboardEvent, memo } from 'react'
 import {
   Trash2,
   Image as ImageIcon,
@@ -252,7 +252,8 @@ function ImageSelector({
   )
 }
 
-export function VariantRow({
+// Memoized to prevent re-renders when sibling variants change
+export const VariantRow = memo(function VariantRow({
   variant,
   attributes,
   isSelected,
@@ -477,4 +478,4 @@ export function VariantRow({
       </td>
     </tr>
   )
-}
+})

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ImageIcon } from 'lucide-react'
@@ -8,7 +9,8 @@ interface ProductCardProps {
   variant?: 'default' | 'compact'
 }
 
-export function ProductCard({ product, variant = 'default' }: ProductCardProps) {
+// Memoized to prevent re-renders in grid layouts when sibling cards change
+export const ProductCard = memo(function ProductCard({ product, variant = 'default' }: ProductCardProps) {
   const imageUrl = product.images?.[0]
   const href = product.href || `/${product.seller.slug}/${product.slug}`
 
@@ -43,7 +45,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
       </div>
     </Link>
   )
-}
+})
 
 export function RecentlyViewed() {
   return null

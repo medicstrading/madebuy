@@ -271,6 +271,7 @@ export interface StockAlert {
 
 /**
  * Get stock alerts for low and out-of-stock items
+ * Uses aggregation pipeline for efficient server-side filtering
  * @param lowStockThreshold - Items with stock at or below this are considered low stock (default: 5)
  */
 export async function getStockAlerts(
@@ -279,72 +280,78 @@ export async function getStockAlerts(
 ): Promise<StockAlert[]> {
   const db = await getDatabase()
 
-  const alerts: StockAlert[] = []
-
-  // Get all available pieces with stock tracking
-  const pieces = await db.collection('pieces')
-    .find({
-      tenantId,
-      status: 'available',
-    })
-    .toArray() as unknown as Piece[]
-
-  for (const piece of pieces) {
-    // Check variant-level stock
-    if (piece.hasVariants && piece.variants) {
-      for (const variant of piece.variants) {
-        if (variant.stock !== undefined) {
-          if (variant.stock === 0) {
-            alerts.push({
-              pieceId: piece.id,
-              pieceName: piece.name,
-              variantId: variant.id,
-              variantOptions: variant.options,
-              sku: variant.sku,
-              stock: 0,
-              alertType: 'out_of_stock',
-            })
-          } else if (variant.stock <= lowStockThreshold) {
-            alerts.push({
-              pieceId: piece.id,
-              pieceName: piece.name,
-              variantId: variant.id,
-              variantOptions: variant.options,
-              sku: variant.sku,
-              stock: variant.stock,
-              alertType: 'low_stock',
-            })
+  // Use aggregation pipeline to filter on server-side instead of fetching all pieces
+  const pipeline = [
+    // Match available pieces for this tenant
+    { $match: { tenantId, status: 'available' } },
+    // Project only needed fields
+    {
+      $project: {
+        id: 1,
+        name: 1,
+        stock: 1,
+        hasVariants: 1,
+        variants: {
+          $cond: {
+            if: { $and: [{ $eq: ['$hasVariants', true] }, { $isArray: '$variants' }] },
+            then: '$variants',
+            else: []
           }
         }
       }
-    } else {
-      // Check piece-level stock
-      if (piece.stock !== undefined) {
-        if (piece.stock === 0) {
-          alerts.push({
-            pieceId: piece.id,
-            pieceName: piece.name,
-            stock: 0,
-            alertType: 'out_of_stock',
-          })
-        } else if (piece.stock <= lowStockThreshold) {
-          alerts.push({
-            pieceId: piece.id,
-            pieceName: piece.name,
-            stock: piece.stock,
-            alertType: 'low_stock',
-          })
-        }
+    },
+    // Unwind variants (creates one doc per variant, or keeps original if no variants)
+    {
+      $facet: {
+        // Pieces without variants - check piece-level stock
+        pieceLevelAlerts: [
+          { $match: { hasVariants: { $ne: true }, stock: { $exists: true, $lte: lowStockThreshold } } },
+          {
+            $project: {
+              pieceId: '$id',
+              pieceName: '$name',
+              stock: 1,
+              alertType: { $cond: { if: { $eq: ['$stock', 0] }, then: 'out_of_stock', else: 'low_stock' } }
+            }
+          }
+        ],
+        // Pieces with variants - check variant-level stock
+        variantLevelAlerts: [
+          { $match: { hasVariants: true } },
+          { $unwind: '$variants' },
+          { $match: { 'variants.stock': { $exists: true, $lte: lowStockThreshold } } },
+          {
+            $project: {
+              pieceId: '$id',
+              pieceName: '$name',
+              variantId: '$variants.id',
+              variantOptions: '$variants.options',
+              sku: '$variants.sku',
+              stock: '$variants.stock',
+              alertType: { $cond: { if: { $eq: ['$variants.stock', 0] }, then: 'out_of_stock', else: 'low_stock' } }
+            }
+          }
+        ]
+      }
+    },
+    // Combine both result sets
+    {
+      $project: {
+        alerts: { $concatArrays: ['$pieceLevelAlerts', '$variantLevelAlerts'] }
+      }
+    },
+    { $unwind: '$alerts' },
+    { $replaceRoot: { newRoot: '$alerts' } },
+    // Sort: out of stock first, then by stock level ascending
+    {
+      $sort: {
+        alertType: -1, // 'out_of_stock' > 'low_stock' alphabetically reversed
+        stock: 1
       }
     }
-  }
+  ]
 
-  // Sort: out of stock first, then by stock level ascending
-  alerts.sort((a, b) => {
-    if (a.alertType === 'out_of_stock' && b.alertType !== 'out_of_stock') return -1
-    if (a.alertType !== 'out_of_stock' && b.alertType === 'out_of_stock') return 1
-    return a.stock - b.stock
-  })
+  const results = await db.collection('pieces').aggregate(pipeline).toArray()
 
-  return alerts
+  return results as unknown as StockAlert[]
 }

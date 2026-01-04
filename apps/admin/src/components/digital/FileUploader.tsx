@@ -10,8 +10,8 @@ interface FileUploaderProps {
   onClose: () => void
 }
 
-// Max file size: 500MB
-const MAX_FILE_SIZE = 500 * 1024 * 1024
+// Max file size: 250MB (reduced from 500MB for security)
+const MAX_FILE_SIZE = 250 * 1024 * 1024
 
 // Allowed extensions for display
 const ALLOWED_EXTENSIONS = [

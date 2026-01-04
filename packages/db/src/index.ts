@@ -31,6 +31,7 @@ export * as downloads from './repositories/downloads'
 export * as newsletters from './repositories/newsletters'
 export * as collections from './repositories/collections'
 export * as keyDates from './repositories/keyDates'
+export * as auditLog from './repositories/auditLog'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

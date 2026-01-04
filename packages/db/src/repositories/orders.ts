@@ -100,6 +100,8 @@ export async function listOrders(
     customerEmail?: string
     limit?: number
     offset?: number
+    /** If true, returns only essential fields for list views (reduces bandwidth) */
+    listView?: boolean
   }
 ): Promise<Order[]> {
   const db = await getDatabase()
@@ -120,7 +122,27 @@ export async function listOrders(
 
   let cursor = db.collection('orders')
     .find(query)
-    .sort({ createdAt: -1 })
+
+  // Add projection for list views to reduce data transfer
+  if (filters?.listView) {
+    cursor = cursor.project({
+      id: 1,
+      tenantId: 1,
+      orderNumber: 1,
+      customerEmail: 1,
+      customerName: 1,
+      total: 1,
+      currency: 1,
+      status: 1,
+      paymentStatus: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      // Include item count instead of full items array
+      itemCount: { $size: { $ifNull: ['$items', []] } },
+    })
+  }
+
+  cursor = cursor.sort({ createdAt: -1 })
 
   if (filters?.offset) {
     cursor = cursor.skip(filters.offset)

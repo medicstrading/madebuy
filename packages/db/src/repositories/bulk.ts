@@ -72,17 +72,18 @@ export async function bulkUpdatePrices(
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
-  // For complex updates, we need to update each piece individually
-  const pieces = await db.collection('pieces')
+  // Fetch pieces to calculate new prices
+  const pieceDocs = await db.collection('pieces')
     .find({ tenantId, id: { $in: pieceIds }, price: { $exists: true, $ne: null } })
+    .project({ id: 1, price: 1 })
     .toArray()
 
-  let affected = 0
-  const errors: string[] = []
+  const now = new Date()
 
-  for (const piece of pieces) {
-    let newPrice: number
+  // Build bulk operations with calculated prices
+  const bulkOps = pieceDocs.map(piece => {
     const currentPrice = piece.price as number
+    let newPrice: number
 
     if (adjustment.type === 'percentage') {
       const change = currentPrice * (adjustment.value / 100)
@@ -98,21 +99,21 @@ export async function bulkUpdatePrices(
     // Ensure price doesn't go negative
     newPrice = Math.max(0, Math.round(newPrice * 100) / 100)
 
-    try {
-      await db.collection('pieces').updateOne(
-        { tenantId, id: piece.id },
-        { $set: { price: newPrice, updatedAt: new Date() } }
-      )
-      affected++
-    } catch (error) {
-      errors.push(`Failed to update piece ${piece.id}`)
+    return {
+      updateOne: {
+        filter: { tenantId, id: piece.id },
+        update: { $set: { price: newPrice, updatedAt: now } },
+      },
     }
-  }
+  })
+
+  // Use bulkWrite for efficient batch updates (O(1) instead of O(n) DB calls)
+  const result = await db.collection('pieces').bulkWrite(bulkOps, { ordered: false })
 
   return {
-    success: errors.length === 0,
-    affected,
-    errors: errors.length > 0 ? errors : undefined,
+    success: true,
+    affected: result.modifiedCount,
+    errors: undefined,
   }
 }
 

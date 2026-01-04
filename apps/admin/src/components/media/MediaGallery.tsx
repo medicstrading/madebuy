@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   DndContext,
@@ -61,10 +61,10 @@ interface SortableMediaItemProps {
 }
 
 // ============================================================================
-// Sortable Media Item Component
+// Sortable Media Item Component (Memoized to prevent re-renders during drag)
 // ============================================================================
 
-function SortableMediaItem({
+const SortableMediaItem = memo(function SortableMediaItem({
   item,
   isSelected,
   onSelect,
@@ -251,7 +251,7 @@ function SortableMediaItem({
       </div>
     </div>
   )
-}
+})
 
 // ============================================================================
 // Drag Overlay Component

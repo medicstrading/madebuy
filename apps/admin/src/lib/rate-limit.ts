@@ -1,5 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+/**
+ * Rate Limiting Implementation
+ *
+ * CURRENT STATE: In-memory rate limiting
+ * This implementation uses an in-memory Map for rate limit tracking.
+ * It works well for single-instance deployments but has limitations:
+ *
+ * LIMITATIONS:
+ * - Rate limits are not shared across multiple server instances
+ * - Memory usage grows with unique IPs (cleaned up every 10 minutes)
+ * - Limits reset on server restart
+ *
+ * REDIS MIGRATION GUIDE:
+ * For multi-instance deployments, migrate to Redis:
+ *
+ * 1. Add Redis client dependency:
+ *    pnpm add ioredis
+ *
+ * 2. Create Redis connection:
+ *    const redis = new Redis(process.env.REDIS_URL)
+ *
+ * 3. Replace the check() method implementation:
+ *    ```typescript
+ *    async check(request: NextRequest, limit?: number) {
+ *      const token = this.getToken(request)
+ *      const key = `ratelimit:${token}`
+ *      const maxRequests = limit || this.uniqueTokenPerInterval
+ *
+ *      // Use Redis MULTI for atomic increment
+ *      const multi = redis.multi()
+ *      multi.incr(key)
+ *      multi.pttl(key)
+ *      const results = await multi.exec()
+ *
+ *      const count = results[0][1] as number
+ *      let ttl = results[1][1] as number
+ *
+ *      // Set expiry on first request
+ *      if (count === 1 || ttl === -1) {
+ *        await redis.pexpire(key, this.interval)
+ *        ttl = this.interval
+ *      }
+ *
+ *      return {
+ *        success: count <= maxRequests,
+ *        limit: maxRequests,
+ *        remaining: Math.max(0, maxRequests - count),
+ *        reset: Date.now() + ttl,
+ *      }
+ *    }
+ *    ```
+ *
+ * 4. Add REDIS_URL environment variable to .env.local
+ *
+ * 5. Consider using @upstash/ratelimit for serverless environments:
+ *    https://github.com/upstash/ratelimit
+ */
+
 interface RateLimitConfig {
   interval: number // Time window in milliseconds
   uniqueTokenPerInterval: number // Max requests per IP in the interval
@@ -11,7 +69,7 @@ interface RateLimitStore {
 }
 
 // In-memory store for rate limiting
-// Note: In production with multiple instances, use Redis or similar
+// WARNING: Not suitable for multi-instance deployments - see REDIS MIGRATION GUIDE above
 const rateLimitStore = new Map<string, RateLimitStore>()
 
 // Clean up expired entries every 10 minutes

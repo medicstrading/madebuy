@@ -15,6 +15,7 @@ import type {
   RegisterCustomerInput,
   CustomerAuthResult,
 } from '@madebuy/shared'
+import { validatePassword, DEFAULT_PASSWORD_REQUIREMENTS } from '@madebuy/shared'
 
 const BCRYPT_ROUNDS = 12
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 24
@@ -591,6 +592,12 @@ export async function registerCustomer(
   const email = input.email.toLowerCase()
   const now = new Date()
 
+  // Validate password strength
+  const passwordValidation = validatePassword(input.password, DEFAULT_PASSWORD_REQUIREMENTS)
+  if (!passwordValidation.isValid) {
+    throw new Error(passwordValidation.errors[0] || 'Password does not meet requirements')
+  }
+
   const verificationToken = nanoid(32)
   const verificationTokenExpiry = new Date()
   verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS)
@@ -791,6 +798,12 @@ export async function createPasswordResetToken(
  * Reset password using token
  */
 export async function resetPassword(token: string, newPassword: string): Promise<boolean> {
+  // Validate password strength
+  const passwordValidation = validatePassword(newPassword, DEFAULT_PASSWORD_REQUIREMENTS)
+  if (!passwordValidation.isValid) {
+    throw new Error(passwordValidation.errors[0] || 'Password does not meet requirements')
+  }
+
   const db = await getDatabase()
 
   const customer = await db.collection('customers').findOne({
@@ -828,6 +841,12 @@ export async function changeCustomerPassword(
   currentPassword: string,
   newPassword: string
 ): Promise<boolean> {
+  // Validate new password strength
+  const passwordValidation = validatePassword(newPassword, DEFAULT_PASSWORD_REQUIREMENTS)
+  if (!passwordValidation.isValid) {
+    throw new Error(passwordValidation.errors[0] || 'Password does not meet requirements')
+  }
+
   const db = await getDatabase()
   const customer = await db.collection('customers').findOne({ tenantId, id: customerId })
 

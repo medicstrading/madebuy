@@ -38,39 +38,56 @@ export async function GET(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 })
     }
 
-    // Fetch pieces for this collection
-    const collectionPieces = []
-    for (const pieceId of collection.pieceIds) {
-      const piece = await pieces.getPiece(tenant.id, pieceId)
-      if (piece && piece.status === 'available') {
-        // Get primary media for the piece
-        let primaryMedia = null
-        if (piece.primaryMediaId) {
-          primaryMedia = await media.getMedia(tenant.id, piece.primaryMediaId)
-        } else if (piece.mediaIds.length > 0) {
-          primaryMedia = await media.getMedia(tenant.id, piece.mediaIds[0])
-        }
+    // Fetch pieces in parallel using Promise.all (instead of sequential loop)
+    const piecePromises = collection.pieceIds.map(pieceId =>
+      pieces.getPiece(tenant.id, pieceId)
+    )
+    const pieceResults = await Promise.all(piecePromises)
 
-        collectionPieces.push({
-          ...piece,
-          primaryMedia,
-        })
-      }
-    }
+    // Filter available pieces and collect media IDs
+    const availablePieces = pieceResults.filter(
+      (piece): piece is NonNullable<typeof piece> =>
+        piece !== null && piece.status === 'available'
+    )
 
-    // Get cover media if set
-    let coverMedia = null
+    // Batch fetch all media in parallel
+    const mediaIds = availablePieces.map(piece =>
+      piece.primaryMediaId || piece.mediaIds[0]
+    ).filter(Boolean) as string[]
+
+    // Add cover media to the batch
     if (collection.coverMediaId) {
-      coverMedia = await media.getMedia(tenant.id, collection.coverMediaId)
+      mediaIds.push(collection.coverMediaId)
     }
 
-    return NextResponse.json({
+    // Fetch all media in one batch call
+    const allMedia = mediaIds.length > 0
+      ? await media.getMediaByIds(tenant.id, mediaIds)
+      : []
+    const mediaMap = new Map(allMedia.map(m => [m.id, m]))
+
+    // Build collection pieces with their media
+    const collectionPieces = availablePieces.map(piece => ({
+      ...piece,
+      primaryMedia: mediaMap.get(piece.primaryMediaId || piece.mediaIds[0]) || null,
+    }))
+
+    const coverMedia = collection.coverMediaId
+      ? mediaMap.get(collection.coverMediaId) || null
+      : null
+
+    const response = NextResponse.json({
       collection: {
         ...collection,
         coverMedia,
         pieces: collectionPieces,
       },
     })
+
+    // Add cache headers for public collection data
+    response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300')
+
+    return response
   } catch (error) {
     console.error('Error fetching collection:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

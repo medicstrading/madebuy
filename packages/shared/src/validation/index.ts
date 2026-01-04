@@ -23,3 +23,6 @@ export type {
 
 // Personalization validation
 export * from './personalization'
+
+// Password validation
+export * from './password'

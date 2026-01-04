@@ -3,6 +3,17 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@madebuy/shared', '@madebuy/db', '@madebuy/storage', '@madebuy/social'],
 
+  // Bundle optimization
+  experimental: {
+    // Optimize package imports to reduce bundle size
+    optimizePackageImports: [
+      '@madebuy/shared',
+      '@madebuy/db',
+      'lucide-react',
+      'date-fns',
+    ],
+  },
+
   // Security Headers
   async headers() {
     const isProd = process.env.NODE_ENV === 'production'
