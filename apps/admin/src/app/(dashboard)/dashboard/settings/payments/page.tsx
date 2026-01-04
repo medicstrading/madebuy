@@ -14,18 +14,19 @@ import {
 } from 'lucide-react'
 
 type ConnectStatus = {
-  hasAccount: boolean
-  accountId?: string
+  connected: boolean
+  connectAccountId?: string
   status: 'pending' | 'active' | 'restricted' | 'disabled' | null
   chargesEnabled: boolean
   payoutsEnabled: boolean
   onboardingComplete: boolean
-  isActive: boolean
+  detailsSubmitted: boolean
+  businessType?: 'individual' | 'company'
   requirements?: {
-    currently_due?: string[]
-    eventually_due?: string[]
-    past_due?: string[]
-    disabled_reason?: string
+    currentlyDue?: string[]
+    eventuallyDue?: string[]
+    pastDue?: string[]
+    disabledReason?: string
   }
 }
 
@@ -187,7 +188,7 @@ export default function PaymentsSettingsPage() {
         </div>
 
         <div className="p-6">
-          {!connectStatus?.hasAccount ? (
+          {!connectStatus?.connected ? (
             // No account - show setup options
             <div className="space-y-6">
               <p className="text-gray-600">
@@ -275,14 +276,14 @@ export default function PaymentsSettingsPage() {
               </div>
 
               {/* Requirements */}
-              {connectStatus.requirements?.currently_due && connectStatus.requirements.currently_due.length > 0 && (
+              {connectStatus.requirements?.currentlyDue && connectStatus.requirements.currentlyDue.length > 0 && (
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                   <p className="font-medium text-yellow-800 mb-2">Action Required</p>
                   <p className="text-sm text-yellow-700 mb-3">
                     Complete the following to enable payments:
                   </p>
                   <ul className="list-disc list-inside text-sm text-yellow-700 space-y-1">
-                    {connectStatus.requirements.currently_due.slice(0, 5).map((req) => (
+                    {connectStatus.requirements.currentlyDue.slice(0, 5).map((req) => (
                       <li key={req}>{formatRequirement(req)}</li>
                     ))}
                   </ul>
@@ -321,7 +322,7 @@ export default function PaymentsSettingsPage() {
                   </button>
                 )}
 
-                {connectStatus.requirements?.currently_due && connectStatus.requirements.currently_due.length > 0 && connectStatus.onboardingComplete && (
+                {connectStatus.requirements?.currentlyDue && connectStatus.requirements.currentlyDue.length > 0 && connectStatus.onboardingComplete && (
                   <button
                     onClick={handleStartOnboarding}
                     disabled={isRedirecting}

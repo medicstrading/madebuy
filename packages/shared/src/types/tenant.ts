@@ -1,4 +1,5 @@
 import type { MakerType } from '../constants/makerPresets'
+import type { TenantPaymentConfig } from './payment'
 
 /**
  * Tenant - Multi-tenant user/shop owner
@@ -60,6 +61,9 @@ export interface Tenant {
 
   // Shipping configuration
   shippingMethods?: TenantShippingMethod[]
+
+  // Payment provider configuration (Stripe Connect, PayPal)
+  paymentConfig?: TenantPaymentConfig
 
   // Timestamps
   createdAt: Date

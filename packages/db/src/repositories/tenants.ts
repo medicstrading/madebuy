@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Tenant } from '@madebuy/shared'
+import type { Tenant, StripeConnectStatus, PayPalConnectStatus, TenantPaymentConfig } from '@madebuy/shared'
 
 export async function createTenant(email: string, passwordHash: string, businessName: string): Promise<Tenant> {
   const db = await getDatabase()
@@ -60,25 +60,21 @@ export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
 
 export async function getTenantByStripeAccountId(stripeAccountId: string): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({ stripeConnectAccountId: stripeAccountId }) as Tenant | null
+  // Check new paymentConfig structure first, then legacy field
+  const tenant = await db.collection('tenants').findOne({
+    $or: [
+      { 'paymentConfig.stripe.connectAccountId': stripeAccountId },
+      { stripeConnectAccountId: stripeAccountId } // Legacy field
+    ]
+  }) as Tenant | null
+  return tenant
 }
 
-export async function updateTenantStripeStatus(
-  tenantId: string,
-  status: 'pending' | 'active' | 'restricted' | 'disabled',
-  onboardingComplete: boolean
-): Promise<void> {
+export async function getTenantByPayPalMerchantId(merchantId: string): Promise<Tenant | null> {
   const db = await getDatabase()
-  await db.collection('tenants').updateOne(
-    { id: tenantId },
-    {
-      $set: {
-        stripeConnectStatus: status,
-        stripeConnectOnboardingComplete: onboardingComplete,
-        updatedAt: new Date(),
-      }
-    }
-  )
+  return await db.collection('tenants').findOne({
+    'paymentConfig.paypal.merchantId': merchantId
+  }) as Tenant | null
 }
 
 export async function getTenantByDomain(domain: string): Promise<Tenant | null> {
@@ -223,4 +219,136 @@ export async function getTenantsByIds(tenantIds: string[]): Promise<Map<string, 
     .toArray()
 
   return new Map(tenantDocs.map(t => [t.id, t as unknown as Tenant]))
+}
+
+// =============================================================================
+// Payment Provider Configuration
+// =============================================================================
+
+/**
+ * Update Stripe Connect status for a tenant
+ */
+export async function updateStripeConnectStatus(
+  tenantId: string,
+  stripeStatus: StripeConnectStatus
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        'paymentConfig.stripe': stripeStatus,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+/**
+ * Update PayPal Connect status for a tenant
+ */
+export async function updatePayPalConnectStatus(
+  tenantId: string,
+  paypalStatus: PayPalConnectStatus
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        'paymentConfig.paypal': paypalStatus,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+/**
+ * Update enabled payment methods for a tenant
+ */
+export async function updateEnabledPaymentMethods(
+  tenantId: string,
+  enabledMethods: TenantPaymentConfig['enabledMethods'],
+  defaultMethod?: TenantPaymentConfig['defaultMethod']
+): Promise<void> {
+  const db = await getDatabase()
+  const update: Record<string, unknown> = {
+    'paymentConfig.enabledMethods': enabledMethods,
+    updatedAt: new Date(),
+  }
+  if (defaultMethod !== undefined) {
+    update['paymentConfig.defaultMethod'] = defaultMethod
+  }
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    { $set: update }
+  )
+}
+
+/**
+ * Update the fallback message for when no payment is available
+ */
+export async function updateNoPaymentMessage(
+  tenantId: string,
+  message: string
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        'paymentConfig.noPaymentMessage': message,
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+/**
+ * Initialize payment config for a tenant (first-time setup)
+ */
+export async function initializePaymentConfig(tenantId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId, paymentConfig: { $exists: false } },
+    {
+      $set: {
+        paymentConfig: {
+          enabledMethods: [],
+          noPaymentMessage: 'This seller has not set up payments yet. Please contact them directly to arrange payment.',
+        },
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+/**
+ * Remove Stripe Connect from a tenant
+ */
+export async function removeStripeConnect(tenantId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $unset: { 'paymentConfig.stripe': '' },
+      $pull: { 'paymentConfig.enabledMethods': 'stripe' } as any,
+      $set: { updatedAt: new Date() }
+    }
+  )
+}
+
+/**
+ * Remove PayPal Connect from a tenant
+ */
+export async function removePayPalConnect(tenantId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $unset: { 'paymentConfig.paypal': '' },
+      $pull: { 'paymentConfig.enabledMethods': 'paypal' } as any,
+      $set: { updatedAt: new Date() }
+    }
+  )
 }

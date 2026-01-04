@@ -25,6 +25,7 @@ export * from './discount'
 export * from './newsletter'
 export * from './collection'
 export * from './keyDates'
+export * from './payment'
 
 // Re-export commonly used types for convenience
 export type {
@@ -190,6 +191,23 @@ export type {
   DownloadStats,
   CreateDownloadRecordInput,
 } from './download'
+
+export type {
+  PaymentProvider,
+  PaymentMethod,
+  StripeConnectStatus,
+  StripeConnectRequirements,
+  PayPalConnectStatus,
+  TenantPaymentConfig,
+  CreateStripeConnectInput,
+  StripeOnboardingResponse,
+  StripeDashboardResponse,
+  CreatePayPalConnectInput,
+  PayPalReferralResponse,
+  CheckoutPaymentInfo,
+  PaymentWebhookEvent,
+  PaymentWebhookEventType,
+} from './payment'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)
