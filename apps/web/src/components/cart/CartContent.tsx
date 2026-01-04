@@ -46,7 +46,7 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
               {/* Image */}
               {item.product.primaryImage ? (
                 <Link
-                  href={`/${tenant}/${item.product.slug}`}
+                  href={`/${tenant}/product/${item.product.slug}`}
                   className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100"
                 >
                   <Image
@@ -69,7 +69,7 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
               <div className="flex flex-1 flex-col justify-between py-1">
                 <div>
                   <Link
-                    href={`/${tenant}/${item.product.slug}`}
+                    href={`/${tenant}/product/${item.product.slug}`}
                     className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
                   >
                     {item.product.name}

@@ -12,7 +12,7 @@ interface ProductCardProps {
 // Memoized to prevent re-renders in grid layouts when sibling cards change
 export const ProductCard = memo(function ProductCard({ product, variant = 'default' }: ProductCardProps) {
   const imageUrl = product.images?.[0]
-  const href = product.href || `/${product.seller.slug}/${product.slug}`
+  const href = product.href || `/${product.seller.slug}/product/${product.slug}`
 
   return (
     <Link

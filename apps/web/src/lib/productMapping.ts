@@ -50,7 +50,7 @@ export function mapPieceToProduct(
       slug: tenantSlug,
     },
     badges: [],
-    href: `/${tenantSlug}/${piece.slug}`,
+    href: `/${tenantSlug}/product/${piece.slug}`,
   }
 }
 
