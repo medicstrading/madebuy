@@ -35,22 +35,33 @@ interface SidebarProps {
 }
 
 const planLabels: Record<string, string> = {
-  free: 'Free Plan',
+  starter: 'Starter Plan',
   maker: 'Maker Plan',
-  pro: 'Pro Plan',
-  business: 'Business Plan',
+  professional: 'Professional Plan',
+  studio: 'Studio Plan',
 }
 
 const navigationGroups = [
   {
-    label: 'Main',
+    label: 'Overview',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    ]
+  },
+  {
+    label: 'Products',
+    items: [
       { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
-      { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
       { name: 'Media', href: '/dashboard/media', icon: Image },
       { name: 'Materials', href: '/dashboard/materials', icon: Layers },
+    ]
+  },
+  {
+    label: 'Sales',
+    items: [
+      { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
       { name: 'Customers', href: '/dashboard/customers', icon: Users },
+      { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
     ]
   },
   {
@@ -61,18 +72,12 @@ const navigationGroups = [
       { name: 'Publish', href: '/dashboard/publish', icon: Share2 },
       { name: 'Blog', href: '/dashboard/blog', icon: FileText },
       { name: 'Newsletters', href: '/dashboard/newsletters', icon: Newspaper },
-      { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
     ]
   },
   {
-    label: 'Planning',
+    label: 'System',
     items: [
       { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
-    ]
-  },
-  {
-    label: 'Support',
-    items: [
       { name: 'Enquiries', href: '/dashboard/enquiries', icon: Mail },
       { name: 'Connections', href: '/dashboard/connections', icon: Plug },
       { name: 'Settings', href: '/dashboard/settings', icon: Settings },
