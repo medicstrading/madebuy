@@ -26,6 +26,9 @@ export * from './newsletter'
 export * from './collection'
 export * from './keyDates'
 export * from './payment'
+export * from './template'
+export * from './transaction'
+export * from './payout'
 
 // Re-export commonly used types for convenience
 export type {
@@ -209,12 +212,63 @@ export type {
   PaymentWebhookEventType,
 } from './payment'
 
+export type {
+  WebsiteTemplate,
+  TemplateDefinition,
+  PageType,
+  WebsitePage,
+  PageSectionType,
+  PageSection,
+  PageSectionSettings,
+  HeroSlide,
+  FeatureItem,
+  TestimonialItem,
+  FAQItem,
+  HeaderConfig,
+  FooterConfig,
+  NavLink,
+  FooterColumn,
+} from './template'
+
+export {
+  TEMPLATE_DEFINITIONS,
+  STANDARD_PAGE_SLUGS,
+  LAYOUT_TO_TEMPLATE_MAP,
+  getDefaultPages,
+  getDefaultSections,
+  generateSectionId,
+  generatePageId,
+  createCustomPage,
+  validatePageSlug,
+  migrateSectionsToPages,
+} from './template'
+
+export type {
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+  CreateTransactionInput,
+  TransactionFilters,
+  TransactionListOptions,
+  TenantBalance,
+  TransactionSummary,
+} from './transaction'
+
+export { calculateStripeFee } from './transaction'
+
+export type {
+  Payout,
+  PayoutStatus,
+  CreatePayoutInput,
+  PayoutFilters,
+  PayoutListOptions,
+  PayoutSummary,
+} from './payout'
+
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)
 // =============================================================================
 // marketplace - see archive/packages/shared/src/types/
-// transaction - see archive/packages/shared/src/types/
-// payout - see archive/packages/shared/src/types/
 // shipping - see archive/packages/shared/src/types/
 // review - see archive/packages/shared/src/types/
 // wishlist - see archive/packages/shared/src/types/
@@ -222,15 +276,6 @@ export type {
 // analytics - see archive/packages/shared/src/types/
 // accountingConnection - see archive/packages/shared/src/types/
 // emailCampaign - see archive/packages/shared/src/types/
-
-// Stub types for archived functionality
-export interface CreateTransactionInput {
-  orderId: string
-  tenantId: string
-  type: string
-  amount: number
-  [key: string]: unknown
-}
 
 // ShippingMethod stub - was in archived shipping.ts
 export interface ShippingMethod {

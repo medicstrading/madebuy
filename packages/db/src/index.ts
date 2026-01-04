@@ -32,14 +32,14 @@ export * as newsletters from './repositories/newsletters'
 export * as collections from './repositories/collections'
 export * as keyDates from './repositories/keyDates'
 export * as auditLog from './repositories/auditLog'
+export * as transactions from './repositories/transactions'
+export * as payouts from './repositories/payouts'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)
 // =============================================================================
 // marketplace - see archive/packages/db/src/repositories/
-// transactions - see archive/packages/db/src/repositories/
 // shipments - see archive/packages/db/src/repositories/
-// payouts - see archive/packages/db/src/repositories/
 // reviews - see archive/packages/db/src/repositories/
 // wishlists - see archive/packages/db/src/repositories/
 // promotions - see archive/packages/db/src/repositories/
@@ -51,4 +51,3 @@ export * as auditLog from './repositories/auditLog'
 
 // Stub repositories for backwards compatibility (no-op implementations)
 export * as stockReservations from './repositories/stubs'
-export * as transactions from './repositories/stubs'

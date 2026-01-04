@@ -77,6 +77,13 @@ export async function getTenantByPayPalMerchantId(merchantId: string): Promise<T
   }) as Tenant | null
 }
 
+export async function getTenantByStripeCustomerId(stripeCustomerId: string): Promise<Tenant | null> {
+  const db = await getDatabase()
+  return await db.collection('tenants').findOne({
+    stripeCustomerId
+  }) as Tenant | null
+}
+
 export async function getTenantByDomain(domain: string): Promise<Tenant | null> {
   // First try custom domain
   let tenant = await getTenantByCustomDomain(domain)
@@ -351,4 +358,123 @@ export async function removePayPalConnect(tenantId: string): Promise<void> {
       $set: { updatedAt: new Date() }
     }
   )
+}
+
+// =============================================================================
+// USAGE TRACKING
+// =============================================================================
+
+type UsageField = 'storageUsedMB' | 'aiCaptionsUsedThisMonth' | 'ordersThisMonth'
+
+/**
+ * Increment a usage counter for a tenant
+ */
+export async function incrementUsage(
+  tenantId: string,
+  field: UsageField,
+  amount = 1
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $inc: { [`usage.${field}`]: amount },
+      $set: { updatedAt: new Date() }
+    }
+  )
+}
+
+/**
+ * Decrement a usage counter for a tenant (e.g., when deleting media)
+ */
+export async function decrementUsage(
+  tenantId: string,
+  field: UsageField,
+  amount = 1
+): Promise<void> {
+  const db = await getDatabase()
+  // Use aggregation pipeline to ensure we don't go below 0
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    [
+      {
+        $set: {
+          [`usage.${field}`]: {
+            $max: [0, { $subtract: [{ $ifNull: [`$usage.${field}`, 0] }, amount] }]
+          },
+          updatedAt: new Date()
+        }
+      }
+    ]
+  )
+}
+
+/**
+ * Reset monthly usage counters for a tenant
+ */
+export async function resetMonthlyUsage(tenantId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        'usage.aiCaptionsUsedThisMonth': 0,
+        'usage.ordersThisMonth': 0,
+        'usage.lastResetDate': new Date(),
+        updatedAt: new Date()
+      }
+    }
+  )
+}
+
+/**
+ * Get all tenants that need their monthly usage reset
+ * Returns tenants whose lastResetDate is from a previous month
+ */
+export async function getTenantsNeedingUsageReset(): Promise<Tenant[]> {
+  const db = await getDatabase()
+
+  // Get the first day of current month
+  const now = new Date()
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  const results = await db.collection('tenants').find({
+    $or: [
+      { 'usage.lastResetDate': { $lt: firstOfMonth } },
+      { 'usage.lastResetDate': { $exists: false } },
+      { usage: { $exists: false } }
+    ]
+  }).toArray()
+
+  return results as unknown as Tenant[]
+}
+
+/**
+ * Initialize usage tracking for a tenant (if not already set)
+ */
+export async function initializeUsage(tenantId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId, usage: { $exists: false } },
+    {
+      $set: {
+        usage: {
+          storageUsedMB: 0,
+          aiCaptionsUsedThisMonth: 0,
+          ordersThisMonth: 0,
+          lastResetDate: new Date()
+        },
+        updatedAt: new Date()
+      }
+    }
+  )
+}
+
+/**
+ * Get all tenants (for cron jobs)
+ */
+export async function getAllTenants(): Promise<Tenant[]> {
+  const db = await getDatabase()
+  const results = await db.collection('tenants').find({}).toArray()
+  return results as unknown as Tenant[]
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { tenants } from '@madebuy/db'
-import type { StripeConnectStatus } from '@madebuy/shared'
+import { tenants, payouts, transactions } from '@madebuy/db'
+import type { StripeConnectStatus, PayoutStatus } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-12-18.acacia',
@@ -46,9 +46,16 @@ export async function POST(request: NextRequest) {
         await handleAccountDeauthorized(event.data.object as Stripe.Account)
         break
 
+      case 'payout.created':
+        await handlePayoutCreated(event.data.object as Stripe.Payout, event.account!)
+        break
+
       case 'payout.paid':
+        await handlePayoutPaid(event.data.object as Stripe.Payout, event.account!)
+        break
+
       case 'payout.failed':
-        await handlePayoutEvent(event.data.object as Stripe.Payout, event.type)
+        await handlePayoutFailed(event.data.object as Stripe.Payout, event.account!)
         break
 
       case 'charge.dispute.created':
@@ -131,27 +138,109 @@ async function handleAccountDeauthorized(account: Stripe.Account) {
 }
 
 /**
- * Handle payout events
- * Log payout status for monitoring
+ * Handle payout.created
+ * Records new payout in database when Stripe initiates bank transfer
  */
-async function handlePayoutEvent(payout: Stripe.Payout, eventType: string) {
-  const accountId = typeof payout.destination === 'string'
-    ? payout.destination
-    : payout.destination?.id
-
-  if (!accountId) {
-    console.log('Payout event without destination account')
+async function handlePayoutCreated(payout: Stripe.Payout, accountId: string) {
+  const tenant = await tenants.getTenantByStripeAccountId(accountId)
+  if (!tenant) {
+    console.log(`No tenant found for payout account ${accountId}`)
     return
   }
 
-  const tenant = await tenants.getTenantByStripeAccountId(accountId)
-  const tenantInfo = tenant ? `tenant ${tenant.id}` : `account ${accountId}`
+  // Check if we already have this payout (idempotency)
+  const existing = await payouts.getPayoutByStripeId(payout.id)
+  if (existing) {
+    console.log(`Payout ${payout.id} already exists, skipping`)
+    return
+  }
 
-  if (eventType === 'payout.paid') {
-    console.log(`Payout ${payout.id} succeeded for ${tenantInfo}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`)
-  } else {
-    console.error(`Payout ${payout.id} failed for ${tenantInfo}: ${payout.failure_message}`)
-    // TODO: Send notification to tenant about failed payout
+  await payouts.createPayout({
+    tenantId: tenant.id,
+    stripePayoutId: payout.id,
+    amount: payout.amount,
+    currency: payout.currency.toUpperCase(),
+    status: mapStripePayoutStatus(payout.status),
+    arrivalDate: payout.arrival_date ? new Date(payout.arrival_date * 1000) : undefined,
+    description: payout.description || undefined,
+  })
+
+  console.log(`Created payout record ${payout.id} for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`)
+}
+
+/**
+ * Handle payout.paid
+ * Updates payout status and records transaction in ledger
+ */
+async function handlePayoutPaid(payout: Stripe.Payout, accountId: string) {
+  const tenant = await tenants.getTenantByStripeAccountId(accountId)
+  if (!tenant) {
+    console.log(`No tenant found for payout account ${accountId}`)
+    return
+  }
+
+  // Update payout status
+  await payouts.updatePayoutStatus(payout.id, 'paid', {
+    paidAt: new Date(),
+  })
+
+  // Record payout in transaction ledger
+  await transactions.createTransaction({
+    tenantId: tenant.id,
+    type: 'payout',
+    grossAmount: payout.amount,
+    stripeFee: 0,
+    platformFee: 0,
+    netAmount: payout.amount,
+    currency: payout.currency.toUpperCase(),
+    stripePayoutId: payout.id,
+    status: 'completed',
+    description: `Bank payout`,
+    completedAt: new Date(),
+  })
+
+  console.log(`Payout ${payout.id} completed for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`)
+}
+
+/**
+ * Handle payout.failed
+ * Updates payout status with failure details
+ */
+async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
+  const tenant = await tenants.getTenantByStripeAccountId(accountId)
+  if (!tenant) {
+    console.log(`No tenant found for payout account ${accountId}`)
+    return
+  }
+
+  await payouts.updatePayoutStatus(payout.id, 'failed', {
+    failedAt: new Date(),
+    failureCode: payout.failure_code || undefined,
+    failureMessage: payout.failure_message || undefined,
+  })
+
+  console.error(`Payout ${payout.id} failed for tenant ${tenant.id}: ${payout.failure_message}`)
+
+  // TODO: Send notification email to tenant about failed payout
+}
+
+/**
+ * Map Stripe payout status to our PayoutStatus type
+ */
+function mapStripePayoutStatus(status: string): PayoutStatus {
+  switch (status) {
+    case 'paid':
+      return 'paid'
+    case 'pending':
+      return 'pending'
+    case 'in_transit':
+      return 'in_transit'
+    case 'canceled':
+      return 'canceled'
+    case 'failed':
+      return 'failed'
+    default:
+      return 'pending'
   }
 }
 

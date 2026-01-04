@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { orders, pieces, tenants, stockReservations } from '@madebuy/db'
-import type { CreateOrderInput } from '@madebuy/shared'
+import { orders, pieces, tenants, stockReservations, transactions } from '@madebuy/db'
+import type { CreateOrderInput, Plan } from '@madebuy/shared'
+import { calculateStripeFee, getFeaturesForPlan } from '@madebuy/shared'
 import { sendOrderConfirmation } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -51,6 +52,20 @@ export async function POST(request: NextRequest) {
 
       case 'checkout.session.expired':
         await handleCheckoutExpired(event.data.object as Stripe.Checkout.Session)
+        break
+
+      // Subscription lifecycle events
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
+        break
+
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+        break
+
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice)
         break
 
       default:
@@ -168,6 +183,28 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   })
   console.log(`Created order ${order.id} for session ${session.id}`)
 
+  // Record transaction in ledger
+  const grossAmountCents = session.amount_total || 0
+  const isInternational = shippingAddress.country !== 'AU'
+  const stripeFee = calculateStripeFee(grossAmountCents, isInternational)
+  const platformFee = 0 // Zero transaction fees - MadeBuy's differentiator
+
+  await transactions.createTransaction({
+    tenantId,
+    orderId: order.id,
+    type: 'sale',
+    grossAmount: grossAmountCents,
+    stripeFee,
+    platformFee,
+    netAmount: grossAmountCents - stripeFee - platformFee,
+    currency: (session.currency || 'aud').toUpperCase(),
+    stripePaymentIntentId: session.payment_intent as string,
+    status: 'completed',
+    description: `Order ${order.orderNumber}`,
+    completedAt: new Date(),
+  })
+  console.log(`Transaction recorded for order ${order.id}`)
+
   // Send confirmation email to customer
   try {
     const tenant = await tenants.getTenantById(tenantId)
@@ -203,4 +240,115 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
     await stockReservations.cancelReservation(reservationSessionId)
     console.log(`Released stock reservations for expired session ${reservationSessionId}`)
   }
+}
+
+// =============================================================================
+// SUBSCRIPTION HANDLERS
+// =============================================================================
+
+// Map Stripe Price IDs to plans (inverse of what's in billing/checkout)
+const PRICE_ID_TO_PLAN: Record<string, Plan> = {
+  [process.env.STRIPE_PRICE_MAKER_MONTHLY || '']: 'pro',
+  [process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || '']: 'business',
+  [process.env.STRIPE_PRICE_STUDIO_MONTHLY || '']: 'enterprise',
+}
+
+/**
+ * Get plan from Stripe price ID
+ */
+function getPlanFromPriceId(priceId: string): Plan {
+  return PRICE_ID_TO_PLAN[priceId] || 'free'
+}
+
+/**
+ * Handle subscription created/updated
+ * Updates tenant's plan and features
+ */
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  const tenantId = subscription.metadata?.tenantId
+  if (!tenantId) {
+    console.error('No tenantId in subscription metadata')
+    return
+  }
+
+  // Get plan from the subscription's price
+  const priceId = subscription.items.data[0]?.price?.id
+  if (!priceId) {
+    console.error('No price ID found in subscription')
+    return
+  }
+
+  const plan = getPlanFromPriceId(priceId)
+  const features = getFeaturesForPlan(plan)
+
+  // Map Stripe status to our subscription status
+  let subscriptionStatus: 'active' | 'cancelled' | 'past_due' = 'active'
+  if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
+    subscriptionStatus = 'cancelled'
+  } else if (subscription.status === 'past_due') {
+    subscriptionStatus = 'past_due'
+  }
+
+  // Update tenant
+  await tenants.updateTenant(tenantId, {
+    plan,
+    subscriptionId: subscription.id,
+    subscriptionStatus,
+    features,
+  })
+
+  console.log(`Subscription updated for tenant ${tenantId}: plan=${plan}, status=${subscriptionStatus}`)
+}
+
+/**
+ * Handle subscription deleted (cancelled)
+ * Downgrades tenant to free plan
+ */
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const tenantId = subscription.metadata?.tenantId
+  if (!tenantId) {
+    console.error('No tenantId in subscription metadata')
+    return
+  }
+
+  // Downgrade to free plan
+  const features = getFeaturesForPlan('free')
+
+  await tenants.updateTenant(tenantId, {
+    plan: 'free',
+    subscriptionId: undefined,
+    subscriptionStatus: 'cancelled',
+    features,
+  })
+
+  console.log(`Subscription cancelled for tenant ${tenantId}, downgraded to free plan`)
+
+  // TODO: Send email notification about subscription cancellation
+}
+
+/**
+ * Handle invoice payment failed
+ * Notifies tenant about failed payment
+ */
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  const customerId = typeof invoice.customer === 'string'
+    ? invoice.customer
+    : invoice.customer?.id
+
+  if (!customerId) {
+    console.error('No customer ID in failed invoice')
+    return
+  }
+
+  // Find tenant by Stripe customer ID
+  const tenant = await tenants.getTenantByStripeCustomerId(customerId)
+  if (!tenant) {
+    console.error(`No tenant found for Stripe customer ${customerId}`)
+    return
+  }
+
+  console.error(`Invoice payment failed for tenant ${tenant.id}: ${invoice.id}`)
+
+  // TODO: Send email notification about failed payment
+  // TODO: Consider grace period before downgrading
 }

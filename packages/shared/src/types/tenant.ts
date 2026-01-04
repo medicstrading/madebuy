@@ -1,5 +1,6 @@
 import type { MakerType } from '../constants/makerPresets'
 import type { TenantPaymentConfig } from './payment'
+import type { WebsiteTemplate, WebsitePage, PageSection, HeaderConfig, FooterConfig } from './template'
 
 /**
  * Tenant - Multi-tenant user/shop owner
@@ -108,6 +109,27 @@ export interface TenantUsage {
 }
 
 export interface TenantWebsiteDesign {
+  // Multi-page template system
+  template?: WebsiteTemplate
+  pages?: WebsitePage[]       // All website pages with their sections
+  header?: HeaderConfig
+  footer?: FooterConfig
+  typography: TypographyPreset
+
+  // Blog settings (separate from pages for easy toggle)
+  blog?: {
+    enabled: boolean
+    title?: string
+    description?: string
+  }
+
+  // ===========================================
+  // DEPRECATED: Legacy fields for migration
+  // Remove after all tenants migrated
+  // ===========================================
+  /** @deprecated Use pages[].sections instead */
+  pageSections?: PageSection[]
+  /** @deprecated Use hero section in pages */
   banner?: {
     mediaId: string
     overlayText?: string
@@ -116,15 +138,12 @@ export interface TenantWebsiteDesign {
     overlayOpacity: number // 0-100
     height: 'small' | 'medium' | 'large'
   }
-  typography: TypographyPreset
-  layout: LayoutTemplate
+  /** @deprecated Use template instead */
+  layout?: LayoutTemplate
+  /** @deprecated Use pages instead */
   layoutContent?: LayoutContent
-  sections: CustomSection[]
-  blog?: {
-    enabled: boolean
-    title?: string
-    description?: string
-  }
+  /** @deprecated Use pages instead */
+  sections?: CustomSection[]
 }
 
 export interface LayoutContent {

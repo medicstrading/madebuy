@@ -188,7 +188,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Basic Stripe checkout (single-tenant mode)
+    // Verify seller has Stripe Connect set up and is active
+    const connectAccountId = tenant.paymentConfig?.stripe?.connectAccountId
+    const connectStatus = tenant.paymentConfig?.stripe?.status
+
+    if (!connectAccountId || connectStatus !== 'active') {
+      await stockReservations.cancelReservation(tempSessionId)
+      return NextResponse.json(
+        { error: 'This store is not currently accepting payments. Please contact the seller.' },
+        { status: 503 }
+      )
+    }
+
+    // Marketplace mode with destination charges
 
     // Use tenant's shipping methods if configured, otherwise fall back to defaults
     const configuredMethods = (tenant.shippingMethods ?? []).filter((m: ShippingMethod) => m.enabled)
@@ -232,7 +244,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create Stripe checkout session (single-tenant mode)
+    // Create Stripe checkout session with destination charges (marketplace mode)
+    // Zero platform fees - MadeBuy's differentiator. Sellers keep 100% minus Stripe processing.
+    const platformFeeAmount = 0
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -244,6 +259,13 @@ export async function POST(request: NextRequest) {
         allowed_countries: ['AU', 'NZ', 'US', 'GB'],
       },
       shipping_options: shippingOptions,
+      // Destination charges: payment goes to seller's Connect account
+      payment_intent_data: {
+        application_fee_amount: platformFeeAmount,
+        transfer_data: {
+          destination: connectAccountId,
+        },
+      },
       metadata: {
         tenantId,
         customerName: customerInfo.name,
@@ -257,6 +279,7 @@ export async function POST(request: NextRequest) {
         notes: notes || '',
         items: JSON.stringify(items),
         reservationSessionId: tempSessionId, // Link to stock reservations
+        connectAccountId, // Track which Connect account received funds
       },
     })
 

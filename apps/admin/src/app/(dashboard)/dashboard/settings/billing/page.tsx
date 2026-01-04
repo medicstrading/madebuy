@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Check, CreditCard, Sparkles, Zap, Crown } from 'lucide-react'
+import { ArrowLeft, Check, CreditCard, Sparkles, Zap, Crown, ExternalLink, Loader2 } from 'lucide-react'
 
 const PLANS = [
   {
@@ -77,8 +78,21 @@ const PLANS = [
 ]
 
 export default function BillingPage() {
+  const searchParams = useSearchParams()
   const [currentPlan, setCurrentPlan] = useState<string>('free')
+  const [hasSubscription, setHasSubscription] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [upgrading, setUpgrading] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  useEffect(() => {
+    // Check for success/cancel params
+    if (searchParams?.get('success') === 'true') {
+      setMessage({ type: 'success', text: 'Subscription updated successfully!' })
+    } else if (searchParams?.get('canceled') === 'true') {
+      setMessage({ type: 'error', text: 'Subscription update was cancelled.' })
+    }
+  }, [searchParams])
 
   useEffect(() => {
     async function loadTenant() {
@@ -87,6 +101,7 @@ export default function BillingPage() {
         if (response.ok) {
           const tenant = await response.json()
           setCurrentPlan(tenant.plan || 'free')
+          setHasSubscription(!!tenant.subscriptionId)
         }
       } catch (err) {
         console.error('Failed to load tenant:', err)
@@ -98,8 +113,57 @@ export default function BillingPage() {
   }, [])
 
   const handleUpgrade = async (planId: string) => {
-    // In a real implementation, this would redirect to Stripe Checkout
-    alert(`Upgrade to ${planId} plan coming soon! Contact support@madebuy.com.au for early access.`)
+    setUpgrading(planId)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to start upgrade process',
+      })
+      setUpgrading(null)
+    }
+  }
+
+  const handleManageSubscription = async () => {
+    setUpgrading('portal')
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/billing/portal', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to open billing portal')
+      }
+
+      // Redirect to Stripe Portal
+      window.location.href = data.url
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to open billing portal',
+      })
+      setUpgrading(null)
+    }
   }
 
   if (loading) {
@@ -124,6 +188,19 @@ export default function BillingPage() {
         <p className="mt-2 text-gray-600">Manage your subscription and billing settings</p>
       </div>
 
+      {/* Message Banner */}
+      {message && (
+        <div
+          className={`mb-6 rounded-lg p-4 ${
+            message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       {/* Current Plan */}
       <div className="mb-8 rounded-lg bg-blue-50 border border-blue-200 p-6">
         <div className="flex items-center justify-between">
@@ -131,10 +208,28 @@ export default function BillingPage() {
             <h2 className="text-lg font-semibold text-gray-900">Current Plan</h2>
             <p className="text-gray-600">
               You are currently on the{' '}
-              <span className="font-semibold capitalize">{currentPlan}</span> plan
+              <span className="font-semibold capitalize">
+                {PLANS.find(p => p.id === currentPlan)?.name || currentPlan}
+              </span> plan
             </p>
           </div>
-          <CreditCard className="h-8 w-8 text-blue-600" />
+          <div className="flex items-center gap-4">
+            {hasSubscription && (
+              <button
+                onClick={handleManageSubscription}
+                disabled={upgrading === 'portal'}
+                className="flex items-center gap-2 rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50"
+              >
+                {upgrading === 'portal' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ExternalLink className="h-4 w-4" />
+                )}
+                Manage Subscription
+              </button>
+            )}
+            <CreditCard className="h-8 w-8 text-blue-600" />
+          </div>
         </div>
       </div>
 
@@ -205,9 +300,17 @@ export default function BillingPage() {
               ) : canUpgrade ? (
                 <button
                   onClick={() => handleUpgrade(plan.id)}
-                  className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  disabled={upgrading !== null}
+                  className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Upgrade to {plan.name}
+                  {upgrading === plan.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Redirecting...
+                    </>
+                  ) : (
+                    `Upgrade to ${plan.name}`
+                  )}
                 </button>
               ) : (
                 <button

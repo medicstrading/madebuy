@@ -38,6 +38,19 @@ When user says "save", "done", "exit", or "save and exit":
 - Security-conscious: always consider auth, validation, rate limiting
 - Use git push only when explicitly told "push it"
 
+## Docker/NUC Commands
+
+Restart your containers on NUC:
+```bash
+nuc-docker restart madebuy
+```
+
+Other useful commands:
+```bash
+nuc-docker logs madebuy-web-dev     # View logs
+nuc-docker ps                        # List containers
+```
+
 ## Git Push Permission
 
 NEVER push without explicit permission phrase: "push it", "push to github", "git push"
@@ -46,3 +59,45 @@ When permitted:
 ```bash
 touch ~/.claude/.git-push-approved && git push
 ```
+
+## Pre-Deployment Checklist
+
+**BEFORE GOING LIVE - Complete these steps:**
+
+### Stripe Connect Setup (REQUIRED)
+- [ ] Get real Stripe API keys from https://dashboard.stripe.com/apikeys
+- [ ] Update env vars: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`
+- [ ] Create webhook endpoint in Stripe Dashboard:
+  - URL: `https://madebuy.com.au/api/webhooks/stripe-connect`
+  - Events: `account.updated`, `account.application.deauthorized`, `payout.paid`, `payout.failed`, `charge.dispute.created`
+- [ ] Add `STRIPE_CONNECT_WEBHOOK_SECRET=whsec_...` to env
+- [ ] Test tenant Stripe Connect flow end-to-end
+
+### PayPal (Optional - Future)
+- [ ] Apply for PayPal Commerce Platform partner approval
+- [ ] Implement PayPal integration after approval
+
+## Pre-Launch Checklist (Subscription Billing)
+
+Before deploying the subscription billing system live:
+
+1. **Create Stripe Products/Prices in Dashboard**
+   - Maker: $15/month
+   - Professional: $29/month  
+   - Studio: $59/month
+
+2. **Set environment variables**
+   ```bash
+   STRIPE_PRICE_MAKER_MONTHLY=price_xxx
+   STRIPE_PRICE_PROFESSIONAL_MONTHLY=price_xxx
+   STRIPE_PRICE_STUDIO_MONTHLY=price_xxx
+   ```
+
+3. **Schedule monthly usage reset cron**
+   - Endpoint: `/api/cron/reset-usage`
+   - Schedule: `0 0 1 * *` (midnight on 1st of each month)
+   - Vercel cron or external scheduler
+
+4. **Set CRON_SECRET environment variable**
+   - Generate: `openssl rand -hex 32`
+   - Add to env: `CRON_SECRET=<generated_value>`
