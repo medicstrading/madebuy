@@ -116,9 +116,9 @@ export function getWebsiteDesignUpgradeMessage(
       return {
         title: 'Unlock Advanced Design Customization',
         description: 'Customize your storefront with hero banners, professional typography, and flexible layouts to match your brand.',
-        ctaText: 'Upgrade to Pro',
+        ctaText: 'Upgrade to Maker',
         targetPlan: 'pro',
-        price: '$29/month',
+        price: '$15/month',
       }
     }
   }
@@ -129,9 +129,9 @@ export function getWebsiteDesignUpgradeMessage(
       return {
         title: 'Unlock Custom Content & Blog',
         description: 'Build unique storefronts with flexible content sections and engage customers with an integrated blog.',
-        ctaText: tenant.plan === 'free' ? 'Upgrade to Business' : 'Upgrade to Business',
+        ctaText: tenant.plan === 'free' ? 'Upgrade to Professional' : 'Upgrade to Professional',
         targetPlan: 'business',
-        price: '$79/month',
+        price: '$29/month',
       }
     }
   }

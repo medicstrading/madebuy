@@ -52,6 +52,9 @@ export interface Tenant {
   // Feature flags
   features: TenantFeatures
 
+  // Usage tracking for quota enforcement
+  usage?: TenantUsage
+
   // Website customization
   websiteDesign?: TenantWebsiteDesign
 
@@ -87,6 +90,17 @@ export interface TenantFeatures {
   aiCaptions: boolean
   unlimitedPieces: boolean
   customDomain: boolean
+  prioritySupport: boolean
+  apiAccess: boolean
+  advancedAnalytics: boolean
+}
+
+// Usage tracking - stored separately on tenant for quota enforcement
+export interface TenantUsage {
+  storageUsedMB: number
+  aiCaptionsUsedThisMonth: number
+  ordersThisMonth: number
+  lastResetDate: Date // For monthly quota resets
 }
 
 export interface TenantWebsiteDesign {

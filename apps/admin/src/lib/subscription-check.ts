@@ -4,6 +4,8 @@ import {
   canAddMoreMedia,
   needsUpgradeFor,
   getUpgradeMessage,
+  getRequiredPlanForFeature,
+  getFeaturesForPlan,
   PLAN_NAMES,
   getPlanLimits,
 } from '@madebuy/shared/src/lib/subscription'
@@ -129,28 +131,3 @@ function getNextPlan(currentPlan: Plan): Plan {
   return currentPlan
 }
 
-/**
- * Get required plan for a feature (imported from shared)
- */
-function getRequiredPlanForFeature(feature: keyof TenantFeatures): Plan {
-  const planOrder: Plan[] = ['free', 'pro', 'business', 'enterprise']
-
-  for (const plan of planOrder) {
-    const features = getFeaturesForPlan(plan)
-    if (features[feature]) {
-      return plan
-    }
-  }
-
-  return 'enterprise'
-}
-
-function getFeaturesForPlan(plan: Plan) {
-  const limits = getPlanLimits(plan)
-  return {
-    socialPublishing: limits.socialPublishing,
-    aiCaptions: limits.aiCaptions,
-    unlimitedPieces: limits.pieces === -1,
-    customDomain: limits.customDomain,
-  }
-}
