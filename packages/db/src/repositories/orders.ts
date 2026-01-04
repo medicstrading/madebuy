@@ -17,7 +17,7 @@ function calculateOrderTotals(items: Order['items'], shipping: number, tax: numb
 export async function createOrder(
   tenantId: string,
   data: CreateOrderInput,
-  pricing: { shipping: number; tax: number; discount?: number; currency?: string }
+  pricing: { shipping: number; tax: number; discount?: number; currency?: string; stripeSessionId?: string }
 ): Promise<Order> {
   const db = await getDatabase()
 
@@ -51,6 +51,7 @@ export async function createOrder(
     status: 'pending',
     promotionCode: data.promotionCode,
     customerNotes: data.customerNotes,
+    stripeSessionId: pricing.stripeSessionId, // For idempotency
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -72,6 +73,14 @@ export async function getOrderByNumber(tenantId: string, orderNumber: string): P
 export async function getOrderByPaymentIntent(paymentIntentId: string): Promise<Order | null> {
   const db = await getDatabase()
   return await db.collection('orders').findOne({ paymentIntentId }) as Order | null
+}
+
+/**
+ * Get order by Stripe checkout session ID (for idempotency checks)
+ */
+export async function getOrderByStripeSessionId(tenantId: string, sessionId: string): Promise<Order | null> {
+  const db = await getDatabase()
+  return await db.collection('orders').findOne({ tenantId, stripeSessionId: sessionId }) as Order | null
 }
 
 /**

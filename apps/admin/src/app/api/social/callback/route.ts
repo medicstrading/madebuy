@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { tenants } from '@madebuy/db'
 import { lateClient } from '@madebuy/social'
 import type { SocialPlatform, SocialConnection } from '@madebuy/shared'
+import { encrypt } from '@madebuy/shared'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,12 +54,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Build new connection
+    // Build new connection with encrypted tokens
     const newConnection: SocialConnection = {
       platform: platform as SocialPlatform,
       method: 'late',
-      accessToken: tokenResponse.accessToken,
-      refreshToken: tokenResponse.refreshToken,
+      // Encrypt sensitive tokens before storage
+      accessToken: tokenResponse.accessToken ? encrypt(tokenResponse.accessToken) : undefined,
+      refreshToken: tokenResponse.refreshToken ? encrypt(tokenResponse.refreshToken) : undefined,
       accountId: `${platform}_account`,
       accountName: 'Connected Account',
       isActive: true,

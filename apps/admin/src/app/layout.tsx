@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
-export const dynamic = 'force-dynamic'
-
+// Removed force-dynamic from root layout - set per-route as needed for better caching
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {

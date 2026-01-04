@@ -49,9 +49,17 @@ export async function getMedia(tenantId: string, id: string): Promise<MediaItem 
   return await db.collection('media').findOne({ tenantId, id }) as MediaItem | null
 }
 
+// Maximum items to return in a single query (prevents memory issues)
+const MAX_QUERY_LIMIT = 500
+
 export async function listMedia(
   tenantId: string,
-  filters?: MediaFilters & { sortBy?: 'createdAt' | 'updatedAt' | 'displayOrder'; sortOrder?: 'asc' | 'desc' }
+  filters?: MediaFilters & {
+    sortBy?: 'createdAt' | 'updatedAt' | 'displayOrder'
+    sortOrder?: 'asc' | 'desc'
+    limit?: number
+    offset?: number
+  }
 ): Promise<MediaItem[]> {
   const db = await getDatabase()
 
@@ -85,9 +93,15 @@ export async function listMedia(
   const sortField = filters?.sortBy || 'createdAt'
   const sortOrder = filters?.sortOrder === 'asc' ? 1 : -1
 
+  // Apply pagination with maximum limit
+  const limit = Math.min(filters?.limit || MAX_QUERY_LIMIT, MAX_QUERY_LIMIT)
+  const offset = filters?.offset || 0
+
   const results = await db.collection('media')
     .find(query)
     .sort({ [sortField]: sortOrder })
+    .skip(offset)
+    .limit(limit)
     .toArray()
 
   return results as any[]

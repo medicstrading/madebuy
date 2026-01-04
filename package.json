@@ -35,6 +35,11 @@
     "typescript": "^5.3.3"
   },
   "packageManager": "pnpm@8.15.0",
+  "pnpm": {
+    "overrides": {
+      "glob": "^10.3.10"
+    }
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "mongodb": "^6.3.0",

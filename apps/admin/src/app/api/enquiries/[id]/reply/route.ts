@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { getCurrentTenant } from '@/lib/session'
 import { enquiries, tenants } from '@madebuy/db'
+import { escapeHtml } from '@madebuy/shared'
 
 let resend: Resend | null = null
 
@@ -25,9 +26,24 @@ export async function POST(
 
     const { subject, body } = await request.json()
 
+    // Input validation
     if (!subject || !body) {
       return NextResponse.json(
         { error: 'Subject and body are required' },
+        { status: 400 }
+      )
+    }
+
+    if (typeof subject !== 'string' || typeof body !== 'string') {
+      return NextResponse.json(
+        { error: 'Subject and body must be strings' },
+        { status: 400 }
+      )
+    }
+
+    if (subject.length > 200 || body.length > 10000) {
+      return NextResponse.json(
+        { error: 'Subject or body exceeds maximum length' },
         { status: 400 }
       )
     }
@@ -48,34 +64,43 @@ export async function POST(
     const fromEmail = tenantData.email || process.env.DEFAULT_FROM_EMAIL || 'support@madebuy.com.au'
     const fromName = tenantData.businessName || 'Support'
 
-    // Build the email HTML
+    // Build the email HTML with XSS protection
+    const safeSubject = escapeHtml(subject)
+    const safeName = escapeHtml(enquiry.name)
+    const safeFromName = escapeHtml(fromName)
+    const safeOriginalMessage = escapeHtml(enquiry.message)
+    const safeBodyHtml = body
+      .split('\n')
+      .map((line: string) => `<p style="margin: 10px 0;">${escapeHtml(line)}</p>`)
+      .join('')
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
+  <title>${safeSubject}</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px;">
-    <p>Hi ${enquiry.name},</p>
+    <p>Hi ${safeName},</p>
 
     <div style="margin: 20px 0;">
-      ${body.split('\n').map((line: string) => `<p style="margin: 10px 0;">${line}</p>`).join('')}
+      ${safeBodyHtml}
     </div>
 
     <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;" />
 
     <p style="color: #6b7280; font-size: 14px;">
       <strong>Your original message:</strong><br />
-      ${enquiry.message}
+      ${safeOriginalMessage}
     </p>
 
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
       <p style="color: #6b7280; font-size: 12px;">
         Best regards,<br />
-        ${fromName}
+        ${safeFromName}
       </p>
     </div>
   </div>

@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { media } from '@madebuy/db'
 import { processVideo, validateVideoDuration } from '@madebuy/storage'
 import { getFromR2 } from '@madebuy/storage'
+
+/**
+ * Timing-safe comparison for secrets to prevent timing attacks
+ */
+function verifySecret(received: string | null, expected: string): boolean {
+  if (!received) return false
+  try {
+    const receivedBuffer = Buffer.from(received)
+    const expectedBuffer = Buffer.from(`Bearer ${expected}`)
+    if (receivedBuffer.length !== expectedBuffer.length) {
+      timingSafeEqual(expectedBuffer, expectedBuffer)
+      return false
+    }
+    return timingSafeEqual(receivedBuffer, expectedBuffer)
+  } catch {
+    return false
+  }
+}
 // Max video duration in seconds
 const MAX_VIDEO_DURATION = 60
 
@@ -25,13 +44,12 @@ interface ProcessResult {
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret to prevent unauthorized access
+    // Verify cron secret to prevent unauthorized access (timing-safe)
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
     // If CRON_SECRET is set, require authorization
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      console.log('[VIDEO-CRON] Unauthorized request - invalid or missing authorization header')
+    if (cronSecret && !verifySecret(authHeader, cronSecret)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

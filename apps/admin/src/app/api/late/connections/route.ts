@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { lateClient } from '@madebuy/social'
+import { getCurrentTenant } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,13 +20,16 @@ const ALL_PLATFORMS = [
 
 export async function GET() {
   try {
-    const data = await lateClient.getAccounts()
+    // Require authentication
+    const tenant = await getCurrentTenant()
+    if (!tenant) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
 
-    console.log('Late.dev raw accounts:', JSON.stringify(data.accounts.map(a => ({
-      platform: a.platform,
-      isActive: a.isActive,
-      id: a.id
-    })), null, 2))
+    const data = await lateClient.getAccounts()
 
     // Extract connected platforms (active accounts only)
     const connectedPlatforms = data.accounts
@@ -42,8 +46,6 @@ export async function GET() {
 
     // Available = all platforms minus connected
     const available = ALL_PLATFORMS.filter(p => !connected.includes(p))
-
-    console.log('Late.dev connected platforms:', connected.join(', ') || 'none')
 
     return NextResponse.json({
       success: true,

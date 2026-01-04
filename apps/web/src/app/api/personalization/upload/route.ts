@@ -187,14 +187,25 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Find a piece by ID across all tenants
+ * Find a piece by ID - only returns pieces that are publicly available
  * This is used when we don't have tenant context (buyer upload)
+ * Security: Only returns pieces with status 'available' to prevent IDOR
  */
 async function findPieceById(pieceId: string) {
-  // Import the database client directly to search across all tenants
+  // Validate pieceId format to prevent injection
+  if (!pieceId || typeof pieceId !== 'string' || pieceId.length > 50) {
+    return null
+  }
+
   const { getDatabase } = await import('@madebuy/db')
   const db = await getDatabase()
 
-  const piece = await db.collection('pieces').findOne({ id: pieceId })
+  // Only allow uploads to pieces that are publicly available
+  // This prevents attackers from uploading to draft/hidden pieces
+  const piece = await db.collection('pieces').findOne({
+    id: pieceId,
+    status: 'available', // Must be publicly available
+    'personalization.enabled': true, // Must have personalization enabled
+  })
   return piece as any
 }

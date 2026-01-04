@@ -80,6 +80,7 @@ export async function createOrUpdateCustomer(
     tenantId,
     email,
     name: orderData.customerName,
+    addresses: [],
     totalOrders: 1,
     totalSpent: orderData.orderTotal,
     averageOrderValue: orderData.orderTotal,
@@ -147,9 +148,11 @@ export async function listCustomers(
     query.acquisitionSource = filters.acquisitionSource
   }
   if (filters?.search) {
+    // Escape regex special characters to prevent ReDoS attacks
+    const escapedSearch = filters.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     query.$or = [
-      { email: { $regex: filters.search, $options: 'i' } },
-      { name: { $regex: filters.search, $options: 'i' } },
+      { email: { $regex: escapedSearch, $options: 'i' } },
+      { name: { $regex: escapedSearch, $options: 'i' } },
     ]
   }
 
@@ -265,13 +268,40 @@ export async function getCustomerStats(
     .collection('customers')
     .countDocuments(newCustomersQuery)
 
+  // Get new customers this month
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+  const newCustomersThisMonth = await db
+    .collection('customers')
+    .countDocuments({ tenantId, firstOrderAt: { $gte: startOfMonth } })
+
+  // Get top customers
+  const topCustomersData = await db
+    .collection('customers')
+    .find({ tenantId })
+    .sort({ totalSpent: -1 })
+    .limit(10)
+    .toArray()
+
+  const topCustomers = topCustomersData.map((c: any) => ({
+    id: c.id,
+    email: c.email,
+    name: c.name,
+    totalSpent: c.totalSpent || 0,
+    orderCount: c.totalOrders || 0,
+  }))
+
   return {
     totalCustomers: stats?.totalCustomers || 0,
     newCustomers,
+    newCustomersThisMonth,
     repeatCustomers: stats?.repeatCustomers || 0,
+    returningCustomers: stats?.repeatCustomers || 0, // Same as repeat for now
     averageLTV: stats?.averageLTV || 0,
     averageOrderValue: stats?.averageOrderValue || 0,
     totalRevenue: stats?.totalRevenue || 0,
+    topCustomers,
   }
 }
 

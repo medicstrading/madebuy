@@ -2,6 +2,9 @@ import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
 import type { Piece, CreatePieceInput, UpdatePieceInput, PieceFilters, ProductVariant } from '@madebuy/shared'
 
+// Maximum items to return in a single query (prevents memory issues)
+const MAX_QUERY_LIMIT = 500
+
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -65,7 +68,10 @@ export async function getPieceBySlug(tenantId: string, slug: string): Promise<Pi
   return await db.collection('pieces').findOne({ tenantId, slug }) as Piece | null
 }
 
-export async function listPieces(tenantId: string, filters?: PieceFilters): Promise<Piece[]> {
+export async function listPieces(
+  tenantId: string,
+  filters?: PieceFilters & { limit?: number; offset?: number }
+): Promise<Piece[]> {
   const db = await getDatabase()
 
   const query: any = { tenantId }
@@ -86,9 +92,15 @@ export async function listPieces(tenantId: string, filters?: PieceFilters): Prom
     query.isPublishedToWebsite = filters.isPublishedToWebsite
   }
 
+  // Apply pagination with maximum limit
+  const limit = Math.min(filters?.limit || MAX_QUERY_LIMIT, MAX_QUERY_LIMIT)
+  const offset = filters?.offset || 0
+
   const results = await db.collection('pieces')
     .find(query)
     .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limit)
     .toArray()
 
   return results as any[]
@@ -275,7 +287,7 @@ export async function getStockAlerts(
       tenantId,
       status: 'available',
     })
-    .toArray() as Piece[]
+    .toArray() as unknown as Piece[]
 
   for (const piece of pieces) {
     // Check variant-level stock

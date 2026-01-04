@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { nanoid } from 'nanoid'
 import type { MediaVariant } from '@madebuy/shared'
 
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID!
@@ -7,6 +8,12 @@ const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID!
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY!
 const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'madebuy'
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || `https://pub-${R2_ACCOUNT_ID}.r2.dev`
+
+// Allowed MIME types for uploads
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo']
+const ALLOWED_DOCUMENT_TYPES = ['application/pdf']
+const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_DOCUMENT_TYPES]
 
 if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
   console.warn('⚠️  R2 credentials not configured. Storage functions will fail.')
@@ -32,14 +39,30 @@ export interface UploadOptions {
 export async function uploadToR2(options: UploadOptions): Promise<MediaVariant> {
   const { tenantId, fileName, buffer, contentType, metadata } = options
 
-  const key = `${tenantId}/${Date.now()}-${fileName}`
+  // Validate content type
+  if (!ALLOWED_TYPES.includes(contentType)) {
+    throw new Error(`Invalid file type: ${contentType}. Allowed types: ${ALLOWED_TYPES.join(', ')}`)
+  }
+
+  // Sanitize filename and use nanoid to prevent collisions
+  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const key = `${tenantId}/${nanoid()}-${sanitizedFileName}`
+
+  // Sanitize metadata keys and values
+  const sanitizedMetadata = metadata
+    ? Object.fromEntries(
+        Object.entries(metadata)
+          .filter(([k, v]) => typeof k === 'string' && typeof v === 'string')
+          .map(([k, v]) => [k.slice(0, 100), v.slice(0, 500)])
+      )
+    : undefined
 
   const command = new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
     Body: buffer,
     ContentType: contentType,
-    Metadata: metadata,
+    Metadata: sanitizedMetadata,
   })
 
   await r2Client.send(command)

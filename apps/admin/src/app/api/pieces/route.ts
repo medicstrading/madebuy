@@ -2,14 +2,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
 import { checkCanAddPiece, getSubscriptionSummary } from '@/lib/subscription-check'
-import { CreatePieceInput } from '@madebuy/shared'
+import { CreatePieceInput, isMadeBuyError, toErrorResponse } from '@madebuy/shared'
+
+/**
+ * Helper to create standardized error responses
+ */
+function errorResponse(
+  message: string,
+  code: string,
+  status: number,
+  details?: Record<string, unknown>
+) {
+  const body: { error: string; code: string; details?: Record<string, unknown> } = { error: message, code }
+  if (details) {
+    body.details = details
+  }
+  return NextResponse.json(body, { status })
+}
 
 export async function GET() {
   try {
     const tenant = await getCurrentTenant()
 
     if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return errorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     const allPieces = await pieces.listPieces(tenant.id)
@@ -26,7 +42,11 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching pieces:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    if (isMadeBuyError(error)) {
+      const { error: msg, code, statusCode, details } = toErrorResponse(error)
+      return errorResponse(msg, code, statusCode, details)
+    }
+    return errorResponse('Internal server error', 'INTERNAL_ERROR', 500)
   }
 }
 
@@ -35,19 +55,17 @@ export async function POST(request: NextRequest) {
     const tenant = await getCurrentTenant()
 
     if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return errorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     // Check subscription limits before creating
     const canAdd = await checkCanAddPiece(tenant)
     if (!canAdd.allowed) {
-      return NextResponse.json(
-        {
-          error: canAdd.message,
-          upgradeRequired: canAdd.upgradeRequired,
-          requiredPlan: canAdd.requiredPlan,
-        },
-        { status: 403 }
+      return errorResponse(
+        canAdd.message || 'Subscription limit reached',
+        'SUBSCRIPTION_LIMIT',
+        403,
+        { upgradeRequired: canAdd.upgradeRequired, requiredPlan: canAdd.requiredPlan }
       )
     }
 
@@ -58,6 +76,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ piece }, { status: 201 })
   } catch (error) {
     console.error('Error creating piece:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    if (isMadeBuyError(error)) {
+      const { error: msg, code, statusCode, details } = toErrorResponse(error)
+      return errorResponse(msg, code, statusCode, details)
+    }
+    return errorResponse('Internal server error', 'INTERNAL_ERROR', 500)
   }
 }

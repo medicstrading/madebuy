@@ -260,9 +260,7 @@ export class LateClient {
    */
   async createPost(post: LatePost): Promise<LatePostResponse> {
     try {
-      console.log('[Late.dev] createPost request:', JSON.stringify(post, null, 2))
       const response = await this.request('POST', '/posts', post)
-      console.log('[Late.dev] createPost response:', JSON.stringify(response, null, 2))
 
       return {
         success: true,
@@ -271,19 +269,11 @@ export class LateClient {
         platformPosts: response.platformPosts
       }
     } catch (error: any) {
-      console.error('[Late.dev] post error - RAW ERROR OBJECT:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
-      console.error('[Late.dev] post error - typeof:', typeof error)
-      console.error('[Late.dev] post error - error.message:', error.message)
-      console.error('[Late.dev] post error - error.error:', error.error)
-      console.error('[Late.dev] post error - error.toString():', error.toString())
-
-      // Extract the most detailed error message available
+      // Extract the most detailed error message available (sanitized for client)
       const errorMessage = error.message ||
                           error.error ||
                           (typeof error === 'string' ? error : null) ||
                           'Failed to publish via Late.dev'
-
-      console.error('[Late.dev] final error message being returned:', errorMessage)
 
       return {
         success: false,
@@ -433,20 +423,7 @@ export class LateClient {
       options.body = JSON.stringify(data)
     }
 
-    console.log('[Late.dev] API Request:', {
-      method,
-      url,
-      hasBody: !!options.body
-    })
-
     const response = await fetch(url, options)
-
-    console.log('[Late.dev] API Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      contentType: response.headers.get('content-type')
-    })
 
     if (!response.ok) {
       // Try to parse as JSON, but also capture raw text in case it's not JSON
@@ -456,43 +433,21 @@ export class LateClient {
       try {
         const text = await response.text()
         rawBody = text
-        console.error('[Late.dev] RAW RESPONSE TEXT:', text)
-        console.error('[Late.dev] RAW RESPONSE TEXT LENGTH:', text.length)
         errorData = JSON.parse(text)
-        console.error('[Late.dev] PARSED JSON:', JSON.stringify(errorData, null, 2))
-      } catch (e) {
+      } catch {
         // Response is not JSON, use raw text
-        console.error('[Late.dev] Response is NOT valid JSON, error:', e)
         errorData = { raw: rawBody }
       }
 
-      // Convert headers to object for logging
-      const headersObj: Record<string, string> = {}
-      response.headers.forEach((value, key) => {
-        headersObj[key] = value
-      })
-
-      console.error('[Late.dev] API Error Response - STATUS:', response.status, response.statusText)
-      console.error('[Late.dev] API Error Response - RAW BODY:', rawBody)
-      console.error('[Late.dev] API Error Response - PARSED errorData:', JSON.stringify(errorData, null, 2))
-      console.error('[Late.dev] API Error Response - errorData.error:', errorData.error)
-      console.error('[Late.dev] API Error Response - errorData.message:', errorData.message)
-      console.error('[Late.dev] API Error Response - HEADERS:', headersObj)
-
-      // Extract error message from various possible fields
+      // Extract error message from various possible fields (sanitized - no sensitive data)
       const errorMessage = errorData.message ||
                           errorData.error ||
                           errorData.details ||
                           errorData.error_description ||
                           (typeof errorData === 'string' ? errorData : null) ||
-                          (rawBody && rawBody.length < 500 ? rawBody : null) ||
-                          `Late.dev API error: HTTP ${response.status} ${response.statusText}`
+                          `Late.dev API error: HTTP ${response.status}`
 
-      console.error('[Late.dev] API Error Response - FINAL ERROR MESSAGE:', errorMessage)
-
-      // Include raw response in error for debugging
-      const detailedError = `${errorMessage} [Status: ${response.status}, Body: ${rawBody.substring(0, 200)}]`
-      throw new Error(detailedError)
+      throw new Error(errorMessage)
     }
 
     // Handle 204 No Content

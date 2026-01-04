@@ -188,10 +188,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Basic Stripe checkout (single-tenant mode - simplified shipping)
+    // Basic Stripe checkout (single-tenant mode)
 
-    // Build Stripe shipping options using defaults
-    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = DEFAULT_SHIPPING_METHODS.map(method => ({
+    // Use tenant's shipping methods if configured, otherwise fall back to defaults
+    const configuredMethods = (tenant.shippingMethods ?? []).filter((m: ShippingMethod) => m.enabled)
+    const effectiveShippingMethods = configuredMethods.length > 0 ? configuredMethods : DEFAULT_SHIPPING_METHODS
+
+    // Build Stripe shipping options
+    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = effectiveShippingMethods.map(method => ({
       shipping_rate_data: {
         type: 'fixed_amount' as const,
         fixed_amount: {

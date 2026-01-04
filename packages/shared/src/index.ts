@@ -9,6 +9,15 @@
 // Export all types
 export * from './types'
 
+// Export error classes
+export * from './errors'
+
+// Export sanitization utilities
+export * from './lib/sanitize'
+
+// Export cryptographic utilities
+export * from './lib/crypto'
+
 // Explicit re-export of value constants from types (needed for bundler resolution)
 export {
   // Media constants

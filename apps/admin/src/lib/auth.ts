@@ -55,5 +55,12 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
+    // Token expires after 24 hours (secure default instead of 30 days)
+    maxAge: 24 * 60 * 60, // 24 hours in seconds
+  },
+  // JWT configuration
+  jwt: {
+    // Token expires after 24 hours
+    maxAge: 24 * 60 * 60,
   },
 }

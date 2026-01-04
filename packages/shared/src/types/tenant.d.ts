@@ -62,6 +62,10 @@ export interface EtsyIntegration {
     lastSyncAt?: Date;
 }
 
+export interface TenantIntegrations {
+    etsy?: EtsyIntegration;
+}
+
 export interface TenantFeatures {
     socialPublishing: boolean;
     aiCaptions: boolean;

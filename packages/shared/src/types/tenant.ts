@@ -55,6 +55,9 @@ export interface Tenant {
   // Website customization
   websiteDesign?: TenantWebsiteDesign
 
+  // Shipping configuration
+  shippingMethods?: TenantShippingMethod[]
+
   // Timestamps
   createdAt: Date
   updatedAt: Date
@@ -234,3 +237,15 @@ export interface UpdateTenantInput {
 
 // Re-export MakerType for convenience
 export type { MakerType } from '../constants/makerPresets'
+
+// Shipping method configuration for tenant
+export interface TenantShippingMethod {
+  id: string
+  name: string
+  description?: string
+  price: number
+  currency: string
+  estimatedDays: { min: number; max: number }
+  countries: string[]
+  enabled: boolean
+}

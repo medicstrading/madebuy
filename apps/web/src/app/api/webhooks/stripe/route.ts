@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { orders, stockReservations } from '@madebuy/db'
+import { orders, pieces, tenants, stockReservations } from '@madebuy/db'
+import type { CreateOrderInput } from '@madebuy/shared'
+import { sendOrderConfirmation } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -34,17 +36,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Idempotency: Check if we've already processed this event
+    // Stripe may retry webhooks, so we check for existing order
+    const eventId = event.id
+
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session, eventId)
         break
 
       case 'payment_intent.payment_failed':
         await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent)
         break
 
+      case 'checkout.session.expired':
+        await handleCheckoutExpired(event.data.object as Stripe.Checkout.Session)
+        break
+
       default:
-        console.log(`Unhandled payment event type: ${event.type}`)
+        // Silently ignore unhandled event types
     }
 
     return NextResponse.json({ received: true })
@@ -59,12 +69,20 @@ export async function POST(request: NextRequest) {
 
 /**
  * Handle checkout.session.completed
- * Creates order when payment succeeds
+ * Creates order when payment succeeds, sends confirmation email
+ * Includes idempotency check to prevent duplicate orders
  */
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId: string) {
   const tenantId = session.metadata?.tenantId
   if (!tenantId) {
     console.error('No tenantId in checkout session metadata')
+    return
+  }
+
+  // Idempotency check: see if order already exists for this Stripe session
+  const existingOrder = await orders.getOrderByStripeSessionId(tenantId, session.id)
+  if (existingOrder) {
+    console.log(`Order already exists for session ${session.id}, skipping duplicate`)
     return
   }
 
@@ -72,32 +90,56 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const itemsJson = session.metadata?.items
   const items = itemsJson ? JSON.parse(itemsJson) : []
 
-  // Create order record
-  const shippingDetails = session.shipping_details || session.customer_details
-  const orderData = {
-    customerEmail: session.customer_email || '',
-    customerName: session.customer_details?.name || session.metadata?.customerName || '',
-    customerPhone: session.customer_details?.phone || session.metadata?.customerPhone || '',
-    items: items.map((item: { pieceId: string; variantId?: string; quantity: number; price: number }) => ({
-      pieceId: item.pieceId,
-      variantId: item.variantId,
-      quantity: item.quantity,
-      price: item.price,
-    })),
-    shippingAddress: {
-      line1: shippingDetails?.address?.line1 || '',
-      line2: shippingDetails?.address?.line2 || '',
-      city: shippingDetails?.address?.city || '',
-      state: shippingDetails?.address?.state || '',
-      postcode: shippingDetails?.address?.postal_code || '',
-      country: shippingDetails?.address?.country || 'AU',
-    },
-    shippingMethod: session.metadata?.shippingMethod || 'standard',
-    shippingType: (session.metadata?.shippingType || 'domestic') as 'domestic' | 'international' | 'local_pickup',
-    customerNotes: session.metadata?.notes || '',
+  // Complete stock reservations first (decrements actual stock atomically)
+  const reservationSessionId = session.metadata?.reservationSessionId
+  if (reservationSessionId) {
+    const completed = await stockReservations.completeReservation(reservationSessionId)
+    if (!completed) {
+      console.warn(`No reservations found for session ${reservationSessionId}`)
+    }
   }
 
-  // Calculate shipping and tax from session
+  // Build order items with full piece data
+  const orderItems = []
+  for (const item of items) {
+    const piece = await pieces.getPiece(tenantId, item.pieceId)
+    if (!piece) {
+      console.error(`Piece ${item.pieceId} not found for order`)
+      continue
+    }
+
+    orderItems.push({
+      pieceId: piece.id,
+      variantId: item.variantId,
+      name: piece.name,
+      price: item.price,
+      quantity: item.quantity,
+      category: piece.category,
+      description: piece.description,
+    })
+  }
+
+  // Get shipping address from session
+  const shippingDetails = session.shipping_details
+  const shippingAddress = shippingDetails?.address
+    ? {
+        line1: shippingDetails.address.line1 || '',
+        line2: shippingDetails.address.line2 || '',
+        city: shippingDetails.address.city || '',
+        state: shippingDetails.address.state || '',
+        postcode: shippingDetails.address.postal_code || '',
+        country: shippingDetails.address.country || 'AU',
+      }
+    : {
+        line1: session.metadata?.shippingAddressLine1 || '',
+        line2: session.metadata?.shippingAddressLine2 || '',
+        city: session.metadata?.shippingCity || '',
+        state: session.metadata?.shippingState || '',
+        postcode: session.metadata?.shippingPostalCode || '',
+        country: session.metadata?.shippingCountry || 'AU',
+      }
+
+  // Calculate pricing from session
   const shippingAmount = session.total_details?.amount_shipping
     ? session.total_details.amount_shipping / 100
     : 0
@@ -105,19 +147,37 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ? session.total_details.amount_tax / 100
     : 0
 
+  // Create order
+  const orderData: CreateOrderInput = {
+    customerEmail: session.customer_details?.email || session.customer_email || '',
+    customerName: session.metadata?.customerName || shippingDetails?.name || '',
+    customerPhone: session.metadata?.customerPhone || session.customer_details?.phone || '',
+    items: orderItems,
+    shippingAddress,
+    shippingMethod: session.metadata?.shippingMethod || 'standard',
+    shippingType: shippingAddress.country === 'AU' ? 'domestic' : 'international',
+    customerNotes: session.metadata?.notes || undefined,
+  }
+
   const order = await orders.createOrder(tenantId, orderData, {
     shipping: shippingAmount,
     tax: taxAmount,
     discount: 0,
     currency: (session.currency || 'aud').toUpperCase(),
+    stripeSessionId: session.id, // For idempotency
   })
   console.log(`Created order ${order.id} for session ${session.id}`)
 
-  // Confirm stock reservations
-  const reservationSessionId = session.metadata?.reservationSessionId
-  if (reservationSessionId) {
-    await stockReservations.completeReservation(reservationSessionId)
-    console.log(`Completed stock reservation ${reservationSessionId}`)
+  // Send confirmation email to customer
+  try {
+    const tenant = await tenants.getTenantById(tenantId)
+    if (tenant && order.customerEmail) {
+      await sendOrderConfirmation(order, tenant)
+      console.log(`Confirmation email sent to ${order.customerEmail}`)
+    }
+  } catch (emailError) {
+    console.error('Failed to send confirmation email:', emailError)
+    // Don't fail the webhook if email fails
   }
 }
 
@@ -130,5 +190,17 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   if (reservationSessionId) {
     await stockReservations.cancelReservation(reservationSessionId)
     console.log(`Cancelled stock reservation ${reservationSessionId}`)
+  }
+}
+
+/**
+ * Handle checkout.session.expired
+ * Releases stock reservations when checkout times out
+ */
+async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
+  const reservationSessionId = session.metadata?.reservationSessionId
+  if (reservationSessionId) {
+    await stockReservations.cancelReservation(reservationSessionId)
+    console.log(`Released stock reservations for expired session ${reservationSessionId}`)
   }
 }

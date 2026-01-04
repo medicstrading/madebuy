@@ -42,13 +42,17 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com",
+              // Removed unsafe-eval in production; kept unsafe-inline for Next.js inline scripts
+              isProd
+                ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com"
+                : "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https: https://*.stripe.com",
-              "font-src 'self' data:",
+              // Tightened img-src: removed data: for blob injection protection
+              "img-src 'self' blob: https://*.r2.dev https://*.stripe.com https://images.unsplash.com",
+              "font-src 'self'",
               "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com",
-              "media-src 'self' blob: https:",
-              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+              "media-src 'self' blob: https://*.r2.dev",
+              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
               "base-uri 'self'",
               "form-action 'self' https://checkout.stripe.com",
               "frame-ancestors 'self'",

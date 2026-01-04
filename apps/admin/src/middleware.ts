@@ -1,7 +1,41 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { timingSafeEqual } from 'crypto'
 import { rateLimiters, rateLimit } from '@/lib/rate-limit'
+
+/**
+ * Timing-safe comparison for secrets to prevent timing attacks
+ */
+function verifySecret(received: string | null, expected: string): boolean {
+  if (!received) return false
+  try {
+    const receivedBuffer = Buffer.from(received)
+    const expectedBuffer = Buffer.from(`Bearer ${expected}`)
+    if (receivedBuffer.length !== expectedBuffer.length) {
+      timingSafeEqual(expectedBuffer, expectedBuffer)
+      return false
+    }
+    return timingSafeEqual(receivedBuffer, expectedBuffer)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Validate callback URL to prevent open redirect attacks
+ * Only allows relative paths starting with /
+ */
+function isValidCallbackUrl(url: string): boolean {
+  // Must start with / and not contain protocol or double slashes
+  if (!url.startsWith('/')) return false
+  if (url.startsWith('//')) return false
+  if (url.includes('://')) return false
+  // Block javascript: and data: schemes
+  if (url.toLowerCase().includes('javascript:')) return false
+  if (url.toLowerCase().includes('data:')) return false
+  return true
+}
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/api/auth']
@@ -55,12 +89,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Internal cron routes: allow if valid CRON_SECRET is provided
+  // Internal cron routes: allow if valid CRON_SECRET is provided (timing-safe)
   // This lets cron jobs call internal endpoints without session auth
   if (INTERNAL_CRON_ROUTES.some((route) => pathname.startsWith(route))) {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
-    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    if (cronSecret && verifySecret(authHeader, cronSecret)) {
       return NextResponse.next()
     }
     // If no valid cron secret, fall through to normal session auth check
@@ -90,9 +124,12 @@ export async function middleware(request: NextRequest) {
         { status: 401 }
       )
     }
-    // Page routes redirect to login
+    // Page routes redirect to login with validated callback URL
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('callbackUrl', pathname)
+    // Only set callbackUrl if it's a valid internal path (prevent open redirect)
+    if (isValidCallbackUrl(pathname)) {
+      loginUrl.searchParams.set('callbackUrl', pathname)
+    }
     return NextResponse.redirect(loginUrl)
   }
 
