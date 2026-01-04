@@ -1,14 +1,28 @@
 import { nanoid } from 'nanoid'
+import bcrypt from 'bcryptjs'
 import { getDatabase } from '../client'
 import type {
   Customer,
+  CustomerAddress,
   CustomerFilters,
   CustomerStats,
   CustomerLTV,
   CohortData,
   CreateCustomerInput,
   UpdateCustomerInput,
+  CustomerListOptions,
+  CustomerWithOrders,
+  RegisterCustomerInput,
+  CustomerAuthResult,
 } from '@madebuy/shared'
+
+const BCRYPT_ROUNDS = 12
+const VERIFICATION_TOKEN_EXPIRY_HOURS = 24
+const RESET_TOKEN_EXPIRY_HOURS = 24
+const EMAIL_CHANGE_TOKEN_EXPIRY_HOURS = 24
+
+// Dummy hash for timing attack prevention
+const DUMMY_HASH = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VttYJGpD4Gm.Ey'
 
 /**
  * Create or update a customer from order data
@@ -524,4 +538,578 @@ export async function exportCustomers(
     .find(query)
     .sort({ totalSpent: -1 })
     .toArray()) as unknown as Customer[]
+}
+
+// ============================================
+// CUSTOMER AUTHENTICATION
+// ============================================
+
+export interface CustomerRegistrationResult {
+  customer: Customer
+  verificationToken: string
+}
+
+/**
+ * Register a new customer with password
+ * Creates account or upgrades existing guest customer to full account
+ */
+export async function registerCustomer(
+  tenantId: string,
+  input: RegisterCustomerInput
+): Promise<CustomerRegistrationResult> {
+  const db = await getDatabase()
+  const email = input.email.toLowerCase()
+  const now = new Date()
+
+  const verificationToken = nanoid(32)
+  const verificationTokenExpiry = new Date()
+  verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS)
+
+  // Check if customer already exists
+  const existing = await db.collection('customers').findOne({ tenantId, email })
+
+  if (existing) {
+    if (existing.passwordHash) {
+      throw new Error('An account with this email already exists')
+    }
+
+    // Upgrade guest customer to full account
+    const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS)
+
+    await db.collection('customers').updateOne(
+      { tenantId, email },
+      {
+        $set: {
+          name: input.name,
+          phone: input.phone,
+          passwordHash,
+          emailVerified: false,
+          verificationToken,
+          verificationTokenExpiry,
+          updatedAt: now,
+        },
+      }
+    )
+
+    const updated = await db.collection('customers').findOne({ tenantId, email })
+    return {
+      customer: updated as unknown as Customer,
+      verificationToken,
+    }
+  }
+
+  // Create new customer with password
+  const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS)
+
+  const customer: Customer = {
+    id: nanoid(),
+    tenantId,
+    email,
+    name: input.name,
+    phone: input.phone,
+    addresses: [],
+    totalOrders: 0,
+    totalSpent: 0,
+    averageOrderValue: 0,
+    emailSubscribed: true,
+    emailSubscribedAt: now,
+    passwordHash,
+    emailVerified: false,
+    verificationToken,
+    verificationTokenExpiry,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  await db.collection('customers').insertOne(customer)
+  return { customer, verificationToken }
+}
+
+/**
+ * Authenticate customer by email and password
+ * Uses timing-attack safe comparison
+ */
+export async function authenticateCustomer(
+  tenantId: string,
+  email: string,
+  password: string
+): Promise<CustomerAuthResult> {
+  const db = await getDatabase()
+  const customer = await db.collection('customers').findOne({
+    tenantId,
+    email: email.toLowerCase(),
+  })
+
+  // Always run bcrypt compare to prevent timing attacks
+  const hashToCompare = customer?.passwordHash || DUMMY_HASH
+  const isValid = await bcrypt.compare(password, hashToCompare)
+
+  if (!customer || !customer.passwordHash || !isValid) {
+    return { success: false, error: 'Invalid email or password' }
+  }
+
+  // Update last login
+  await db.collection('customers').updateOne(
+    { tenantId, id: customer.id },
+    { $set: { lastLoginAt: new Date() } }
+  )
+
+  return { success: true, customer: customer as unknown as Customer }
+}
+
+/**
+ * Verify customer email using token
+ */
+export async function verifyCustomerEmail(token: string): Promise<boolean> {
+  const db = await getDatabase()
+
+  const customer = await db.collection('customers').findOne({
+    verificationToken: token,
+    verificationTokenExpiry: { $gt: new Date() },
+  })
+
+  if (!customer) return false
+
+  await db.collection('customers').updateOne(
+    { id: customer.id },
+    {
+      $set: {
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+        updatedAt: new Date(),
+      },
+      $unset: {
+        verificationToken: '',
+        verificationTokenExpiry: '',
+      },
+    }
+  )
+
+  return true
+}
+
+/**
+ * Create new verification token (for resending)
+ */
+export async function createVerificationToken(
+  tenantId: string,
+  email: string
+): Promise<string | null> {
+  const db = await getDatabase()
+  const customer = await db.collection('customers').findOne({
+    tenantId,
+    email: email.toLowerCase(),
+  })
+
+  if (!customer || !customer.passwordHash || customer.emailVerified) {
+    return null
+  }
+
+  const verificationToken = nanoid(32)
+  const verificationTokenExpiry = new Date()
+  verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS)
+
+  await db.collection('customers').updateOne(
+    { tenantId, id: customer.id },
+    {
+      $set: {
+        verificationToken,
+        verificationTokenExpiry,
+        updatedAt: new Date(),
+      },
+    }
+  )
+
+  return verificationToken
+}
+
+/**
+ * Create password reset token
+ */
+export async function createPasswordResetToken(
+  tenantId: string,
+  email: string
+): Promise<string | null> {
+  const db = await getDatabase()
+  const customer = await db.collection('customers').findOne({
+    tenantId,
+    email: email.toLowerCase(),
+    passwordHash: { $exists: true },
+  })
+
+  if (!customer) return null
+
+  const resetToken = nanoid(32)
+  const resetTokenExpiry = new Date()
+  resetTokenExpiry.setHours(resetTokenExpiry.getHours() + RESET_TOKEN_EXPIRY_HOURS)
+
+  await db.collection('customers').updateOne(
+    { tenantId, id: customer.id },
+    {
+      $set: {
+        resetToken,
+        resetTokenExpiry,
+        updatedAt: new Date(),
+      },
+    }
+  )
+
+  return resetToken
+}
+
+/**
+ * Reset password using token
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<boolean> {
+  const db = await getDatabase()
+
+  const customer = await db.collection('customers').findOne({
+    resetToken: token,
+    resetTokenExpiry: { $gt: new Date() },
+  })
+
+  if (!customer) return false
+
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS)
+
+  await db.collection('customers').updateOne(
+    { id: customer.id },
+    {
+      $set: {
+        passwordHash,
+        updatedAt: new Date(),
+      },
+      $unset: {
+        resetToken: '',
+        resetTokenExpiry: '',
+      },
+    }
+  )
+
+  return true
+}
+
+/**
+ * Change customer password (requires current password)
+ */
+export async function changeCustomerPassword(
+  tenantId: string,
+  customerId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<boolean> {
+  const db = await getDatabase()
+  const customer = await db.collection('customers').findOne({ tenantId, id: customerId })
+
+  if (!customer || !customer.passwordHash) return false
+
+  const isValid = await bcrypt.compare(currentPassword, customer.passwordHash)
+  if (!isValid) return false
+
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS)
+
+  await db.collection('customers').updateOne(
+    { tenantId, id: customerId },
+    {
+      $set: {
+        passwordHash,
+        updatedAt: new Date(),
+      },
+    }
+  )
+
+  return true
+}
+
+// ============================================
+// ADDRESS MANAGEMENT
+// ============================================
+
+/**
+ * Add address to customer
+ */
+export async function addCustomerAddress(
+  tenantId: string,
+  customerId: string,
+  address: Omit<CustomerAddress, 'id'>
+): Promise<Customer | null> {
+  const db = await getDatabase()
+
+  const newAddress: CustomerAddress = {
+    ...address,
+    id: nanoid(),
+  }
+
+  const result = await db.collection('customers').findOneAndUpdate(
+    { tenantId, id: customerId },
+    {
+      $push: { addresses: newAddress } as any,
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: 'after' }
+  )
+
+  return result as unknown as Customer | null
+}
+
+/**
+ * Update customer address
+ */
+export async function updateCustomerAddress(
+  tenantId: string,
+  customerId: string,
+  addressId: string,
+  address: Partial<Omit<CustomerAddress, 'id'>>
+): Promise<Customer | null> {
+  const db = await getDatabase()
+
+  const updateFields: any = {}
+  Object.keys(address).forEach((key) => {
+    updateFields[`addresses.$.${key}`] = (address as any)[key]
+  })
+
+  const result = await db.collection('customers').findOneAndUpdate(
+    { tenantId, id: customerId, 'addresses.id': addressId },
+    {
+      $set: { ...updateFields, updatedAt: new Date() },
+    },
+    { returnDocument: 'after' }
+  )
+
+  return result as unknown as Customer | null
+}
+
+/**
+ * Remove customer address
+ */
+export async function removeCustomerAddress(
+  tenantId: string,
+  customerId: string,
+  addressId: string
+): Promise<Customer | null> {
+  const db = await getDatabase()
+
+  const result = await db.collection('customers').findOneAndUpdate(
+    { tenantId, id: customerId },
+    {
+      $pull: { addresses: { id: addressId } } as any,
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: 'after' }
+  )
+
+  return result as unknown as Customer | null
+}
+
+/**
+ * Set default address
+ */
+export async function setDefaultAddress(
+  tenantId: string,
+  customerId: string,
+  addressId: string
+): Promise<Customer | null> {
+  const db = await getDatabase()
+
+  // Unset any existing default
+  await db.collection('customers').updateOne(
+    { tenantId, id: customerId },
+    { $set: { 'addresses.$[].isDefault': false } }
+  )
+
+  // Set new default
+  const result = await db.collection('customers').findOneAndUpdate(
+    { tenantId, id: customerId, 'addresses.id': addressId },
+    {
+      $set: {
+        'addresses.$.isDefault': true,
+        defaultAddressId: addressId,
+        updatedAt: new Date(),
+      },
+    },
+    { returnDocument: 'after' }
+  )
+
+  return result as unknown as Customer | null
+}
+
+// ============================================
+// EMAIL CHANGE
+// ============================================
+
+/**
+ * Initiate email change - creates verification token
+ */
+export async function initiateEmailChange(
+  tenantId: string,
+  customerId: string,
+  newEmail: string
+): Promise<string | null> {
+  const db = await getDatabase()
+
+  // Check if new email is already in use by this tenant
+  const existing = await db.collection('customers').findOne({
+    tenantId,
+    email: newEmail.toLowerCase(),
+  })
+  if (existing) return null
+
+  const emailChangeToken = nanoid(32)
+  const emailChangeTokenExpiry = new Date()
+  emailChangeTokenExpiry.setHours(emailChangeTokenExpiry.getHours() + EMAIL_CHANGE_TOKEN_EXPIRY_HOURS)
+
+  await db.collection('customers').updateOne(
+    { tenantId, id: customerId },
+    {
+      $set: {
+        pendingEmail: newEmail.toLowerCase(),
+        emailChangeToken,
+        emailChangeTokenExpiry,
+        updatedAt: new Date(),
+      },
+    }
+  )
+
+  return emailChangeToken
+}
+
+/**
+ * Confirm email change using token
+ */
+export async function confirmEmailChange(token: string): Promise<boolean> {
+  const db = await getDatabase()
+
+  const customer = await db.collection('customers').findOne({
+    emailChangeToken: token,
+    emailChangeTokenExpiry: { $gt: new Date() },
+  })
+
+  if (!customer || !customer.pendingEmail) return false
+
+  // Check that pending email isn't already taken
+  const existing = await db.collection('customers').findOne({
+    tenantId: customer.tenantId,
+    email: customer.pendingEmail,
+  })
+  if (existing) {
+    await db.collection('customers').updateOne(
+      { id: customer.id },
+      {
+        $unset: {
+          pendingEmail: '',
+          emailChangeToken: '',
+          emailChangeTokenExpiry: '',
+        },
+        $set: { updatedAt: new Date() },
+      }
+    )
+    return false
+  }
+
+  await db.collection('customers').updateOne(
+    { id: customer.id },
+    {
+      $set: {
+        email: customer.pendingEmail,
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+        updatedAt: new Date(),
+      },
+      $unset: {
+        pendingEmail: '',
+        emailChangeToken: '',
+        emailChangeTokenExpiry: '',
+      },
+    }
+  )
+
+  return true
+}
+
+// ============================================
+// MARKETING & SUBSCRIPTIONS
+// ============================================
+
+/**
+ * Get all customers subscribed to newsletter for a tenant
+ */
+export async function getSubscribedCustomers(tenantId: string): Promise<Customer[]> {
+  const db = await getDatabase()
+
+  const customers = await db
+    .collection('customers')
+    .find({ tenantId, emailSubscribed: true })
+    .toArray()
+
+  return customers as unknown as Customer[]
+}
+
+/**
+ * Update email subscription preference
+ */
+export async function updateEmailSubscription(
+  tenantId: string,
+  customerId: string,
+  subscribed: boolean
+): Promise<Customer | null> {
+  const db = await getDatabase()
+  const now = new Date()
+
+  const updateData: any = {
+    emailSubscribed: subscribed,
+    updatedAt: now,
+  }
+
+  if (subscribed) {
+    updateData.emailSubscribedAt = now
+  }
+
+  const result = await db.collection('customers').findOneAndUpdate(
+    { tenantId, id: customerId },
+    { $set: updateData },
+    { returnDocument: 'after' }
+  )
+
+  return result as unknown as Customer | null
+}
+
+/**
+ * Delete customer
+ */
+export async function deleteCustomer(tenantId: string, customerId: string): Promise<boolean> {
+  const db = await getDatabase()
+  const result = await db.collection('customers').deleteOne({ tenantId, id: customerId })
+  return result.deletedCount > 0
+}
+
+/**
+ * Get customer with their orders
+ */
+export async function getCustomerWithOrders(
+  tenantId: string,
+  customerId: string
+): Promise<CustomerWithOrders | null> {
+  const db = await getDatabase()
+
+  const customer = await db.collection('customers').findOne({ tenantId, id: customerId })
+  if (!customer) return null
+
+  const orders = await db
+    .collection('orders')
+    .find({ tenantId, customerEmail: customer.email })
+    .sort({ createdAt: -1 })
+    .toArray()
+
+  return {
+    ...(customer as unknown as Customer),
+    orders: orders.map((order: any) => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      createdAt: order.createdAt,
+      total: order.total,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      itemCount: order.items?.length || 0,
+    })),
+  }
 }

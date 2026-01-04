@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentTenant } from '@/lib/session'
-import { Sidebar } from '@/components/dashboard/Sidebar'
-import { Header } from '@/components/dashboard/Header'
+import { DashboardShell } from '@/components/dashboard/DashboardShell'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,14 +30,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar tenant={serializedTenant} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header user={user} tenant={serializedTenant} />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardShell user={user} tenant={serializedTenant}>
+      {children}
+    </DashboardShell>
   )
 }

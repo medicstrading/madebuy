@@ -21,6 +21,10 @@ export * from './blog'
 export * from './tracking'
 export * from './download'
 export * from './customer'
+export * from './discount'
+export * from './newsletter'
+export * from './collection'
+export * from './keyDates'
 
 // Re-export commonly used types for convenience
 export type {
@@ -153,15 +157,30 @@ export type {
 
 export type {
   Customer,
+  CustomerAddress,
   CustomerSegment,
   SegmentRule,
   CustomerFilters,
+  CustomerListOptions,
   CustomerStats,
   CustomerLTV,
   CohortData,
+  CustomerWithOrders,
   CreateCustomerInput,
   UpdateCustomerInput,
+  RegisterCustomerInput,
+  CustomerAuthResult,
 } from './customer'
+
+export type {
+  DiscountCode,
+  DiscountType,
+  CreateDiscountCodeInput,
+  UpdateDiscountCodeInput,
+  DiscountValidationResult,
+  DiscountListOptions,
+  DiscountStats,
+} from './discount'
 
 export type {
   DownloadRecord,

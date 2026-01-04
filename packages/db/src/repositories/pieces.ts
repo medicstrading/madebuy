@@ -243,3 +243,96 @@ export async function hasStock(
 
   return stock >= quantity
 }
+
+/**
+ * Stock alert item for dashboard
+ */
+export interface StockAlert {
+  pieceId: string
+  pieceName: string
+  variantId?: string
+  variantOptions?: Record<string, string>
+  sku?: string
+  stock: number
+  alertType: 'out_of_stock' | 'low_stock'
+}
+
+/**
+ * Get stock alerts for low and out-of-stock items
+ * @param lowStockThreshold - Items with stock at or below this are considered low stock (default: 5)
+ */
+export async function getStockAlerts(
+  tenantId: string,
+  lowStockThreshold: number = 5
+): Promise<StockAlert[]> {
+  const db = await getDatabase()
+
+  const alerts: StockAlert[] = []
+
+  // Get all available pieces with stock tracking
+  const pieces = await db.collection('pieces')
+    .find({
+      tenantId,
+      status: 'available',
+    })
+    .toArray() as Piece[]
+
+  for (const piece of pieces) {
+    // Check variant-level stock
+    if (piece.hasVariants && piece.variants) {
+      for (const variant of piece.variants) {
+        if (variant.stock !== undefined) {
+          if (variant.stock === 0) {
+            alerts.push({
+              pieceId: piece.id,
+              pieceName: piece.name,
+              variantId: variant.id,
+              variantOptions: variant.options,
+              sku: variant.sku,
+              stock: 0,
+              alertType: 'out_of_stock',
+            })
+          } else if (variant.stock <= lowStockThreshold) {
+            alerts.push({
+              pieceId: piece.id,
+              pieceName: piece.name,
+              variantId: variant.id,
+              variantOptions: variant.options,
+              sku: variant.sku,
+              stock: variant.stock,
+              alertType: 'low_stock',
+            })
+          }
+        }
+      }
+    } else {
+      // Check piece-level stock
+      if (piece.stock !== undefined) {
+        if (piece.stock === 0) {
+          alerts.push({
+            pieceId: piece.id,
+            pieceName: piece.name,
+            stock: 0,
+            alertType: 'out_of_stock',
+          })
+        } else if (piece.stock <= lowStockThreshold) {
+          alerts.push({
+            pieceId: piece.id,
+            pieceName: piece.name,
+            stock: piece.stock,
+            alertType: 'low_stock',
+          })
+        }
+      }
+    }
+  }
+
+  // Sort: out of stock first, then by stock level ascending
+  alerts.sort((a, b) => {
+    if (a.alertType === 'out_of_stock' && b.alertType !== 'out_of_stock') return -1
+    if (a.alertType !== 'out_of_stock' && b.alertType === 'out_of_stock') return 1
+    return a.stock - b.stock
+  })
+
+  return alerts
+}

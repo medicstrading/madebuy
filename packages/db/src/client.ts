@@ -18,7 +18,19 @@ export async function getDatabase(): Promise<Db> {
   if (cachedDb) return cachedDb
 
   if (!cachedClient) {
-    cachedClient = new MongoClient(MONGODB_URI)
+    cachedClient = new MongoClient(MONGODB_URI, {
+      // Connection pool settings optimized for serverless/edge
+      maxPoolSize: 10,
+      minPoolSize: 0,
+      maxIdleTimeMS: 30000, // Close idle connections after 30 seconds
+      maxConnecting: 2,
+      // Reliability settings
+      retryWrites: true,
+      retryReads: true,
+      // Timeout settings
+      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 10000,
+    })
     await cachedClient.connect()
     console.log('✅ Connected to MongoDB')
   }
@@ -149,6 +161,34 @@ async function ensureIndexes(db: Db) {
     { tenantId: 1, isDeleted: 1, stock: 1 },
     { name: 'low_stock_lookup' }
   )
+
+  // Discount Codes
+  await db.collection('discount_codes').createIndex({ tenantId: 1, code: 1 }, { unique: true })
+  await db.collection('discount_codes').createIndex({ tenantId: 1, isActive: 1 })
+  await db.collection('discount_codes').createIndex({ tenantId: 1, expiresAt: 1 })
+
+  // Newsletters
+  await db.collection('newsletters').createIndex({ tenantId: 1, status: 1 })
+  await db.collection('newsletters').createIndex({ tenantId: 1, createdAt: -1 })
+
+  // Newsletter Templates
+  await db.collection('newsletter_templates').createIndex({ tenantId: 1 }, { unique: true })
+
+  // Collections
+  await db.collection('collections').createIndex({ tenantId: 1, slug: 1 }, { unique: true })
+  await db.collection('collections').createIndex({ tenantId: 1, isPublished: 1 })
+  await db.collection('collections').createIndex({ tenantId: 1, isFeatured: 1 })
+  await db.collection('collections').createIndex({ tenantId: 1, sortOrder: 1 })
+
+  // Key Dates (Calendar)
+  await db.collection('key_dates').createIndex({ tenantId: 1, date: 1 })
+  await db.collection('key_dates').createIndex({ tenantId: 1, repeat: 1 })
+
+  // Customers (extended indexes for auth)
+  await db.collection('customers').createIndex({ tenantId: 1, email: 1 }, { unique: true })
+  await db.collection('customers').createIndex({ verificationToken: 1 }, { sparse: true })
+  await db.collection('customers').createIndex({ resetToken: 1 }, { sparse: true })
+  await db.collection('customers').createIndex({ emailChangeToken: 1 }, { sparse: true })
 
   console.log('✅ Database indexes created')
 }

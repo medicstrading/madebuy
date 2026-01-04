@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Enquiry, CreateEnquiryInput } from '@madebuy/shared'
+import type { Enquiry, CreateEnquiryInput, EnquiryReply } from '@madebuy/shared'
 
 export async function createEnquiry(tenantId: string, data: CreateEnquiryInput): Promise<Enquiry> {
   const db = await getDatabase()
@@ -104,6 +104,39 @@ export async function deleteEnquiry(tenantId: string, id: string): Promise<void>
 export async function countEnquiries(tenantId: string): Promise<number> {
   const db = await getDatabase()
   return await db.collection('enquiries').countDocuments({ tenantId })
+}
+
+/**
+ * Record a reply to an enquiry
+ */
+export async function replyToEnquiry(
+  tenantId: string,
+  id: string,
+  subject: string,
+  body: string
+): Promise<Enquiry | null> {
+  const db = await getDatabase()
+
+  const reply: EnquiryReply = {
+    subject,
+    body,
+    sentAt: new Date(),
+  }
+
+  const result = await db.collection('enquiries').findOneAndUpdate(
+    { tenantId, id },
+    {
+      $set: {
+        reply,
+        repliedAt: new Date(),
+        status: 'replied',
+        updatedAt: new Date(),
+      },
+    },
+    { returnDocument: 'after' }
+  )
+
+  return result as unknown as Enquiry | null
 }
 
 /**

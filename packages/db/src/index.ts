@@ -26,7 +26,11 @@ export * as domains from './repositories/domains'
 export * as tracking from './repositories/tracking'
 export * as variants from './repositories/variants'
 export * as customers from './repositories/customers'
+export * as discounts from './repositories/discounts'
 export * as downloads from './repositories/downloads'
+export * as newsletters from './repositories/newsletters'
+export * as collections from './repositories/collections'
+export * as keyDates from './repositories/keyDates'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

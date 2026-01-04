@@ -3,6 +3,7 @@ import { Package, Image, ShoppingCart, Mail, TrendingUp, TrendingDown, Plus, Sha
 import { pieces, media, orders, enquiries } from '@madebuy/db'
 import Link from 'next/link'
 import { FinanceWidgets } from '@/components/dashboard/FinanceWidgets'
+import { LowStockAlerts } from '@/components/dashboard/LowStockAlerts'
 import { unstable_cache } from 'next/cache'
 
 const getCachedDashboardStats = unstable_cache(
@@ -94,6 +95,9 @@ export default async function DashboardPage() {
 
       {/* Finance Widgets */}
       <FinanceWidgets />
+
+      {/* Low Stock Alerts */}
+      <LowStockAlerts />
 
       {/* Orders & Quick Actions Row */}
       <div className="grid gap-6 lg:grid-cols-3">

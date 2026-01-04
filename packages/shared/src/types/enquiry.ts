@@ -16,6 +16,10 @@ export interface Enquiry {
   status: EnquiryStatus
   notes?: string
 
+  // Reply tracking
+  reply?: EnquiryReply
+  repliedAt?: Date
+
   // Where the form was shown
   source: 'shop' | 'custom_domain'
   sourceDomain?: string
@@ -29,6 +33,12 @@ export interface Enquiry {
 
   createdAt: Date
   updatedAt: Date
+}
+
+export interface EnquiryReply {
+  subject: string
+  body: string
+  sentAt: Date
 }
 
 export type EnquiryStatus = 'new' | 'read' | 'replied' | 'archived'

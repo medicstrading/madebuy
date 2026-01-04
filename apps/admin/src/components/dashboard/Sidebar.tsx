@@ -15,6 +15,12 @@ import {
   Settings,
   Paintbrush,
   ChevronRight,
+  Tag,
+  Newspaper,
+  FolderOpen,
+  Calendar,
+  X,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +30,8 @@ interface SidebarProps {
     businessName?: string
     plan?: string
   } | null
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 const planLabels: Record<string, string> = {
@@ -42,14 +50,24 @@ const navigationGroups = [
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
       { name: 'Media', href: '/dashboard/media', icon: Image },
       { name: 'Materials', href: '/dashboard/materials', icon: Layers },
+      { name: 'Customers', href: '/dashboard/customers', icon: Users },
     ]
   },
   {
     label: 'Marketing',
     items: [
       { name: 'Website Design', href: '/dashboard/website-design', icon: Paintbrush },
+      { name: 'Collections', href: '/dashboard/collections', icon: FolderOpen },
       { name: 'Publish', href: '/dashboard/publish', icon: Share2 },
       { name: 'Blog', href: '/dashboard/blog', icon: FileText },
+      { name: 'Newsletters', href: '/dashboard/newsletters', icon: Newspaper },
+      { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
+    ]
+  },
+  {
+    label: 'Planning',
+    items: [
+      { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
     ]
   },
   {
@@ -62,26 +80,35 @@ const navigationGroups = [
   }
 ]
 
-export function Sidebar({ tenant }: SidebarProps) {
+export function Sidebar({ tenant, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
 
-  return (
-    <div className="flex h-full w-[280px] flex-col bg-white border-r border-gray-200">
+  const sidebarContent = (
+    <>
       {/* Logo */}
-      <div className="flex h-16 items-center px-6 border-b border-gray-100">
-        <Link href="/dashboard" className="flex items-center gap-2">
+      <div className="flex h-14 items-center justify-between px-6 border-b border-gray-100">
+        <Link href="/dashboard" className="flex items-center gap-2" onClick={onClose}>
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
             <span className="text-lg font-bold text-white">M</span>
           </div>
           <span className="text-xl font-semibold text-gray-900">MadeBuy</span>
         </Link>
+        {/* Mobile close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         {navigationGroups.map((group, groupIndex) => (
-          <div key={group.label} className={cn(groupIndex > 0 && 'mt-8')}>
-            <h3 className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <div key={group.label} className={cn(groupIndex > 0 && 'mt-6')}>
+            <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
               {group.label}
             </h3>
             <div className="space-y-1">
@@ -93,6 +120,7 @@ export function Sidebar({ tenant }: SidebarProps) {
                   <Link
                     key={item.name}
                     href={item.href}
+                    onClick={onClose}
                     className={cn(
                       'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                       isActive
@@ -134,6 +162,31 @@ export function Sidebar({ tenant }: SidebarProps) {
           </div>
         </div>
       </div>
-    </div>
+    </>
+  )
+
+  // Desktop sidebar
+  return (
+    <>
+      {/* Desktop sidebar - always visible on lg+ */}
+      <div className="hidden lg:flex h-full w-[260px] flex-col bg-white border-r border-gray-200">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile sidebar - overlay */}
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="lg:hidden fixed inset-0 z-40 bg-black/50"
+            onClick={onClose}
+          />
+          {/* Sidebar */}
+          <div className="lg:hidden fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-white shadow-xl">
+            {sidebarContent}
+          </div>
+        </>
+      )}
+    </>
   )
 }
