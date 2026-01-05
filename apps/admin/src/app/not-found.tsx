@@ -1,16 +1,32 @@
-import Link from 'next/link'
+// Force dynamic rendering to avoid useContext issues during static generation
+// This is a known Next.js App Router issue where /_not-found prerendering fails with null React context
+export const dynamic = 'force-dynamic'
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold">404</h1>
-      <p className="mt-4 text-gray-600">Page not found</p>
-      <Link
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold' }}>404</h1>
+      <p style={{ marginTop: '1rem', color: '#4b5563' }}>Page not found</p>
+      <a
         href="/login"
-        className="mt-6 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        style={{
+          marginTop: '1.5rem',
+          padding: '0.5rem 1rem',
+          backgroundColor: '#2563eb',
+          color: 'white',
+          borderRadius: '0.375rem',
+          textDecoration: 'none'
+        }}
       >
         Go to Login
-      </Link>
+      </a>
     </div>
   )
 }
