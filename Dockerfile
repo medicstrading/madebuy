@@ -5,22 +5,13 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/web/package.json ./apps/web/
-COPY apps/admin/package.json ./apps/admin/
-COPY packages/db/package.json ./packages/db/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/storage/package.json ./packages/storage/
-COPY packages/social/package.json ./packages/social/
+# Copy everything first
+COPY . .
 
 # Install dependencies
 RUN pnpm install
 
-# Copy source
-COPY . .
-
-# Build packages first, then apps
+# Build packages
 RUN pnpm --filter @madebuy/shared build || true
 RUN pnpm --filter @madebuy/db build || true
 RUN pnpm --filter @madebuy/storage build || true
@@ -45,7 +36,7 @@ COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy apps
+# Copy apps with standalone build
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/package.json ./apps/web/
