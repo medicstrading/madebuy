@@ -86,7 +86,7 @@ export function BrandingTab({
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Logo</h2>
-            <p className="text-sm text-gray-500">Your store's visual identity</p>
+            <p className="text-sm text-gray-500">Your store&apos;s visual identity</p>
           </div>
         </div>
 
@@ -154,7 +154,7 @@ export function BrandingTab({
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Colors</h2>
-            <p className="text-sm text-gray-500">Your brand's color palette</p>
+            <p className="text-sm text-gray-500">Your brand&apos;s color palette</p>
           </div>
         </div>
 

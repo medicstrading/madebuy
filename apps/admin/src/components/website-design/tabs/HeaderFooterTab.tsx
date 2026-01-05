@@ -160,7 +160,7 @@ export function HeaderFooterTab({
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-serif text-gray-900 mb-3">Header & Footer</h1>
-        <p className="text-gray-600 text-lg">Customize your site's navigation and footer.</p>
+        <p className="text-gray-600 text-lg">Customize your site&apos;s navigation and footer.</p>
       </div>
 
       {/* Header Section */}
@@ -296,7 +296,7 @@ export function HeaderFooterTab({
               onChange={(e) => onFooterChange({ ...footerConfig, showPoweredBy: e.target.checked })}
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">Show "Powered by MadeBuy"</span>
+            <span className="text-sm text-gray-700">Show &quot;Powered by MadeBuy&quot;</span>
           </label>
         </div>
       </section>
