@@ -15,7 +15,7 @@ COPY packages/storage/package.json ./packages/storage/
 COPY packages/social/package.json ./packages/social/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Copy source
 COPY . .
