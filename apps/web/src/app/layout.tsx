@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
+// Force dynamic rendering to prevent prerendering issues with context
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'MadeBuy - Handmade Marketplace',
   description: 'Discover unique handmade products from talented makers',
