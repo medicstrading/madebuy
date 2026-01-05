@@ -31,6 +31,12 @@ export {
   IMAGE_EXTENSIONS,
 } from './types'
 
+// Export typography constants
+export { TYPOGRAPHY_PRESETS, getTypographyConfig } from './constants/typography'
+
+// Export template utilities
+export { getDefaultPages, getDefaultSections } from './types/template'
+
 // Export subscription utilities
 export * from './lib/subscription'
 

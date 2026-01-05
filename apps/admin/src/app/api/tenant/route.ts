@@ -63,6 +63,8 @@ export async function PATCH(request: NextRequest) {
       'pinterest',
       'etsy',
       'websiteDesign',
+      'onboardingComplete',
+      'onboardingStep',
     ]
 
     // Filter to only allowed fields

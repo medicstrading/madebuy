@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, ExternalLink, Sparkles, FileText, Palette, Menu } from 'lucide-react'
+import { Loader2, ExternalLink, Globe, Sparkles, FileText, Palette, Menu } from 'lucide-react'
+import { DomainTab } from '@/components/website-design/tabs/DomainTab'
 import { TemplateTab } from '@/components/website-design/tabs/TemplateTab'
 import { ContentTab } from '@/components/website-design/tabs/ContentTab'
 import { BrandingTab } from '@/components/website-design/tabs/BrandingTab'
@@ -11,10 +12,11 @@ import type { Tenant, WebsitePage, WebsiteTemplate, HeaderConfig, FooterConfig }
 import type { TypographyPreset } from '@madebuy/shared/src/constants/typography'
 import { getDefaultPages, createCustomPage } from '@madebuy/shared/src/types/template'
 
-type TabId = 'template' | 'content' | 'branding' | 'header-footer'
+type TabId = 'domain' | 'template' | 'content' | 'branding' | 'header-footer'
 type ViewMode = 'tabs' | 'custom-builder'
 
 const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'domain', label: 'Your Domain', icon: Globe },
   { id: 'template', label: 'Choose Your Look', icon: Sparkles },
   { id: 'content', label: 'Your Content', icon: FileText },
   { id: 'branding', label: 'Your Brand', icon: Palette },
@@ -28,7 +30,7 @@ export default function WebsiteDesignPage() {
 
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>('tabs')
-  const [activeTab, setActiveTab] = useState<TabId>('template')
+  const [activeTab, setActiveTab] = useState<TabId>('domain')
 
   // Template & pages
   const [currentTemplate, setCurrentTemplate] = useState<WebsiteTemplate | null>(null)
@@ -253,6 +255,8 @@ export default function WebsiteDesignPage() {
               const isActive = activeTab === tab.id
               const isCompleted = (() => {
                 switch (tab.id) {
+                  case 'domain':
+                    return !!tenant?.customDomain
                   case 'template':
                     return !!currentTemplate || pages.length > 0
                   case 'content':
@@ -301,6 +305,10 @@ export default function WebsiteDesignPage() {
 
       {/* Tab Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {activeTab === 'domain' && (
+          <DomainTab tenant={tenant} />
+        )}
+
         {activeTab === 'template' && (
           <TemplateTab
             currentTemplate={currentTemplate}

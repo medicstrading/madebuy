@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Identity
 
-**MadeBuy** - Inventory management + social publishing for Australian makers
+**MadeBuy** - Inventory management + social publishing for makers
 - **Path:** ~/nuc-projects/madebuy
 - **Domain:** madebuy.com.au
 - **Tagline:** "Manage inventory, publish to social, sell from your storefront"

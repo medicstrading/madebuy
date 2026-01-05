@@ -26,7 +26,7 @@ const TEST_STORES = [
     accentColor: '#06b6d4',
     layout: 'minimal',
     typography: 'elegant',
-    plan: 'pro',
+    plan: 'maker',
   },
   {
     name: 'Eucalyptus & Thread',
@@ -38,7 +38,7 @@ const TEST_STORES = [
     accentColor: '#10b981',
     layout: 'masonry',
     typography: 'modern',
-    plan: 'business',
+    plan: 'professional',
   },
   {
     name: 'Outback Pottery',
@@ -50,7 +50,7 @@ const TEST_STORES = [
     accentColor: '#f59e0b',
     layout: 'grid',
     typography: 'classic',
-    plan: 'pro',
+    plan: 'maker',
   },
   {
     name: 'Sydney Canvas Co',
@@ -62,7 +62,7 @@ const TEST_STORES = [
     accentColor: '#8b5cf6',
     layout: 'featured',
     typography: 'bold',
-    plan: 'business',
+    plan: 'professional',
   },
   {
     name: 'Blackwood Designs',
@@ -74,7 +74,7 @@ const TEST_STORES = [
     accentColor: '#92400e',
     layout: 'minimal',
     typography: 'classic',
-    plan: 'pro',
+    plan: 'maker',
   },
   {
     name: 'Flame & Wax Studio',
@@ -86,7 +86,7 @@ const TEST_STORES = [
     accentColor: '#ec4899',
     layout: 'grid',
     typography: 'elegant',
-    plan: 'pro',
+    plan: 'maker',
   },
   {
     name: 'Pure Bush Soap',
@@ -98,7 +98,7 @@ const TEST_STORES = [
     accentColor: '#22c55e',
     layout: 'masonry',
     typography: 'minimal',
-    plan: 'business',
+    plan: 'professional',
   },
   {
     name: 'Tannery Road Leather',
@@ -110,7 +110,7 @@ const TEST_STORES = [
     accentColor: '#9a3412',
     layout: 'featured',
     typography: 'bold',
-    plan: 'pro',
+    plan: 'maker',
   },
   {
     name: 'Woven Dreams',
@@ -122,7 +122,7 @@ const TEST_STORES = [
     accentColor: '#ea580c',
     layout: 'grid',
     typography: 'modern',
-    plan: 'pro',
+    plan: 'maker',
   },
   {
     name: 'Little Batch Kitchen',
@@ -134,7 +134,7 @@ const TEST_STORES = [
     accentColor: '#dc2626',
     layout: 'minimal',
     typography: 'classic',
-    plan: 'business',
+    plan: 'professional',
   },
 ]
 
@@ -445,11 +445,11 @@ async function seedFullMarketplace() {
           socialPublishing: true,
           aiCaptions: true,
           multiChannelOrders: store.plan !== 'free',
-          advancedAnalytics: store.plan === 'business',
+          advancedAnalytics: store.plan === 'professional',
           unlimitedPieces: store.plan !== 'free',
           customDomain: store.plan !== 'free',
           marketplaceListing: true,
-          marketplaceFeatured: store.plan === 'business',
+          marketplaceFeatured: store.plan === 'professional',
         },
         plan: store.plan,
         status: 'active',

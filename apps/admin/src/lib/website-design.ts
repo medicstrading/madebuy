@@ -6,9 +6,9 @@ import type { Tenant, Plan } from '@madebuy/shared'
 
 /**
  * Website Design feature plan requirements:
- * - Free: Colors only
- * - Pro: Colors + Banner + Typography + Layout
- * - Business: Colors + Banner + Typography + Layout + Custom Sections + Blog
+ * - Free/Starter: Colors only
+ * - Maker: Colors + Banner + Typography + Layout
+ * - Professional/Studio: All features including Custom Sections + Blog
  */
 
 /**
@@ -18,39 +18,45 @@ export function canCustomizeColors(tenant: Tenant): boolean {
   return true // All plans
 }
 
+// Plans that have Maker-level access (layout, banner, typography)
+const MAKER_PLUS_PLANS: Plan[] = ['maker', 'professional', 'studio']
+
+// Plans that have Professional-level access (custom sections, blog)
+const PROFESSIONAL_PLUS_PLANS: Plan[] = ['professional', 'studio']
+
 /**
  * Check if tenant can customize banner
  */
 export function canCustomizeBanner(tenant: Tenant): boolean {
-  return tenant.plan === 'pro' || tenant.plan === 'business' || tenant.plan === 'enterprise'
+  return MAKER_PLUS_PLANS.includes(tenant.plan)
 }
 
 /**
  * Check if tenant can customize typography
  */
 export function canCustomizeTypography(tenant: Tenant): boolean {
-  return tenant.plan === 'pro' || tenant.plan === 'business' || tenant.plan === 'enterprise'
+  return MAKER_PLUS_PLANS.includes(tenant.plan)
 }
 
 /**
  * Check if tenant can customize layout
  */
 export function canCustomizeLayout(tenant: Tenant): boolean {
-  return tenant.plan === 'pro' || tenant.plan === 'business' || tenant.plan === 'enterprise'
+  return MAKER_PLUS_PLANS.includes(tenant.plan)
 }
 
 /**
  * Check if tenant can use custom sections
  */
 export function canUseCustomSections(tenant: Tenant): boolean {
-  return tenant.plan === 'business' || tenant.plan === 'enterprise'
+  return PROFESSIONAL_PLUS_PLANS.includes(tenant.plan)
 }
 
 /**
  * Check if tenant can use blog
  */
 export function canUseBlog(tenant: Tenant): boolean {
-  return tenant.plan === 'business' || tenant.plan === 'enterprise'
+  return PROFESSIONAL_PLUS_PLANS.includes(tenant.plan)
 }
 
 /**
@@ -65,7 +71,7 @@ export function getWebsiteDesignAccessLevel(tenant: Tenant): {
   canUseBlog: boolean
   plan: Plan
   upgradeRequired: boolean
-  upgradeTarget?: 'pro' | 'business'
+  upgradeTarget?: 'maker' | 'professional'
 } {
   const colors = canCustomizeColors(tenant)
   const banner = canCustomizeBanner(tenant)
@@ -75,11 +81,11 @@ export function getWebsiteDesignAccessLevel(tenant: Tenant): {
   const blog = canUseBlog(tenant)
 
   let upgradeRequired = false
-  let upgradeTarget: 'pro' | 'business' | undefined
+  let upgradeTarget: 'maker' | 'professional' | undefined
 
   if (tenant.plan === 'free') {
     upgradeRequired = true
-    upgradeTarget = 'pro'
+    upgradeTarget = 'maker'
   }
 
   return {
@@ -108,29 +114,27 @@ export function getWebsiteDesignUpgradeMessage(
   targetPlan: Plan
   price: string
 } {
-  const access = getWebsiteDesignAccessLevel(tenant)
-
-  // Pro features (banner, typography, layout)
+  // Maker features (banner, typography, layout)
   if (feature === 'banner' || feature === 'typography' || feature === 'layout') {
     if (tenant.plan === 'free') {
       return {
         title: 'Unlock Advanced Design Customization',
         description: 'Customize your storefront with hero banners, professional typography, and flexible layouts to match your brand.',
         ctaText: 'Upgrade to Maker',
-        targetPlan: 'pro',
+        targetPlan: 'maker',
         price: '$15/month',
       }
     }
   }
 
-  // Business features (custom sections, blog)
+  // Professional features (custom sections, blog)
   if (feature === 'sections' || feature === 'blog') {
-    if (tenant.plan === 'free' || tenant.plan === 'pro') {
+    if (tenant.plan === 'free' || tenant.plan === 'maker') {
       return {
         title: 'Unlock Custom Content & Blog',
         description: 'Build unique storefronts with flexible content sections and engage customers with an integrated blog.',
-        ctaText: tenant.plan === 'free' ? 'Upgrade to Professional' : 'Upgrade to Professional',
-        targetPlan: 'business',
+        ctaText: 'Upgrade to Professional',
+        targetPlan: 'professional',
         price: '$29/month',
       }
     }
@@ -149,7 +153,15 @@ export function getWebsiteDesignUpgradeMessage(
 /**
  * Website design feature limits by plan
  */
-export const WEBSITE_DESIGN_LIMITS = {
+export const WEBSITE_DESIGN_LIMITS: Record<Plan, {
+  colors: boolean
+  banner: boolean
+  typography: boolean
+  layout: boolean
+  customSections: boolean
+  blog: boolean
+  maxSections: number
+}> = {
   free: {
     colors: true,
     banner: false,
@@ -159,16 +171,16 @@ export const WEBSITE_DESIGN_LIMITS = {
     blog: false,
     maxSections: 0,
   },
-  pro: {
+  maker: {
     colors: true,
     banner: true,
     typography: true,
     layout: true,
     customSections: false,
     blog: false,
-    maxSections: 0,
+    maxSections: 10,
   },
-  business: {
+  professional: {
     colors: true,
     banner: true,
     typography: true,
@@ -177,7 +189,7 @@ export const WEBSITE_DESIGN_LIMITS = {
     blog: true,
     maxSections: 20,
   },
-  enterprise: {
+  studio: {
     colors: true,
     banner: true,
     typography: true,
@@ -186,7 +198,7 @@ export const WEBSITE_DESIGN_LIMITS = {
     blog: true,
     maxSections: Infinity,
   },
-} as const
+}
 
 /**
  * Validate website design update request

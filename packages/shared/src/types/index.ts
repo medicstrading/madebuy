@@ -29,6 +29,7 @@ export * from './payment'
 export * from './template'
 export * from './transaction'
 export * from './payout'
+export * from './scanner'
 
 // Re-export commonly used types for convenience
 export type {
@@ -264,6 +265,21 @@ export type {
   PayoutListOptions,
   PayoutSummary,
 } from './payout'
+
+export type {
+  ExtractedDesign,
+  DesignImportState,
+  DesignImportStatus,
+  DomainOnboardingState,
+  DomainOnboardingStatus,
+  DnsRecord,
+  NavItem,
+  NavStructure,
+  SectionType,
+  DetectedSection,
+  TemplateRecommendation,
+  PreviewConfig,
+} from './scanner'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)

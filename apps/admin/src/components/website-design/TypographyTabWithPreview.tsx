@@ -241,7 +241,7 @@ export function TypographyTabWithPreview() {
 
       {/* Live Preview */}
       <div className="lg:block">
-        <PreviewPanel mode="typography" typography={selectedPreset} />
+        <PreviewPanel tenantSlug={tenant?.slug} />
       </div>
     </div>
     </DesignFeatureGate>

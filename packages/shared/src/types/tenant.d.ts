@@ -32,7 +32,7 @@ export interface Tenant {
     updatedAt: Date;
 }
 export type DomainStatus = 'none' | 'pending_nameservers' | 'active';
-export type Plan = 'free' | 'pro' | 'enterprise';
+export type Plan = 'free' | 'maker' | 'professional' | 'studio';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due';
 export interface SocialConnection {
     platform: SocialPlatform;

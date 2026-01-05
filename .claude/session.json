@@ -1,37 +1,27 @@
 {
   "project_name": "madebuy",
-  "last_task": "Link audit - created 9 pages, fixed 3 broken links",
+  "last_task": "Fixed deployment build errors for Vercel",
   "status": "done",
   "current_branch": "main",
   "notes": [
-    "Created missing pages: pricing, sellers, new, about, help, contact, terms, privacy, seller-stories",
-    "Fixed MegaMenu subcategory links (query params), seller social links (conditional), storefront View all",
-    "Link audit report: .claude/link-audit-2026-01-02.md",
-    "Performance report: .claude/perf-report-2026-01-02.md"
+    "Merged feature/inventory-pivot to main (267 files, 36k lines removed)",
+    "Fixed 22 files for Vercel deployment",
+    "Added dynamic='force-dynamic' to skip static prerendering",
+    "Removed process.cwd() from API routes (R2 only)",
+    "Fixed TypeScript null checks for useSearchParams/usePathname",
+    "Added error.tsx, not-found.tsx, pages/_error.tsx",
+    "Both admin and web apps build successfully",
+    "Pushed to GitHub at commit f6caa06"
   ],
   "recent_files": [
-    "apps/web/src/app/pricing/page.tsx",
-    "apps/web/src/app/marketplace/sellers/page.tsx",
-    "apps/web/src/app/help/page.tsx",
-    "apps/web/src/components/marketplace/MegaMenu.tsx",
-    ".claude/link-audit-2026-01-02.md"
+    "apps/admin/src/app/layout.tsx",
+    "apps/admin/src/app/not-found.tsx",
+    "apps/web/src/app/error.tsx",
+    "apps/admin/src/components/dashboard/Sidebar.tsx"
   ],
   "dev_urls": {
     "marketplace": "http://madebuy.nuc",
-    "admin": "http://madebuy-admin.nuc",
-    "tenant_storefront": "http://madebuy.nuc/admin-test"
+    "admin": "http://madebuy-admin.nuc"
   },
-  "test_account": {
-    "email": "admin@test.com",
-    "password": "admin123",
-    "plan": "business"
-  },
-  "key_decisions": {
-    "stripe": "Express accounts - Stripe handles KYC",
-    "fees_au": "1.7% + $0.30 domestic, 3.5% + $0.30 international",
-    "platform_fees": "Zero - MadeBuy differentiator",
-    "shipping": "Sendle for MVP (Australian carbon-neutral)",
-    "accounting": "Xero primary (Phase 3 COMPLETE)"
-  },
-  "updated_at": "2026-01-02T20:45:00Z"
+  "updated_at": "2026-01-03T05:45:00Z"
 }

@@ -121,7 +121,7 @@ export async function getSubscriptionSummary(tenant: Tenant) {
  * Get the next plan in the upgrade path
  */
 function getNextPlan(currentPlan: Plan): Plan {
-  const planOrder: Plan[] = ['free', 'pro', 'business', 'enterprise']
+  const planOrder: Plan[] = ['free', 'maker', 'professional', 'studio']
   const currentIndex = planOrder.indexOf(currentPlan)
 
   if (currentIndex < planOrder.length - 1) {

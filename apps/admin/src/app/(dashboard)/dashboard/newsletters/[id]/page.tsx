@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Send, Eye } from 'lucide-react'
+import { sanitizeHtml } from '@madebuy/shared'
 import type { Newsletter } from '@madebuy/shared'
 
 export default function EditNewsletterPage() {
@@ -129,7 +130,7 @@ export default function EditNewsletterPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div
             className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: newsletter.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(newsletter.content) }}
           />
         </div>
       </div>
@@ -193,7 +194,7 @@ export default function EditNewsletterPage() {
           </div>
           <div
             className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: formData.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.content) }}
           />
         </div>
       ) : (

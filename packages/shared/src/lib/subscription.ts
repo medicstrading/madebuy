@@ -43,7 +43,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     apiAccess: false,
     teamMembers: 1,
   },
-  pro: {
+  maker: {
     pieces: 50,
     mediaPerPiece: 8,
     storageMB: 500,
@@ -58,7 +58,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     apiAccess: false,
     teamMembers: 1,
   },
-  business: {
+  professional: {
     pieces: 200,
     mediaPerPiece: 15,
     storageMB: 2048, // 2GB
@@ -73,7 +73,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     apiAccess: false,
     teamMembers: 1,
   },
-  enterprise: {
+  studio: {
     pieces: -1, // Unlimited
     mediaPerPiece: 30,
     storageMB: 10240, // 10GB
@@ -92,16 +92,16 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 
 export const PLAN_PRICES: Record<Plan, { monthly: number; yearly: number }> = {
   free: { monthly: 0, yearly: 0 },
-  pro: { monthly: 15, yearly: 150 }, // Save $30/year
-  business: { monthly: 29, yearly: 290 }, // Save $58/year
-  enterprise: { monthly: 59, yearly: 590 }, // Save $118/year
+  maker: { monthly: 15, yearly: 150 }, // Save $30/year
+  professional: { monthly: 29, yearly: 290 }, // Save $58/year
+  studio: { monthly: 59, yearly: 590 }, // Save $118/year
 }
 
 export const PLAN_NAMES: Record<Plan, string> = {
   free: 'Starter',
-  pro: 'Maker',
-  business: 'Professional',
-  enterprise: 'Studio',
+  maker: 'Maker',
+  professional: 'Professional',
+  studio: 'Studio',
 }
 
 /**
@@ -177,7 +177,7 @@ export function getFeaturesForPlan(plan: Plan): TenantFeatures {
  * Get required plan for a feature
  */
 export function getRequiredPlanForFeature(feature: keyof TenantFeatures): Plan {
-  const planOrder: Plan[] = ['free', 'pro', 'business', 'enterprise']
+  const planOrder: Plan[] = ['free', 'maker', 'professional', 'studio']
 
   for (const plan of planOrder) {
     const features = getFeaturesForPlan(plan)
@@ -186,14 +186,14 @@ export function getRequiredPlanForFeature(feature: keyof TenantFeatures): Plan {
     }
   }
 
-  return 'enterprise' // Default to highest tier
+  return 'studio' // Default to highest tier
 }
 
 /**
  * Compare plans (returns -1, 0, or 1)
  */
 export function comparePlans(planA: Plan, planB: Plan): number {
-  const order: Record<Plan, number> = { free: 0, pro: 1, business: 2, enterprise: 3 }
+  const order: Record<Plan, number> = { free: 0, maker: 1, professional: 2, studio: 3 }
   return order[planA] - order[planB]
 }
 

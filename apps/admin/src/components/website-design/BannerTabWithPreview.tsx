@@ -389,7 +389,7 @@ export function BannerTabWithPreview() {
 
       {/* Live Preview */}
       <div className="lg:block">
-        <PreviewPanel mode="banner" banner={banner} />
+        <PreviewPanel tenantSlug={tenant?.slug} />
       </div>
     </div>
     </DesignFeatureGate>

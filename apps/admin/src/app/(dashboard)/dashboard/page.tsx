@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { requireTenant } from '@/lib/session'
 import { Package, Image, ShoppingCart, Mail, TrendingUp, TrendingDown, Plus, Share, Settings, ArrowRight, Eye, Star, Clock } from 'lucide-react'
 import { pieces, media, orders, enquiries } from '@madebuy/db'
@@ -30,6 +31,12 @@ const getCachedDashboardStats = unstable_cache(
 
 export default async function DashboardPage() {
   const tenant = await requireTenant()
+
+  // Redirect to onboarding if not completed
+  if (tenant.onboardingComplete !== true) {
+    redirect('/dashboard/onboarding')
+  }
+
   const stats = await getCachedDashboardStats(tenant.id)
 
   return (

@@ -22,7 +22,7 @@ const PLANS = [
     color: 'gray',
   },
   {
-    id: 'pro',
+    id: 'maker',
     name: 'Maker',
     price: 15,
     yearlyPrice: 150,
@@ -40,7 +40,7 @@ const PLANS = [
     popular: true,
   },
   {
-    id: 'business',
+    id: 'professional',
     name: 'Professional',
     price: 29,
     yearlyPrice: 290,
@@ -58,7 +58,7 @@ const PLANS = [
     color: 'purple',
   },
   {
-    id: 'enterprise',
+    id: 'studio',
     name: 'Studio',
     price: 59,
     yearlyPrice: 590,

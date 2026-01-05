@@ -248,9 +248,9 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
 
 // Map Stripe Price IDs to plans (inverse of what's in billing/checkout)
 const PRICE_ID_TO_PLAN: Record<string, Plan> = {
-  [process.env.STRIPE_PRICE_MAKER_MONTHLY || '']: 'pro',
-  [process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || '']: 'business',
-  [process.env.STRIPE_PRICE_STUDIO_MONTHLY || '']: 'enterprise',
+  [process.env.STRIPE_PRICE_MAKER_MONTHLY || '']: 'maker',
+  [process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || '']: 'professional',
+  [process.env.STRIPE_PRICE_STUDIO_MONTHLY || '']: 'studio',
 }
 
 /**

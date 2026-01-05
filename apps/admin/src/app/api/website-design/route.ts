@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
-import { validateWebsiteDesignUpdate, canUseBlog } from '@/lib/website-design'
+import { validateWebsiteDesignUpdate, canUseBlog, canCustomizeLayout } from '@/lib/website-design'
 
 export async function GET() {
   try {
@@ -48,7 +48,20 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { primaryColor, accentColor, banner, typography, layout, layoutContent, blog } = body
+    const {
+      primaryColor,
+      accentColor,
+      banner,
+      typography,
+      layout,
+      layoutContent,
+      blog,
+      // New multi-page fields
+      template,
+      pages,
+      header,
+      footer,
+    } = body
 
     // Get current tenant to merge websiteDesign
     const tenant = await tenants.getTenantById(user.id)
@@ -56,6 +69,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         { error: 'Tenant not found' },
         { status: 404 }
+      )
+    }
+
+    // Validate plan access for template/pages (requires Pro+)
+    if ((template !== undefined || pages !== undefined) && !canCustomizeLayout(tenant)) {
+      return NextResponse.json(
+        { error: 'Template customization requires Pro plan or higher.' },
+        { status: 403 }
       )
     }
 
@@ -86,7 +107,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Build update object
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
 
     if (primaryColor) {
       updateData.primaryColor = primaryColor
@@ -98,8 +119,26 @@ export async function PATCH(request: NextRequest) {
 
     // Merge websiteDesign fields
     const currentDesign = tenant.websiteDesign || {}
-    const updatedDesign: any = { ...currentDesign }
+    const updatedDesign: Record<string, unknown> = { ...currentDesign }
 
+    // New multi-page system fields
+    if (template !== undefined) {
+      updatedDesign.template = template
+    }
+
+    if (pages !== undefined) {
+      updatedDesign.pages = pages
+    }
+
+    if (header !== undefined) {
+      updatedDesign.header = header
+    }
+
+    if (footer !== undefined) {
+      updatedDesign.footer = footer
+    }
+
+    // Legacy fields (kept for backward compatibility)
     if (banner !== undefined) {
       updatedDesign.banner = banner
     }
@@ -120,8 +159,19 @@ export async function PATCH(request: NextRequest) {
       updatedDesign.blog = blog
     }
 
-    // Only update websiteDesign if any field changed
-    if (banner !== undefined || typography !== undefined || layout !== undefined || layoutContent !== undefined || blog !== undefined) {
+    // Check if any websiteDesign field changed
+    const hasDesignChanges =
+      template !== undefined ||
+      pages !== undefined ||
+      header !== undefined ||
+      footer !== undefined ||
+      banner !== undefined ||
+      typography !== undefined ||
+      layout !== undefined ||
+      layoutContent !== undefined ||
+      blog !== undefined
+
+    if (hasDesignChanges) {
       updateData.websiteDesign = updatedDesign
     }
 

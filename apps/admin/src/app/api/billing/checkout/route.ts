@@ -11,16 +11,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Stripe Price IDs for each plan (configured in Stripe Dashboard)
 // These should match the prices you create in Stripe
 const STRIPE_PRICE_IDS: Partial<Record<Plan, string>> = {
-  pro: process.env.STRIPE_PRICE_MAKER_MONTHLY,
-  business: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY,
-  enterprise: process.env.STRIPE_PRICE_STUDIO_MONTHLY,
+  maker: process.env.STRIPE_PRICE_MAKER_MONTHLY,
+  professional: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY,
+  studio: process.env.STRIPE_PRICE_STUDIO_MONTHLY,
 }
 
 const PLAN_TO_DISPLAY_NAME: Record<Plan, string> = {
   free: 'Starter',
-  pro: 'Maker',
-  business: 'Professional',
-  enterprise: 'Studio',
+  maker: 'Maker',
+  professional: 'Professional',
+  studio: 'Studio',
 }
 
 /**
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const { planId } = await request.json()
 
     // Validate plan
-    if (!planId || !['pro', 'business', 'enterprise'].includes(planId)) {
+    if (!planId || !['maker', 'professional', 'studio'].includes(planId)) {
       return NextResponse.json(
         { error: 'Invalid plan selected' },
         { status: 400 }

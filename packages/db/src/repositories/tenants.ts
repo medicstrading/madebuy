@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Tenant, StripeConnectStatus, PayPalConnectStatus, TenantPaymentConfig } from '@madebuy/shared'
+import type { Tenant, StripeConnectStatus, PayPalConnectStatus, TenantPaymentConfig, OnboardingStep } from '@madebuy/shared'
 
 export async function createTenant(email: string, passwordHash: string, businessName: string): Promise<Tenant> {
   const db = await getDatabase()
@@ -30,6 +30,8 @@ export async function createTenant(email: string, passwordHash: string, business
       advancedAnalytics: false,
     },
     plan: 'free',
+    onboardingComplete: false,
+    onboardingStep: 'domain',
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -477,4 +479,53 @@ export async function getAllTenants(): Promise<Tenant[]> {
   const db = await getDatabase()
   const results = await db.collection('tenants').find({}).toArray()
   return results as unknown as Tenant[]
+}
+
+// =============================================================================
+// ONBOARDING
+// =============================================================================
+
+/**
+ * Update onboarding step for a tenant
+ */
+export async function updateOnboardingStep(
+  tenantId: string,
+  step: OnboardingStep
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        onboardingStep: step,
+        updatedAt: new Date()
+      }
+    }
+  )
+}
+
+/**
+ * Mark onboarding as complete
+ */
+export async function completeOnboarding(tenantId: string): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('tenants').updateOne(
+    { id: tenantId },
+    {
+      $set: {
+        onboardingComplete: true,
+        onboardingStep: 'complete',
+        updatedAt: new Date()
+      }
+    }
+  )
+}
+
+/**
+ * Check if tenant needs onboarding
+ */
+export async function needsOnboarding(tenantId: string): Promise<boolean> {
+  const tenant = await getTenantById(tenantId)
+  if (!tenant) return false
+  return tenant.onboardingComplete !== true
 }

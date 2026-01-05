@@ -5,8 +5,10 @@ import { HexColorPicker, HexColorInput } from 'react-colorful'
 import { Loader2 } from 'lucide-react'
 import { PreviewPanel } from './PreviewPanel'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import type { Tenant } from '@madebuy/shared'
 
 export function ColorsTabWithPreview() {
+  const [tenant, setTenant] = useState<Tenant | null>(null)
   const [primaryColor, setPrimaryColor] = useState('#2563eb')
   const [accentColor, setAccentColor] = useState('#10b981')
   const [isSaving, setIsSaving] = useState(false)
@@ -20,6 +22,7 @@ export function ColorsTabWithPreview() {
         const response = await fetch('/api/tenant')
         if (response.ok) {
           const data = await response.json()
+          setTenant(data)
           setPrimaryColor(data.primaryColor || '#2563eb')
           setAccentColor(data.accentColor || '#10b981')
         }
@@ -210,11 +213,7 @@ export function ColorsTabWithPreview() {
 
       {/* Live Preview */}
       <div className="lg:block">
-        <PreviewPanel
-          mode="colors"
-          primaryColor={primaryColor}
-          accentColor={accentColor}
-        />
+        <PreviewPanel tenantSlug={tenant?.slug} />
       </div>
     </div>
   )

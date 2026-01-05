@@ -1,10 +1,13 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function LoginPage() {
+  const searchParams = useSearchParams()
+  const justRegistered = searchParams?.get('registered') === 'true'
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -44,6 +47,12 @@ export default function LoginPage() {
           <p className="text-gray-600 text-center mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {justRegistered && (
+              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+                Account created! Please sign in.
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
                 {error}
@@ -88,6 +97,13 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="text-blue-600 hover:text-blue-800 font-medium">
+              Create one
+            </Link>
+          </p>
         </div>
       </div>
     </div>

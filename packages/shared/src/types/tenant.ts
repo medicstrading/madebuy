@@ -72,7 +72,7 @@ export interface Tenant {
 }
 
 export type DomainStatus = 'none' | 'pending_nameservers' | 'active'
-export type Plan = 'free' | 'pro' | 'business' | 'enterprise'
+export type Plan = 'free' | 'maker' | 'professional' | 'studio'
 export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due'
 
 export interface SocialConnection {
