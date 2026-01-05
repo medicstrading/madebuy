@@ -8,7 +8,8 @@ WORKDIR /app
 # Copy everything first
 COPY . .
 
-# Install dependencies
+# Install ALL dependencies (dev + prod) for build
+ENV NODE_ENV=development
 RUN pnpm install
 
 # Build packages
