@@ -6,11 +6,18 @@ import type { WebsiteTemplate, WebsitePage, PageSection, HeaderConfig, FooterCon
  * Tenant - Multi-tenant user/shop owner
  */
 
+// Onboarding step type
+export type OnboardingStep = 'domain' | 'design' | 'complete'
+
 export interface Tenant {
   id: string
   slug: string // Username/subdomain for storefront
   email: string
   passwordHash: string
+
+  // Onboarding
+  onboardingComplete?: boolean
+  onboardingStep?: OnboardingStep
 
   // Profile
   businessName: string

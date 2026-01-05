@@ -37,6 +37,7 @@ export type {
   SocialConnection,
   SocialPlatform,
   TenantFeatures,
+  OnboardingStep,
 } from './tenant'
 
 export type {
