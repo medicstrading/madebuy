@@ -12,8 +12,6 @@ COPY apps/admin/package.json ./apps/admin/
 COPY packages/db/package.json ./packages/db/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/storage/package.json ./packages/storage/
-COPY packages/cloudflare/package.json ./packages/cloudflare/
-COPY packages/scanner/package.json ./packages/scanner/
 COPY packages/social/package.json ./packages/social/
 
 # Install dependencies
@@ -26,8 +24,6 @@ COPY . .
 RUN pnpm --filter @madebuy/shared build || true
 RUN pnpm --filter @madebuy/db build || true
 RUN pnpm --filter @madebuy/storage build || true
-RUN pnpm --filter @madebuy/cloudflare build || true
-RUN pnpm --filter @madebuy/scanner build || true
 RUN pnpm --filter @madebuy/social build || true
 
 # Build apps
