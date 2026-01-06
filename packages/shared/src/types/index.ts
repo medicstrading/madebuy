@@ -38,6 +38,7 @@ export type {
   SocialPlatform,
   TenantFeatures,
   OnboardingStep,
+  SendleSettings,
 } from './tenant'
 
 export type {

@@ -69,6 +69,7 @@ export interface Tenant {
 
   // Shipping configuration
   shippingMethods?: TenantShippingMethod[]
+  sendleSettings?: SendleSettings
 
   // Payment provider configuration (Stripe Connect, PayPal)
   paymentConfig?: TenantPaymentConfig
@@ -292,4 +293,13 @@ export interface TenantShippingMethod {
   estimatedDays: { min: number; max: number }
   countries: string[]
   enabled: boolean
+}
+
+// Sendle shipping integration settings
+export interface SendleSettings {
+  apiKey?: string  // Encrypted API key
+  senderId?: string  // Sendle Account ID
+  isConnected: boolean  // Whether credentials have been validated
+  connectedAt?: Date  // When credentials were last verified
+  environment: 'sandbox' | 'production'  // Which Sendle environment to use
 }
