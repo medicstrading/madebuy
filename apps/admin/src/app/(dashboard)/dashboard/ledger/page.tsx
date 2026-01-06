@@ -7,7 +7,7 @@ import type { TransactionType, TransactionStatus, TransactionFilters } from '@ma
 import { DateFilter } from './DateFilter'
 
 interface PageProps {
-  searchParams: { page?: string; startDate?: string; endDate?: string }
+  searchParams: { page?: string; startDate?: string; endDate?: string; type?: string }
 }
 
 const PAGE_SIZE = 50
@@ -17,7 +17,7 @@ export default async function LedgerPage({ searchParams }: PageProps) {
   const page = parseInt(searchParams.page || '1', 10)
   const offset = (page - 1) * PAGE_SIZE
 
-  // Parse date filters from URL params
+  // Parse filters from URL params
   const filters: TransactionFilters = {}
   if (searchParams.startDate) {
     filters.startDate = new Date(searchParams.startDate)
@@ -28,10 +28,14 @@ export default async function LedgerPage({ searchParams }: PageProps) {
     endDate.setHours(23, 59, 59, 999)
     filters.endDate = endDate
   }
+  if (searchParams.type) {
+    filters.type = searchParams.type as TransactionType
+  }
 
   // Fetch balance and transactions in parallel
+  // Pass filters to balance so summary cards update with the filter
   const [balance, allTransactions, totalCount] = await Promise.all([
-    transactions.getTenantBalance(tenant.id),
+    transactions.getTenantBalance(tenant.id, filters),
     transactions.listTransactions(tenant.id, {
       filters,
       limit: PAGE_SIZE,
@@ -370,7 +374,7 @@ function Pagination({
   totalCount: number
   offset: number
   pageSize: number
-  searchParams: { startDate?: string; endDate?: string }
+  searchParams: { startDate?: string; endDate?: string; type?: string }
 }) {
   // Build URL with preserved filters
   const buildUrl = (newPage: number) => {
@@ -378,6 +382,7 @@ function Pagination({
     params.set('page', String(newPage))
     if (searchParams.startDate) params.set('startDate', searchParams.startDate)
     if (searchParams.endDate) params.set('endDate', searchParams.endDate)
+    if (searchParams.type) params.set('type', searchParams.type)
     return `/dashboard/ledger?${params.toString()}`
   }
 

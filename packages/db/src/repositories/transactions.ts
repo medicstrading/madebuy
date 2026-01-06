@@ -156,12 +156,29 @@ export async function updateTransactionStatus(
 
 /**
  * Get tenant's current balance and totals
+ * Optionally filtered by date range and transaction type
  */
-export async function getTenantBalance(tenantId: string): Promise<TenantBalance> {
+export async function getTenantBalance(
+  tenantId: string,
+  filters?: TransactionFilters
+): Promise<TenantBalance> {
   const db = await getDatabase()
 
+  // Build the match query
+  const matchQuery: any = { tenantId, status: 'completed' }
+
+  if (filters?.startDate || filters?.endDate) {
+    matchQuery.createdAt = {}
+    if (filters.startDate) matchQuery.createdAt.$gte = filters.startDate
+    if (filters.endDate) matchQuery.createdAt.$lte = filters.endDate
+  }
+
+  if (filters?.type) {
+    matchQuery.type = Array.isArray(filters.type) ? { $in: filters.type } : filters.type
+  }
+
   const result = await db.collection('transactions').aggregate([
-    { $match: { tenantId, status: 'completed' } },
+    { $match: matchQuery },
     {
       $group: {
         _id: null,
