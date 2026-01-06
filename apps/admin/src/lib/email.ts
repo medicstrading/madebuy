@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 import type { Tenant, Newsletter, NewsletterTemplate, Order } from '@madebuy/shared'
-import { renderShippedEmail } from '@madebuy/shared/email'
+import { renderShippedEmail } from '@madebuy/shared'
 
 let resend: Resend | null = null
 
