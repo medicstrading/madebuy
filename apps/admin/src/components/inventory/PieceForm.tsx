@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Material } from '@madebuy/shared'
-import { Plus, Trash2, Calculator, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Calculator, Loader2, Package } from 'lucide-react'
 import { useTenantCategories, FALLBACK_PRODUCT_CATEGORIES } from '@/hooks/useTenantCategories'
 
 interface PieceFormProps {
@@ -36,6 +36,11 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
     price: piece?.price || 0,
     currency: piece?.currency || 'AUD',
     stock: piece?.stock || undefined,
+    // Shipping dimensions
+    shippingWeight: piece?.shippingWeight || undefined,
+    shippingLength: piece?.shippingLength || undefined,
+    shippingWidth: piece?.shippingWidth || undefined,
+    shippingHeight: piece?.shippingHeight || undefined,
   })
 
   // Material usage tracking
@@ -52,9 +57,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+    const numericFields = ['price', 'stock', 'shippingWeight', 'shippingLength', 'shippingWidth', 'shippingHeight']
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'price' || name === 'stock'
+      [name]: numericFields.includes(name)
         ? (value === '' ? undefined : parseFloat(value))
         : value
     }))
@@ -269,6 +275,95 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Shipping Dimensions */}
+      <div className="rounded-lg bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <Package className="h-5 w-5 text-gray-600" />
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Shipping Dimensions</h2>
+            <p className="text-sm text-gray-600">Used for calculating shipping costs at checkout</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          {/* Weight */}
+          <div>
+            <label htmlFor="shippingWeight" className="block text-sm font-medium text-gray-700 mb-1">
+              Weight (grams)
+            </label>
+            <input
+              type="number"
+              id="shippingWeight"
+              name="shippingWeight"
+              value={formData.shippingWeight || ''}
+              onChange={handleChange}
+              min="0"
+              step="1"
+              placeholder="e.g., 250"
+              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Length */}
+          <div>
+            <label htmlFor="shippingLength" className="block text-sm font-medium text-gray-700 mb-1">
+              Length (cm)
+            </label>
+            <input
+              type="number"
+              id="shippingLength"
+              name="shippingLength"
+              value={formData.shippingLength || ''}
+              onChange={handleChange}
+              min="0"
+              step="0.5"
+              placeholder="e.g., 20"
+              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Width */}
+          <div>
+            <label htmlFor="shippingWidth" className="block text-sm font-medium text-gray-700 mb-1">
+              Width (cm)
+            </label>
+            <input
+              type="number"
+              id="shippingWidth"
+              name="shippingWidth"
+              value={formData.shippingWidth || ''}
+              onChange={handleChange}
+              min="0"
+              step="0.5"
+              placeholder="e.g., 15"
+              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Height */}
+          <div>
+            <label htmlFor="shippingHeight" className="block text-sm font-medium text-gray-700 mb-1">
+              Height (cm)
+            </label>
+            <input
+              type="number"
+              id="shippingHeight"
+              name="shippingHeight"
+              value={formData.shippingHeight || ''}
+              onChange={handleChange}
+              min="0"
+              step="0.5"
+              placeholder="e.g., 5"
+              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <p className="mt-3 text-xs text-gray-500">
+          Leave blank to use default dimensions for shipping quotes. Accurate dimensions help provide better shipping rates.
+        </p>
       </div>
 
       {/* Material Usage */}

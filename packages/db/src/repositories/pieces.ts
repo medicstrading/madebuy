@@ -36,6 +36,11 @@ export async function createPiece(tenantId: string, data: CreatePieceInput): Pro
     dimensions: data.dimensions,
     weight: data.weight,
     chainLength: data.chainLength,
+    // Shipping dimensions
+    shippingWeight: data.shippingWeight,
+    shippingLength: data.shippingLength,
+    shippingWidth: data.shippingWidth,
+    shippingHeight: data.shippingHeight,
     price: data.price,
     currency: data.currency || 'AUD',
     cogs: undefined,
