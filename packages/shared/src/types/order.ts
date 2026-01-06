@@ -62,6 +62,12 @@ export interface Order {
   status: OrderStatus
   trackingNumber?: string
   carrier?: string
+  trackingUrl?: string
+
+  // Sendle shipping integration
+  sendleOrderId?: string        // Sendle's internal order ID
+  sendleReference?: string      // Sendle tracking reference (e.g., SNDLE123)
+  labelUrl?: string             // URL to download shipping label PDF
 
   // Digital product delivery
   hasDigitalItems?: boolean       // Order contains at least one digital product

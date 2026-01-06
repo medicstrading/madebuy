@@ -1,7 +1,8 @@
 import { requireTenant } from '@/lib/session'
 import { orders } from '@madebuy/db'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { ShoppingCart, Package, Truck, CheckCircle } from 'lucide-react'
+import { ShoppingCart, Package, Truck, CheckCircle, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function OrdersPage() {
   const tenant = await requireTenant()
@@ -57,14 +58,19 @@ export default async function OrdersPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   Date
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <span className="sr-only">View</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {allOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
+                <tr key={order.id} className="hover:bg-gray-50 group">
                   <td className="whitespace-nowrap px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{order.orderNumber}</div>
-                    <div className="text-xs text-gray-500">{order.items.length} items</div>
+                    <Link href={`/dashboard/orders/${order.id}`} className="block">
+                      <div className="text-sm font-medium text-blue-600 group-hover:text-blue-800">{order.orderNumber}</div>
+                      <div className="text-xs text-gray-500">{order.items.length} items</div>
+                    </Link>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">{order.customerName}</div>
@@ -81,6 +87,14 @@ export default async function OrdersPage() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                     {formatDate(order.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-right">
+                    <Link
+                      href={`/dashboard/orders/${order.id}`}
+                      className="text-gray-400 group-hover:text-gray-600"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Link>
                   </td>
                 </tr>
               ))}

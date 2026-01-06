@@ -31,6 +31,20 @@
 - Auto-generates fallback flat-rate options when Sendle isn't configured
 - Includes freeShippingEligible flag for future free shipping threshold support
 
+### Feature #5: Shipping Quote Fallback on API Error ✅
+- Already implemented in Feature #4 - graceful fallback to flat-rate when Sendle fails
+- Returns user-friendly message with fallback shipping options
+
+### Feature #6: Generate Shipping Label for Order ✅
+- Created POST `/api/orders/[id]/ship` endpoint for label generation
+- Creates Sendle shipping order via API
+- Updates order with tracking number, tracking URL, and label PDF URL
+- Sets order status to 'shipped' and records shippedAt timestamp
+- Added Sendle-specific fields to Order type (sendleOrderId, sendleReference, labelUrl, trackingUrl)
+- Created order detail page at `/dashboard/orders/[id]`
+- Added ShippingActions component with "Generate Shipping Label" button
+- Added clickable order rows in orders list to navigate to detail page
+
 ## Git Commits This Session
 - `ed4e932` - feat: Implement Sendle API integration for shipping
 - `2fad2e9` - feat: Add shipping quote endpoint and product dimensions
@@ -50,9 +64,9 @@
 
 ## Current Statistics
 - Total features: 294
-- Passing: 4
+- Passing: 6
 - In Progress: 0
-- Completion: 1.4%
+- Completion: 2.0%
 
 ## Issues Encountered
 - Browser automation blocked by stale lock file at ~/.cache/ms-playwright/mcp-chrome-3946f37
@@ -60,11 +74,11 @@
 - Workaround: Used curl to verify API endpoints work
 
 ## Next Steps
-1. Continue with Feature #5 and remaining shipping features
+1. Continue with Feature #7 and remaining shipping features
 2. Once all shipping features done, move to Financial Reporting
 
 ## Priority Order (from app_spec.txt)
-1. Shipping Integration (in progress) - 4/~40 features
+1. Shipping Integration (in progress) - 6/~40 features
 2. Financial Reporting (pending)
 3. Reviews System (pending)
 4. Wishlist (pending)
