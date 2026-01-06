@@ -10,6 +10,7 @@ export {
   getFromR2,
   getPublicUrl,
   getSignedUrl,
+  putToR2,
   type UploadOptions as R2UploadOptions,
 } from './r2'
 

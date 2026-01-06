@@ -121,3 +121,41 @@ export async function getSignedUrl(key: string, expiresIn: number = 3600): Promi
 
   return await awsGetSignedUrl(r2Client, command, { expiresIn })
 }
+
+/**
+ * Store data in R2 with a deterministic key (for caching)
+ * @param key - Exact key to use (no nanoid prefix)
+ * @param buffer - Data to store
+ * @param contentType - MIME type
+ * @param metadata - Optional metadata
+ */
+export async function putToR2(
+  key: string,
+  buffer: Buffer,
+  contentType: string,
+  metadata?: Record<string, string>
+): Promise<void> {
+  // Validate content type
+  if (!ALLOWED_TYPES.includes(contentType)) {
+    throw new Error(`Invalid file type: ${contentType}. Allowed types: ${ALLOWED_TYPES.join(', ')}`)
+  }
+
+  // Sanitize metadata keys and values
+  const sanitizedMetadata = metadata
+    ? Object.fromEntries(
+        Object.entries(metadata)
+          .filter(([k, v]) => typeof k === 'string' && typeof v === 'string')
+          .map(([k, v]) => [k.slice(0, 100), v.slice(0, 500)])
+      )
+    : undefined
+
+  const command = new PutObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+    Metadata: sanitizedMetadata,
+  })
+
+  await r2Client.send(command)
+}

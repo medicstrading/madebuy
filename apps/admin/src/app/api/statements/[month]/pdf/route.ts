@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { transactions, tenants } from '@madebuy/db'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { putToR2, getFromR2 } from '@madebuy/storage'
 import type { TransactionSummary, Tenant } from '@madebuy/shared'
 
 /**
  * GET /api/statements/[month]/pdf
  * Generate a monthly financial statement PDF
+ * Uses R2 caching - regenerates when transaction count changes
  *
  * @param month - Format: YYYY-MM (e.g., 2024-01)
  */
@@ -44,6 +46,36 @@ export async function GET(
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
+    // Get transaction count for cache invalidation
+    const transactionCount = await transactions.countTransactions(tenant.id, {
+      startDate,
+      endDate
+    })
+
+    // Check R2 cache - key includes tenant, month, and transaction count for automatic invalidation
+    const cacheKey = `statements/${tenant.id}/statement-${monthParam}-c${transactionCount}.pdf`
+    const filename = `statement-${fullTenant.slug}-${monthParam}.pdf`
+
+    // Try to fetch from cache
+    try {
+      const cachedPdf = await getFromR2(cacheKey)
+      if (cachedPdf) {
+        console.log(`Statement cache hit: ${cacheKey}`)
+        return new NextResponse(new Uint8Array(cachedPdf), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': cachedPdf.length.toString(),
+            'X-Cache': 'HIT',
+          },
+        })
+      }
+    } catch (cacheError) {
+      // Cache miss or R2 error - continue to generate
+      console.log(`Statement cache miss: ${cacheKey}`)
+    }
+
     // Fetch transaction summary for the month
     const summary = await transactions.getTransactionSummary(
       tenant.id,
@@ -70,14 +102,32 @@ export async function GET(
       monthParam
     )
 
+    const pdfBuffer = Buffer.from(pdfBytes)
+
+    // Store in R2 cache (non-blocking) - uses deterministic key for caching
+    putToR2(
+      cacheKey,
+      pdfBuffer,
+      'application/pdf',
+      {
+        month: monthParam,
+        transactionCount: String(transactionCount),
+        generatedAt: new Date().toISOString(),
+      }
+    ).then(() => {
+      console.log(`Statement cached: ${cacheKey}`)
+    }).catch(err => {
+      console.error('Failed to cache statement:', err)
+    })
+
     // Return PDF
-    const filename = `statement-${fullTenant.slug}-${monthParam}.pdf`
-    return new NextResponse(Buffer.from(pdfBytes), {
+    return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': pdfBytes.length.toString(),
+        'Content-Length': pdfBuffer.length.toString(),
+        'X-Cache': 'MISS',
       },
     })
   } catch (error) {
