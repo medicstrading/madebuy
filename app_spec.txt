@@ -1,0 +1,326 @@
+<application_specification>
+  <name>MadeBuy - Phase 2 Features</name>
+  <description>
+    Multi-tenant e-commerce platform for handmade goods sellers.
+    This spec covers INCOMPLETE features that need implementation.
+    Platform is 75% complete - strong inventory, social, and checkout systems.
+  </description>
+
+  <technical_context>
+    <stack>Next.js 14, TypeScript, MongoDB, Stripe, Cloudflare R2, Resend</stack>
+    <structure>pnpm monorepo with apps/admin, apps/web, packages/db, packages/shared</structure>
+    <database>MongoDB with repository pattern in packages/db/src/repositories</database>
+    <api_routes>Next.js API routes in apps/*/src/app/api</api_routes>
+  </technical_context>
+
+  <features>
+    <!-- ========================================= -->
+    <!-- HIGH PRIORITY: Shipping Integration -->
+    <!-- ========================================= -->
+    <feature>
+      <category>Shipping</category>
+      <name>Sendle API Integration</name>
+      <description>
+        Replace stub shipping calculations with real Sendle quotes.
+        Currently shipping is hardcoded - need live carrier rates.
+      </description>
+      <steps>
+        - Create Sendle client in packages/shipping (new package)
+        - Add Sendle API credentials to tenant settings (apiKey, senderId)
+        - Implement GET /api/shipping/quote endpoint for real-time quotes
+        - Update checkout flow to call quote endpoint with parcel dimensions
+        - Add parcel weight/dimensions fields to product schema
+        - Test with Sendle sandbox API
+        - Handle quote errors gracefully (fallback to manual rates)
+      </steps>
+      <files>
+        - packages/shipping/src/sendle-client.ts (new)
+        - apps/web/src/app/api/shipping/quote/route.ts (new)
+        - apps/admin/src/app/(dashboard)/dashboard/settings/shipping/page.tsx (update)
+        - packages/db/src/models/product.ts (add dimensions fields)
+      </files>
+    </feature>
+
+    <feature>
+      <category>Shipping</category>
+      <name>Shipping Label Generation</name>
+      <description>
+        Generate shipping labels from admin dashboard after order is confirmed.
+        Sellers need to print labels for fulfillment.
+      </description>
+      <steps>
+        - Create POST /api/orders/[id]/ship endpoint to create Sendle order
+        - Implement label PDF download from Sendle API
+        - Add "Generate Label" button in order detail page
+        - Store tracking number in order record
+        - Send tracking email to customer via Resend
+        - Update order status to "shipped" automatically
+        - Display label PDF in modal for printing
+      </steps>
+      <files>
+        - apps/admin/src/app/api/orders/[id]/ship/route.ts (new)
+        - apps/admin/src/app/(dashboard)/dashboard/orders/[id]/page.tsx (update)
+        - apps/admin/src/components/orders/ShipOrderButton.tsx (new)
+      </files>
+    </feature>
+
+    <!-- ========================================= -->
+    <!-- HIGH PRIORITY: Financial Reporting -->
+    <!-- ========================================= -->
+    <feature>
+      <category>Financials</category>
+      <name>Transaction Ledger Page</name>
+      <description>
+        Create comprehensive transaction history page with filters and export.
+        Sellers need to see all payments, fees, and payouts in one view.
+      </description>
+      <steps>
+        - Create ledger page at /dashboard/ledger
+        - Fetch all transactions from packages/db/repositories/transactions
+        - Add filters: date range, type (payment/refund/payout), status
+        - Display transaction table with: date, type, amount, fees, net, status
+        - Add pagination (50 per page)
+        - Implement CSV export functionality
+        - Show running balance column
+        - Add summary cards: total revenue, total fees, net income
+      </steps>
+      <files>
+        - apps/admin/src/app/(dashboard)/dashboard/ledger/page.tsx (new)
+        - apps/admin/src/components/ledger/TransactionTable.tsx (new)
+        - apps/admin/src/components/ledger/LedgerFilters.tsx (new)
+        - apps/admin/src/app/api/transactions/export/route.ts (new)
+      </files>
+    </feature>
+
+    <feature>
+      <category>Financials</category>
+      <name>Monthly Statement PDF Generation</name>
+      <description>
+        Auto-generate monthly financial statements as PDF for tax purposes.
+        Include revenue breakdown, fees, payouts, and GST summary.
+      </description>
+      <steps>
+        - Install pdf-lib or react-pdf for PDF generation
+        - Create statement template with branding
+        - Add GET /api/statements/[month]/pdf endpoint
+        - Calculate monthly totals from transaction repository
+        - Include: revenue by product, Stripe fees, payouts, GST collected
+        - Add "Download Statement" button in ledger page
+        - Store generated PDFs in Cloudflare R2 for caching
+        - Email statement to tenant at end of month (optional)
+      </steps>
+      <files>
+        - apps/admin/src/app/api/statements/[month]/pdf/route.ts (new)
+        - apps/admin/src/lib/pdf/statement-template.tsx (new)
+        - packages/db/src/repositories/statements.ts (new)
+      </files>
+    </feature>
+
+    <feature>
+      <category>Financials</category>
+      <name>GST/Tax Reporting</name>
+      <description>
+        Add GST tracking and BAS summary for Australian sellers.
+        Currently no tax calculation or reporting exists.
+      </description>
+      <steps>
+        - Add gstRegistered, abn, gstRate fields to tenant model
+        - Create GST calculation utility in packages/shared
+        - Add GST line to invoice PDF (if tenant is GST registered)
+        - Calculate GST on all transactions
+        - Create GET /api/reports/gst endpoint for BAS summary
+        - Show quarterly GST collected, GST paid, net GST in report
+        - Add GST settings page in /dashboard/settings/tax
+        - Validate ABN using ABR Lookup API (optional)
+      </steps>
+      <files>
+        - packages/db/src/models/tenant.ts (add GST fields)
+        - packages/shared/src/utils/gst.ts (new)
+        - apps/admin/src/app/api/reports/gst/route.ts (new)
+        - apps/admin/src/app/(dashboard)/dashboard/settings/tax/page.tsx (new)
+      </files>
+    </feature>
+
+    <!-- ========================================= -->
+    <!-- HIGH PRIORITY: Reviews System -->
+    <!-- ========================================= -->
+    <feature>
+      <category>Reviews</category>
+      <name>Product Review Submission</name>
+      <description>
+        Allow customers to leave reviews with ratings and photos after purchase.
+        Critical for buyer confidence and SEO.
+      </description>
+      <steps>
+        - Create Review model in packages/db/models/review.ts
+        - Add review repository in packages/db/repositories/reviews.ts
+        - Create POST /api/reviews endpoint (requires verified purchase)
+        - Add review form component in web app after order delivery
+        - Validate: 1-5 stars, text (min 10 chars), optional photos
+        - Store review photos in Cloudflare R2
+        - Send review request email 7 days after delivery
+        - Add review moderation status (pending/approved/rejected)
+      </steps>
+      <files>
+        - packages/db/src/models/review.ts (new)
+        - packages/db/src/repositories/reviews.ts (new)
+        - apps/web/src/app/api/reviews/route.ts (new)
+        - apps/web/src/components/reviews/ReviewForm.tsx (new)
+        - apps/admin/src/app/api/emails/review-request/route.ts (new)
+      </files>
+    </feature>
+
+    <feature>
+      <category>Reviews</category>
+      <name>Review Display and Moderation</name>
+      <description>
+        Show product reviews on storefront with aggregate ratings.
+        Sellers can moderate (approve/reject) reviews in dashboard.
+      </description>
+      <steps>
+        - Create review display component for product pages
+        - Calculate average rating (1-5 stars) per product
+        - Show rating count and star breakdown (5★: 10, 4★: 3, etc.)
+        - Display reviews with pagination (10 per page)
+        - Add review photos lightbox
+        - Create moderation page at /dashboard/reviews
+        - Allow sellers to approve, reject, or respond to reviews
+        - Add "Verified Purchase" badge on reviews
+        - Update product schema to cache avgRating and reviewCount
+      </steps>
+      <files>
+        - apps/web/src/components/reviews/ReviewList.tsx (new)
+        - apps/web/src/components/reviews/StarRating.tsx (new)
+        - apps/admin/src/app/(dashboard)/dashboard/reviews/page.tsx (new)
+        - packages/db/src/models/product.ts (add avgRating, reviewCount)
+      </files>
+    </feature>
+
+    <!-- ========================================= -->
+    <!-- MEDIUM PRIORITY: Wishlist -->
+    <!-- ========================================= -->
+    <feature>
+      <category>Wishlist</category>
+      <name>Wishlist Functionality</name>
+      <description>
+        Let customers save products to a wishlist for later purchase.
+        Increases engagement and conversion.
+      </description>
+      <steps>
+        - Create Wishlist model in packages/db/models/wishlist.ts
+        - Store wishlist items: customer + product + dateAdded
+        - Add heart button to product cards (toggle wishlist)
+        - Create POST /api/wishlist/add and DELETE /api/wishlist/remove endpoints
+        - Persist wishlist in session for guests, database for logged-in users
+        - Create wishlist page at /wishlist showing all saved products
+        - Add "Move to Cart" button for wishlist items
+        - Show wishlist count in header (heart icon with badge)
+      </steps>
+      <files>
+        - packages/db/src/models/wishlist.ts (new)
+        - apps/web/src/app/api/wishlist/route.ts (new)
+        - apps/web/src/components/product/WishlistButton.tsx (new)
+        - apps/web/src/app/[tenant]/wishlist/page.tsx (new)
+      </files>
+    </feature>
+
+    <!-- ========================================= -->
+    <!-- MEDIUM PRIORITY: Email Automation -->
+    <!-- ========================================= -->
+    <feature>
+      <category>Marketing</category>
+      <name>Abandoned Cart Recovery</name>
+      <description>
+        Send automated emails to customers who add items to cart but don't checkout.
+        Recovers ~15-20% of abandoned carts.
+      </description>
+      <steps>
+        - Track cart abandonment events (cart updated but no order after 1 hour)
+        - Create abandonedCart collection in MongoDB
+        - Store: customer email, cart items, abandonedAt timestamp
+        - Create email template for cart recovery (with cart summary)
+        - Send first email after 1 hour via Resend
+        - Send second email after 24 hours with 10% discount code
+        - Add unsubscribe link to emails
+        - Track recovery conversions (cart ID in checkout URL)
+        - Create dashboard widget showing recovery rate
+      </steps>
+      <files>
+        - packages/db/src/models/abandoned-cart.ts (new)
+        - apps/web/src/app/api/carts/track/route.ts (new)
+        - apps/admin/src/lib/emails/abandoned-cart.tsx (new)
+        - apps/admin/src/lib/cron/abandoned-cart-checker.ts (new - run hourly)
+      </files>
+    </feature>
+
+    <!-- ========================================= -->
+    <!-- LOW PRIORITY: Enhancements -->
+    <!-- ========================================= -->
+    <feature>
+      <category>Analytics</category>
+      <name>Conversion Funnel Tracking</name>
+      <description>
+        Track customer journey from product view → add to cart → checkout → purchase.
+        Identify drop-off points to optimize conversion.
+      </description>
+      <steps>
+        - Create funnel events: view_product, add_to_cart, start_checkout, complete_purchase
+        - Store events in analytics collection with timestamp and sessionId
+        - Create GET /api/analytics/funnel endpoint with date range
+        - Calculate conversion rates at each step
+        - Create funnel visualization component (bar chart)
+        - Add funnel widget to dashboard
+        - Track by product to identify high/low performing products
+      </steps>
+      <files>
+        - packages/db/src/models/analytics-event.ts (new)
+        - apps/web/src/app/api/analytics/track/route.ts (new)
+        - apps/admin/src/app/api/analytics/funnel/route.ts (new)
+        - apps/admin/src/components/analytics/FunnelChart.tsx (new)
+      </files>
+    </feature>
+
+    <feature>
+      <category>Notifications</category>
+      <name>Webhook Email Notifications</name>
+      <description>
+        Complete missing TODO items in Stripe webhook handlers.
+        Send email notifications for important events.
+      </description>
+      <steps>
+        - Implement notification email for Stripe account disconnection
+        - Send alert email for failed payouts with retry instructions
+        - Create dispute alert email template
+        - Send dispute notifications to tenant and platform admin
+        - Add email for successful payout (optional, can be noisy)
+        - Use Resend for all transactional emails
+        - Add email preferences in settings (which emails to receive)
+      </steps>
+      <files>
+        - apps/web/src/app/api/webhooks/stripe-connect/route.ts (complete TODOs)
+        - apps/admin/src/lib/emails/stripe-notifications.tsx (new templates)
+        - apps/admin/src/app/(dashboard)/dashboard/settings/notifications/page.tsx (new)
+      </files>
+    </feature>
+
+  </features>
+
+  <priority_order>
+    1. Shipping Integration (blocks real fulfillment)
+    2. Financial Reporting (seller trust and compliance)
+    3. Reviews System (buyer confidence and SEO)
+    4. Wishlist (engagement and conversion)
+    5. Email Automation (revenue recovery)
+    6. Analytics (data-driven optimization)
+    7. Webhook Notifications (complete existing features)
+  </priority_order>
+
+  <notes>
+    - Platform is 75% complete with strong core features
+    - Focus on these incomplete features to reach production-ready state
+    - Each feature is independently testable
+    - Shipping and financials are highest priority for seller success
+    - Reviews are critical for buyer confidence
+    - See /docs for existing architecture documentation
+  </notes>
+</application_specification>
