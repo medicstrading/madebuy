@@ -174,6 +174,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 hasLabel={!!order.sendleOrderId}
                 labelUrl={order.labelUrl}
                 trackingNumber={order.sendleReference}
+                trackingUrl={order.trackingUrl}
               />
             </div>
           </div>

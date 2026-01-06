@@ -53,6 +53,13 @@
 - Email includes order items list and shop branding
 - Non-blocking: email failures don't fail the shipping request
 
+### Feature #8: Label PDF Displays in Modal ✅
+- Added PDF modal viewer to ShippingActions component
+- View Label button opens full-screen modal with embedded PDF
+- Modal includes Print and Download buttons in header
+- Uses iframe with PDF toolbar enabled
+- Added tracking URL link in shipped state view
+
 ## Git Commits This Session
 - `ed4e932` - feat: Implement Sendle API integration for shipping
 - `2fad2e9` - feat: Add shipping quote endpoint and product dimensions
@@ -69,12 +76,17 @@
 - `apps/web/src/app/api/shipping/quote/route.ts` - NEW
 - `apps/admin/src/components/inventory/PieceForm.tsx` - Added shipping dimensions
 - `packages/db/src/repositories/pieces.ts` - Added shipping dimensions
+- `apps/admin/src/app/api/orders/[id]/ship/route.ts` - NEW shipping label API
+- `apps/admin/src/app/(dashboard)/dashboard/orders/[id]/page.tsx` - NEW order detail page
+- `apps/admin/src/app/(dashboard)/dashboard/orders/[id]/ShippingActions.tsx` - NEW component
+- `apps/admin/src/lib/email.ts` - Added shipping notification email
+- `packages/shared/src/types/order.ts` - Added Sendle fields
 
 ## Current Statistics
 - Total features: 294
-- Passing: 7
+- Passing: 8
 - In Progress: 0
-- Completion: 2.4%
+- Completion: 2.7%
 
 ## Issues Encountered
 - Browser automation blocked by stale lock file at ~/.cache/ms-playwright/mcp-chrome-3946f37

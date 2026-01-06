@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Truck, Download, RefreshCw, ExternalLink, CheckCircle } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { Truck, Download, RefreshCw, ExternalLink, CheckCircle, Eye, X, Printer } from 'lucide-react'
 
 interface ShippingActionsProps {
   orderId: string
@@ -11,6 +11,7 @@ interface ShippingActionsProps {
   hasLabel: boolean
   labelUrl?: string
   trackingNumber?: string
+  trackingUrl?: string
 }
 
 export function ShippingActions({
@@ -21,9 +22,11 @@ export function ShippingActions({
   hasLabel,
   labelUrl,
   trackingNumber,
+  trackingUrl: propTrackingUrl,
 }: ShippingActionsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
   const [generatedLabel, setGeneratedLabel] = useState<{
     labelUrl: string
     trackingNumber: string
@@ -49,50 +52,124 @@ export function ShippingActions({
     )
   }
 
+  // Get current label data
+  const url = generatedLabel?.labelUrl || labelUrl
+  const tracking = generatedLabel?.trackingNumber || trackingNumber
+  const trackingUrl = generatedLabel?.trackingUrl || propTrackingUrl
+
+  // Print handler - opens PDF in new window for printing
+  const handlePrint = useCallback(() => {
+    if (!url) return
+    const printWindow = window.open(url, '_blank')
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print()
+      }
+    }
+  }, [url])
+
   // Already has a label
   if (hasLabel || generatedLabel) {
-    const url = generatedLabel?.labelUrl || labelUrl
-    const tracking = generatedLabel?.trackingNumber || trackingNumber
-
     return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 text-green-600">
-          <CheckCircle className="h-5 w-5" />
-          <span className="text-sm font-medium">Shipping label generated</span>
+      <>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-green-600">
+            <CheckCircle className="h-5 w-5" />
+            <span className="text-sm font-medium">Shipping label generated</span>
+          </div>
+
+          {tracking && (
+            <div className="text-sm">
+              <span className="text-gray-500">Tracking: </span>
+              <span className="font-mono text-gray-900">{tracking}</span>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {url && (
+              <>
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  <Eye className="h-4 w-4" />
+                  View Label
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <Printer className="h-4 w-4" />
+                  Print
+                </button>
+                <a
+                  href={url}
+                  download
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </a>
+              </>
+            )}
+            {trackingUrl && (
+              <a
+                href={trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Track Package
+              </a>
+            )}
+          </div>
         </div>
 
-        {tracking && (
-          <div className="text-sm">
-            <span className="text-gray-500">Tracking: </span>
-            <span className="font-mono text-gray-900">{tracking}</span>
+        {/* PDF Modal */}
+        {showModal && url && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="relative mx-4 h-[90vh] w-full max-w-3xl rounded-lg bg-white shadow-2xl">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <h3 className="text-lg font-semibold text-gray-900">Shipping Label</h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrint}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print
+                  </button>
+                  <a
+                    href={url}
+                    download
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </a>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* PDF Embed */}
+              <div className="h-[calc(100%-60px)] p-4">
+                <iframe
+                  src={`${url}#toolbar=1&navpanes=0`}
+                  className="h-full w-full rounded-lg border"
+                  title="Shipping Label PDF"
+                />
+              </div>
+            </div>
           </div>
         )}
-
-        <div className="flex flex-wrap gap-2">
-          {url && (
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              <Download className="h-4 w-4" />
-              Download Label
-            </a>
-          )}
-          {generatedLabel?.trackingUrl && (
-            <a
-              href={generatedLabel.trackingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Track Package
-            </a>
-          )}
-        </div>
-      </div>
+      </>
     )
   }
 
