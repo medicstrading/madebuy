@@ -22,10 +22,16 @@ export interface Piece {
   stones?: string[]
   metals?: string[]
 
-  // Details
+  // Details (legacy free-form text)
   dimensions?: string
   weight?: string
   chainLength?: string
+
+  // Shipping dimensions (structured for carrier API integration)
+  shippingWeight?: number  // Weight in grams
+  shippingLength?: number  // Length in cm
+  shippingWidth?: number   // Width in cm
+  shippingHeight?: number  // Height in cm
 
   // Pricing
   price?: number
@@ -418,6 +424,11 @@ export interface CreatePieceInput {
   dimensions?: string
   weight?: string
   chainLength?: string
+  // Shipping dimensions
+  shippingWeight?: number
+  shippingLength?: number
+  shippingWidth?: number
+  shippingHeight?: number
   price?: number
   currency?: string
   stock?: number

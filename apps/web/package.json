@@ -13,6 +13,7 @@
   "dependencies": {
     "@madebuy/db": "workspace:*",
     "@madebuy/shared": "workspace:*",
+    "@madebuy/shipping": "workspace:*",
     "@madebuy/storage": "workspace:*",
     "lucide-react": "^0.309.0",
     "next": "^14.2.35",
