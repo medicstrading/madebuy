@@ -17,7 +17,7 @@ if echo "$COMMAND" | grep -qE "\-\-no-verify"; then
   exit 0
 fi
 
-WORKDIR="$HOME/nuc-projects/madebuy"
+WORKDIR="$HOME/claude-project/madebuy"
 
 # Check TypeScript for admin app
 echo "Checking admin TypeScript..." >&2

@@ -1,0 +1,23 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended"
+  ],
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "globals": {
+    "HeadersInit": "readonly",
+    "RequestInit": "readonly",
+    "Response": "readonly",
+    "fetch": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "warn"
+  },
+  "ignorePatterns": ["dist/", "node_modules/"]
+}

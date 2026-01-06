@@ -17,7 +17,7 @@ if echo "$COMMAND" | grep -qE "\-\-no-verify|\[skip-hooks\]"; then
   exit 0
 fi
 
-WORKDIR="$HOME/nuc-projects/madebuy"
+WORKDIR="$HOME/claude-project/madebuy"
 
 # Quick lint check
 echo "Running lint..." >&2
