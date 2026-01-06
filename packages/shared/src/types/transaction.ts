@@ -14,10 +14,14 @@ export interface Transaction {
   type: TransactionType
 
   // Money amounts (all in cents)
-  grossAmount: number      // Total charged to customer
+  grossAmount: number      // Total charged to customer (GST inclusive if applicable)
   stripeFee: number        // Stripe's processing fee (~2.9% + 30c)
   platformFee: number      // MadeBuy's cut (0 for zero-fee model)
   netAmount: number        // What seller receives (grossAmount - fees)
+
+  // GST/Tax breakdown (for GST-registered sellers)
+  gstAmount?: number       // GST component of grossAmount (in cents)
+  gstRate?: number         // GST rate applied (e.g., 10 for 10%)
 
   currency: string         // 'aud', 'usd', etc.
 
@@ -48,6 +52,8 @@ export interface CreateTransactionInput {
   stripeFee: number
   platformFee: number
   netAmount: number
+  gstAmount?: number
+  gstRate?: number
   currency?: string
   stripePaymentIntentId?: string
   stripeTransferId?: string
@@ -82,6 +88,7 @@ export interface TenantBalance {
   totalNet: number         // Total net after all fees
   totalPayouts: number     // Total paid out to bank
   pendingBalance: number   // Net - payouts = available for payout
+  totalGst: number         // Total GST collected (for GST-registered tenants)
   currency: string
 }
 
@@ -115,4 +122,43 @@ export function calculateStripeFee(amountCents: number, isInternational = false)
   const percentage = isInternational ? 0.029 : 0.017
   const fixedFee = 30 // 30 cents
   return Math.round(amountCents * percentage + fixedFee)
+}
+
+/**
+ * Calculate GST from a GST-inclusive amount
+ * For Australian GST at 10%, GST = price / 11
+ *
+ * @param inclusiveAmountCents - Total price including GST (in cents)
+ * @param gstRate - GST rate (default 10 for 10%)
+ * @returns GST amount in cents
+ */
+export function calculateGstFromInclusive(inclusiveAmountCents: number, gstRate = 10): number {
+  // GST = inclusive / (1 + rate/100) * (rate/100)
+  // For 10%: GST = inclusive / 11
+  const divisor = 1 + gstRate / 100
+  const gst = inclusiveAmountCents - (inclusiveAmountCents / divisor)
+  return Math.round(gst)
+}
+
+/**
+ * Calculate GST to add to a GST-exclusive amount
+ *
+ * @param exclusiveAmountCents - Price before GST (in cents)
+ * @param gstRate - GST rate (default 10 for 10%)
+ * @returns GST amount in cents
+ */
+export function calculateGstFromExclusive(exclusiveAmountCents: number, gstRate = 10): number {
+  return Math.round(exclusiveAmountCents * (gstRate / 100))
+}
+
+/**
+ * Get the GST-exclusive amount from a GST-inclusive amount
+ *
+ * @param inclusiveAmountCents - Total price including GST (in cents)
+ * @param gstRate - GST rate (default 10 for 10%)
+ * @returns Amount excluding GST in cents
+ */
+export function getExclusiveAmount(inclusiveAmountCents: number, gstRate = 10): number {
+  const divisor = 1 + gstRate / 100
+  return Math.round(inclusiveAmountCents / divisor)
 }

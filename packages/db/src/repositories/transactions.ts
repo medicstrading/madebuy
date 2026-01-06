@@ -26,6 +26,8 @@ export async function createTransaction(
     stripeFee: data.stripeFee,
     platformFee: data.platformFee,
     netAmount: data.netAmount,
+    gstAmount: data.gstAmount,
+    gstRate: data.gstRate,
     currency: data.currency || 'AUD',
     stripePaymentIntentId: data.stripePaymentIntentId,
     stripeTransferId: data.stripeTransferId,
@@ -186,6 +188,16 @@ export async function getTenantBalance(
         totalStripeFees: { $sum: '$stripeFee' },
         totalPlatformFees: { $sum: '$platformFee' },
         totalNet: { $sum: '$netAmount' },
+        // Sum GST collected (from sales only)
+        totalGst: {
+          $sum: {
+            $cond: [
+              { $and: [{ $eq: ['$type', 'sale'] }, { $gt: ['$gstAmount', 0] }] },
+              '$gstAmount',
+              0
+            ]
+          }
+        },
         // Sum payouts (negative for balance calculation)
         totalPayouts: {
           $sum: {
@@ -207,6 +219,7 @@ export async function getTenantBalance(
     totalStripeFees: 0,
     totalPlatformFees: 0,
     totalNet: 0,
+    totalGst: 0,
     totalPayouts: 0,
     totalRefunds: 0,
   }
@@ -222,6 +235,7 @@ export async function getTenantBalance(
     totalNet: data.totalNet - data.totalPayouts,
     totalPayouts: data.totalPayouts,
     pendingBalance: Math.max(0, pendingBalance),
+    totalGst: data.totalGst,
     currency: 'AUD',
   }
 }

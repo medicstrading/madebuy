@@ -258,7 +258,12 @@ export type {
   TransactionSummary,
 } from './transaction'
 
-export { calculateStripeFee } from './transaction'
+export {
+  calculateStripeFee,
+  calculateGstFromInclusive,
+  calculateGstFromExclusive,
+  getExclusiveAmount,
+} from './transaction'
 
 export type {
   Payout,
