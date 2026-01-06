@@ -1,8 +1,36 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Percent, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import type { TenantTaxSettings } from '@madebuy/shared'
+import { Percent, CheckCircle, AlertCircle, Loader2, FileText, ChevronDown, DollarSign } from 'lucide-react'
+import type { TenantTaxSettings, QuarterlyGSTReport } from '@madebuy/shared'
+
+// Helper to format cents to dollars
+function formatCurrency(cents: number): string {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD',
+  }).format(cents / 100)
+}
+
+// Generate quarter options (last 8 quarters)
+function getQuarterOptions(): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = []
+  const now = new Date()
+
+  for (let i = 0; i < 8; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - (i * 3), 1)
+    const year = date.getFullYear()
+    const quarter = Math.floor(date.getMonth() / 3) + 1
+    const quarterStr = `${year}-Q${quarter}`
+    const quarterLabels = ['Jan-Mar', 'Apr-Jun', 'Jul-Sep', 'Oct-Dec']
+    options.push({
+      value: quarterStr,
+      label: `${quarterLabels[quarter - 1]} ${year}`,
+    })
+  }
+
+  return options
+}
 
 export default function TaxSettingsPage() {
   const [settings, setSettings] = useState<TenantTaxSettings>({
@@ -15,6 +43,16 @@ export default function TaxSettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [abnError, setAbnError] = useState<string | null>(null)
+
+  // GST Report state
+  const [selectedQuarter, setSelectedQuarter] = useState(() => {
+    const now = new Date()
+    const quarter = Math.floor(now.getMonth() / 3) + 1
+    return `${now.getFullYear()}-Q${quarter}`
+  })
+  const [gstReport, setGstReport] = useState<QuarterlyGSTReport | null>(null)
+  const [isLoadingReport, setIsLoadingReport] = useState(false)
+  const [reportError, setReportError] = useState<string | null>(null)
 
   // Fetch current settings
   useEffect(() => {
@@ -38,6 +76,36 @@ export default function TaxSettingsPage() {
     }
     fetchSettings()
   }, [])
+
+  // Fetch GST report when quarter changes (only if GST registered)
+  const fetchGstReport = async (quarter: string) => {
+    setIsLoadingReport(true)
+    setReportError(null)
+    setGstReport(null)
+
+    try {
+      const res = await fetch(`/api/reports/gst?quarter=${quarter}`)
+      const data = await res.json()
+
+      if (res.ok) {
+        setGstReport(data.report)
+      } else {
+        setReportError(data.error || 'Failed to load GST report')
+      }
+    } catch (error) {
+      console.error('Failed to fetch GST report:', error)
+      setReportError('Failed to load GST report. Please try again.')
+    } finally {
+      setIsLoadingReport(false)
+    }
+  }
+
+  // Fetch report when quarter changes and user is GST registered
+  useEffect(() => {
+    if (settings.gstRegistered && !isLoading) {
+      fetchGstReport(selectedQuarter)
+    }
+  }, [selectedQuarter, settings.gstRegistered, isLoading])
 
   // Validate ABN format (11 digits)
   const validateABN = (abn: string): boolean => {
@@ -291,6 +359,162 @@ export default function TaxSettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* GST/BAS Report Section - Only shown if GST registered */}
+      {settings.gstRegistered && (
+        <div className="mt-8 rounded-lg bg-white p-6 shadow">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                GST / BAS Summary Report
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Quarterly GST summary for Business Activity Statement (BAS) reporting
+              </p>
+            </div>
+
+            {/* Quarter Selector */}
+            <div className="relative">
+              <select
+                value={selectedQuarter}
+                onChange={(e) => setSelectedQuarter(e.target.value)}
+                className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-10"
+              >
+                {getQuarterOptions().map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Report Loading State */}
+          {isLoadingReport && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="ml-3 text-gray-600">Loading GST report...</span>
+            </div>
+          )}
+
+          {/* Report Error State */}
+          {reportError && !isLoadingReport && (
+            <div className="flex items-center gap-2 rounded-lg bg-red-50 p-4 text-red-700">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <p>{reportError}</p>
+            </div>
+          )}
+
+          {/* Report Data */}
+          {gstReport && !isLoadingReport && (
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* GST Collected */}
+                <div className="rounded-lg bg-green-50 p-4">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-sm font-medium">GST Collected</span>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-green-800">
+                    {formatCurrency(gstReport.gstCollected)}
+                  </p>
+                  <p className="mt-1 text-sm text-green-600">
+                    From {gstReport.salesCount} sales ({formatCurrency(gstReport.salesGross)} gross)
+                  </p>
+                </div>
+
+                {/* GST on Refunds */}
+                <div className="rounded-lg bg-red-50 p-4">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-sm font-medium">GST on Refunds</span>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-800">
+                    {formatCurrency(gstReport.gstPaid)}
+                  </p>
+                  <p className="mt-1 text-sm text-red-600">
+                    From {gstReport.refundsCount} refunds ({formatCurrency(gstReport.refundsTotal)} total)
+                  </p>
+                </div>
+
+                {/* Net GST */}
+                <div className={`rounded-lg p-4 ${gstReport.netGst >= 0 ? 'bg-blue-50' : 'bg-amber-50'}`}>
+                  <div className={`flex items-center gap-2 ${gstReport.netGst >= 0 ? 'text-blue-700' : 'text-amber-700'}`}>
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-sm font-medium">Net GST Payable</span>
+                  </div>
+                  <p className={`mt-2 text-2xl font-bold ${gstReport.netGst >= 0 ? 'text-blue-800' : 'text-amber-800'}`}>
+                    {formatCurrency(Math.abs(gstReport.netGst))}
+                  </p>
+                  <p className={`mt-1 text-sm ${gstReport.netGst >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                    {gstReport.netGst >= 0 ? 'Amount to remit to ATO' : 'Refund due from ATO'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Detailed Breakdown Table */}
+              <div className="border-t pt-6">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Detailed Breakdown</h3>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Item</th>
+                      <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-2 text-sm text-gray-600">Gross Sales (incl. GST)</td>
+                      <td className="py-2 text-sm text-gray-900 text-right font-medium">{formatCurrency(gstReport.salesGross)}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-sm text-gray-600">GST Component of Sales</td>
+                      <td className="py-2 text-sm text-green-600 text-right font-medium">+ {formatCurrency(gstReport.gstCollected)}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-sm text-gray-600">Net Sales (excl. GST)</td>
+                      <td className="py-2 text-sm text-gray-900 text-right font-medium">{formatCurrency(gstReport.salesNet)}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="py-2 text-sm text-gray-600">Total Refunds</td>
+                      <td className="py-2 text-sm text-gray-900 text-right font-medium">{formatCurrency(gstReport.refundsTotal)}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="py-2 text-sm text-gray-600">GST Component of Refunds</td>
+                      <td className="py-2 text-sm text-red-600 text-right font-medium">- {formatCurrency(gstReport.gstPaid)}</td>
+                    </tr>
+                    <tr className="border-t-2 border-gray-300">
+                      <td className="py-3 text-sm font-bold text-gray-900">Net GST Payable to ATO</td>
+                      <td className={`py-3 text-sm font-bold text-right ${gstReport.netGst >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                        {gstReport.netGst >= 0 ? '' : '('}{formatCurrency(Math.abs(gstReport.netGst))}{gstReport.netGst >= 0 ? '' : ')'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Report Period Info */}
+              <div className="border-t pt-4">
+                <p className="text-xs text-gray-500">
+                  Report Period: {new Date(gstReport.startDate).toLocaleDateString('en-AU')} - {new Date(gstReport.endDate).toLocaleDateString('en-AU')}
+                  {' | '}GST Rate: {gstReport.gstRate}%
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!gstReport && !isLoadingReport && !reportError && (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+              <p>No GST data available for this quarter</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
