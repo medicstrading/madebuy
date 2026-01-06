@@ -21,6 +21,7 @@ import {
   Calendar,
   X,
   Users,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -60,6 +61,7 @@ const navigationGroups = [
     label: 'Sales',
     items: [
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
+      { name: 'Ledger', href: '/dashboard/ledger', icon: BookOpen },
       { name: 'Customers', href: '/dashboard/customers', icon: Users },
       { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
     ]
