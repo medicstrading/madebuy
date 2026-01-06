@@ -39,6 +39,7 @@ export type {
   TenantFeatures,
   OnboardingStep,
   SendleSettings,
+  TenantTaxSettings,
 } from './tenant'
 
 export type {

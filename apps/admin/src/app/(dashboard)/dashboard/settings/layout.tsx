@@ -9,6 +9,7 @@ import {
   Globe,
   Calculator,
   Receipt,
+  Percent,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -52,6 +53,12 @@ const settingsNavItems = [
     href: '/dashboard/settings/accounting',
     icon: Calculator,
     description: 'Xero/MYOB connection',
+  },
+  {
+    name: 'Tax / GST',
+    href: '/dashboard/settings/tax',
+    icon: Percent,
+    description: 'GST registration and rates',
   },
 ]
 

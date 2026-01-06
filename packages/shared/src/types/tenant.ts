@@ -74,6 +74,9 @@ export interface Tenant {
   // Payment provider configuration (Stripe Connect, PayPal)
   paymentConfig?: TenantPaymentConfig
 
+  // Tax/GST configuration (Australian GST)
+  taxSettings?: TenantTaxSettings
+
   // Timestamps
   createdAt: Date
   updatedAt: Date
@@ -302,4 +305,12 @@ export interface SendleSettings {
   isConnected: boolean  // Whether credentials have been validated
   connectedAt?: Date  // When credentials were last verified
   environment: 'sandbox' | 'production'  // Which Sendle environment to use
+}
+
+// Tax/GST settings for Australian sellers
+export interface TenantTaxSettings {
+  gstRegistered: boolean  // Is the seller GST registered?
+  abn?: string  // Australian Business Number (11 digits)
+  gstRate: number  // GST rate (default 10 for Australia)
+  pricesIncludeGst: boolean  // Are product prices GST inclusive?
 }
