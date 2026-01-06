@@ -45,18 +45,15 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@18.3.1)
-      '@madebuy/cloudflare':
-        specifier: workspace:*
-        version: link:../../packages/cloudflare
       '@madebuy/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@madebuy/scanner':
-        specifier: workspace:*
-        version: link:../../packages/scanner
       '@madebuy/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@madebuy/shipping':
+        specifier: workspace:*
+        version: link:../../packages/shipping
       '@madebuy/social':
         specifier: workspace:*
         version: link:../../packages/social
@@ -102,6 +99,9 @@ importers:
       next-auth:
         specifier: ^4.24.5
         version: 4.24.13(next@14.2.35)(react-dom@18.3.1)(react@18.3.1)
+      pdf-lib:
+        specifier: ^1.17.1
+        version: 1.17.1
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -169,6 +169,9 @@ importers:
       '@madebuy/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@madebuy/shipping':
+        specifier: workspace:*
+        version: link:../../packages/shipping
       '@madebuy/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -237,9 +240,6 @@ importers:
 
   packages/db:
     dependencies:
-      '@madebuy/cloudflare':
-        specifier: workspace:*
-        version: link:../cloudflare
       '@madebuy/shared':
         specifier: workspace:*
         version: link:../shared
@@ -311,6 +311,19 @@ importers:
       zod:
         specifier: ^3.22.4
         version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.0
+        version: 20.19.27
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/shipping:
+    dependencies:
+      '@madebuy/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@types/node':
         specifier: ^20.11.0
@@ -1857,6 +1870,18 @@ packages:
 
   /@panva/hkdf@1.2.1:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
+    dev: false
+
+  /@pdf-lib/standard-fonts@1.0.0:
+    resolution: {integrity: sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==}
+    dependencies:
+      pako: 1.0.11
+    dev: false
+
+  /@pdf-lib/upng@1.0.1:
+    resolution: {integrity: sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==}
+    dependencies:
+      pako: 1.0.11
     dev: false
 
   /@pkgjs/parseargs@0.11.0:
@@ -6024,6 +6049,10 @@ packages:
       p-limit: 3.1.0
     dev: true
 
+  /pako@1.0.11:
+    resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+    dev: false
+
   /parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -6085,6 +6114,15 @@ packages:
     resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
     engines: {node: '>= 14.16'}
     dev: true
+
+  /pdf-lib@1.17.1:
+    resolution: {integrity: sha512-V/mpyJAoTsN4cnP31vc0wfNA1+p20evqqnap0KLoRUN0Yk/p3wN52DOEsL4oBFcLdb76hlpKPtzJIgo67j/XLw==}
+    dependencies:
+      '@pdf-lib/standard-fonts': 1.0.0
+      '@pdf-lib/upng': 1.0.1
+      pako: 1.0.11
+      tslib: 1.14.1
+    dev: false
 
   /peberminta@0.9.0:
     resolution: {integrity: sha512-XIxfHpEuSJbITd1H3EeQwpcZbTLHc+VVr8ANI9t5sit565tsI4/xK3KWTUFE2e6QiangUkh3B0jihzmGnNrRsQ==}
@@ -7143,6 +7181,10 @@ packages:
       minimist: 1.2.8
       strip-bom: 3.0.0
     dev: true
+
+  /tslib@1.14.1:
+    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
+    dev: false
 
   /tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}

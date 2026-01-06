@@ -7,7 +7,9 @@ import type {
   TransactionListOptions,
   TenantBalance,
   TransactionSummary,
+  QuarterlyGSTReport,
 } from '@madebuy/shared'
+import { parseQuarter } from '@madebuy/shared'
 
 /**
  * Create a new transaction record
@@ -359,4 +361,93 @@ export async function countTransactions(
 export async function deleteTransaction(id: string): Promise<void> {
   const db = await getDatabase()
   await db.collection('transactions').deleteOne({ id })
+}
+
+/**
+ * Get quarterly GST report for BAS (Business Activity Statement)
+ * Aggregates GST collected from sales and GST paid on refunds
+ */
+export async function getQuarterlyGSTReport(
+  tenantId: string,
+  quarterString: string,
+  gstRate = 10
+): Promise<QuarterlyGSTReport | null> {
+  const parsed = parseQuarter(quarterString)
+  if (!parsed) return null
+
+  const { startDate, endDate, year, quarter } = parsed
+  const db = await getDatabase()
+
+  // Get GST collected from sales
+  const salesResult = await db.collection('transactions').aggregate([
+    {
+      $match: {
+        tenantId,
+        type: 'sale',
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 },
+        gross: { $sum: '$grossAmount' },
+        gstCollected: {
+          $sum: { $ifNull: ['$gstAmount', 0] }
+        },
+        net: { $sum: '$netAmount' },
+      }
+    }
+  ]).toArray()
+
+  // Get GST paid on refunds
+  const refundsResult = await db.collection('transactions').aggregate([
+    {
+      $match: {
+        tenantId,
+        type: 'refund',
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: endDate }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 },
+        total: { $sum: '$grossAmount' },
+        gstPaid: {
+          $sum: { $ifNull: ['$gstAmount', 0] }
+        },
+      }
+    }
+  ]).toArray()
+
+  const sales = salesResult[0] || { count: 0, gross: 0, gstCollected: 0, net: 0 }
+  const refunds = refundsResult[0] || { count: 0, total: 0, gstPaid: 0 }
+
+  // Calculate net sales after GST
+  const salesNet = sales.gross - sales.gstCollected
+
+  // Net GST = GST collected - GST refunded
+  // Positive = owe ATO, Negative = ATO owes you
+  const netGst = sales.gstCollected - refunds.gstPaid
+
+  return {
+    quarter: quarterString,
+    year,
+    quarterNumber: quarter,
+    startDate,
+    endDate,
+    gstCollected: sales.gstCollected,
+    salesCount: sales.count,
+    salesGross: sales.gross,
+    salesNet,
+    gstPaid: refunds.gstPaid,
+    refundsCount: refunds.count,
+    refundsTotal: refunds.total,
+    netGst,
+    currency: 'AUD',
+    gstRate,
+  }
 }

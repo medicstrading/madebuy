@@ -162,3 +162,64 @@ export function getExclusiveAmount(inclusiveAmountCents: number, gstRate = 10): 
   const divisor = 1 + gstRate / 100
   return Math.round(inclusiveAmountCents / divisor)
 }
+
+/**
+ * Quarterly GST Report for BAS (Business Activity Statement)
+ * Used by Australian GST-registered sellers
+ */
+export interface QuarterlyGSTReport {
+  quarter: string            // e.g., "2024-Q1"
+  year: number               // e.g., 2024
+  quarterNumber: number      // 1-4
+  startDate: Date
+  endDate: Date
+
+  // GST Collected (from sales)
+  gstCollected: number       // Total GST collected on sales (in cents)
+  salesCount: number         // Number of sales in period
+  salesGross: number         // Total gross sales (in cents)
+  salesNet: number           // Total net sales after GST (in cents)
+
+  // GST Paid (on expenses/refunds)
+  gstPaid: number            // GST paid on refunds (in cents)
+  refundsCount: number       // Number of refunds
+  refundsTotal: number       // Total refund amount (in cents)
+
+  // Net GST Position
+  netGst: number             // gstCollected - gstPaid (what to remit to ATO)
+
+  // Additional context
+  currency: string           // Usually 'AUD'
+  gstRate: number            // The GST rate used (usually 10)
+}
+
+/**
+ * Parse a quarter string (e.g., "2024-Q1") to start and end dates
+ */
+export function parseQuarter(quarterString: string): { startDate: Date; endDate: Date; year: number; quarter: number } | null {
+  const match = quarterString.match(/^(\d{4})-Q([1-4])$/)
+  if (!match) return null
+
+  const year = parseInt(match[1], 10)
+  const quarter = parseInt(match[2], 10)
+
+  // Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec
+  const startMonth = (quarter - 1) * 3 // 0, 3, 6, 9
+  const endMonth = startMonth + 2      // 2, 5, 8, 11
+
+  const startDate = new Date(year, startMonth, 1, 0, 0, 0, 0)
+  // End of last day of quarter
+  const endDate = new Date(year, endMonth + 1, 0, 23, 59, 59, 999)
+
+  return { startDate, endDate, year, quarter }
+}
+
+/**
+ * Get the current quarter string
+ */
+export function getCurrentQuarter(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const quarter = Math.floor(now.getMonth() / 3) + 1
+  return `${year}-Q${quarter}`
+}

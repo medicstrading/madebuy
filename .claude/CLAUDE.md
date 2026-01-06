@@ -1,16 +1,5 @@
 # MadeBuy - Project Instructions
 
-## SESSION STARTUP (MANDATORY)
-
-**On EVERY conversation start, run this first:**
-
-```
-mcp__enhanced-memory__start_session
-  working_directory: "/home/aaron/claude-project/madebuy"
-```
-
-This loads previous session context and relevant memories. If it returns a last_session summary, acknowledge what was accomplished.
-
 ## Project Info
 
 - **Name:** MadeBuy (PRIMARY project)
@@ -20,14 +9,6 @@ This loads previous session context and relevant memories. If it returns a last_
 - **Ports:** admin=3300, marketplace=3301
 - **Deploy:** Vultr VPS with Docker Compose
 - **Git account:** medicstrading
-
-## Save/Exit Protocol
-
-When user says "save", "done", "exit", or "save and exit":
-
-1. Run `mcp__enhanced-memory__end_session` with summary and task lists
-2. Say "Saved." (no confirmation prompts)
-3. If "exit": run `tmux kill-pane` immediately
 
 ## Core Rules
 

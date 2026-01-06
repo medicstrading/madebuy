@@ -256,6 +256,7 @@ export type {
   TransactionListOptions,
   TenantBalance,
   TransactionSummary,
+  QuarterlyGSTReport,
 } from './transaction'
 
 export {
@@ -263,6 +264,8 @@ export {
   calculateGstFromInclusive,
   calculateGstFromExclusive,
   getExclusiveAmount,
+  parseQuarter,
+  getCurrentQuarter,
 } from './transaction'
 
 export type {
