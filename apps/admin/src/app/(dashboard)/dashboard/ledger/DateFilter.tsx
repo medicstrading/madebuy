@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useState } from 'react'
-import { Filter, X, Download } from 'lucide-react'
+import { useCallback, useState, useMemo } from 'react'
+import { Filter, X, Download, FileText } from 'lucide-react'
 
 const TRANSACTION_TYPES = [
   { value: '', label: 'All Types' },
@@ -61,6 +61,26 @@ export function DateFilter() {
   }, [router, searchParams])
 
   const hasFilter = startDate || endDate || txType
+
+  // Generate list of months for statement dropdown (last 12 months)
+  const monthOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = []
+    const today = new Date()
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      const label = date.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
+      options.push({ value, label })
+    }
+    return options
+  }, [])
+
+  const [statementMonth, setStatementMonth] = useState(monthOptions[0]?.value || '')
+
+  const downloadStatement = useCallback(() => {
+    if (!statementMonth) return
+    window.location.href = `/api/statements/${statementMonth}/pdf`
+  }, [statementMonth])
 
   const exportCSV = useCallback(() => {
     // Build export URL with current filters
@@ -137,7 +157,8 @@ export function DateFilter() {
         </button>
       )}
 
-      <div className="ml-auto">
+      <div className="ml-auto flex items-end gap-3">
+        {/* CSV Export */}
         <button
           onClick={exportCSV}
           className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
@@ -145,6 +166,34 @@ export function DateFilter() {
           <Download className="h-4 w-4" />
           Export CSV
         </button>
+
+        {/* Statement Download */}
+        <div className="flex items-end gap-2">
+          <div>
+            <label htmlFor="statementMonth" className="block text-sm font-medium text-gray-700">
+              Statement
+            </label>
+            <select
+              id="statementMonth"
+              value={statementMonth}
+              onChange={(e) => setStatementMonth(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            >
+              {monthOptions.map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={downloadStatement}
+            className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+          >
+            <FileText className="h-4 w-4" />
+            Download PDF
+          </button>
+        </div>
       </div>
     </div>
   )
