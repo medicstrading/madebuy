@@ -3,10 +3,11 @@ import { transactions } from '@madebuy/db'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { BookOpen, ArrowUpRight, ArrowDownRight, RefreshCw, DollarSign } from 'lucide-react'
 import Link from 'next/link'
-import type { TransactionType, TransactionStatus } from '@madebuy/shared'
+import type { TransactionType, TransactionStatus, TransactionFilters } from '@madebuy/shared'
+import { DateFilter } from './DateFilter'
 
 interface PageProps {
-  searchParams: { page?: string }
+  searchParams: { page?: string; startDate?: string; endDate?: string }
 }
 
 const PAGE_SIZE = 50
@@ -16,16 +17,29 @@ export default async function LedgerPage({ searchParams }: PageProps) {
   const page = parseInt(searchParams.page || '1', 10)
   const offset = (page - 1) * PAGE_SIZE
 
+  // Parse date filters from URL params
+  const filters: TransactionFilters = {}
+  if (searchParams.startDate) {
+    filters.startDate = new Date(searchParams.startDate)
+  }
+  if (searchParams.endDate) {
+    // Set end date to end of day
+    const endDate = new Date(searchParams.endDate)
+    endDate.setHours(23, 59, 59, 999)
+    filters.endDate = endDate
+  }
+
   // Fetch balance and transactions in parallel
   const [balance, allTransactions, totalCount] = await Promise.all([
     transactions.getTenantBalance(tenant.id),
     transactions.listTransactions(tenant.id, {
+      filters,
       limit: PAGE_SIZE,
       offset,
       sortBy: 'createdAt',
       sortOrder: 'desc'
     }),
-    transactions.countTransactions(tenant.id)
+    transactions.countTransactions(tenant.id, filters)
   ])
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -40,6 +54,11 @@ export default async function LedgerPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transaction Ledger</h1>
         <p className="mt-2 text-gray-600">View all financial transactions and your running balance</p>
+      </div>
+
+      {/* Date Filter */}
+      <div className="mb-6 rounded-lg bg-white p-4 shadow">
+        <DateFilter />
       </div>
 
       {/* Balance Cards */}
@@ -165,29 +184,14 @@ export default async function LedgerPage({ searchParams }: PageProps) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                Showing {offset + 1} to {Math.min(offset + PAGE_SIZE, totalCount)} of {totalCount} transactions
-              </p>
-              <div className="flex gap-2">
-                {page > 1 && (
-                  <Link
-                    href={`/dashboard/ledger?page=${page - 1}`}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Previous
-                  </Link>
-                )}
-                {page < totalPages && (
-                  <Link
-                    href={`/dashboard/ledger?page=${page + 1}`}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Next
-                  </Link>
-                )}
-              </div>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              offset={offset}
+              pageSize={PAGE_SIZE}
+              searchParams={searchParams}
+            />
           )}
         </>
       )}
@@ -350,5 +354,56 @@ function TransactionStatusBadge({ status }: { status: TransactionStatus }) {
     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${colors[status]}`}>
       {status}
     </span>
+  )
+}
+
+function Pagination({
+  page,
+  totalPages,
+  totalCount,
+  offset,
+  pageSize,
+  searchParams
+}: {
+  page: number
+  totalPages: number
+  totalCount: number
+  offset: number
+  pageSize: number
+  searchParams: { startDate?: string; endDate?: string }
+}) {
+  // Build URL with preserved filters
+  const buildUrl = (newPage: number) => {
+    const params = new URLSearchParams()
+    params.set('page', String(newPage))
+    if (searchParams.startDate) params.set('startDate', searchParams.startDate)
+    if (searchParams.endDate) params.set('endDate', searchParams.endDate)
+    return `/dashboard/ledger?${params.toString()}`
+  }
+
+  return (
+    <div className="mt-4 flex items-center justify-between">
+      <p className="text-sm text-gray-500">
+        Showing {offset + 1} to {Math.min(offset + pageSize, totalCount)} of {totalCount} transactions
+      </p>
+      <div className="flex gap-2">
+        {page > 1 && (
+          <Link
+            href={buildUrl(page - 1)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Previous
+          </Link>
+        )}
+        {page < totalPages && (
+          <Link
+            href={buildUrl(page + 1)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Next
+          </Link>
+        )}
+      </div>
+    </div>
   )
 }
