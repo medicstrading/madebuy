@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { orders, pieces, tenants } from '@madebuy/db'
 import { createSendleClient, SendleError } from '@madebuy/shipping'
+import { sendShippingNotificationEmail } from '@/lib/email'
 
 interface ShipOrderRequest {
   // Optional overrides for parcel dimensions
@@ -177,12 +178,29 @@ export async function POST(
         shippedAt: new Date(),
       })
 
+      // Send shipping notification email to customer
+      const emailResult = await sendShippingNotificationEmail({
+        order,
+        tenant: fullTenant,
+        trackingNumber: sendleOrder.sendle_reference,
+        trackingUrl: sendleOrder.tracking_url,
+        carrier: 'Sendle',
+        // Sendle doesn't provide estimated days in order response, use defaults
+        estimatedDeliveryDays: { min: 2, max: 7 },
+      })
+
+      if (!emailResult.success) {
+        console.warn('Failed to send shipping notification email:', emailResult.error)
+        // Don't fail the request if email fails - order is already shipped
+      }
+
       return NextResponse.json({
         success: true,
         sendleOrderId: sendleOrder.order_id,
         trackingNumber: sendleOrder.sendle_reference,
         trackingUrl: sendleOrder.tracking_url,
         labelUrl: sendleOrder.labels.pdf_url,
+        emailSent: emailResult.success,
       })
     } catch (sendleError) {
       if (sendleError instanceof SendleError) {

@@ -45,6 +45,14 @@
 - Added ShippingActions component with "Generate Shipping Label" button
 - Added clickable order rows in orders list to navigate to detail page
 
+### Feature #7: Tracking Email Sent After Shipping ✅
+- Integrated shipping notification email with label generation
+- Uses existing renderShippedEmail template from @madebuy/shared/email
+- Added sendShippingNotificationEmail function to admin email lib
+- Sends via Resend API with tracking number, carrier link, and estimated delivery
+- Email includes order items list and shop branding
+- Non-blocking: email failures don't fail the shipping request
+
 ## Git Commits This Session
 - `ed4e932` - feat: Implement Sendle API integration for shipping
 - `2fad2e9` - feat: Add shipping quote endpoint and product dimensions
@@ -64,9 +72,9 @@
 
 ## Current Statistics
 - Total features: 294
-- Passing: 6
+- Passing: 7
 - In Progress: 0
-- Completion: 2.0%
+- Completion: 2.4%
 
 ## Issues Encountered
 - Browser automation blocked by stale lock file at ~/.cache/ms-playwright/mcp-chrome-3946f37
@@ -74,11 +82,11 @@
 - Workaround: Used curl to verify API endpoints work
 
 ## Next Steps
-1. Continue with Feature #7 and remaining shipping features
+1. Continue with Feature #8 and remaining shipping features
 2. Once all shipping features done, move to Financial Reporting
 
 ## Priority Order (from app_spec.txt)
-1. Shipping Integration (in progress) - 6/~40 features
+1. Shipping Integration (in progress) - 7/~40 features
 2. Financial Reporting (pending)
 3. Reviews System (pending)
 4. Wishlist (pending)

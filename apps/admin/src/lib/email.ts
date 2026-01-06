@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
-import type { Tenant, Newsletter, NewsletterTemplate } from '@madebuy/shared'
+import type { Tenant, Newsletter, NewsletterTemplate, Order } from '@madebuy/shared'
+import { renderShippedEmail } from '@madebuy/shared/email'
 
 let resend: Resend | null = null
 
@@ -166,5 +167,93 @@ export async function sendNewsletter(
     success: sentCount > 0,
     sentCount,
     errors,
+  }
+}
+
+interface ShippingEmailData {
+  order: Order
+  tenant: Tenant
+  trackingNumber: string
+  trackingUrl: string
+  carrier: string
+  estimatedDeliveryDays?: { min: number; max: number }
+}
+
+/**
+ * Send shipping notification email to customer
+ */
+export async function sendShippingNotificationEmail(data: ShippingEmailData): Promise<{
+  success: boolean
+  error?: string
+}> {
+  const client = getResendClient()
+
+  if (!client) {
+    console.warn('Resend API key not configured, skipping shipping notification email')
+    return {
+      success: false,
+      error: 'Email service not configured',
+    }
+  }
+
+  // Calculate estimated delivery date from days
+  let estimatedDelivery: string | undefined
+  if (data.estimatedDeliveryDays) {
+    const deliveryDate = new Date()
+    deliveryDate.setDate(deliveryDate.getDate() + data.estimatedDeliveryDays.max)
+    estimatedDelivery = deliveryDate.toISOString()
+  }
+
+  // Build email data
+  const emailData = {
+    orderNumber: data.order.orderNumber,
+    customerName: data.order.customerName,
+    shopName: data.tenant.businessName,
+    trackingNumber: data.trackingNumber,
+    trackingUrl: data.trackingUrl,
+    carrier: data.carrier,
+    estimatedDelivery,
+    items: data.order.items.map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      imageUrl: item.imageUrl,
+    })),
+  }
+
+  // Render the email
+  const baseUrl = data.tenant.customDomain
+    ? `https://${data.tenant.customDomain}`
+    : `https://madebuy.com.au/${data.tenant.slug}`
+  const { subject, html, text } = renderShippedEmail(emailData, baseUrl)
+
+  // Determine from email
+  const fromEmail = process.env.SHIPPING_FROM_EMAIL || process.env.DEFAULT_FROM_EMAIL || 'shipping@madebuy.com.au'
+  const fromName = data.tenant.businessName
+
+  try {
+    const result = await client.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: data.order.customerEmail,
+      subject,
+      html,
+      text,
+      replyTo: data.tenant.email,
+    })
+
+    if (result.error) {
+      console.error('Failed to send shipping notification:', result.error)
+      return {
+        success: false,
+        error: result.error.message,
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send shipping notification email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
   }
 }
