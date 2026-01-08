@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react'
 import type { ProductWithMedia } from '@madebuy/shared'
 
 export interface CartItem {
@@ -20,6 +20,30 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
+// Track cart for abandoned cart detection
+async function trackCartForAbandonment(tenantId: string, items: CartItem[], total: number) {
+  try {
+    await fetch('/api/carts/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenantId,
+        items: items.map(item => ({
+          productId: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          imageUrl: item.product.primaryImage?.variants?.thumb?.url,
+        })),
+        total,
+      }),
+    })
+  } catch (error) {
+    // Silently fail - tracking should not affect user experience
+    console.error('Cart tracking failed:', error)
+  }
+}
+
 export function CartProvider({
   children,
   tenantId,
@@ -28,6 +52,7 @@ export function CartProvider({
   tenantId: string
 }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const trackingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -44,6 +69,32 @@ export function CartProvider({
   // Save cart to localStorage on change
   useEffect(() => {
     localStorage.setItem(`cart_${tenantId}`, JSON.stringify(items))
+  }, [items, tenantId])
+
+  // Track cart for abandoned cart detection (debounced)
+  useEffect(() => {
+    // Only track non-empty carts
+    if (items.length === 0) return
+
+    // Debounce tracking to avoid too many requests
+    if (trackingTimeoutRef.current) {
+      clearTimeout(trackingTimeoutRef.current)
+    }
+
+    const total = items.reduce(
+      (sum, item) => sum + (item.product.price || 0) * item.quantity,
+      0
+    )
+
+    trackingTimeoutRef.current = setTimeout(() => {
+      trackCartForAbandonment(tenantId, items, total)
+    }, 2000) // Wait 2 seconds after last change before tracking
+
+    return () => {
+      if (trackingTimeoutRef.current) {
+        clearTimeout(trackingTimeoutRef.current)
+      }
+    }
   }, [items, tenantId])
 
   const addItem = useCallback((product: ProductWithMedia, quantity: number = 1) => {
