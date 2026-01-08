@@ -31,6 +31,7 @@ export function ShippingActions({
     labelUrl: string
     trackingNumber: string
     trackingUrl: string
+    emailSent: boolean
   } | null>(null)
 
   // Digital orders don't need shipping
@@ -77,6 +78,13 @@ export function ShippingActions({
             <CheckCircle className="h-5 w-5" />
             <span className="text-sm font-medium">Shipping label generated</span>
           </div>
+
+          {generatedLabel?.emailSent && (
+            <div className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm">Tracking email sent to customer</span>
+            </div>
+          )}
 
           {tracking && (
             <div className="text-sm">
@@ -195,6 +203,7 @@ export function ShippingActions({
         labelUrl: data.labelUrl,
         trackingNumber: data.trackingNumber,
         trackingUrl: data.trackingUrl,
+        emailSent: data.emailSent,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

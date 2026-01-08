@@ -49,6 +49,8 @@ export function Toast({ message, type, onClose, duration = 5000 }: ToastProps) {
 
   return (
     <div
+      role="alert"
+      aria-live="polite"
       className={`fixed top-4 right-4 z-50 max-w-md w-full transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}

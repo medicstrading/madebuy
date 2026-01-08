@@ -154,7 +154,7 @@ export function ReviewForm({
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 p-4">
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
