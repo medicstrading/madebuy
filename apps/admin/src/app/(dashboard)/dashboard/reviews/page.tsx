@@ -1,8 +1,9 @@
 import { requireTenant } from '@/lib/session'
-import { reviews } from '@madebuy/db'
+import { reviews, pieces } from '@madebuy/db'
 import { formatDate } from '@/lib/utils'
-import { Star, MessageSquare, CheckCircle, XCircle, Clock } from 'lucide-react'
-import type { Review, ReviewStatus } from '@madebuy/shared'
+import { Star, MessageSquare, CheckCircle, XCircle, Clock, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
+import type { Review, ReviewStatus, Piece } from '@madebuy/shared'
 
 interface PageProps {
   searchParams: { status?: string; page?: string }
@@ -17,7 +18,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const offset = (page - 1) * PAGE_SIZE
 
   // Fetch reviews with optional status filter
-  const [allReviews, pendingCount] = await Promise.all([
+  const [allReviews, pendingCount, allPieces] = await Promise.all([
     reviews.listReviews(tenant.id, {
       filters: statusFilter ? { status: statusFilter } : undefined,
       limit: PAGE_SIZE,
@@ -26,7 +27,11 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
       sortOrder: 'desc',
     }),
     reviews.getPendingReviewCount(tenant.id),
+    pieces.listPieces(tenant.id),
   ])
+
+  // Create a map of pieceId to piece for quick lookup
+  const pieceMap = new Map(allPieces.map(p => [p.id, p]))
 
   return (
     <div>
@@ -76,7 +81,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
       ) : (
         <div className="space-y-4">
           {allReviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard key={review.id} review={review} piece={pieceMap.get(review.pieceId)} />
           ))}
         </div>
       )}
@@ -142,11 +147,24 @@ function StatusFilterLink({
   )
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
   return (
     <div className="rounded-lg bg-white p-6 shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1">
+          {/* Product Link */}
+          {piece && (
+            <div className="mb-3">
+              <Link
+                href={`/dashboard/inventory/${piece.id}`}
+                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                <span className="font-medium">{piece.name}</span>
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+          )}
+
           <div className="flex items-center gap-3">
             <StarRating rating={review.rating} />
             <ReviewStatusBadge status={review.status} />

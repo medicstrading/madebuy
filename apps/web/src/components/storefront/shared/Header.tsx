@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Instagram, Facebook, ShoppingBag, User } from 'lucide-react'
+import { Menu, X, Instagram, Facebook, ShoppingBag, User, Heart } from 'lucide-react'
 import type { Tenant, HeaderConfig, WebsitePage } from '@madebuy/shared'
 import { useCart } from '@/contexts/CartContext'
 
@@ -152,8 +152,21 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
             ))}
           </nav>
 
-          {/* Right side: cart + social */}
+          {/* Right side: wishlist + cart + social */}
           <div className="flex items-center gap-2 lg:gap-4">
+            {/* Wishlist */}
+            <Link
+              href={`/${tenantSlug}/wishlist`}
+              className={`p-2 rounded-lg transition-colors ${
+                isTransparent
+                  ? 'text-white hover:bg-white/10'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              aria-label="View wishlist"
+            >
+              <Heart className="w-5 h-5" />
+            </Link>
+
             {/* Shopping Cart */}
             <Link
               href={`/${tenantSlug}/cart`}
