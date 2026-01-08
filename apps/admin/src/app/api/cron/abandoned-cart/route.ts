@@ -37,6 +37,11 @@ function generateUnsubscribeToken(email: string, secret: string): string {
  *
  * Abandoned cart recovery email cron endpoint.
  * Sends recovery emails to customers who have abandoned their carts.
+ *
+ * Email schedule (timezone-aware via UTC timestamps):
+ * - First email: 1 hour after cart abandonment
+ * - Second email: 24 hours after cart abandonment
+ *
  * Respects email subscription preferences - will not send to unsubscribed customers.
  *
  * Should be scheduled to run hourly.
@@ -48,6 +53,7 @@ export const maxDuration = 60 // Allow up to 60 seconds for processing
 interface EmailResult {
   cartId: string
   email: string
+  emailType: 'first' | 'second'
   success: boolean
   skipped?: boolean
   error?: string
@@ -84,90 +90,50 @@ export async function GET(request: NextRequest) {
     // Process each tenant's abandoned carts
     for (const tenant of allTenants) {
       try {
-        // Get carts that need recovery emails (abandoned > 1 hour, has email, not sent yet)
-        const cartsToEmail = await abandonedCarts.getCartsForRecoveryEmail(tenant.id, 60)
+        // ===== FIRST EMAIL: After 1 hour =====
+        const cartsForFirstEmail = await abandonedCarts.getCartsForRecoveryEmail(tenant.id, 60) // 1 hour
 
-        if (cartsToEmail.length === 0) {
-          continue
-        }
+        if (cartsForFirstEmail.length > 0) {
+          console.log(`[CRON] Found ${cartsForFirstEmail.length} carts for first email for tenant ${tenant.id}`)
 
-        console.log(`[CRON] Found ${cartsToEmail.length} carts to email for tenant ${tenant.id}`)
-
-        for (const cart of cartsToEmail) {
-          if (!cart.customerEmail) continue
-
-          totalProcessed++
-
-          try {
-            // Check if customer has unsubscribed from emails
-            const customer = await customers.getCustomerByEmail(tenant.id, cart.customerEmail)
-
-            // Skip if customer exists and has unsubscribed
-            if (customer && customer.emailSubscribed === false) {
-              console.log(`[CRON] Skipping cart ${cart.id} - customer ${cart.customerEmail} has unsubscribed`)
-              totalSkipped++
-              results.push({
-                cartId: cart.id,
-                email: cart.customerEmail,
-                success: false,
-                skipped: true,
-                error: 'Customer unsubscribed',
-              })
-              // Mark as sent to prevent future attempts
-              await abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id)
-              continue
-            }
-
-            // Build recovery URL with cart ID for tracking
-            const baseUrl = tenant.customDomain
-              ? `https://${tenant.customDomain}`
-              : `https://madebuy.com.au/${tenant.slug}`
-            const recoveryUrl = `${baseUrl}/cart?recover=${cart.id}`
-
-            // Build unsubscribe URL with token
-            const unsubscribeToken = generateUnsubscribeToken(cart.customerEmail, unsubscribeSecret)
-            const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(cart.customerEmail)}&token=${unsubscribeToken}`
-
-            // Send the recovery email
-            const emailResult = await sendAbandonedCartEmail({
+          for (const cart of cartsForFirstEmail) {
+            const emailResult = await processCartEmail(
               cart,
               tenant,
-              recoveryUrl,
-              unsubscribeUrl,
-            })
-
-            if (emailResult.success) {
-              // Mark email as sent
-              await abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id)
-              totalSent++
-              results.push({
-                cartId: cart.id,
-                email: cart.customerEmail,
-                success: true,
-              })
-              console.log(`[CRON] Sent recovery email for cart ${cart.id} to ${cart.customerEmail}`)
-            } else {
-              totalFailed++
-              results.push({
-                cartId: cart.id,
-                email: cart.customerEmail,
-                success: false,
-                error: emailResult.error,
-              })
-              console.error(`[CRON] Failed to send email for cart ${cart.id}:`, emailResult.error)
-            }
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-            totalFailed++
-            results.push({
-              cartId: cart.id,
-              email: cart.customerEmail || 'unknown',
-              success: false,
-              error: errorMessage,
-            })
-            console.error(`[CRON] Error processing cart ${cart.id}:`, error)
+              'first',
+              unsubscribeSecret,
+              async () => abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id)
+            )
+            results.push(emailResult)
+            totalProcessed++
+            if (emailResult.success) totalSent++
+            else if (emailResult.skipped) totalSkipped++
+            else totalFailed++
           }
         }
+
+        // ===== SECOND EMAIL: After 24 hours =====
+        const cartsForSecondEmail = await abandonedCarts.getCartsForSecondRecoveryEmail(tenant.id, 24 * 60) // 24 hours
+
+        if (cartsForSecondEmail.length > 0) {
+          console.log(`[CRON] Found ${cartsForSecondEmail.length} carts for second email for tenant ${tenant.id}`)
+
+          for (const cart of cartsForSecondEmail) {
+            const emailResult = await processCartEmail(
+              cart,
+              tenant,
+              'second',
+              unsubscribeSecret,
+              async () => abandonedCarts.markSecondEmailSent(tenant.id, cart.id)
+            )
+            results.push(emailResult)
+            totalProcessed++
+            if (emailResult.success) totalSent++
+            else if (emailResult.skipped) totalSkipped++
+            else totalFailed++
+          }
+        }
+
       } catch (error) {
         console.error(`[CRON] Error processing tenant ${tenant.id}:`, error)
       }
@@ -193,6 +159,96 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     )
+  }
+}
+
+/**
+ * Process a single cart email (first or second)
+ */
+async function processCartEmail(
+  cart: Awaited<ReturnType<typeof abandonedCarts.getCartsForRecoveryEmail>>[0],
+  tenant: Awaited<ReturnType<typeof tenants.listTenants>>[0],
+  emailType: 'first' | 'second',
+  unsubscribeSecret: string,
+  markSentCallback: () => Promise<void>
+): Promise<EmailResult> {
+  if (!cart.customerEmail) {
+    return {
+      cartId: cart.id,
+      email: 'unknown',
+      emailType,
+      success: false,
+      error: 'No email address',
+    }
+  }
+
+  try {
+    // Check if customer has unsubscribed from emails
+    const customer = await customers.getCustomerByEmail(tenant.id, cart.customerEmail)
+
+    // Skip if customer exists and has unsubscribed
+    if (customer && customer.emailSubscribed === false) {
+      console.log(`[CRON] Skipping cart ${cart.id} (${emailType}) - customer ${cart.customerEmail} has unsubscribed`)
+      // Mark as sent to prevent future attempts
+      await markSentCallback()
+      return {
+        cartId: cart.id,
+        email: cart.customerEmail,
+        emailType,
+        success: false,
+        skipped: true,
+        error: 'Customer unsubscribed',
+      }
+    }
+
+    // Build recovery URL with cart ID for tracking
+    const baseUrl = tenant.customDomain
+      ? `https://${tenant.customDomain}`
+      : `https://madebuy.com.au/${tenant.slug}`
+    const recoveryUrl = `${baseUrl}/cart?recover=${cart.id}`
+
+    // Build unsubscribe URL with token
+    const unsubscribeToken = generateUnsubscribeToken(cart.customerEmail, unsubscribeSecret)
+    const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(cart.customerEmail)}&token=${unsubscribeToken}`
+
+    // Send the recovery email (same template for both, but could be customized)
+    const emailResult = await sendAbandonedCartEmail({
+      cart,
+      tenant,
+      recoveryUrl,
+      unsubscribeUrl,
+    })
+
+    if (emailResult.success) {
+      // Mark email as sent
+      await markSentCallback()
+      console.log(`[CRON] Sent ${emailType} recovery email for cart ${cart.id} to ${cart.customerEmail}`)
+      return {
+        cartId: cart.id,
+        email: cart.customerEmail,
+        emailType,
+        success: true,
+      }
+    } else {
+      console.error(`[CRON] Failed to send ${emailType} email for cart ${cart.id}:`, emailResult.error)
+      return {
+        cartId: cart.id,
+        email: cart.customerEmail,
+        emailType,
+        success: false,
+        error: emailResult.error,
+      }
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error(`[CRON] Error processing cart ${cart.id} (${emailType}):`, error)
+    return {
+      cartId: cart.id,
+      email: cart.customerEmail || 'unknown',
+      emailType,
+      success: false,
+      error: errorMessage,
+    }
   }
 }
 

@@ -18,8 +18,12 @@ export interface AbandonedCart {
   total: number
   currency: string
   abandonedAt: Date
+  // First recovery email (sent after ~1 hour)
   recoveryEmailSent: boolean
   recoveryEmailSentAt?: Date
+  // Second recovery email (sent after ~24 hours)
+  secondEmailSent?: boolean
+  secondEmailSentAt?: Date
   recovered: boolean
   recoveredAt?: Date
   createdAt: Date
@@ -191,8 +195,8 @@ export async function markRecoveryEmailSent(
 }
 
 /**
- * Get carts that are ready for recovery email
- * (abandoned for at least 1 hour, email not sent yet)
+ * Get carts that are ready for first recovery email
+ * (abandoned for at least 1 hour, first email not sent yet)
  */
 export async function getCartsForRecoveryEmail(
   tenantId: string,
@@ -214,6 +218,57 @@ export async function getCartsForRecoveryEmail(
     .toArray()
 
   return carts as unknown as AbandonedCart[]
+}
+
+/**
+ * Get carts that are ready for second recovery email
+ * (abandoned for at least 24 hours, first email sent, second email not sent yet)
+ */
+export async function getCartsForSecondRecoveryEmail(
+  tenantId: string,
+  minAbandonmentMinutes: number = 24 * 60 // 24 hours default
+): Promise<AbandonedCart[]> {
+  const db = await getDatabase()
+
+  const cutoff = new Date(Date.now() - minAbandonmentMinutes * 60 * 1000)
+
+  const carts = await db
+    .collection('abandoned_carts')
+    .find({
+      tenantId,
+      recovered: false,
+      recoveryEmailSent: true, // First email must have been sent
+      $or: [
+        { secondEmailSent: { $exists: false } },
+        { secondEmailSent: false },
+      ],
+      abandonedAt: { $lte: cutoff },
+      customerEmail: { $exists: true, $nin: [null, ''] },
+    })
+    .toArray()
+
+  return carts as unknown as AbandonedCart[]
+}
+
+/**
+ * Mark second recovery email as sent
+ */
+export async function markSecondEmailSent(
+  tenantId: string,
+  cartId: string
+): Promise<void> {
+  const db = await getDatabase()
+
+  await db.collection('abandoned_carts').updateOne(
+    { tenantId, id: cartId },
+    {
+      $set: {
+        secondEmailSent: true,
+        secondEmailSentAt: new Date(),
+        updatedAt: new Date(),
+      },
+    }
+  )
 }
 
 /**
