@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Percent, CheckCircle, AlertCircle, Loader2, FileText, ChevronDown, DollarSign } from 'lucide-react'
 import type { TenantTaxSettings, QuarterlyGSTReport } from '@madebuy/shared'
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
 
 // Helper to format cents to dollars
 function formatCurrency(cents: number): string {
@@ -44,6 +45,14 @@ export default function TaxSettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [abnError, setAbnError] = useState<string | null>(null)
 
+  // Track initial settings to detect unsaved changes
+  const initialSettingsRef = useRef<TenantTaxSettings | null>(null)
+  const isDirty = initialSettingsRef.current !== null &&
+    JSON.stringify(settings) !== JSON.stringify(initialSettingsRef.current)
+
+  // Warn user about unsaved changes when leaving the page
+  useUnsavedChangesWarning(isDirty)
+
   // GST Report state
   const [selectedQuarter, setSelectedQuarter] = useState(() => {
     const now = new Date()
@@ -61,12 +70,15 @@ export default function TaxSettingsPage() {
         const res = await fetch('/api/tenant/tax')
         if (res.ok) {
           const data = await res.json()
-          setSettings(data.taxSettings || {
+          const fetchedSettings = data.taxSettings || {
             gstRegistered: false,
             abn: '',
             gstRate: 10,
             pricesIncludeGst: true,
-          })
+          }
+          setSettings(fetchedSettings)
+          // Store initial settings to detect changes
+          initialSettingsRef.current = { ...fetchedSettings }
         }
       } catch (error) {
         console.error('Failed to fetch tax settings:', error)
@@ -147,6 +159,8 @@ export default function TaxSettingsPage() {
 
       if (res.ok) {
         setMessage({ type: 'success', text: 'Tax settings saved successfully!' })
+        // Update initial settings reference after successful save
+        initialSettingsRef.current = { ...settings, abn: settings.abn?.replace(/\s/g, '') }
       } else {
         const data = await res.json()
         setMessage({ type: 'error', text: data.error || 'Failed to save settings' })

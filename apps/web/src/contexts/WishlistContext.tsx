@@ -47,30 +47,44 @@ export function WishlistProvider({
   }, [pieceIds])
 
   const addToWishlist = useCallback(async (pieceId: string) => {
+    // Optimistic update - add immediately
+    setPieceIds(prev => [...prev, pieceId])
+
     try {
       const response = await fetch('/api/wishlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, pieceId }),
       })
-      if (response.ok) {
-        setPieceIds(prev => [...prev, pieceId])
+      if (!response.ok) {
+        // Rollback on failure
+        setPieceIds(prev => prev.filter(id => id !== pieceId))
+        console.error('Failed to add to wishlist: API error')
       }
     } catch (error) {
+      // Rollback on network error
+      setPieceIds(prev => prev.filter(id => id !== pieceId))
       console.error('Failed to add to wishlist:', error)
     }
   }, [tenantId])
 
   const removeFromWishlist = useCallback(async (pieceId: string) => {
+    // Optimistic update - remove immediately
+    setPieceIds(prev => prev.filter(id => id !== pieceId))
+
     try {
       const response = await fetch(
         `/api/wishlist?tenantId=${tenantId}&pieceId=${pieceId}`,
         { method: 'DELETE' }
       )
-      if (response.ok) {
-        setPieceIds(prev => prev.filter(id => id !== pieceId))
+      if (!response.ok) {
+        // Rollback on failure - add back
+        setPieceIds(prev => [...prev, pieceId])
+        console.error('Failed to remove from wishlist: API error')
       }
     } catch (error) {
+      // Rollback on network error - add back
+      setPieceIds(prev => [...prev, pieceId])
       console.error('Failed to remove from wishlist:', error)
     }
   }, [tenantId])
