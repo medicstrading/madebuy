@@ -432,3 +432,153 @@ export async function sendAbandonedCartEmail(data: AbandonedCartEmailData): Prom
     }
   }
 }
+
+/**
+ * Review request email data
+ */
+interface ReviewRequestEmailData {
+  order: {
+    id: string
+    orderNumber: string
+    customerEmail: string
+    customerName: string
+    items: Array<{
+      name: string
+      imageUrl?: string
+    }>
+  }
+  tenant: Tenant
+  reviewUrl: string
+  unsubscribeUrl?: string
+}
+
+/**
+ * Build review request email HTML
+ */
+function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
+  const { order, tenant, reviewUrl } = data
+  const shopName = tenant.businessName || 'Our Shop'
+  const brandColor = tenant.brandSettings?.primaryColor || '#3B82F6'
+
+  const itemsHtml = order.items.slice(0, 3).map(item => `
+    <div style="display: inline-block; margin-right: 12px; margin-bottom: 12px; text-align: center;">
+      ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />` : ''}
+      <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</p>
+    </div>
+  `).join('')
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How was your order?</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #374151; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f3f4f6;">
+  <div style="padding: 40px 20px;">
+    <div style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <!-- Header -->
+      <div style="background-color: ${brandColor}; padding: 30px 24px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">How was your order?</h1>
+      </div>
+
+      <div style="padding: 30px 24px;">
+        <p style="margin: 0 0 20px 0; font-size: 16px;">
+          Hi ${order.customerName || 'there'},
+        </p>
+
+        <p style="margin: 0 0 20px 0; font-size: 16px;">
+          We hope you're enjoying your purchase from <strong>${shopName}</strong>! Your feedback helps us improve and helps other shoppers make confident decisions.
+        </p>
+
+        <!-- Order Items Preview -->
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #374151;">
+            Order #${order.orderNumber}
+          </p>
+          <div>
+            ${itemsHtml}
+          </div>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${reviewUrl}" style="display: inline-block; background-color: ${brandColor}; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Leave a Review
+          </a>
+        </div>
+
+        <p style="margin: 24px 0 0 0; font-size: 14px; color: #6b7280; text-align: center;">
+          It only takes a minute and means so much to us!
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          Thank you for shopping with ${shopName}!
+        </p>
+        ${data.unsubscribeUrl ? `
+        <p style="margin: 16px 0 0 0; font-size: 11px; color: #9ca3af;">
+          Don't want to receive these emails? <a href="${data.unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a>
+        </p>
+        ` : ''}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
+
+/**
+ * Send review request email
+ */
+export async function sendReviewRequestEmail(data: ReviewRequestEmailData): Promise<{
+  success: boolean
+  error?: string
+}> {
+  const client = getResendClient()
+
+  if (!client) {
+    // In development mode without Resend, log to console
+    console.log('[EMAIL] Review request email (not sent - no Resend API key):')
+    console.log(`  To: ${data.order.customerEmail}`)
+    console.log(`  Order: ${data.order.orderNumber}`)
+    console.log(`  Review URL: ${data.reviewUrl}`)
+    return {
+      success: true, // Return success in dev mode for testing
+    }
+  }
+
+  const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'hello@madebuy.com.au'
+  const fromName = data.tenant.businessName || 'MadeBuy'
+  const htmlContent = buildReviewRequestEmailHtml(data)
+
+  try {
+    const result = await client.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: data.order.customerEmail,
+      subject: `How was your order from ${data.tenant.businessName}?`,
+      html: htmlContent,
+      replyTo: data.tenant.email,
+    })
+
+    if (result.error) {
+      console.error('Failed to send review request email:', result.error)
+      return {
+        success: false,
+        error: result.error.message,
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send review request email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}

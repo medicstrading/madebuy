@@ -369,3 +369,53 @@ export async function bulkUpdateOrderStatus(
 
   return result.modifiedCount
 }
+
+/**
+ * Get orders that are ready for review request emails
+ * (delivered at least 7 days ago, review request not yet sent)
+ */
+export async function getOrdersForReviewRequest(
+  tenantId: string,
+  minDeliveryDays: number = 7
+): Promise<Order[]> {
+  const db = await getDatabase()
+
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - minDeliveryDays)
+
+  const orders = await db
+    .collection('orders')
+    .find({
+      tenantId,
+      status: 'delivered',
+      deliveredAt: { $lte: cutoff },
+      // Not yet sent a review request
+      $or: [
+        { reviewRequestSentAt: { $exists: false } },
+        { reviewRequestSentAt: null },
+      ],
+    })
+    .toArray()
+
+  return orders as unknown as Order[]
+}
+
+/**
+ * Mark review request as sent for an order
+ */
+export async function markReviewRequestSent(
+  tenantId: string,
+  orderId: string
+): Promise<void> {
+  const db = await getDatabase()
+
+  await db.collection('orders').updateOne(
+    { tenantId, id: orderId },
+    {
+      $set: {
+        reviewRequestSentAt: new Date(),
+        updatedAt: new Date(),
+      },
+    }
+  )
+}

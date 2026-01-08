@@ -85,6 +85,9 @@ export interface Order {
   shippedAt?: Date
   deliveredAt?: Date
   cancelledAt?: Date
+
+  // Review request tracking
+  reviewRequestSentAt?: Date
 }
 
 export interface OrderItem {
