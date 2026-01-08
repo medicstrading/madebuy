@@ -341,3 +341,31 @@ export async function markSyncFailed(
     }
   )
 }
+
+/**
+ * Bulk update order status for multiple orders
+ * Returns the number of orders updated
+ */
+export async function bulkUpdateOrderStatus(
+  tenantId: string,
+  orderIds: string[],
+  status: Order['status']
+): Promise<number> {
+  if (orderIds.length === 0) return 0
+
+  const db = await getDatabase()
+  const result = await db.collection('orders').updateMany(
+    {
+      tenantId,
+      id: { $in: orderIds }
+    },
+    {
+      $set: {
+        status,
+        updatedAt: new Date()
+      }
+    }
+  )
+
+  return result.modifiedCount
+}

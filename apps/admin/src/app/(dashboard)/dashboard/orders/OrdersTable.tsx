@@ -1,25 +1,46 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
-import { Search, X, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, X, ChevronRight, ChevronDown, Check, Truck, Package, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import type { Order } from '@madebuy/shared'
 
 interface OrdersTableProps {
   orders: Order[]
 }
 
+type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+
+const BULK_ACTIONS: { value: OrderStatus; label: string; icon: typeof Truck }[] = [
+  { value: 'processing', label: 'Mark as Processing', icon: Package },
+  { value: 'shipped', label: 'Mark as Shipped', icon: Truck },
+  { value: 'delivered', label: 'Mark as Delivered', icon: CheckCircle },
+  { value: 'cancelled', label: 'Mark as Cancelled', icon: XCircle },
+]
+
 /**
- * OrdersTable - Client component with search functionality
+ * OrdersTable - Client component with search and bulk actions
  *
  * Key behaviors:
  * - Empty search shows ALL results
  * - Clearing search returns to showing ALL results
  * - Search filters by order number, customer name, email
+ * - Bulk selection with checkboxes
+ * - Bulk status update via dropdown
  */
 export function OrdersTable({ orders }: OrdersTableProps) {
+  const router = useRouter()
   // Search starts empty, showing all results
   const [search, setSearch] = useState('')
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  // Bulk action dropdown
+  const [showBulkActions, setShowBulkActions] = useState(false)
+  // Confirmation modal
+  const [confirmAction, setConfirmAction] = useState<{ action: OrderStatus; label: string } | null>(null)
+  // Loading state
+  const [isUpdating, setIsUpdating] = useState(false)
 
   // Filter orders based on search (empty = all results)
   const filteredOrders = useMemo(() => {
@@ -42,29 +63,133 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     setSearch('')  // Clear search, shows all results
   }
 
+  // Select all filtered orders
+  const handleSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredOrders.map(o => o.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }, [filteredOrders])
+
+  // Toggle individual order selection
+  const handleSelectOrder = useCallback((orderId: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (checked) {
+        next.add(orderId)
+      } else {
+        next.delete(orderId)
+      }
+      return next
+    })
+  }, [])
+
+  // Handle bulk action selection
+  const handleBulkActionClick = (action: OrderStatus, label: string) => {
+    setShowBulkActions(false)
+    setConfirmAction({ action, label })
+  }
+
+  // Execute bulk action
+  const executeBulkAction = async () => {
+    if (!confirmAction || selectedIds.size === 0) return
+
+    setIsUpdating(true)
+    try {
+      const response = await fetch('/api/orders/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderIds: Array.from(selectedIds),
+          action: confirmAction.action
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update orders')
+      }
+
+      // Clear selection and refresh page
+      setSelectedIds(new Set())
+      setConfirmAction(null)
+      router.refresh()
+    } catch (error) {
+      console.error('Bulk update error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to update orders')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const allSelected = filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.has(o.id))
+  const someSelected = selectedIds.size > 0 && !allSelected
+
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-gray-400" />
+      {/* Search Bar and Bulk Actions */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Search */}
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search orders by number, customer name, or email..."
+            maxLength={200}
+            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {search && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            </button>
+          )}
         </div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search orders by number, customer name, or email..."
-          maxLength={200}
-          className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {search && (
-          <button
-            onClick={handleClearSearch}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            aria-label="Clear search"
-          >
-            <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-          </button>
+
+        {/* Bulk Actions Dropdown */}
+        {selectedIds.size > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => setShowBulkActions(!showBulkActions)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Bulk Actions ({selectedIds.size})
+              <ChevronDown className="h-4 w-4" />
+            </button>
+
+            {showBulkActions && (
+              <>
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowBulkActions(false)}
+                />
+                {/* Dropdown menu */}
+                <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="py-1">
+                    {BULK_ACTIONS.map(({ value, label, icon: Icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => handleBulkActionClick(value, label)}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         )}
       </div>
 
@@ -82,6 +207,11 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         ) : (
           <>Showing all {orders.length} orders</>
         )}
+        {selectedIds.size > 0 && (
+          <span className="ml-2 font-medium text-blue-600">
+            ({selectedIds.size} selected)
+          </span>
+        )}
       </div>
 
       {/* Orders Table */}
@@ -89,6 +219,18 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="w-12 px-3 py-3">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={input => {
+                    if (input) input.indeterminate = someSelected
+                  }}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  aria-label="Select all orders"
+                />
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                 Order
               </th>
@@ -115,13 +257,25 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           <tbody className="divide-y divide-gray-200 bg-white">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                   No orders match your search
                 </td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 group">
+                <tr
+                  key={order.id}
+                  className={`hover:bg-gray-50 group ${selectedIds.has(order.id) ? 'bg-blue-50' : ''}`}
+                >
+                  <td className="w-12 px-3 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(order.id)}
+                      onChange={(e) => handleSelectOrder(order.id, e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label={`Select order ${order.orderNumber}`}
+                    />
+                  </td>
                   <td className="whitespace-nowrap px-6 py-4">
                     <Link href={`/dashboard/orders/${order.id}`} className="block">
                       <div className="text-sm font-medium text-blue-600 group-hover:text-blue-800">
@@ -160,6 +314,50 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Confirm Bulk Action
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Are you sure you want to <strong>{confirmAction.label.toLowerCase()}</strong> for{' '}
+              <strong>{selectedIds.size} order(s)</strong>?
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              This action will update all selected orders immediately.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmAction(null)}
+                disabled={isUpdating}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeBulkAction}
+                disabled={isUpdating}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isUpdating ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Confirm
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
