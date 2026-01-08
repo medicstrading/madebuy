@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
 import { AddToCartButton } from '@/components/cart/AddToCartButton'
+import { ProductViewTracker } from '@/components/analytics/ProductViewTracker'
 
 export async function generateMetadata({
   params
@@ -47,6 +48,9 @@ export default async function PieceDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Analytics Tracking */}
+      <ProductViewTracker tenantId={tenant.id} productId={piece.id} />
+
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">

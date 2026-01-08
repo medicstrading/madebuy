@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCart } from '@/contexts/CartContext'
+import { useAnalytics } from '@/hooks/useAnalytics'
 import type { ProductWithMedia, PieceWithMedia } from '@madebuy/shared'
 import { ShoppingCart, Check } from 'lucide-react'
 
@@ -13,12 +14,16 @@ interface AddToCartButtonProps {
 
 export function AddToCartButton({ product, tenantId, disabled }: AddToCartButtonProps) {
   const { addItem } = useCart()
+  const { trackAddToCart } = useAnalytics(tenantId)
   const [added, setAdded] = useState(false)
 
   const handleAddToCart = () => {
     // Cast to ProductWithMedia for cart compatibility
     addItem(product as ProductWithMedia, 1)
     setAdded(true)
+
+    // Track add to cart event
+    trackAddToCart(product.id)
 
     // Reset button state after 2 seconds
     setTimeout(() => {

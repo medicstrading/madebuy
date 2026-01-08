@@ -1,6 +1,7 @@
 import { requireTenant } from '@/lib/tenant'
 import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
+import { PurchaseTracker } from '@/components/analytics/PurchaseTracker'
 
 export async function generateMetadata({ params }: { params: { tenant: string } }) {
   const tenant = await requireTenant(params.tenant)
@@ -22,6 +23,9 @@ export default async function CheckoutSuccessPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Analytics Tracking */}
+      <PurchaseTracker tenantId={tenant.id} orderId={sessionId} />
+
       <main className="container mx-auto px-4 py-16">
         <div className="mx-auto max-w-2xl">
           <div className="rounded-lg bg-white p-8 shadow-sm text-center">

@@ -1,8 +1,8 @@
 import { requireTenant } from '@/lib/tenant'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { CheckoutForm } from '@/components/checkout/CheckoutForm'
+import { CheckoutStartTracker } from '@/components/analytics/CheckoutStartTracker'
 
 export async function generateMetadata({ params }: { params: { tenant: string } }) {
   const tenant = await requireTenant(params.tenant)
@@ -17,6 +17,9 @@ export default async function CheckoutPage({ params }: { params: { tenant: strin
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Analytics Tracking */}
+      <CheckoutStartTracker tenantId={tenant.id} />
+
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
