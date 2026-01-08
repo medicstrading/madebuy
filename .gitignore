@@ -50,3 +50,6 @@ Thumbs.db
 .cache
 .pommel/
 .pnpm-store/
+
+# Auto Claude data directory
+.auto-claude/
