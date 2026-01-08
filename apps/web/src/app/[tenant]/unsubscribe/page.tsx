@@ -11,8 +11,8 @@ export default function UnsubscribePage({
   params: { tenant: string }
 }) {
   const searchParams = useSearchParams()
-  const email = searchParams.get('email')
-  const token = searchParams.get('token')
+  const email = searchParams?.get('email')
+  const token = searchParams?.get('token')
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading')
   const [errorMessage, setErrorMessage] = useState<string>('')

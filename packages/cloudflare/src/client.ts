@@ -43,10 +43,10 @@ export class CloudflareClient {
   ): Promise<CloudflareResponse<T>> {
     const url = `${CLOUDFLARE_API_BASE}${endpoint}`
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Authorization': `Bearer ${this.apiToken}`,
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     const response = await fetch(url, {

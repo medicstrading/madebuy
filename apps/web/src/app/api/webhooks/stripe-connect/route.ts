@@ -4,7 +4,7 @@ import { tenants, payouts, transactions } from '@madebuy/db'
 import type { StripeConnectStatus, PayoutStatus } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
 })
 
 const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET!
@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
         break
 
       case 'account.application.deauthorized':
-        await handleAccountDeauthorized(event.data.object as Stripe.Account)
+        // The object is an Application, but we need the account ID from event.account
+        await handleAccountDeauthorized(event.account!)
         break
 
       case 'payout.created':
@@ -124,10 +125,10 @@ async function handleAccountUpdated(account: Stripe.Account) {
  * Handle account.application.deauthorized
  * Seller disconnected MadeBuy from their Stripe account
  */
-async function handleAccountDeauthorized(account: Stripe.Account) {
-  const tenant = await tenants.getTenantByStripeAccountId(account.id)
+async function handleAccountDeauthorized(accountId: string) {
+  const tenant = await tenants.getTenantByStripeAccountId(accountId)
   if (!tenant) {
-    console.log(`No tenant found for deauthorized account ${account.id}`)
+    console.log(`No tenant found for deauthorized account ${accountId}`)
     return
   }
 
