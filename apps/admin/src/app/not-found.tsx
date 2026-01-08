@@ -15,7 +15,7 @@ export default function NotFound() {
       <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold' }}>404</h1>
       <p style={{ marginTop: '1rem', color: '#4b5563' }}>Page not found</p>
       <a
-        href="/login"
+        href="/dashboard"
         style={{
           marginTop: '1.5rem',
           padding: '0.5rem 1rem',
@@ -25,7 +25,7 @@ export default function NotFound() {
           textDecoration: 'none'
         }}
       >
-        Go to Login
+        Go to Dashboard
       </a>
     </div>
   )
