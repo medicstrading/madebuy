@@ -1,0 +1,191 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-01-08T11:15:43.211Z",
+  "complexity_signals": {
+    "low": {
+      "score_range": [
+        1,
+        2
+      ],
+      "indicators": [
+        "single_file",
+        "formatting_only",
+        "simple_extraction",
+        "documentation",
+        "typo_fix",
+        "config_change",
+        "comment_update",
+        "variable_rename",
+        "import_cleanup"
+      ],
+      "patterns": [
+        "fix typo",
+        "update readme",
+        "format code",
+        "add comment",
+        "rename variable",
+        "update config",
+        "change constant",
+        "fix lint"
+      ]
+    },
+    "medium": {
+      "score_range": [
+        3,
+        4
+      ],
+      "indicators": [
+        "multi_file_2_to_5",
+        "new_function",
+        "api_endpoint",
+        "test_writing",
+        "refactor_local",
+        "bug_fix_complex",
+        "new_component",
+        "database_query"
+      ],
+      "patterns": [
+        "add feature",
+        "implement endpoint",
+        "write tests",
+        "refactor",
+        "fix bug",
+        "add validation",
+        "create component",
+        "update schema"
+      ]
+    },
+    "high": {
+      "score_range": [
+        5,
+        5
+      ],
+      "indicators": [
+        "multi_file_5_plus",
+        "new_architecture",
+        "system_design",
+        "security_sensitive",
+        "performance_critical",
+        "cross_service",
+        "migration",
+        "authentication",
+        "authorization"
+      ],
+      "patterns": [
+        "redesign",
+        "architect",
+        "security",
+        "authentication",
+        "migrate",
+        "scale",
+        "optimize performance",
+        "integrate systems"
+      ]
+    }
+  },
+  "domain_weights": {
+    "security": {
+      "base_complexity": 4,
+      "force_minimum_tier": "sonnet",
+      "keywords": [
+        "auth",
+        "password",
+        "token",
+        "encrypt",
+        "permission",
+        "role",
+        "access"
+      ]
+    },
+    "architecture": {
+      "base_complexity": 5,
+      "force_minimum_tier": "opus",
+      "keywords": [
+        "architect",
+        "design",
+        "system",
+        "scale",
+        "infrastructure"
+      ]
+    },
+    "deployment": {
+      "base_complexity": 3,
+      "force_minimum_tier": "sonnet",
+      "keywords": [
+        "deploy",
+        "docker",
+        "kubernetes",
+        "ci/cd",
+        "pipeline"
+      ]
+    },
+    "database": {
+      "base_complexity": 3,
+      "force_minimum_tier": "sonnet",
+      "keywords": [
+        "migration",
+        "schema",
+        "query",
+        "index",
+        "transaction"
+      ]
+    },
+    "ui": {
+      "base_complexity": 2,
+      "force_minimum_tier": null,
+      "keywords": [
+        "component",
+        "style",
+        "layout",
+        "responsive",
+        "animation"
+      ]
+    },
+    "config": {
+      "base_complexity": 1,
+      "force_minimum_tier": null,
+      "keywords": [
+        "config",
+        "env",
+        "setting",
+        "option",
+        "flag"
+      ]
+    },
+    "documentation": {
+      "base_complexity": 1,
+      "force_minimum_tier": null,
+      "keywords": [
+        "doc",
+        "readme",
+        "comment",
+        "jsdoc",
+        "typescript"
+      ]
+    },
+    "testing": {
+      "base_complexity": 2,
+      "force_minimum_tier": null,
+      "keywords": [
+        "test",
+        "spec",
+        "mock",
+        "fixture",
+        "coverage"
+      ]
+    }
+  },
+  "file_count_weights": {
+    "1": 0,
+    "2-3": 1,
+    "4-5": 2,
+    "6-10": 3,
+    "10+": 4
+  },
+  "confidence_modifiers": {
+    "explicit_request": 0.3,
+    "pattern_match": 0.2,
+    "domain_match": 0.2,
+    "historical_similar": 0.3
+  }
+}

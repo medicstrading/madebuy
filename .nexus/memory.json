@@ -1,219 +1,99 @@
 {
   "version": "1.0.0",
   "project_name": "madebuy",
+  "created_at": "2026-01-08T11:15:43.212Z",
+  "last_updated": "2026-01-08T11:15:43.212Z",
+  "entities": {},
+  "metadata": {
+    "architecture": {
+      "stack": "Node.js, MongoDB, Docker",
+      "structure": "Unknown",
+      "ports": {},
+      "deployment": "Unknown",
+      "database": "MongoDB"
+    },
+    "important_facts": [],
+    "known_issues": [],
+    "agents_used": {
+      "Explore": [],
+      "Plan": []
+    },
+    "mcps_enabled": [
+      "memory"
+    ],
+    "sessions": []
+  },
   "facts": [
     {
-      "content": "**Name:** MadeBuy (PRIMARY project)",
+      "content": "**Name:** madebuy",
       "tags": [
         "fact"
       ],
-      "created_at": "2026-01-07T02:17:08.550343"
+      "created_at": "2026-01-08T11:15:43.212Z"
     },
     {
-      "content": "**Purpose:** Etsy alternative marketplace - Shopify features + Etsy exposure, zero transaction fees",
+      "content": "**Purpose:** Not specified",
       "tags": [
         "fact"
       ],
-      "created_at": "2026-01-07T02:17:08.550673"
+      "created_at": "2026-01-08T11:15:43.212Z"
     },
     {
-      "content": "**Stack:** Next.js 14, TypeScript, MongoDB, Tailwind CSS, Turborepo monorepo",
+      "content": "**Stack:** Node.js, MongoDB, Docker",
       "tags": [
-        "nextjs",
-        "typescript",
-        "mongodb",
         "fact"
       ],
-      "created_at": "2026-01-07T02:17:08.550984"
+      "created_at": "2026-01-08T11:15:43.212Z"
     },
     {
-      "content": "**Structure:** apps/admin, apps/web, packages/shared",
+      "content": "NEXUS model routing system enabled for intelligent tier selection",
       "tags": [
+        "nexus",
+        "routing",
         "fact"
       ],
-      "created_at": "2026-01-07T02:17:08.560816"
-    },
-    {
-      "content": "**Ports:** admin=3300, marketplace=3301",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.561201"
-    },
-    {
-      "content": "**Deploy:** Vultr VPS with Docker Compose",
-      "tags": [
-        "docker",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.561559"
-    },
-    {
-      "content": "**Git account:** medicstrading",
-      "tags": [
-        "git",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.561933"
-    },
-    {
-      "content": "[ ] Create webhook endpoint in Stripe Dashboard:",
-      "tags": [
-        "stripe",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.582716"
-    },
-    {
-      "content": "URL: `https://madebuy.com.au/api/webhooks/stripe-connect`",
-      "tags": [
-        "api",
-        "stripe",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.583150"
-    },
-    {
-      "content": "[ ] Test tenant Stripe Connect flow end-to-end",
-      "tags": [
-        "stripe",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.584718"
-    },
-    {
-      "content": "[ ] Apply for PayPal Commerce Platform partner approval",
-      "tags": [
-        "paypal",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.585191"
-    },
-    {
-      "content": "[ ] Implement PayPal integration after approval",
-      "tags": [
-        "paypal",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.585683"
-    },
-    {
-      "content": "**Create Stripe Products/Prices in Dashboard**",
-      "tags": [
-        "stripe",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.586222"
-    },
-    {
-      "content": "Maker: $15/month",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.586577"
-    },
-    {
-      "content": "Professional: $29/month",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.586990"
-    },
-    {
-      "content": "Studio: $59/month",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.587530"
-    },
-    {
-      "content": "**Set environment variables**",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.587982"
-    },
-    {
-      "content": "**Schedule monthly usage reset cron**",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.588512"
-    },
-    {
-      "content": "Endpoint: `/api/cron/reset-usage`",
-      "tags": [
-        "api",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.589115"
-    },
-    {
-      "content": "Schedule: `0 0 1 * *` (midnight on 1st of each month)",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.589577"
-    },
-    {
-      "content": "Vercel cron or external scheduler",
-      "tags": [
-        "vercel",
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.590273"
-    },
-    {
-      "content": "Generate: `openssl rand -hex 32`",
-      "tags": [
-        "fact"
-      ],
-      "created_at": "2026-01-07T02:17:08.590943"
+      "created_at": "2026-01-08T11:15:43.212Z"
     }
   ],
-  "credentials": {
-    "Security-conscious": {
-      "value_encrypted": "z58EGTSzvEw1VsupNRHPpHQ8Mp35eXa/9Nkjyy8EKzeHUnhWm1PnCm4VJetU3M9yfNZaJfze0GWC7V+WRGSWzSQp/PC3eOQkq5hr",
-      "type": "encrypted",
-      "created_at": "2026-01-07T02:17:08.573990",
-      "tags": [
-        "credential"
-      ]
+  "model_routing": {
+    "enabled": true,
+    "routing_decisions": [],
+    "escalation_events": [],
+    "delegation_events": [],
+    "statistics": {
+      "total_routed": 1,
+      "by_tier": {
+        "haiku": 1,
+        "sonnet": 0,
+        "opus": 0
+      },
+      "escalations": 0,
+      "delegations": 0,
+      "avg_complexity": "2.00",
+      "avg_confidence": "0.50"
     },
-    "[ ] Get real Stripe API keys from https": {
-      "value_encrypted": "J8YbKBAg0kGGUBbOj9FNGLVWGJ2dfkjInP/6S5ohb1STqF4KtccFziWy6y6rpTKRh6w+HI+QseOh4g==",
-      "type": "encrypted",
-      "created_at": "2026-01-07T02:17:08.581857",
-      "tags": [
-        "api",
-        "stripe",
-        "credential"
-      ]
-    },
-    "[ ] Update env vars": {
-      "value_encrypted": "Q+zvE8y0Bl+JobnEFE3don4ckNIrnGFQrGlbwf8+R2lyjSVe30JzgiVVGIBZG7GO2mho8b7m1B0Sck7H7CGeR3Z6nRfr/JWelA==",
-      "type": "encrypted",
-      "created_at": "2026-01-07T02:17:08.582299",
-      "tags": [
-        "stripe",
-        "credential"
-      ]
-    },
-    "Events": {
-      "value_encrypted": "8E7dNz6r68NyfJ9nWQaihwZ/7uM59S1jbbKyuGn+tGPjLXJI49v79wc2WoILc5vMQxMEY1gGpyvzjARqlLNYv+LzIS1jCQ0k5BL3p3NF0mIGKicdNtviQh00PfWRBs4Lpxx3wMAtwQWXzu0VOBb+PRvKoZdJJ5bZxwLdpKSXZAlvR/t3EDnlCWK76A==",
-      "type": "encrypted",
-      "created_at": "2026-01-07T02:17:08.584008",
-      "tags": [
-        "credential"
-      ]
-    },
-    "Add to env": {
-      "value_encrypted": "jZrNWhO8y7qywqRHP54z5V8jNEMA8vJsTGcfNQMhkauqdHIsapOlhUxllnud9cvgRdLYqFizoDm6amU=",
-      "type": "encrypted",
-      "created_at": "2026-01-07T02:17:08.591811",
-      "tags": [
-        "credential"
-      ]
+    "cost_tracking": {
+      "enabled": true,
+      "estimated_savings": 0,
+      "tokens_by_tier": {
+        "haiku": {
+          "input": 0,
+          "output": 0
+        },
+        "sonnet": {
+          "input": 0,
+          "output": 0
+        },
+        "opus": {
+          "input": 0,
+          "output": 0
+        }
+      }
     }
+  },
+  "handoff_history": {
+    "active_handoffs": [],
+    "completed_handoffs": [],
+    "failed_handoffs": []
   }
 }

@@ -1,0 +1,128 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-01-08T11:15:43.210Z",
+  "last_updated": "2026-01-08T11:15:43.211Z",
+  "tiers": {
+    "haiku": {
+      "model_id": "claude-3-5-haiku-20241022",
+      "cost_tier": "low",
+      "cost_per_1k_tokens": {
+        "input": 0.001,
+        "output": 0.005
+      },
+      "max_complexity": 2,
+      "capabilities": [
+        "simple_queries",
+        "formatting",
+        "extraction",
+        "summarization",
+        "documentation",
+        "simple_refactoring"
+      ],
+      "use_cases": [
+        "File content extraction",
+        "Simple refactoring",
+        "Code formatting and linting",
+        "Documentation generation",
+        "Simple bug fixes with clear patterns",
+        "Config file updates",
+        "Typo and syntax fixes",
+        "README updates"
+      ],
+      "constraints": {
+        "max_files": 3,
+        "max_lines_changed": 100,
+        "avoid_domains": [
+          "security",
+          "architecture"
+        ]
+      }
+    },
+    "sonnet": {
+      "model_id": "claude-sonnet-4-20250514",
+      "cost_tier": "medium",
+      "cost_per_1k_tokens": {
+        "input": 0.003,
+        "output": 0.015
+      },
+      "max_complexity": 4,
+      "capabilities": [
+        "coding",
+        "analysis",
+        "debugging",
+        "multi_file",
+        "api_design",
+        "testing",
+        "refactoring"
+      ],
+      "use_cases": [
+        "Feature implementation",
+        "Multi-file changes",
+        "Debugging complex issues",
+        "API design and implementation",
+        "Code review",
+        "Test suite creation",
+        "Database schema changes",
+        "Integration work"
+      ],
+      "constraints": {
+        "max_files": 15,
+        "max_lines_changed": 1000,
+        "avoid_domains": []
+      }
+    },
+    "opus": {
+      "model_id": "claude-opus-4-5-20251101",
+      "cost_tier": "high",
+      "cost_per_1k_tokens": {
+        "input": 0.015,
+        "output": 0.075
+      },
+      "max_complexity": 5,
+      "capabilities": [
+        "architecture",
+        "complex_reasoning",
+        "novel_solutions",
+        "security_analysis",
+        "system_design",
+        "performance_optimization",
+        "cross_service_integration"
+      ],
+      "use_cases": [
+        "Architectural decisions",
+        "Novel problem solving",
+        "Complex multi-system integration",
+        "Security analysis and hardening",
+        "Performance optimization strategies",
+        "System design from scratch",
+        "Critical production issues",
+        "Complex migrations"
+      ],
+      "constraints": {
+        "max_files": null,
+        "max_lines_changed": null,
+        "avoid_domains": []
+      }
+    }
+  },
+  "default_tier": "sonnet",
+  "escalation_policy": {
+    "enabled": true,
+    "auto_escalate_on": [
+      "security_sensitive",
+      "production_critical",
+      "architectural_decision",
+      "confidence_below_threshold"
+    ],
+    "confidence_threshold": 0.7
+  },
+  "delegation_policy": {
+    "enabled": true,
+    "auto_delegate_on": [
+      "formatting_only",
+      "documentation_only",
+      "simple_extraction",
+      "config_change"
+    ]
+  }
+}

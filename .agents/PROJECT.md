@@ -4,7 +4,7 @@
 madebuy
 
 ## Description
-[One line description]
+No description provided
 
 ---
 
@@ -14,34 +14,26 @@ madebuy
 
 | Component | Technology |
 |-----------|------------|
-| Framework | FastAPI / Next.js API |
-| Language | Python 3.11+ / TypeScript |
+| Framework | N/A |
+| Language | TypeScript |
 | Database | MongoDB |
-| Cache | Redis |
-| Auth | JWT |
 
 ### Frontend
 
 | Component | Technology |
 |-----------|------------|
-| Framework | React 18 / Next.js 14 |
+| Framework | N/A |
 | Language | TypeScript |
-| Styling | Tailwind CSS |
-| State | React Query + Context |
-| Forms | React Hook Form |
+| Styling | CSS |
 
 ---
 
 ## File Structure
 
 ```
-├── backend/ or apps/
-│   ├── app/ or admin/
-│   ├── routes/ or web/
-│   └── services/
-├── frontend/ or packages/
-├── docker-compose.yml
-└── .env
+├── src/
+├── tests/
+└── README.md
 ```
 
 ---
@@ -50,7 +42,15 @@ madebuy
 
 | Purpose | Path |
 |---------|------|
-| API routes | backend/app/routes/ or apps/*/app/api/ |
-| Models | backend/app/models/ or packages/shared/ |
-| Components | frontend/src/components/ or apps/*/components/ |
+| Main entry | index.js |
 
+---
+
+## Model Routing
+
+This project uses NEXUS model routing for intelligent task delegation:
+- **Haiku**: Simple tasks (formatting, docs, config)
+- **Sonnet**: Standard development (features, bugs, tests)
+- **Opus**: Complex tasks (architecture, security, design)
+
+See `.nexus/` for routing configuration.
