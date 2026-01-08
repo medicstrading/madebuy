@@ -31,6 +31,7 @@ export * from './transaction'
 export * from './payout'
 export * from './scanner'
 export * from './review'
+export * from './wishlist'
 
 // Re-export commonly used types for convenience
 export type {
