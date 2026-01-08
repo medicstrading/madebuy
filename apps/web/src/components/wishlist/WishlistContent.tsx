@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Trash2, Heart, ArrowRight, ImageIcon, ShoppingCart } from 'lucide-react'
 import type { PieceWithMedia } from '@madebuy/shared'
 import { useCart } from '@/contexts/CartContext'
+import { useWishlist } from '@/contexts/WishlistContext'
 
 interface WishlistContentProps {
   tenant: string
@@ -14,66 +14,23 @@ interface WishlistContentProps {
   allPieces: PieceWithMedia[]
 }
 
-interface WishlistItem {
-  id: string
-  pieceId: string
-  addedAt: string
-}
-
 export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContentProps) {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
-  const [loading, setLoading] = useState(true)
   const { addItem } = useCart()
+  const { pieceIds, removeFromWishlist } = useWishlist()
 
-  // Fetch wishlist items on mount
-  useEffect(() => {
-    async function fetchWishlist() {
-      try {
-        const response = await fetch(`/api/wishlist?tenantId=${tenantId}`)
-        if (response.ok) {
-          const data = await response.json()
-          setWishlistItems(data.items || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch wishlist:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchWishlist()
-  }, [tenantId])
-
-  const removeFromWishlist = async (pieceId: string) => {
-    try {
-      const response = await fetch(
-        `/api/wishlist?tenantId=${tenantId}&pieceId=${pieceId}`,
-        { method: 'DELETE' }
-      )
-      if (response.ok) {
-        setWishlistItems(items => items.filter(item => item.pieceId !== pieceId))
-      }
-    } catch (error) {
-      console.error('Failed to remove from wishlist:', error)
-    }
+  const handleRemove = async (pieceId: string) => {
+    await removeFromWishlist(pieceId)
   }
 
-  const moveToCart = (piece: PieceWithMedia) => {
+  const moveToCart = async (piece: PieceWithMedia) => {
     addItem(piece as any, 1)
-    removeFromWishlist(piece.id)
+    await removeFromWishlist(piece.id)
   }
 
   // Get the pieces that are in the wishlist
-  const wishlistPieces = wishlistItems
-    .map(item => allPieces.find(p => p.id === item.pieceId))
+  const wishlistPieces = pieceIds
+    .map(pieceId => allPieces.find(p => p.id === pieceId))
     .filter((p): p is PieceWithMedia => p !== undefined)
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
-      </div>
-    )
-  }
 
   if (wishlistPieces.length === 0) {
     return (
@@ -145,7 +102,7 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
                 Add to Cart
               </button>
               <button
-                onClick={() => removeFromWishlist(piece.id)}
+                onClick={() => handleRemove(piece.id)}
                 className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                 aria-label="Remove from wishlist"
               >

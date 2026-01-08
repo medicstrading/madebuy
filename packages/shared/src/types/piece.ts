@@ -86,6 +86,10 @@ export interface Piece {
   // Analytics
   viewCount?: number
 
+  // Reviews (populated by review moderation)
+  avgRating?: number       // Average rating 0-5
+  reviewCount?: number     // Total approved reviews
+
   // Timestamps
   createdAt: Date
   updatedAt: Date

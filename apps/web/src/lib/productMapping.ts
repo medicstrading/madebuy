@@ -43,8 +43,8 @@ export function mapPieceToProduct(
     currency: 'AUD',
     images: piece.allImages?.map(img => img.variants.large?.url || img.variants.original.url) ||
       (piece.primaryImage ? [piece.primaryImage.variants.large?.url || piece.primaryImage.variants.original.url] : []),
-    rating: 0,
-    reviewCount: 0,
+    rating: piece.avgRating || 0,
+    reviewCount: piece.reviewCount || 0,
     seller: {
       name: tenantName || 'Seller',
       slug: tenantSlug,

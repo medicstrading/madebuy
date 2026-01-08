@@ -1,5 +1,6 @@
 import { requireTenant } from '@/lib/tenant'
 import { CartProvider } from '@/contexts/CartContext'
+import { WishlistProvider } from '@/contexts/WishlistContext'
 import { TenantTheme } from '@/components/TenantTheme'
 import { ReactNode } from 'react'
 
@@ -15,7 +16,9 @@ export default async function TenantLayout({
   return (
     <TenantTheme tenant={tenant}>
       <CartProvider tenantId={tenant.id}>
-        {children}
+        <WishlistProvider tenantId={tenant.id}>
+          {children}
+        </WishlistProvider>
       </CartProvider>
     </TenantTheme>
   )

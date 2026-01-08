@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Menu, X, Instagram, Facebook, ShoppingBag, User, Heart } from 'lucide-react'
 import type { Tenant, HeaderConfig, WebsitePage } from '@madebuy/shared'
 import { useCart } from '@/contexts/CartContext'
+import { useWishlist } from '@/contexts/WishlistContext'
 
 interface HeaderProps {
   tenant: Tenant
@@ -52,6 +53,7 @@ function getDefaultNavLinks(tenantSlug: string, tenant: Tenant): SimpleNavLink[]
 export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { totalItems } = useCart()
+  const { count: wishlistCount } = useWishlist()
 
   const primaryColor = tenant.primaryColor || '#1a1a1a'
   const accentColor = tenant.accentColor || '#f59e0b'
@@ -157,14 +159,21 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
             {/* Wishlist */}
             <Link
               href={`/${tenantSlug}/wishlist`}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`relative p-2 rounded-lg transition-colors ${
                 isTransparent
                   ? 'text-white hover:bg-white/10'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
-              aria-label="View wishlist"
+              aria-label={`Wishlist, ${wishlistCount} items`}
             >
               <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-white text-xs font-bold rounded-full bg-pink-500"
+                >
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
 
             {/* Shopping Cart */}
