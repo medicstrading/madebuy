@@ -257,3 +257,172 @@ export async function sendShippingNotificationEmail(data: ShippingEmailData): Pr
     }
   }
 }
+
+/**
+ * Abandoned cart email data
+ */
+interface AbandonedCartEmailData {
+  cart: {
+    id: string
+    customerEmail: string
+    items: Array<{
+      name: string
+      price: number
+      quantity: number
+      imageUrl?: string
+    }>
+    total: number
+    currency: string
+  }
+  tenant: Tenant
+  recoveryUrl: string
+}
+
+/**
+ * Build abandoned cart email HTML
+ */
+function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
+  const { cart, tenant, recoveryUrl } = data
+  const shopName = tenant.businessName || 'Our Shop'
+  const brandColor = tenant.brandSettings?.primaryColor || '#3B82F6'
+
+  const itemsHtml = cart.items.map(item => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center;">
+          ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;" />` : ''}
+          <div>
+            <p style="margin: 0; font-weight: 500; color: #111827;">${item.name}</p>
+            <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Qty: ${item.quantity}</p>
+          </div>
+        </div>
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 500; color: #111827;">
+        $${(item.price / 100).toFixed(2)}
+      </td>
+    </tr>
+  `).join('')
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You left something behind!</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #374151; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f3f4f6;">
+  <div style="padding: 40px 20px;">
+    <!-- Header -->
+    <div style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="background-color: ${brandColor}; padding: 30px 24px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">Did you forget something?</h1>
+      </div>
+
+      <div style="padding: 30px 24px;">
+        <p style="margin: 0 0 20px 0; font-size: 16px;">
+          Hi there! We noticed you left some items in your cart at <strong>${shopName}</strong>.
+        </p>
+
+        <p style="margin: 0 0 24px 0; font-size: 16px;">
+          Good news - your cart is still waiting for you! Complete your purchase now before these items sell out.
+        </p>
+
+        <!-- Cart Items -->
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td style="padding: 16px 0 0 0; font-weight: 600; font-size: 18px; color: #111827;">
+                  Total
+                </td>
+                <td style="padding: 16px 0 0 0; text-align: right; font-weight: 600; font-size: 18px; color: #111827;">
+                  $${(cart.total / 100).toFixed(2)} ${cart.currency}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${recoveryUrl}" style="display: inline-block; background-color: ${brandColor}; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Complete Your Purchase
+          </a>
+        </div>
+
+        <p style="margin: 24px 0 0 0; font-size: 14px; color: #6b7280; text-align: center;">
+          Or copy this link: <a href="${recoveryUrl}" style="color: ${brandColor};">${recoveryUrl}</a>
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          This email was sent by ${shopName} because you started checkout but didn't complete it.
+        </p>
+        <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">
+          If you have any questions, please reply to this email.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
+
+/**
+ * Send abandoned cart recovery email
+ */
+export async function sendAbandonedCartEmail(data: AbandonedCartEmailData): Promise<{
+  success: boolean
+  error?: string
+}> {
+  const client = getResendClient()
+
+  if (!client) {
+    // In development mode without Resend, log to console
+    console.log('[EMAIL] Abandoned cart recovery email (not sent - no Resend API key):')
+    console.log(`  To: ${data.cart.customerEmail}`)
+    console.log(`  Recovery URL: ${data.recoveryUrl}`)
+    console.log(`  Cart Total: $${(data.cart.total / 100).toFixed(2)}`)
+    console.log(`  Items: ${data.cart.items.map(i => i.name).join(', ')}`)
+    return {
+      success: true, // Return success in dev mode for testing
+    }
+  }
+
+  const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'hello@madebuy.com.au'
+  const fromName = data.tenant.businessName || 'MadeBuy'
+  const htmlContent = buildAbandonedCartEmailHtml(data)
+
+  try {
+    const result = await client.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: data.cart.customerEmail,
+      subject: `You left items in your cart at ${data.tenant.businessName}!`,
+      html: htmlContent,
+      replyTo: data.tenant.email,
+    })
+
+    if (result.error) {
+      console.error('Failed to send abandoned cart email:', result.error)
+      return {
+        success: false,
+        error: result.error.message,
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send abandoned cart email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
