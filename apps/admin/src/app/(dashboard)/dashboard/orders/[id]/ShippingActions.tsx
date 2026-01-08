@@ -34,6 +34,23 @@ export function ShippingActions({
     emailSent: boolean
   } | null>(null)
 
+  // Get current label data - must be computed before useCallback
+  const url = generatedLabel?.labelUrl || labelUrl
+  const tracking = generatedLabel?.trackingNumber || trackingNumber
+  const trackingUrl = generatedLabel?.trackingUrl || propTrackingUrl
+
+  // Print handler - opens PDF in new window for printing
+  // IMPORTANT: Must be called before any conditional returns (React hooks rules)
+  const handlePrint = useCallback(() => {
+    if (!url) return
+    const printWindow = window.open(url, '_blank')
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print()
+      }
+    }
+  }, [url])
+
   // Digital orders don't need shipping
   if (isDigitalOnly) {
     return (
@@ -52,22 +69,6 @@ export function ShippingActions({
       </div>
     )
   }
-
-  // Get current label data
-  const url = generatedLabel?.labelUrl || labelUrl
-  const tracking = generatedLabel?.trackingNumber || trackingNumber
-  const trackingUrl = generatedLabel?.trackingUrl || propTrackingUrl
-
-  // Print handler - opens PDF in new window for printing
-  const handlePrint = useCallback(() => {
-    if (!url) return
-    const printWindow = window.open(url, '_blank')
-    if (printWindow) {
-      printWindow.onload = () => {
-        printWindow.print()
-      }
-    }
-  }, [url])
 
   // Already has a label
   if (hasLabel || generatedLabel) {
