@@ -13,12 +13,22 @@ import {
   Settings,
 } from 'lucide-react'
 
+interface BusinessAddress {
+  addressLine1: string
+  addressLine2?: string
+  suburb: string
+  state: string
+  postcode: string
+  country: string
+}
+
 interface SendleSettings {
   apiKey?: string
   senderId?: string
   isConnected: boolean
   connectedAt?: string
   environment: 'sandbox' | 'production'
+  pickupAddress?: BusinessAddress
 }
 
 export default function ShippingSettingsPage() {
@@ -35,6 +45,13 @@ export default function ShippingSettingsPage() {
   const [senderId, setSenderId] = useState('')
   const [environment, setEnvironment] = useState<'sandbox' | 'production'>('sandbox')
 
+  // Pickup address state
+  const [addressLine1, setAddressLine1] = useState('')
+  const [addressLine2, setAddressLine2] = useState('')
+  const [suburb, setSuburb] = useState('')
+  const [state, setState] = useState('')
+  const [postcode, setPostcode] = useState('')
+
   // Load current settings
   useEffect(() => {
     async function loadSettings() {
@@ -46,6 +63,14 @@ export default function ShippingSettingsPage() {
           if (data.apiKey) setApiKey(data.apiKey)
           if (data.senderId) setSenderId(data.senderId)
           if (data.environment) setEnvironment(data.environment)
+          // Load pickup address
+          if (data.pickupAddress) {
+            setAddressLine1(data.pickupAddress.addressLine1 || '')
+            setAddressLine2(data.pickupAddress.addressLine2 || '')
+            setSuburb(data.pickupAddress.suburb || '')
+            setState(data.pickupAddress.state || '')
+            setPostcode(data.pickupAddress.postcode || '')
+          }
         }
       } catch (err) {
         console.error('Failed to load shipping settings:', err)
@@ -70,6 +95,14 @@ export default function ShippingSettingsPage() {
           apiKey,
           senderId,
           environment,
+          pickupAddress: {
+            addressLine1,
+            addressLine2: addressLine2 || undefined,
+            suburb,
+            state,
+            postcode,
+            country: 'AU',
+          },
         }),
       })
 
@@ -266,6 +299,101 @@ export default function ShippingSettingsPage() {
             <p className="mt-1.5 text-xs text-gray-500">
               Your API key will be encrypted before storage
             </p>
+          </div>
+
+          {/* Divider */}
+          <hr className="border-gray-200" />
+
+          {/* Pickup Address Section */}
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Pickup Address</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              This address will be used as the shipping origin for all quotes and labels.
+            </p>
+
+            <div className="space-y-4">
+              {/* Address Line 1 */}
+              <div>
+                <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-1">
+                  Street Address
+                </label>
+                <input
+                  id="addressLine1"
+                  type="text"
+                  value={addressLine1}
+                  onChange={(e) => setAddressLine1(e.target.value)}
+                  placeholder="123 Main Street"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Address Line 2 */}
+              <div>
+                <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700 mb-1">
+                  Unit/Suite (optional)
+                </label>
+                <input
+                  id="addressLine2"
+                  type="text"
+                  value={addressLine2}
+                  onChange={(e) => setAddressLine2(e.target.value)}
+                  placeholder="Unit 1, Level 2"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Suburb, State, Postcode row */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label htmlFor="suburb" className="block text-sm font-medium text-gray-700 mb-1">
+                    Suburb
+                  </label>
+                  <input
+                    id="suburb"
+                    type="text"
+                    value={suburb}
+                    onChange={(e) => setSuburb(e.target.value)}
+                    placeholder="BRISBANE"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                    State
+                  </label>
+                  <select
+                    id="state"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Select</option>
+                    <option value="NSW">NSW</option>
+                    <option value="VIC">VIC</option>
+                    <option value="QLD">QLD</option>
+                    <option value="WA">WA</option>
+                    <option value="SA">SA</option>
+                    <option value="TAS">TAS</option>
+                    <option value="ACT">ACT</option>
+                    <option value="NT">NT</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="postcode" className="block text-sm font-medium text-gray-700 mb-1">
+                    Postcode
+                  </label>
+                  <input
+                    id="postcode"
+                    type="text"
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.target.value)}
+                    placeholder="4000"
+                    maxLength={4}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Connected Info */}

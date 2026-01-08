@@ -31,6 +31,7 @@ export async function GET() {
       isConnected: settings.isConnected,
       connectedAt: settings.connectedAt,
       environment: settings.environment,
+      pickupAddress: settings.pickupAddress || null,
     })
   } catch (error) {
     console.error('Failed to get Sendle settings:', error)
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { apiKey, senderId, environment } = body
+    const { apiKey, senderId, environment, pickupAddress } = body
 
     // Validate required fields
     if (!apiKey || !senderId) {
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
       senderId,
       isConnected: false, // Reset connection status when credentials change
       environment,
+      pickupAddress: pickupAddress || currentSettings?.pickupAddress,
     }
 
     // Update tenant
@@ -98,6 +100,7 @@ export async function POST(request: NextRequest) {
       isConnected: newSettings.isConnected,
       connectedAt: newSettings.connectedAt,
       environment: newSettings.environment,
+      pickupAddress: newSettings.pickupAddress || null,
     })
   } catch (error) {
     console.error('Failed to save Sendle settings:', error)

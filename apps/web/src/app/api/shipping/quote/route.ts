@@ -245,10 +245,11 @@ async function getQuotes(
     })
   }
 
-  // Get origin from tenant's location (default to Brisbane if not set)
-  const originPostcode = '4000' // TODO: Get from tenant settings
-  const originSuburb = 'BRISBANE'
-  const originState = 'QLD'
+  // Get origin from tenant's pickup address (default to Brisbane if not set)
+  const pickupAddress = tenant.sendleSettings?.pickupAddress
+  const originPostcode = pickupAddress?.postcode || '4000'
+  const originSuburb = pickupAddress?.suburb || 'BRISBANE'
+  const originState = pickupAddress?.state || 'QLD'
 
   // Create Sendle client
   const client = createSendleClient({

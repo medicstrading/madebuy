@@ -298,6 +298,16 @@ export interface TenantShippingMethod {
   enabled: boolean
 }
 
+// Business address for shipping origin
+export interface BusinessAddress {
+  addressLine1: string
+  addressLine2?: string
+  suburb: string
+  state: string  // State abbreviation (e.g., 'NSW', 'VIC', 'QLD')
+  postcode: string
+  country: string  // ISO country code (default 'AU')
+}
+
 // Sendle shipping integration settings
 export interface SendleSettings {
   apiKey?: string  // Encrypted API key
@@ -305,6 +315,7 @@ export interface SendleSettings {
   isConnected: boolean  // Whether credentials have been validated
   connectedAt?: Date  // When credentials were last verified
   environment: 'sandbox' | 'production'  // Which Sendle environment to use
+  pickupAddress?: BusinessAddress  // Business address for shipping origin
 }
 
 // Tax/GST settings for Australian sellers

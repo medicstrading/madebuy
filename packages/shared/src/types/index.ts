@@ -42,6 +42,7 @@ export type {
   OnboardingStep,
   SendleSettings,
   TenantTaxSettings,
+  BusinessAddress,
 } from './tenant'
 
 export type {
