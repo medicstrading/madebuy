@@ -20,8 +20,19 @@ export function DateFilter() {
   const [startDate, setStartDate] = useState(searchParams?.get('startDate') || '')
   const [endDate, setEndDate] = useState(searchParams?.get('endDate') || '')
   const [txType, setTxType] = useState(searchParams?.get('type') || '')
+  const [dateError, setDateError] = useState('')
+
+  // Check if date range is invalid (start after end)
+  const isInvalidDateRange = startDate && endDate && new Date(startDate) > new Date(endDate)
 
   const applyFilter = useCallback(() => {
+    // Validate date range before applying
+    if (isInvalidDateRange) {
+      setDateError('Start date must be before end date')
+      return
+    }
+    setDateError('')
+
     const params = new URLSearchParams(searchParams?.toString() || '')
 
     if (startDate) {
@@ -46,7 +57,7 @@ export function DateFilter() {
     params.set('page', '1')
 
     router.push(`/dashboard/ledger?${params.toString()}`)
-  }, [router, searchParams, startDate, endDate, txType])
+  }, [router, searchParams, startDate, endDate, txType, isInvalidDateRange])
 
   const clearFilter = useCallback(() => {
     setStartDate('')
@@ -139,9 +150,17 @@ export function DateFilter() {
         />
       </div>
 
+      {/* Date validation error */}
+      {(isInvalidDateRange || dateError) && (
+        <div className="text-sm text-red-600 self-center">
+          {dateError || 'Start date must be before end date'}
+        </div>
+      )}
+
       <button
         onClick={applyFilter}
-        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        disabled={isInvalidDateRange}
+        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Filter className="h-4 w-4" />
         Apply Filter
