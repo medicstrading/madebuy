@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Star, Upload, X, Loader2, Send } from 'lucide-react'
 
 interface ReviewFormProps {
@@ -17,6 +17,20 @@ interface PhotoUpload {
   preview: string
 }
 
+interface ReviewDraft {
+  rating: number
+  title: string
+  text: string
+  savedAt: number
+}
+
+/**
+ * Generate localStorage key for review draft
+ */
+function getDraftKey(pieceId: string, orderId: string): string {
+  return `review_draft_${pieceId}_${orderId}`
+}
+
 /**
  * ReviewForm - Customer product review submission
  *
@@ -25,6 +39,7 @@ interface PhotoUpload {
  * - Rating is required to submit
  * - Minimum 10 characters for review text
  * - Optional photo uploads
+ * - Auto-saves draft to localStorage (recovered on return)
  */
 export function ReviewForm({
   pieceId,
@@ -45,6 +60,79 @@ export function ReviewForm({
     rating: false,
     text: false,
   })
+  const [draftRestored, setDraftRestored] = useState(false)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Get draft key for this specific piece/order
+  const draftKey = getDraftKey(pieceId, orderId)
+
+  // Restore draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(draftKey)
+      if (saved) {
+        const draft: ReviewDraft = JSON.parse(saved)
+        // Only restore if draft is less than 7 days old
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+        if (Date.now() - draft.savedAt < sevenDaysMs) {
+          if (draft.rating) setRating(draft.rating)
+          if (draft.title) setTitle(draft.title)
+          if (draft.text) setText(draft.text)
+          setDraftRestored(true)
+          // Auto-hide the restored message after 5 seconds
+          setTimeout(() => setDraftRestored(false), 5000)
+        } else {
+          // Clear stale draft
+          localStorage.removeItem(draftKey)
+        }
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+      console.warn('Failed to restore review draft:', e)
+    }
+  }, [draftKey])
+
+  // Auto-save draft to localStorage (debounced)
+  const saveDraft = useCallback(() => {
+    // Only save if there's something to save
+    if (rating === 0 && !title.trim() && !text.trim()) {
+      localStorage.removeItem(draftKey)
+      return
+    }
+
+    const draft: ReviewDraft = {
+      rating,
+      title,
+      text,
+      savedAt: Date.now(),
+    }
+
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(draft))
+    } catch (e) {
+      // Ignore storage full or other errors
+      console.warn('Failed to save review draft:', e)
+    }
+  }, [draftKey, rating, title, text])
+
+  // Debounced save on changes
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    saveTimeoutRef.current = setTimeout(saveDraft, 1000) // Save after 1 second of inactivity
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [saveDraft])
+
+  // Clear draft on successful submission
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(draftKey)
+  }, [draftKey])
 
   // Validation
   const isRatingValid = rating >= 1 && rating <= 5
@@ -130,6 +218,9 @@ export function ReviewForm({
       // Cleanup photo previews
       photos.forEach(p => URL.revokeObjectURL(p.preview))
 
+      // Clear the saved draft on successful submission
+      clearDraft()
+
       onSuccess?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit review')
@@ -151,6 +242,15 @@ export function ReviewForm({
           </p>
         )}
       </div>
+
+      {/* Draft Restored Message */}
+      {draftRestored && (
+        <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+          <p className="text-sm text-blue-800">
+            Your previous draft has been restored.
+          </p>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
