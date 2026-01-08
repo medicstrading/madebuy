@@ -23,6 +23,7 @@ import {
   Users,
   BookOpen,
   Star,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -48,6 +49,7 @@ const navigationGroups = [
     label: 'Overview',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     ]
   },
   {

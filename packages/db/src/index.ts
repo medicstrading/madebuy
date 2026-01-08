@@ -37,6 +37,7 @@ export * as payouts from './repositories/payouts'
 export * as previews from './repositories/previews'
 export * as reviews from './repositories/reviews'
 export * as wishlist from './repositories/wishlist'
+export * as analytics from './repositories/analytics'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)
