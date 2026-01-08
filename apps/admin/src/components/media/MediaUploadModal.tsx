@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { X, Upload, Image as ImageIcon, Video } from 'lucide-react'
+import { X, Upload, Image as ImageIcon, Video, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
 
 interface MediaUploadModalProps {
   isOpen: boolean
@@ -14,6 +17,23 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
   const [uploading, setUploading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [dragActive, setDragActive] = useState(false)
+  const [sizeError, setSizeError] = useState<string | null>(null)
+
+  const validateFileSize = (file: File): boolean => {
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+    return file.size <= maxSize
+  }
+
+  const getFileSizeError = (file: File): string | null => {
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+    if (file.size > maxSize) {
+      const maxMB = maxSize / (1024 * 1024)
+      return `${file.name} is too large (max ${maxMB}MB for ${isVideo ? 'videos' : 'images'})`
+    }
+    return null
+  }
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -29,10 +49,18 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
+    setSizeError(null)
 
     const files = Array.from(e.dataTransfer.files).filter(file =>
       file.type.startsWith('image/') || file.type.startsWith('video/')
     )
+
+    // Check for oversized files
+    const oversizedFile = files.find(f => !validateFileSize(f))
+    if (oversizedFile) {
+      setSizeError(getFileSizeError(oversizedFile))
+      return
+    }
 
     if (files.length > 0) {
       setSelectedFiles(prev => [...prev, ...files])
@@ -41,7 +69,17 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
+      setSizeError(null)
       const files = Array.from(e.target.files)
+
+      // Check for oversized files
+      const oversizedFile = files.find(f => !validateFileSize(f))
+      if (oversizedFile) {
+        setSizeError(getFileSizeError(oversizedFile))
+        e.target.value = '' // Reset file input
+        return
+      }
+
       setSelectedFiles(prev => [...prev, ...files])
     }
   }, [])
@@ -135,7 +173,18 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
             <p className="mt-2 text-sm text-gray-600">
               Support for images (JPG, PNG, GIF, WebP) and videos (MP4, MOV, AVI)
             </p>
+            <p className="mt-1 text-xs text-gray-400">
+              Max size: 10MB for images, 100MB for videos
+            </p>
           </div>
+
+          {/* Size Error */}
+          {sizeError && (
+            <div className="mt-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm">{sizeError}</p>
+            </div>
+          )}
 
           {/* Selected Files */}
           {selectedFiles.length > 0 && (

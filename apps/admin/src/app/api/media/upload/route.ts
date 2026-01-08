@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 })
     }
 
+    // Validate file size (max 10MB for images, 100MB for videos)
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
+    const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
+    const isVideoFile = file.type.startsWith('video/')
+    const maxSize = isVideoFile ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+
+    if (file.size > maxSize) {
+      const maxSizeMB = maxSize / (1024 * 1024)
+      return NextResponse.json(
+        { error: `File too large. Maximum size is ${maxSizeMB}MB for ${isVideoFile ? 'videos' : 'images'}` },
+        { status: 400 }
+      )
+    }
+
     // Validate file type
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
     const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo']
