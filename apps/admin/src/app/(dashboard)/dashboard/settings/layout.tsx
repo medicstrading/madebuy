@@ -10,6 +10,7 @@ import {
   Calculator,
   Receipt,
   Percent,
+  Bell,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -59,6 +60,12 @@ const settingsNavItems = [
     href: '/dashboard/settings/tax',
     icon: Percent,
     description: 'GST registration and rates',
+  },
+  {
+    name: 'Notifications',
+    href: '/dashboard/settings/notifications',
+    icon: Bell,
+    description: 'Email notification preferences',
   },
 ]
 

@@ -77,6 +77,9 @@ export interface Tenant {
   // Tax/GST configuration (Australian GST)
   taxSettings?: TenantTaxSettings
 
+  // Notification preferences
+  notificationPreferences?: TenantNotificationPreferences
+
   // Timestamps
   createdAt: Date
   updatedAt: Date
@@ -324,4 +327,15 @@ export interface TenantTaxSettings {
   abn?: string  // Australian Business Number (11 digits)
   gstRate: number  // GST rate (default 10 for Australia)
   pricesIncludeGst: boolean  // Are product prices GST inclusive?
+}
+
+// Notification preferences for email alerts
+export interface TenantNotificationPreferences {
+  orderNotifications: boolean      // New order received
+  lowStockNotifications: boolean   // Product stock low
+  disputeNotifications: boolean    // Payment dispute/chargeback
+  payoutNotifications: boolean     // Payout processed
+  reviewNotifications: boolean     // New product review
+  enquiryNotifications: boolean    // Customer enquiry received
+  newsletterUpdates: boolean       // MadeBuy platform updates
 }
