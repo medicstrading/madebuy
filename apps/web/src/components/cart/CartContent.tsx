@@ -1,22 +1,70 @@
 'use client'
 
+import { useCallback, useState } from 'react'
 import { useCart } from '@/contexts/CartContext'
 import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ImageIcon } from 'lucide-react'
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ImageIcon, Tag } from 'lucide-react'
+import { CartRecovery } from './CartRecovery'
 
 interface CartContentProps {
   tenant: string
   tenantId: string
 }
 
+interface RecoveredItem {
+  productId: string
+  name: string
+  price: number
+  quantity: number
+  imageUrl?: string
+}
+
 export function CartContent({ tenant, tenantId }: CartContentProps) {
-  const { items, removeItem, updateQuantity, totalAmount } = useCart()
+  const { items, addItem, removeItem, updateQuantity, totalAmount } = useCart()
+  const [recoveredDiscount, setRecoveredDiscount] = useState<string | null>(null)
+
+  // Handle cart recovery from email link
+  const handleCartRecovered = useCallback((recoveredItems: RecoveredItem[], discountCode?: string) => {
+    // Add each recovered item to cart
+    for (const item of recoveredItems) {
+      // Create a minimal product object for the cart
+      const product = {
+        id: item.productId,
+        name: item.name,
+        price: item.price,
+        slug: item.productId, // Will redirect to actual product
+        primaryImage: item.imageUrl ? {
+          id: 'recovered',
+          variants: {
+            original: { url: item.imageUrl, width: 400, height: 400 },
+            thumb: { url: item.imageUrl, width: 100, height: 100 },
+          },
+        } : undefined,
+      } as Parameters<typeof addItem>[0]
+
+      addItem(product, item.quantity)
+    }
+
+    // Store discount code if provided
+    if (discountCode) {
+      setRecoveredDiscount(discountCode)
+      // Also store in sessionStorage for checkout
+      sessionStorage.setItem('recoveryDiscount', discountCode)
+    }
+  }, [addItem])
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
+      <>
+        {/* Recovery handler - shows status when recovering */}
+        <CartRecovery
+          tenant={tenant}
+          tenantId={tenantId}
+          onRecovered={handleCartRecovered}
+        />
+        <div className="flex flex-col items-center justify-center py-20">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 mb-6">
           <ShoppingBag className="h-10 w-10 text-gray-300" />
         </div>
@@ -29,12 +77,33 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
           Start Shopping
           <ArrowRight className="h-4 w-4" />
         </Link>
-      </div>
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="grid gap-12 lg:grid-cols-3">
+    <>
+      {/* Recovery handler - shows status when recovering */}
+      <CartRecovery
+        tenant={tenant}
+        tenantId={tenantId}
+        onRecovered={handleCartRecovered}
+      />
+
+      {/* Discount code banner if recovered with discount */}
+      {recoveredDiscount && (
+        <div className="mb-6 flex items-center gap-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <Tag className="h-5 w-5 text-purple-500" />
+          <div>
+            <span className="text-purple-700 font-medium">
+              Discount code <strong>{recoveredDiscount}</strong> will be applied at checkout!
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-12 lg:grid-cols-3">
       {/* Cart Items */}
       <div className="lg:col-span-2">
         <div className="space-y-4">
@@ -162,6 +231,7 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
