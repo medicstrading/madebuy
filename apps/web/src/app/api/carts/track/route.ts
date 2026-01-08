@@ -28,12 +28,33 @@ export async function POST(request: Request) {
       )
     }
 
-    // Don't track empty carts
+    const sessionId = getSessionId()
+
+    // If this is an email-only update (checkout form email capture)
+    if (customerEmail && (!items || items.length === 0)) {
+      // Check if we have an existing cart for this session
+      const existingCart = await abandonedCarts.getAbandonedCartBySession(tenantId, sessionId)
+
+      if (existingCart) {
+        // Update existing cart with email
+        await abandonedCarts.upsertAbandonedCart(tenantId, {
+          sessionId,
+          customerEmail,
+          items: existingCart.items,
+          total: existingCart.total,
+          currency: existingCart.currency,
+        })
+        return NextResponse.json({ success: true, tracked: true, sessionId, emailUpdated: true })
+      }
+
+      // No existing cart to update
+      return NextResponse.json({ success: true, tracked: false, reason: 'no_cart_to_update' })
+    }
+
+    // Don't track empty carts (without email update)
     if (!items || items.length === 0) {
       return NextResponse.json({ success: true, tracked: false })
     }
-
-    const sessionId = getSessionId()
 
     // Transform cart items to match our schema
     const cartItems = items.map((item: any) => ({

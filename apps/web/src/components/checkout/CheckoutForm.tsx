@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCart } from '@/contexts/CartContext'
 import { formatCurrency } from '@/lib/utils'
 import { ShippingSelector } from './ShippingSelector'
@@ -13,6 +13,25 @@ import {
   isDigitalOnlyOrder,
   formatShippingPrice,
 } from '@/lib/checkout/shipping'
+
+// Update abandoned cart with customer email
+async function updateCartWithEmail(tenantId: string, email: string) {
+  try {
+    await fetch('/api/carts/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenantId,
+        customerEmail: email,
+        items: [], // Empty items - just updating email
+        total: 0,
+      }),
+    })
+  } catch (error) {
+    // Silently fail
+    console.error('Failed to update cart with email:', error)
+  }
+}
 
 interface CheckoutFormProps {
   tenant: string
@@ -50,6 +69,28 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
     // For physical orders, need full address and shipping method
     return hasRequiredAddressFields(shippingAddress) && selectedShipping !== null
   }, [isDigitalOnly, shippingAddress, selectedShipping])
+
+  // Debounced email tracking for abandoned cart
+  const emailTrackingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  useEffect(() => {
+    const email = shippingAddress.email?.trim()
+    if (!email || !email.includes('@')) return
+
+    // Debounce to avoid tracking on every keystroke
+    if (emailTrackingTimeoutRef.current) {
+      clearTimeout(emailTrackingTimeoutRef.current)
+    }
+
+    emailTrackingTimeoutRef.current = setTimeout(() => {
+      updateCartWithEmail(tenantId, email)
+    }, 1500) // Wait 1.5 seconds after email entry stops
+
+    return () => {
+      if (emailTrackingTimeoutRef.current) {
+        clearTimeout(emailTrackingTimeoutRef.current)
+      }
+    }
+  }, [shippingAddress.email, tenantId])
 
   const handleAddressChange = (address: ShippingAddress) => {
     setShippingAddress(address)
