@@ -32,10 +32,9 @@ export async function POST(): Promise<NextResponse> {
         status: tenant.domainOnboarding?.status || 'design_choice',
         ...tenant.domainOnboarding,
         designImport: {
-          sourceUrl: tenant.domainOnboarding?.designImport?.sourceUrl || null,
-          scannedAt: tenant.domainOnboarding?.designImport?.scannedAt || null,
-          extractedDesign: null, // Clear extracted design
-          importStatus: 'declined',
+          sourceUrl: tenant.domainOnboarding?.designImport?.sourceUrl ?? undefined,
+          scannedAt: tenant.domainOnboarding?.designImport?.scannedAt ?? undefined,
+          extractedDesign: undefined, // Clear extracted design
         },
       },
     })

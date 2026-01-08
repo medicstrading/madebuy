@@ -9,13 +9,15 @@ import type { DiscountCode } from '@madebuy/shared'
 
 export default function EditDiscountPage() {
   const params = useParams()
+  const discountId = params?.id as string | undefined
   const [discount, setDiscount] = useState<DiscountCode | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!discountId) return
     async function fetchDiscount() {
       try {
-        const res = await fetch(`/api/discounts/${params.id}`)
+        const res = await fetch(`/api/discounts/${discountId}`)
         const data = await res.json()
         setDiscount(data.discount)
       } catch (error) {
@@ -25,7 +27,7 @@ export default function EditDiscountPage() {
       }
     }
     fetchDiscount()
-  }, [params.id])
+  }, [discountId])
 
   if (loading) {
     return (

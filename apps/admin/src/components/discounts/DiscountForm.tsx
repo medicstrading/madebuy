@@ -2,10 +2,25 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { DiscountCode, CreateDiscountCodeInput, DiscountType } from '@madebuy/shared'
+import type { DiscountCode, DiscountType } from '@madebuy/shared'
 
 interface DiscountFormProps {
   discount?: DiscountCode
+}
+
+// Form state type - uses string for datetime-local inputs
+interface DiscountFormState {
+  code: string
+  description?: string
+  type: DiscountType
+  value: number
+  minOrderAmount?: number
+  maxDiscountAmount?: number
+  maxUses?: number
+  maxUsesPerCustomer?: number
+  startsAt?: string  // datetime-local string format
+  expiresAt?: string // datetime-local string format
+  isActive: boolean
 }
 
 export function DiscountForm({ discount }: DiscountFormProps) {
@@ -13,7 +28,7 @@ export function DiscountForm({ discount }: DiscountFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const [formData, setFormData] = useState<CreateDiscountCodeInput>({
+  const [formData, setFormData] = useState<DiscountFormState>({
     code: discount?.code || '',
     description: discount?.description || '',
     type: discount?.type || 'percentage',

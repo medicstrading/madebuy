@@ -9,6 +9,7 @@ import type { Newsletter } from '@madebuy/shared'
 
 export default function EditNewsletterPage() {
   const params = useParams()
+  const newsletterId = params?.id as string | undefined
   const router = useRouter()
   const [newsletter, setNewsletter] = useState<Newsletter | null>(null)
   const [loading, setLoading] = useState(true)
@@ -23,9 +24,10 @@ export default function EditNewsletterPage() {
   })
 
   useEffect(() => {
+    if (!newsletterId) return
     async function fetchNewsletter() {
       try {
-        const res = await fetch(`/api/newsletters/${params.id}`)
+        const res = await fetch(`/api/newsletters/${newsletterId}`)
         const data = await res.json()
         setNewsletter(data.newsletter)
         setFormData({
@@ -39,14 +41,15 @@ export default function EditNewsletterPage() {
       }
     }
     fetchNewsletter()
-  }, [params.id])
+  }, [newsletterId])
 
   async function handleSave() {
+    if (!newsletterId) return
     setSaving(true)
     setError('')
 
     try {
-      const res = await fetch(`/api/newsletters/${params.id}`, {
+      const res = await fetch(`/api/newsletters/${newsletterId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -67,6 +70,7 @@ export default function EditNewsletterPage() {
   }
 
   async function handleSend() {
+    if (!newsletterId) return
     if (!confirm('Are you sure you want to send this newsletter? This action cannot be undone.')) return
 
     setSending(true)
@@ -76,7 +80,7 @@ export default function EditNewsletterPage() {
       // Save first
       await handleSave()
 
-      const res = await fetch(`/api/newsletters/${params.id}/send`, { method: 'POST' })
+      const res = await fetch(`/api/newsletters/${newsletterId}/send`, { method: 'POST' })
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.error)

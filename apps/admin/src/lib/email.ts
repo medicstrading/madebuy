@@ -26,7 +26,7 @@ function buildNewsletterHtml(
   tenant: Tenant
 ): string {
   const { header, colors, footer, sections } = template
-  const logoUrl = tenant.brandSettings?.logo || ''
+  const logoUrl = tenant.logoMediaId ? '' : '' // Logo URL would need to be fetched from media storage
 
   return `
 <!DOCTYPE html>
@@ -57,7 +57,7 @@ function buildNewsletterHtml(
         <div style="margin-top: 20px;">
           ${newsletter.images.map(img => `
             <div style="margin-bottom: 15px;">
-              <img src="${img.url}" alt="${img.altText || ''}" style="max-width: 100%; height: auto; border-radius: 8px;" />
+              <!-- Image would need URL resolved from mediaId: ${img.mediaId} -->
               ${img.caption ? `<p style="color: ${colors.text}; font-size: 14px; margin-top: 5px; text-align: center;">${img.caption}</p>` : ''}
             </div>
           `).join('')}
@@ -79,11 +79,11 @@ function buildNewsletterHtml(
       ${footer.signatureName ? `<p style="margin: 5px 0; font-weight: bold;">${footer.signatureName}</p>` : ''}
       ${footer.signatureTitle ? `<p style="margin: 0; font-size: 14px; color: #6b7280;">${footer.signatureTitle}</p>` : ''}
 
-      ${footer.showSocialLinks && tenant.socialLinks ? `
+      ${footer.showSocialLinks && (tenant.instagram || tenant.facebook) ? `
         <div style="margin-top: 20px;">
-          ${tenant.socialLinks.instagram ? `<a href="https://instagram.com/${tenant.socialLinks.instagram}" style="color: ${colors.primary}; margin: 0 10px;">Instagram</a>` : ''}
-          ${tenant.socialLinks.facebook ? `<a href="https://facebook.com/${tenant.socialLinks.facebook}" style="color: ${colors.primary}; margin: 0 10px;">Facebook</a>` : ''}
-          ${tenant.socialLinks.twitter ? `<a href="https://twitter.com/${tenant.socialLinks.twitter}" style="color: ${colors.primary}; margin: 0 10px;">Twitter</a>` : ''}
+          ${tenant.instagram ? `<a href="https://instagram.com/${tenant.instagram}" style="color: ${colors.primary}; margin: 0 10px;">Instagram</a>` : ''}
+          ${tenant.facebook ? `<a href="https://facebook.com/${tenant.facebook}" style="color: ${colors.primary}; margin: 0 10px;">Facebook</a>` : ''}
+          ${tenant.tiktok ? `<a href="https://tiktok.com/@${tenant.tiktok}" style="color: ${colors.primary}; margin: 0 10px;">TikTok</a>` : ''}
         </div>
       ` : ''}
 
@@ -237,7 +237,7 @@ export async function sendShippingNotificationEmail(data: ShippingEmailData): Pr
       subject,
       html,
       text,
-      replyTo: data.tenant.email,
+      reply_to: data.tenant.email,
     })
 
     if (result.error) {
@@ -285,7 +285,7 @@ interface AbandonedCartEmailData {
 function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
   const { cart, tenant, recoveryUrl } = data
   const shopName = tenant.businessName || 'Our Shop'
-  const brandColor = tenant.brandSettings?.primaryColor || '#3B82F6'
+  const brandColor = tenant.primaryColor || '#3B82F6'
 
   const itemsHtml = cart.items.map(item => `
     <tr>
@@ -412,7 +412,7 @@ export async function sendAbandonedCartEmail(data: AbandonedCartEmailData): Prom
       to: data.cart.customerEmail,
       subject: `You left items in your cart at ${data.tenant.businessName}!`,
       html: htmlContent,
-      replyTo: data.tenant.email,
+      reply_to: data.tenant.email,
     })
 
     if (result.error) {
@@ -458,7 +458,7 @@ interface ReviewRequestEmailData {
 function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
   const { order, tenant, reviewUrl } = data
   const shopName = tenant.businessName || 'Our Shop'
-  const brandColor = tenant.brandSettings?.primaryColor || '#3B82F6'
+  const brandColor = tenant.primaryColor || '#3B82F6'
 
   const itemsHtml = order.items.slice(0, 3).map(item => `
     <div style="display: inline-block; margin-right: 12px; margin-bottom: 12px; text-align: center;">
@@ -562,7 +562,7 @@ export async function sendReviewRequestEmail(data: ReviewRequestEmailData): Prom
       to: data.order.customerEmail,
       subject: `How was your order from ${data.tenant.businessName}?`,
       html: htmlContent,
-      replyTo: data.tenant.email,
+      reply_to: data.tenant.email,
     })
 
     if (result.error) {

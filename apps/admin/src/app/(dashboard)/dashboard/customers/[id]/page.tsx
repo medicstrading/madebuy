@@ -21,6 +21,7 @@ import type { CustomerWithOrders } from '@madebuy/shared'
 
 export default function CustomerDetailPage() {
   const params = useParams()
+  const customerId = params?.id as string | undefined
   const router = useRouter()
   const [customer, setCustomer] = useState<CustomerWithOrders | null>(null)
   const [loading, setLoading] = useState(true)
@@ -36,12 +37,13 @@ export default function CustomerDetailPage() {
   })
 
   useEffect(() => {
-    fetchCustomer()
-  }, [params.id])
+    if (customerId) fetchCustomer()
+  }, [customerId])
 
   async function fetchCustomer() {
+    if (!customerId) return
     try {
-      const res = await fetch(`/api/customers/${params.id}?includeOrders=true`)
+      const res = await fetch(`/api/customers/${customerId}?includeOrders=true`)
       const data = await res.json()
 
       if (data.customer) {
@@ -66,8 +68,9 @@ export default function CustomerDetailPage() {
     setSaving(true)
     setError('')
 
+    if (!customerId) return
     try {
-      const res = await fetch(`/api/customers/${params.id}`, {
+      const res = await fetch(`/api/customers/${customerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,12 +93,13 @@ export default function CustomerDetailPage() {
   }
 
   async function handleDelete() {
+    if (!customerId) return
     if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
       return
     }
 
     try {
-      await fetch(`/api/customers/${params.id}`, { method: 'DELETE' })
+      await fetch(`/api/customers/${customerId}`, { method: 'DELETE' })
       router.push('/dashboard/customers')
     } catch (error) {
       console.error('Failed to delete customer:', error)

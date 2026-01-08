@@ -124,7 +124,7 @@ export async function POST(
         to: enquiry.email,
         subject,
         html: htmlContent,
-        replyTo: fromEmail,
+        reply_to: fromEmail,
       })
     } catch (emailError) {
       console.error('Failed to send reply email:', emailError)

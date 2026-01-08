@@ -481,6 +481,11 @@ export async function getAllTenants(): Promise<Tenant[]> {
   return results as unknown as Tenant[]
 }
 
+/**
+ * Alias for getAllTenants (for backward compatibility)
+ */
+export const listTenants = getAllTenants
+
 // =============================================================================
 // ONBOARDING
 // =============================================================================

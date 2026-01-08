@@ -9,13 +9,15 @@ import type { Collection } from '@madebuy/shared'
 
 export default function EditCollectionPage() {
   const params = useParams()
+  const collectionId = params?.id as string | undefined
   const [collection, setCollection] = useState<Collection | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!collectionId) return
     async function fetchCollection() {
       try {
-        const res = await fetch(`/api/collections/${params.id}`)
+        const res = await fetch(`/api/collections/${collectionId}`)
         const data = await res.json()
         setCollection(data.collection)
       } catch (error) {
@@ -25,7 +27,7 @@ export default function EditCollectionPage() {
       }
     }
     fetchCollection()
-  }, [params.id])
+  }, [collectionId])
 
   if (loading) {
     return (

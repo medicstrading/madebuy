@@ -80,9 +80,36 @@ export interface Tenant {
   // Notification preferences
   notificationPreferences?: TenantNotificationPreferences
 
+  // Domain onboarding state (AI-generated design suggestions)
+  domainOnboarding?: DomainOnboardingState
+
   // Timestamps
   createdAt: Date
   updatedAt: Date
+}
+
+// Domain onboarding state for AI-generated design suggestions
+export interface DomainOnboardingState {
+  status: 'pending' | 'generating' | 'ready' | 'accepted' | 'declined' | 'design_choice'
+  generatedAt?: Date
+  suggestedDesign?: TenantWebsiteDesign
+  suggestedBranding?: {
+    primaryColor?: string
+    accentColor?: string
+    tagline?: string
+    description?: string
+  }
+  // Design import from external sources (e.g., Wix, Squarespace)
+  // Note: extractedDesign uses ExtractedDesign type from scanner.ts when fully typed
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  designImport?: {
+    sourceUrl?: string
+    sourcePlatform?: string
+    importedAt?: Date
+    scannedAt?: Date
+    sections?: unknown[] // Imported section data
+    extractedDesign?: any // Full ExtractedDesign type from scanner.ts
+  }
 }
 
 export type DomainStatus = 'none' | 'pending_nameservers' | 'active'

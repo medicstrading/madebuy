@@ -76,7 +76,7 @@ export async function POST(): Promise<NextResponse> {
       showCart: true,
       sticky: true,
       // Convert extracted nav items to NavLinks
-      navLinks: extracted.navigation?.items.slice(0, 6).map((item, index) => ({
+      navLinks: extracted.navigation?.items.slice(0, 6).map((item: { label: string; href: string }, index: number) => ({
         id: `nav-${index}`,
         label: item.label,
         url: item.href.startsWith('/') ? item.href : `/${item.href}`,

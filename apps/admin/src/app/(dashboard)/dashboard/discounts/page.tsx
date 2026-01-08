@@ -98,19 +98,19 @@ export default function DiscountsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Total Codes</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalCodes}</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Active</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{stats.active}</p>
+            <p className="text-2xl font-bold text-green-600 mt-1">{stats.activeCodes}</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Total Uses</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.totalUses}</p>
+            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.totalUsage}</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-500">Total Savings</p>
-            <p className="text-2xl font-bold text-purple-600 mt-1">${stats.totalSavings?.toFixed(2) || '0.00'}</p>
+            <p className="text-sm text-gray-500">Expired Codes</p>
+            <p className="text-2xl font-bold text-purple-600 mt-1">{stats.expiredCodes}</p>
           </div>
         </div>
       )}

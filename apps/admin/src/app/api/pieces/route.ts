@@ -44,7 +44,7 @@ export async function GET() {
     console.error('Error fetching pieces:', error)
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return errorResponse(msg, code, statusCode, details)
+      return errorResponse(msg, code, statusCode, details as Record<string, unknown> | undefined)
     }
     return errorResponse('Internal server error', 'INTERNAL_ERROR', 500)
   }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating piece:', error)
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return errorResponse(msg, code, statusCode, details)
+      return errorResponse(msg, code, statusCode, details as Record<string, unknown> | undefined)
     }
     return errorResponse('Internal server error', 'INTERNAL_ERROR', 500)
   }

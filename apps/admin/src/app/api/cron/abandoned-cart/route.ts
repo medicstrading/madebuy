@@ -212,8 +212,21 @@ async function processCartEmail(
     const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(cart.customerEmail)}&token=${unsubscribeToken}`
 
     // Send the recovery email (same template for both, but could be customized)
+    // Build cart data with required customerEmail (we've already validated it exists above)
+    const cartData = {
+      id: cart.id,
+      customerEmail: cart.customerEmail, // Already validated as non-null
+      items: cart.items.map(item => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        imageUrl: item.imageUrl,
+      })),
+      total: cart.total,
+      currency: cart.currency || 'AUD',
+    }
     const emailResult = await sendAbandonedCartEmail({
-      cart,
+      cart: cartData,
       tenant,
       recoveryUrl,
       unsubscribeUrl,

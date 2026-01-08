@@ -23,7 +23,7 @@ export function DateFilter() {
   const [dateError, setDateError] = useState('')
 
   // Check if date range is invalid (start after end)
-  const isInvalidDateRange = startDate && endDate && new Date(startDate) > new Date(endDate)
+  const isInvalidDateRange = !!(startDate && endDate && new Date(startDate) > new Date(endDate))
 
   const applyFilter = useCallback(() => {
     // Validate date range before applying
