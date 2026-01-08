@@ -30,6 +30,7 @@ export * from './template'
 export * from './transaction'
 export * from './payout'
 export * from './scanner'
+export * from './review'
 
 // Re-export commonly used types for convenience
 export type {
@@ -291,6 +292,18 @@ export type {
   TemplateRecommendation,
   PreviewConfig,
 } from './scanner'
+
+export type {
+  Review,
+  ReviewStatus,
+  ReviewPhoto,
+  CreateReviewInput,
+  UpdateReviewInput,
+  ReviewFilters,
+  ReviewListOptions,
+  ProductReviewStats,
+  ReviewModerationInput,
+} from './review'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)

@@ -35,6 +35,7 @@ export * as auditLog from './repositories/auditLog'
 export * as transactions from './repositories/transactions'
 export * as payouts from './repositories/payouts'
 export * as previews from './repositories/previews'
+export * as reviews from './repositories/reviews'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

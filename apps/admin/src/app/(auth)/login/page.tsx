@@ -29,7 +29,10 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password')
       } else {
-        router.push('/dashboard')
+        // Use callbackUrl if provided and valid, otherwise default to dashboard
+        const callbackUrl = searchParams?.get('callbackUrl')
+        const redirectTo = callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/dashboard'
+        router.push(redirectTo)
         router.refresh()
       }
     } catch (err) {

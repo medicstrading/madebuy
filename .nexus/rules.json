@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-01-07T00:00:00Z",
+  "last_updated": "2026-01-08T00:00:00Z",
+  "inherits_from": "global",
+  "overrides": {},
+  "project_specific": {
+    "admin_port": {
+      "rule": "always_use_port_3300",
+      "reason": "Admin dashboard fixed at 3300"
+    },
+    "web_port": {
+      "rule": "always_use_port_3301",
+      "reason": "Marketplace fixed at 3301"
+    },
+    "builds": {
+      "rule": "use_docker_exec_for_builds",
+      "reason": "Dev servers run in Docker containers on NUC"
+    },
+    "security": {
+      "rule": "always_check_auth_validation",
+      "reason": "Multi-tenant SaaS requires strict tenant isolation"
+    }
+  }
+}
