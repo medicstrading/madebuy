@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
-import { abandonedCarts, tenants } from '@madebuy/db'
+import { timingSafeEqual, createHmac } from 'crypto'
+import { abandonedCarts, tenants, customers } from '@madebuy/db'
 import { sendAbandonedCartEmail } from '@/lib/email'
 
 /**
@@ -23,10 +23,21 @@ function verifySecret(received: string | null, expected: string): boolean {
 }
 
 /**
+ * Generate unsubscribe token for an email
+ */
+function generateUnsubscribeToken(email: string, secret: string): string {
+  return createHmac('sha256', secret)
+    .update(email.toLowerCase())
+    .digest('hex')
+    .slice(0, 32)
+}
+
+/**
  * GET/POST /api/cron/abandoned-cart
  *
  * Abandoned cart recovery email cron endpoint.
  * Sends recovery emails to customers who have abandoned their carts.
+ * Respects email subscription preferences - will not send to unsubscribed customers.
  *
  * Should be scheduled to run hourly.
  * Vercel cron config: schedule "0 * * * *" (every hour)
@@ -38,6 +49,7 @@ interface EmailResult {
   cartId: string
   email: string
   success: boolean
+  skipped?: boolean
   error?: string
 }
 
@@ -62,8 +74,12 @@ export async function GET(request: NextRequest) {
 
     let totalProcessed = 0
     let totalSent = 0
+    let totalSkipped = 0
     let totalFailed = 0
     const results: EmailResult[] = []
+
+    // Unsubscribe secret for generating tokens
+    const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET || 'default-unsubscribe-secret'
 
     // Process each tenant's abandoned carts
     for (const tenant of allTenants) {
@@ -83,17 +99,41 @@ export async function GET(request: NextRequest) {
           totalProcessed++
 
           try {
+            // Check if customer has unsubscribed from emails
+            const customer = await customers.getCustomerByEmail(tenant.id, cart.customerEmail)
+
+            // Skip if customer exists and has unsubscribed
+            if (customer && customer.emailSubscribed === false) {
+              console.log(`[CRON] Skipping cart ${cart.id} - customer ${cart.customerEmail} has unsubscribed`)
+              totalSkipped++
+              results.push({
+                cartId: cart.id,
+                email: cart.customerEmail,
+                success: false,
+                skipped: true,
+                error: 'Customer unsubscribed',
+              })
+              // Mark as sent to prevent future attempts
+              await abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id)
+              continue
+            }
+
             // Build recovery URL with cart ID for tracking
             const baseUrl = tenant.customDomain
               ? `https://${tenant.customDomain}`
               : `https://madebuy.com.au/${tenant.slug}`
             const recoveryUrl = `${baseUrl}/cart?recover=${cart.id}`
 
+            // Build unsubscribe URL with token
+            const unsubscribeToken = generateUnsubscribeToken(cart.customerEmail, unsubscribeSecret)
+            const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(cart.customerEmail)}&token=${unsubscribeToken}`
+
             // Send the recovery email
             const emailResult = await sendAbandonedCartEmail({
               cart,
               tenant,
               recoveryUrl,
+              unsubscribeUrl,
             })
 
             if (emailResult.success) {
@@ -133,12 +173,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`[CRON] Abandoned cart email completed: ${totalSent} sent, ${totalFailed} failed out of ${totalProcessed} processed`)
+    console.log(`[CRON] Abandoned cart email completed: ${totalSent} sent, ${totalSkipped} skipped, ${totalFailed} failed out of ${totalProcessed} processed`)
 
     return NextResponse.json({
       success: true,
       processed: totalProcessed,
       sent: totalSent,
+      skipped: totalSkipped,
       failed: totalFailed,
       results: results.slice(0, 100), // Limit results in response
     })

@@ -276,6 +276,7 @@ interface AbandonedCartEmailData {
   }
   tenant: Tenant
   recoveryUrl: string
+  unsubscribeUrl?: string
 }
 
 /**
@@ -367,6 +368,11 @@ function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
         <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">
           If you have any questions, please reply to this email.
         </p>
+        ${data.unsubscribeUrl ? `
+        <p style="margin: 16px 0 0 0; font-size: 11px; color: #9ca3af;">
+          Don't want to receive these emails? <a href="${data.unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a>
+        </p>
+        ` : ''}
       </div>
     </div>
   </div>
