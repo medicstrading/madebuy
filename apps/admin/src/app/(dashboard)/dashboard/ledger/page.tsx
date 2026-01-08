@@ -14,7 +14,9 @@ const PAGE_SIZE = 50
 
 export default async function LedgerPage({ searchParams }: PageProps) {
   const tenant = await requireTenant()
-  const page = parseInt(searchParams.page || '1', 10)
+  // Handle malformed page params - default to 1 if invalid
+  const parsedPage = parseInt(searchParams.page || '1', 10)
+  const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage
   const offset = (page - 1) * PAGE_SIZE
 
   // Parse filters from URL params
