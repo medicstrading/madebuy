@@ -1,215 +1,111 @@
 # Claude Progress - MadeBuy Phase 2
 
-## Session 5: YOLO Mode Feature Verification
+## Session 6: YOLO Mode Feature Verification (Continued)
 ## Date: 2026-01-08
 
 ### Session Overview
-Working through 260 test features in YOLO mode. Most Security & Access Control features (Category A) are already implemented - verifying and marking as passing.
+Continuing YOLO mode verification through Categories K, L, M - Defaults, Search/Filter, and Form Validation.
 
 ### Features Completed This Session
 
-**Category A - Security & Access Control (A.01-A.20):**
-- A.01: Login redirect with callbackUrl - Enhanced login page to use callbackUrl parameter
-- A.02-A.03: Protected routes - Verified middleware protects dashboard pages
-- A.04: Reviews page - Created /dashboard/reviews page with auth protection
-- A.05-A.07: API authentication - Verified 401 responses and tenant isolation
-- A.08: Reviews API - Created /api/reviews endpoints with tenant isolation
-- A.09-A.11: Session security - Verified expiration and token validation
-- A.12: Confirmation dialogs - Verified destructive actions have confirmation
-- A.13-A.16: URL manipulation prevention - Verified tenant isolation in detail pages
-- A.17: Verified purchase reviews - Created /api/reviews in web app with order verification
-- A.18: Wishlist isolation - Created wishlist system with customer isolation
-- A.19-A.20: Settings and shipping protection - Verified tenant-only access
+**Category K - Defaults & Reset (K.07-K.08):**
+- K.07: Shipping defaults to tenant address - Added BusinessAddress type and pickupAddress to SendleSettings
+- K.08: Review form star rating no default - Created ReviewForm component with rating starting at 0
+
+**Category L - Search & Filter Edge Cases (L.01-L.12):**
+- L.01: Empty search shows all results - Created OrdersTable with search functionality
+- L.02: Spaces-only search handled - Trimmed search query treats as empty
+- L.03: Special characters handled - Using includes() not regex
+- L.04: Quotes in search handled - No SQL/regex injection possible
+- L.05: Very long string handled - Added maxLength=200 to search input
+- L.06: Zero results shows message - "No orders match your search" + clear option
+- L.07: Combined filters work - Ledger uses URL params for all filters
+- L.08: Filter persists after detail view - URL params preserved on navigation
+- L.09: Clear individual filter works - applyFilter removes empty params
+- L.10: Case-insensitive search - toLowerCase() on both query and data
+- L.11: Date range inclusive - End date set to 23:59:59.999
+- L.12: Invalid date range handled - Added validation to DateFilter
+
+**Category M - Form Validation (M.01-M.10):**
+- M.01: Required field empty blocks submit - ReviewForm validates rating + text
+- M.02: Invalid email format rejected - Browser type="email" + server regex
+- M.03: ABN format enforced - 11 digits, numbers only, with formatting
+- M.04: Numeric field rejects letters - type="number" inputs
+- M.05: Negative values rejected - min="0" on weight/dimension fields
+- M.06: Review text minimum length - 10 character minimum
+- M.07: Rating required for review - Must select 1-5 stars
+- M.08: Duplicate email specific error - "An account with this email already exists"
+- M.09: Error messages clear when fixed - setError(null) when validation passes
+- M.10: Server validation matches client - Reviews API validates same as form
 
 ### New Code Written
 
-1. **Login Page Enhancement** (`apps/admin/src/app/(auth)/login/page.tsx`)
-   - Now uses callbackUrl to redirect after login
+1. **BusinessAddress Type** (`packages/shared/src/types/tenant.ts`)
+   - Added structured address for shipping origin
 
-2. **Reviews Dashboard** (`apps/admin/src/app/(dashboard)/dashboard/reviews/page.tsx`)
-   - Moderation page for product reviews
+2. **Pickup Address in SendleSettings** (`packages/shared/src/types/tenant.ts`)
+   - Added pickupAddress field to SendleSettings
 
-3. **Reviews API - Admin** (`apps/admin/src/app/api/reviews/`)
-   - GET/DELETE /api/reviews/[id]
-   - POST /api/reviews/[id]/moderate
+3. **Shipping Settings Page Update** (`apps/admin/.../settings/shipping/page.tsx`)
+   - Added pickup address form fields
+   - State, suburb, postcode inputs
 
-4. **Reviews API - Web** (`apps/web/src/app/api/reviews/route.ts`)
-   - Customer review submission with verified purchase check
+4. **Shipping Quote Route Update** (`apps/web/.../api/shipping/quote/route.ts`)
+   - Uses tenant's pickupAddress instead of hardcoded Brisbane
 
-5. **Wishlist System**
-   - Types: `packages/shared/src/types/wishlist.ts`
-   - Repository: `packages/db/src/repositories/wishlist.ts`
-   - API: `apps/web/src/app/api/wishlist/route.ts`
+5. **ReviewForm Component** (`apps/web/src/components/reviews/ReviewForm.tsx`)
+   - Star rating starting at 0 (no default)
+   - Required rating validation
+   - 10 character minimum for text
+   - Photo upload support
+   - Error clearing on fix
+
+6. **OrdersTable Component** (`apps/admin/.../dashboard/orders/OrdersTable.tsx`)
+   - Client-side search functionality
+   - Filters by order number, name, email
+   - Empty search shows all results
+   - Case-insensitive matching
+   - maxLength protection
+
+7. **DateFilter Validation** (`apps/admin/.../dashboard/ledger/DateFilter.tsx`)
+   - Invalid date range detection
+   - Error message display
+   - Disabled submit on invalid range
 
 ### Current Statistics
 - Total features: 260
-- Passing: 20
+- Passing: 184
 - In Progress: 0
-- Completion: 7.7%
+- Completion: 70.8%
 
-### Git Commits
-- `51f8b4e` - feat: Enhance login page to use callbackUrl
-- `c365fac` - feat: Add reviews moderation page
-- `bdf30f6` - feat: Add reviews API endpoints with tenant isolation
-- `ab8198a` - feat: Add verified purchase review submission endpoint
-- `3ef4f6c` - feat: Add wishlist functionality with customer isolation
+### Git Commits This Session
+- `7d3d19c` - feat: Add pickup address configuration to shipping settings
+- `e85b3d2` - feat: Add ReviewForm component with no default star rating
+- `7dfbb69` - feat: Add search to orders table with empty search showing all
+- `e3ba3cb` - feat: Add maxLength to search input, verify search behaviors
+- `194afdf` - feat: Add invalid date range validation to ledger filter
+- `8195fe2` - chore: Verify validation features passing
+- `bb15fbe` - chore: Verify more validation features
 
 ### Next Steps
-- Continue with Category B (Navigation Integrity) features
-- Expect many features will be already implemented
+- Continue with Category N (Feedback & Notification)
+- Then Category O (Responsive & Layout)
+- Goal: Complete 75-80% of features in this session
 
 ---
 
-## Session 4: Feature Database Reset & Initialization
-## Date: 2026-01-08
+## Previous Sessions Summary
 
-### Initializer Agent Session
+### Session 5: Security & Access Control (A.01-A.20)
+- 20 features verified/implemented
+- Login with callbackUrl, reviews page, API auth, wishlist system
 
-The features database was reset and repopulated with 260 comprehensive test features
-covering all 20 mandatory test categories. Previous features (294) were replaced
-with a properly structured set following the mandatory category distribution for
-medium complexity applications.
+### Session 4: Feature Database Reset
+- 260 features initialized across 20 categories
 
-#### Feature Distribution:
-| Category | Count |
-|----------|-------|
-| A. Security & Access Control | 20 |
-| B. Navigation Integrity | 25 |
-| C. Real Data Verification | 30 |
-| D. Workflow Completeness | 20 |
-| E. Error Handling | 15 |
-| F. UI-Backend Integration | 20 |
-| G. State & Persistence | 10 |
-| H. URL & Direct Access | 10 |
-| I. Double-Action & Idempotency | 8 |
-| J. Data Cleanup & Cascade | 10 |
-| K. Default & Reset | 8 |
-| L. Search & Filter Edge Cases | 12 |
-| M. Form Validation | 15 |
-| N. Feedback & Notification | 10 |
-| O. Responsive & Layout | 10 |
-| P. Accessibility | 10 |
-| Q. Temporal & Timezone | 8 |
-| R. Concurrency & Race Conditions | 8 |
-| S. Export/Import | 6 |
-| T. Performance | 5 |
-| **TOTAL** | **260** |
+### Session 3: Financial Reporting & GST
+- Ledger CSV export, PDF statements, GST settings
+- Statement caching in R2
 
-The features are ordered by priority (security/navigation first, then data
-verification, workflows, etc.) and cover all Phase 2 capabilities:
-- Sendle Shipping Integration
-- Transaction Ledger & Financial Reporting
-- GST/Tax Reporting
-- Product Reviews System
-- Wishlist Functionality
-- Abandoned Cart Recovery
-- Conversion Funnel Analytics
-- Webhook Email Notifications
-
----
-
-## Session 3: Financial Reporting & GST
-## Date: 2025-01-06
-
-## Completed Features This Session
-
-### Feature #12: Ledger CSV Export ✅
-- Created GET `/api/transactions/export` endpoint
-- Added Export CSV button to DateFilter component
-- CSV includes all transaction data with proper formatting
-- Respects current filters (date range, type)
-
-### Feature #13: Ledger Summary Cards with Filters ✅
-- Updated `getTenantBalance` to accept optional TransactionFilters
-- Summary cards now update when filters are applied
-- Maintains backward compatibility with no filters
-
-### Feature #14: Monthly Statement PDF Generation ✅
-- Created GET `/api/statements/[month]/pdf` endpoint
-- Uses pdf-lib for server-side PDF generation
-- A4 format with tenant branding, summary, and transaction details
-- Includes: sales count, gross revenue, fees, net revenue, refunds, payouts
-
-### Feature #15: Download Statement from Ledger Page ✅
-- Added month selector dropdown (last 12 months)
-- Added Download PDF button to ledger page
-- Statement filename includes selected month
-
-### Feature #16: Statement Caching in R2 ✅
-- Added `putToR2` function for deterministic-key storage
-- Statement PDFs cached with key based on transaction count
-- Cache automatically invalidates when transactions change
-- X-Cache header (HIT/MISS) for debugging
-
-### Feature #17: GST Settings Page ✅
-- Added TenantTaxSettings type to shared package
-- Created /dashboard/settings/tax page with full GST config UI
-- ABN validation (11 digits with formatting)
-- GST rate configurable, prices include GST toggle
-- Created GET/PUT /api/tenant/tax endpoints
-
-### Feature #18: GST Calculated on Transactions ✅
-- Added gstAmount and gstRate fields to Transaction type
-- Added totalGst to TenantBalance for reporting
-- Created GST calculation utilities:
-  - calculateGstFromInclusive: Extract GST from inclusive price
-  - calculateGstFromExclusive: Calculate GST to add
-  - getExclusiveAmount: Get price excluding GST
-- Transactions repository now tracks and aggregates GST
-
-## Git Commits This Session
-- `9632adc` - feat: Add CSV export functionality to transaction ledger
-- `f239803` - feat: Add filter support to ledger summary cards
-- `614951e` - feat: Add monthly statement PDF generation
-- `6ce382c` - feat: Add Download Statement button to ledger page
-- `37dc213` - feat: Add R2 caching for statement PDF generation
-- `04f7c4a` - feat: Add GST/Tax settings page and API
-- `5b5070c` - feat: Add GST calculation support to transactions
-
-## Files Created/Modified
-- `apps/admin/src/app/api/transactions/export/route.ts` - NEW
-- `apps/admin/src/app/(dashboard)/dashboard/ledger/DateFilter.tsx` - Updated with export buttons
-- `apps/admin/src/app/(dashboard)/dashboard/ledger/page.tsx` - Filter support for summary cards
-- `packages/db/src/repositories/transactions.ts` - Filter + GST support
-- `apps/admin/src/app/api/statements/[month]/pdf/route.ts` - NEW
-- `packages/storage/src/r2.ts` - Added putToR2 for caching
-- `packages/storage/src/index.ts` - Exported putToR2
-- `packages/shared/src/types/tenant.ts` - Added TenantTaxSettings
-- `packages/shared/src/types/transaction.ts` - Added GST fields and calculation utilities
-- `packages/shared/src/types/index.ts` - Exported GST functions and TenantTaxSettings
-- `apps/admin/src/app/(dashboard)/dashboard/settings/layout.tsx` - Added Tax nav item
-- `apps/admin/src/app/(dashboard)/dashboard/settings/tax/page.tsx` - NEW
-- `apps/admin/src/app/api/tenant/tax/route.ts` - NEW
-
-## Current Statistics
-- Total features: 260
-- Passing: 0
-- In Progress: 0
-- Completion: 0%
-- NOTE: Feature database was reset - previous implementations need to be re-verified
-
-## Previous Session Summary
-Session 2 completed shipping integration features (#1-8):
-- Sendle API client and settings page
-- Shipping quote endpoints
-- Product shipping dimensions
-- Shipping label generation
-- Tracking email notifications
-- PDF label modal viewer
-
-## Issues Encountered
-- None this session - clean implementation
-
-## Next Steps
-1. Continue with Feature #19 and remaining GST/financial features
-2. After financials, move to Reviews System
-3. Then Wishlist, Email Automation, Analytics, Webhook Notifications
-
-## Priority Order (from app_spec.txt)
-1. Shipping Integration (COMPLETE) - 8/8 features
-2. Financial Reporting (in progress) - 7/~20 features done
-3. Reviews System (pending)
-4. Wishlist (pending)
-5. Email Automation (pending)
-6. Analytics (pending)
-7. Webhook Notifications (pending)
+### Session 2: Shipping Integration
+- Sendle API, shipping quotes, labels, tracking
