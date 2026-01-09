@@ -61,3 +61,4 @@ Thumbs.db
 
 # Git worktrees
 .worktrees/
+.mcp.json
