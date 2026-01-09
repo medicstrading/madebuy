@@ -42,6 +42,23 @@ export async function getDatabase(): Promise<Db> {
 }
 
 /**
+ * Get the raw MongoDB client for transactions
+ * Use getDatabase() for normal operations
+ */
+export async function getMongoClient(): Promise<MongoClient> {
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is required')
+  }
+
+  if (!cachedClient) {
+    // This will initialize the client
+    await getDatabase()
+  }
+
+  return cachedClient!
+}
+
+/**
  * Ensure all required indexes exist for multi-tenant security and performance
  * CRITICAL: All collections must be indexed by tenantId first!
  */
@@ -60,6 +77,11 @@ async function ensureIndexes(db: Db) {
   await db.collection('pieces').createIndex({ tenantId: 1, status: 1 })
   await db.collection('pieces').createIndex({ tenantId: 1, category: 1 })
   await db.collection('pieces').createIndex({ tenantId: 1, isFeatured: 1 })
+  // Low stock query optimization (P1 fix)
+  await db.collection('pieces').createIndex(
+    { tenantId: 1, lowStockThreshold: 1, stock: 1 },
+    { name: 'low_stock_pieces' }
+  )
 
   // Media
   await db.collection('media').createIndex({ tenantId: 1 })
@@ -83,6 +105,10 @@ async function ensureIndexes(db: Db) {
   await db.collection('orders').createIndex({ tenantId: 1, createdAt: -1 })
   await db.collection('orders').createIndex({ tenantId: 1, customerEmail: 1 })
   await db.collection('orders').createIndex({ orderNumber: 1 }, { unique: true })
+  // Stripe session ID for idempotency checks (sparse since not all orders have it)
+  await db.collection('orders').createIndex({ stripeSessionId: 1 }, { sparse: true })
+  // Compound index for efficient order listing with status filter and date sorting
+  await db.collection('orders').createIndex({ tenantId: 1, status: 1, createdAt: -1 })
 
   // Promotions
   await db.collection('promotions').createIndex({ tenantId: 1 })

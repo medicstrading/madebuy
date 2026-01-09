@@ -5,6 +5,68 @@ import { uploadToR2, uploadToLocal, processImageWithVariants } from '@madebuy/st
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
 
+// Magic number (file signature) definitions for security verification
+const MAGIC_NUMBERS: Record<string, number[]> = {
+  'image/jpeg': [0xFF, 0xD8, 0xFF],
+  'image/jpg': [0xFF, 0xD8, 0xFF],
+  'image/png': [0x89, 0x50, 0x4E, 0x47],
+  'image/gif': [0x47, 0x49, 0x46],
+  // Note: WebP handled separately in verifyMagicNumber due to RIFF+WEBP check
+}
+
+// Video magic numbers
+const VIDEO_MAGIC_NUMBERS: Record<string, number[][]> = {
+  'video/mp4': [
+    [0x00, 0x00, 0x00], // ftyp box (starts at offset 4)
+    [0x66, 0x74, 0x79, 0x70], // 'ftyp' at offset 4
+  ],
+  'video/quicktime': [
+    [0x00, 0x00, 0x00], // moov/ftyp box
+  ],
+}
+
+/**
+ * Verify file content matches claimed MIME type via magic number check
+ * Prevents malicious files disguised with fake extensions
+ */
+function verifyMagicNumber(buffer: Buffer, mimeType: string): boolean {
+  // Check image magic numbers
+  const expectedBytes = MAGIC_NUMBERS[mimeType]
+  if (expectedBytes) {
+    return expectedBytes.every((byte, i) => buffer[i] === byte)
+  }
+
+  // WebP requires special handling - RIFF header shared with AVI (P3 fix)
+  // WebP format: RIFF....WEBP where .... is file size
+  if (mimeType === 'image/webp') {
+    const riffSignature = [0x52, 0x49, 0x46, 0x46] // 'RIFF' at offset 0
+    const webpSignature = [0x57, 0x45, 0x42, 0x50] // 'WEBP' at offset 8
+    const hasRiff = riffSignature.every((byte, i) => buffer[i] === byte)
+    const hasWebp = webpSignature.every((byte, i) => buffer[i + 8] === byte)
+    return hasRiff && hasWebp
+  }
+
+  // For video files, do a basic check (video containers are more complex)
+  if (mimeType === 'video/mp4' || mimeType === 'video/quicktime') {
+    // MP4/MOV files have 'ftyp' at offset 4
+    const ftypSignature = [0x66, 0x74, 0x79, 0x70] // 'ftyp'
+    return ftypSignature.every((byte, i) => buffer[i + 4] === byte)
+  }
+
+  // For AVI files
+  if (mimeType === 'video/x-msvideo') {
+    // AVI files start with 'RIFF....AVI '
+    const riffSignature = [0x52, 0x49, 0x46, 0x46] // 'RIFF' at offset 0
+    const aviSignature = [0x41, 0x56, 0x49, 0x20] // 'AVI ' at offset 8
+    const hasRiff = riffSignature.every((byte, i) => buffer[i] === byte)
+    const hasAvi = aviSignature.every((byte, i) => buffer[i + 8] === byte)
+    return hasRiff && hasAvi
+  }
+
+  // Unknown type - allow by default (will be caught by other validations)
+  return true
+}
+
 export async function POST(request: NextRequest) {
   try {
     const tenant = await getCurrentTenant()
@@ -50,6 +112,14 @@ export async function POST(request: NextRequest) {
 
     // Convert File to Buffer
     const buffer = Buffer.from(await file.arrayBuffer())
+
+    // Verify magic number matches claimed MIME type (security check)
+    if (!verifyMagicNumber(buffer, file.type)) {
+      return NextResponse.json(
+        { error: 'File content does not match declared type' },
+        { status: 400 }
+      )
+    }
 
     // Generate variants for images (if image)
     const variants = type === 'image'

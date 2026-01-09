@@ -1,8 +1,23 @@
 import { Resend } from 'resend'
 import type { Tenant, Newsletter, NewsletterTemplate, Order } from '@madebuy/shared'
+import type { LowStockPiece } from '@madebuy/db'
 import { renderShippedEmail } from '@madebuy/shared'
 
 let resend: Resend | null = null
+
+/**
+ * Escape HTML special characters to prevent XSS in email templates
+ * (P1 security fix)
+ */
+function escapeHtml(text: string | undefined | null): string {
+  if (!text) return ''
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 function getResendClient() {
   if (!resend && process.env.RESEND_API_KEY) {
@@ -576,6 +591,179 @@ export async function sendReviewRequestEmail(data: ReviewRequestEmailData): Prom
     return { success: true }
   } catch (error) {
     console.error('Failed to send review request email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Low stock alert email data
+ */
+interface LowStockAlertEmailData {
+  tenant: Tenant
+  pieces: LowStockPiece[]
+  dashboardUrl: string
+}
+
+/**
+ * Build low stock alert email HTML
+ */
+function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
+  const { tenant, pieces, dashboardUrl } = data
+  const shopName = tenant.businessName || 'Your Shop'
+
+  const itemsHtml = pieces.map(piece => {
+    const stockStatus = piece.stock === 0
+      ? '<span style="color: #dc2626; font-weight: 600;">OUT OF STOCK</span>'
+      : `<span style="color: #d97706; font-weight: 600;">${piece.stock} left</span>`
+
+    return `
+    <tr>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+        <div>
+          <p style="margin: 0; font-weight: 500; color: #111827;">${escapeHtml(piece.name)}</p>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280;">${escapeHtml(piece.category)} | ${escapeHtml(piece.status)}</p>
+        </div>
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+        ${stockStatus}
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #6b7280;">
+        ${piece.lowStockThreshold}
+      </td>
+    </tr>
+  `
+  }).join('')
+
+  const outOfStockCount = pieces.filter(p => p.stock === 0).length
+  const lowStockCount = pieces.filter(p => p.stock > 0).length
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Low Stock Alert</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #374151; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f3f4f6;">
+  <div style="padding: 40px 20px;">
+    <div style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <!-- Header -->
+      <div style="background-color: #d97706; padding: 30px 24px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">Low Stock Alert</h1>
+      </div>
+
+      <div style="padding: 30px 24px;">
+        <p style="margin: 0 0 20px 0; font-size: 16px;">
+          Hi ${shopName},
+        </p>
+
+        <p style="margin: 0 0 20px 0; font-size: 16px;">
+          The following items in your inventory need attention:
+        </p>
+
+        <!-- Summary -->
+        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+          ${outOfStockCount > 0 ? `
+          <div style="flex: 1; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; text-align: center;">
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #dc2626;">${outOfStockCount}</p>
+            <p style="margin: 4px 0 0 0; font-size: 12px; color: #991b1b;">Out of Stock</p>
+          </div>
+          ` : ''}
+          ${lowStockCount > 0 ? `
+          <div style="flex: 1; background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; text-align: center;">
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #d97706;">${lowStockCount}</p>
+            <p style="margin: 4px 0 0 0; font-size: 12px; color: #92400e;">Low Stock</p>
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Items Table -->
+        <div style="background-color: #f9fafb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background-color: #e5e7eb;">
+                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Item</th>
+                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Stock</th>
+                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase;">Threshold</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${dashboardUrl}" style="display: inline-block; background-color: #d97706; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            View Low Stock Items
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          This is an automated alert from ${shopName} on MadeBuy.
+        </p>
+        <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">
+          Manage your stock thresholds in your dashboard settings.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
+
+/**
+ * Send low stock alert email to tenant
+ */
+export async function sendLowStockAlertEmail(data: LowStockAlertEmailData): Promise<{
+  success: boolean
+  error?: string
+}> {
+  const client = getResendClient()
+
+  if (!client) {
+    // In development mode without Resend, log to console
+    console.log('[EMAIL] Low stock alert email (not sent - no Resend API key):')
+    console.log(`  To: ${data.tenant.email}`)
+    console.log(`  Items: ${data.pieces.length}`)
+    console.log(`  Out of stock: ${data.pieces.filter(p => p.stock === 0).length}`)
+    console.log(`  Low stock: ${data.pieces.filter(p => p.stock > 0).length}`)
+    return {
+      success: true, // Return success in dev mode for testing
+    }
+  }
+
+  const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'alerts@madebuy.com.au'
+  const htmlContent = buildLowStockAlertEmailHtml(data)
+
+  try {
+    const result = await client.emails.send({
+      from: `MadeBuy Alerts <${fromEmail}>`,
+      to: data.tenant.email,
+      subject: `Low Stock Alert: ${data.pieces.length} item${data.pieces.length === 1 ? '' : 's'} need attention`,
+      html: htmlContent,
+    })
+
+    if (result.error) {
+      console.error('Failed to send low stock alert email:', result.error)
+      return {
+        success: false,
+        error: result.error.message,
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send low stock alert email:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

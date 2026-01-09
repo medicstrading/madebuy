@@ -5,12 +5,22 @@ import { useCart } from '@/contexts/CartContext'
 import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ImageIcon, Tag } from 'lucide-react'
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ImageIcon, Tag, Truck, Package, Percent } from 'lucide-react'
 import { CartRecovery } from './CartRecovery'
+import type { BundleProductData } from '@madebuy/shared'
 
 interface CartContentProps {
   tenant: string
   tenantId: string
+  freeShippingThreshold?: number // Amount in cents required for free shipping
+}
+
+// Type-safe accessor for bundle data (P2 type safety fix)
+function getBundleData(product: { id: string; _bundleData?: BundleProductData }): BundleProductData | null {
+  if (product.id.startsWith('bundle_') && product._bundleData) {
+    return product._bundleData
+  }
+  return null
 }
 
 interface RecoveredItem {
@@ -21,7 +31,7 @@ interface RecoveredItem {
   imageUrl?: string
 }
 
-export function CartContent({ tenant, tenantId }: CartContentProps) {
+export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartContentProps) {
   const { items, addItem, removeItem, updateQuantity, totalAmount } = useCart()
   const [recoveredDiscount, setRecoveredDiscount] = useState<string | null>(null)
 
@@ -107,92 +117,140 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
       {/* Cart Items */}
       <div className="lg:col-span-2">
         <div className="space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.product.id}
-              className="flex gap-4 rounded-2xl border border-gray-100 bg-white p-4 hover:shadow-md transition-shadow"
-            >
-              {/* Image */}
-              {item.product.primaryImage ? (
-                <Link
-                  href={`/${tenant}/product/${item.product.slug}`}
-                  className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100"
-                >
-                  <Image
-                    src={
-                      item.product.primaryImage.variants.thumb?.url ||
-                      item.product.primaryImage.variants.original.url
-                    }
-                    alt={item.product.name}
-                    fill
-                    className="object-cover"
-                  />
-                </Link>
-              ) : (
-                <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100">
-                  <ImageIcon className="h-8 w-8 text-gray-300" />
-                </div>
-              )}
+          {items.map((item) => {
+            // Check if this is a bundle item (P2 type safety fix)
+            const isBundle = item.product.id.startsWith('bundle_')
+            const bundleData = getBundleData(item.product as { id: string; _bundleData?: BundleProductData })
+            const itemHref = isBundle
+              ? `/${tenant}/bundle/${item.product.slug}`
+              : `/${tenant}/product/${item.product.slug}`
 
-              {/* Details */}
-              <div className="flex flex-1 flex-col justify-between py-1">
-                <div>
+            return (
+              <div
+                key={item.product.id}
+                className={`flex gap-4 rounded-2xl border bg-white p-4 hover:shadow-md transition-shadow ${
+                  isBundle ? 'border-purple-200 bg-purple-50/30' : 'border-gray-100'
+                }`}
+              >
+                {/* Image */}
+                {item.product.primaryImage ? (
                   <Link
-                    href={`/${tenant}/product/${item.product.slug}`}
-                    className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                    href={itemHref}
+                    className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100"
                   >
-                    {item.product.name}
-                  </Link>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {formatCurrency(item.product.price, item.product.currency)} each
-                  </p>
-                </div>
-
-                {/* Quantity Controls */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center rounded-lg border border-gray-200">
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                      className="flex h-9 w-9 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-l-lg"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                      className="flex h-9 w-9 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-r-lg disabled:opacity-50"
-                      aria-label="Increase quantity"
-                      disabled={
-                        item.product.stock !== undefined &&
-                        item.quantity >= item.product.stock
+                    <Image
+                      src={
+                        item.product.primaryImage.variants.thumb?.url ||
+                        item.product.primaryImage.variants.original.url
                       }
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                      alt={item.product.name}
+                      fill
+                      className="object-cover"
+                      sizes="112px"
+                    />
+                    {isBundle && (
+                      <div className="absolute top-1 left-1 bg-purple-500 text-white p-1 rounded-md">
+                        <Package className="h-3 w-3" />
+                      </div>
+                    )}
+                  </Link>
+                ) : (
+                  <div className={`flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-xl ${
+                    isBundle ? 'bg-gradient-to-br from-purple-100 to-blue-100' : 'bg-gray-100'
+                  }`}>
+                    {isBundle ? (
+                      <Package className="h-8 w-8 text-purple-300" />
+                    ) : (
+                      <ImageIcon className="h-8 w-8 text-gray-300" />
+                    )}
+                  </div>
+                )}
+
+                {/* Details */}
+                <div className="flex flex-1 flex-col justify-between py-1">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={itemHref}
+                        className={`font-medium transition-colors ${
+                          isBundle
+                            ? 'text-purple-900 hover:text-purple-600'
+                            : 'text-gray-900 hover:text-blue-600'
+                        }`}
+                      >
+                        {item.product.name}
+                      </Link>
+                      {isBundle && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                          <Package className="h-3 w-3" />
+                          Bundle
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {formatCurrency(item.product.price, item.product.currency)} each
+                    </p>
+                    {/* Show bundle savings */}
+                    {isBundle && bundleData?.discountPercent > 0 && (
+                      <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
+                        <Percent className="h-3 w-3" />
+                        <span>Save {bundleData.discountPercent}%</span>
+                      </div>
+                    )}
                   </div>
 
-                  <button
-                    onClick={() => removeItem(item.product.id)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    aria-label="Remove from cart"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {/* Quantity Controls */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center rounded-lg border border-gray-200 bg-white">
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        className="flex h-9 w-9 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-l-lg"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        className="flex h-9 w-9 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-r-lg disabled:opacity-50"
+                        aria-label="Increase quantity"
+                        disabled={
+                          item.product.stock !== undefined &&
+                          item.quantity >= item.product.stock
+                        }
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => removeItem(item.product.id)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      aria-label="Remove from cart"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Subtotal */}
+                <div className="flex flex-col items-end justify-center">
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatCurrency(
+                      item.product.price ? item.product.price * item.quantity : undefined,
+                      item.product.currency
+                    )}
+                  </p>
+                  {/* Show original price for bundles */}
+                  {isBundle && bundleData?.originalPrice && (
+                    <p className="text-sm text-gray-400 line-through">
+                      {formatCurrency(bundleData.originalPrice * item.quantity / 100)}
+                    </p>
+                  )}
                 </div>
               </div>
-
-              {/* Subtotal */}
-              <div className="flex flex-col items-end justify-center">
-                <p className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(
-                    item.product.price ? item.product.price * item.quantity : undefined,
-                    item.product.currency
-                  )}
-                </p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
@@ -206,9 +264,22 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
               <span>Subtotal ({items.length} items)</span>
               <span className="font-medium text-gray-900">{formatCurrency(totalAmount)}</span>
             </div>
+
+            {/* Free Shipping Progress */}
+            {freeShippingThreshold && freeShippingThreshold > 0 && (
+              <FreeShippingProgress
+                threshold={freeShippingThreshold}
+                currentAmount={Math.round(totalAmount * 100)} // Convert to cents
+              />
+            )}
+
             <div className="flex justify-between text-gray-600">
               <span>Shipping</span>
-              <span className="text-gray-400">Calculated at checkout</span>
+              {freeShippingThreshold && Math.round(totalAmount * 100) >= freeShippingThreshold ? (
+                <span className="font-medium text-green-600">FREE</span>
+              ) : (
+                <span className="text-gray-400">Calculated at checkout</span>
+              )}
             </div>
             <div className="border-t border-gray-100 pt-4">
               <div className="flex justify-between">
@@ -233,5 +304,64 @@ export function CartContent({ tenant, tenantId }: CartContentProps) {
       </div>
       </div>
     </>
+  )
+}
+
+/**
+ * Free Shipping Progress Bar Component
+ * Shows progress toward free shipping threshold
+ */
+function FreeShippingProgress({
+  threshold,
+  currentAmount,
+}: {
+  threshold: number // in cents
+  currentAmount: number // in cents
+}) {
+  const amountUntilFree = Math.max(0, threshold - currentAmount)
+  const progress = Math.min(100, (currentAmount / threshold) * 100)
+  const qualifies = currentAmount >= threshold
+
+  // Format amount in dollars
+  const formatAmount = (cents: number) => {
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
+    }).format(cents / 100)
+  }
+
+  if (qualifies) {
+    return (
+      <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+        <div className="flex items-center gap-2">
+          <Truck className="h-4 w-4 text-green-600" />
+          <span className="text-sm font-medium text-green-800">
+            You qualify for free shipping!
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Truck className="h-4 w-4 text-blue-600" />
+          <span className="text-sm font-medium text-blue-800">
+            Add {formatAmount(amountUntilFree)} more for free shipping!
+          </span>
+        </div>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-blue-200">
+        <div
+          className="h-full rounded-full bg-blue-500 transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <p className="mt-1.5 text-xs text-blue-600">
+        {formatAmount(currentAmount)} / {formatAmount(threshold)}
+      </p>
+    </div>
   )
 }

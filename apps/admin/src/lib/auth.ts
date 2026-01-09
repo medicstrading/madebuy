@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { tenants } from '@madebuy/db'
+import { tenants, auditLog } from '@madebuy/db'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -19,13 +19,56 @@ export const authOptions: NextAuthOptions = {
         const tenant = await tenants.getTenantByEmail(credentials.email)
 
         if (!tenant) {
+          // Log failed login attempt (unknown email)
+          // Wrapped in try-catch to ensure auth flow continues even if logging fails (P0 fix)
+          try {
+            await auditLog.logAuditEvent({
+              eventType: 'auth.login.failed',
+              actorEmail: credentials.email,
+              actorType: 'anonymous',
+              success: false,
+              errorMessage: 'Unknown email address',
+            })
+          } catch (e) {
+            console.error('Audit log failed (login failure - unknown email):', e)
+          }
           return null
         }
 
         const isValid = await bcrypt.compare(credentials.password, tenant.passwordHash)
 
         if (!isValid) {
+          // Log failed login attempt (wrong password)
+          // Wrapped in try-catch to ensure auth flow continues even if logging fails (P0 fix)
+          try {
+            await auditLog.logAuditEvent({
+              tenantId: tenant.id,
+              eventType: 'auth.login.failed',
+              actorId: tenant.id,
+              actorEmail: tenant.email,
+              actorType: 'tenant',
+              success: false,
+              errorMessage: 'Invalid password',
+            })
+          } catch (e) {
+            console.error('Audit log failed (login failure - invalid password):', e)
+          }
           return null
+        }
+
+        // Log successful login
+        // Wrapped in try-catch to ensure auth flow continues even if logging fails (P0 fix)
+        try {
+          await auditLog.logAuditEvent({
+            tenantId: tenant.id,
+            eventType: 'auth.login.success',
+            actorId: tenant.id,
+            actorEmail: tenant.email,
+            actorType: 'tenant',
+            success: true,
+          })
+        } catch (e) {
+          console.error('Audit log failed (login success):', e)
         }
 
         return {
@@ -55,12 +98,12 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    // Token expires after 24 hours (secure default instead of 30 days)
-    maxAge: 24 * 60 * 60, // 24 hours in seconds
+    // Token expires after 8 hours (reduced from 24 hours for improved security)
+    maxAge: 8 * 60 * 60, // 8 hours in seconds
   },
   // JWT configuration
   jwt: {
-    // Token expires after 24 hours
-    maxAge: 24 * 60 * 60,
+    // Token expires after 8 hours
+    maxAge: 8 * 60 * 60,
   },
 }
