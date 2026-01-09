@@ -2,10 +2,7 @@
   "mcpServers": {
     "railway": {
       "command": "npx",
-      "args": ["-y", "@railway/mcp-server"],
-      "env": {
-        "RAILWAY_TOKEN": "de217a35-4e9e-4e1d-991d-4fb7ab9d69a0"
-      }
+      "args": ["-y", "@railway/mcp-server"]
     },
     "vultr": {
       "command": "npx",
