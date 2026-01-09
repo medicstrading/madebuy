@@ -2,8 +2,15 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Material } from '@madebuy/shared'
-import { Plus, Trash2, Calculator, Loader2, Package } from 'lucide-react'
+import type { Material, PieceMaterialUsage } from '@madebuy/shared'
+import {
+  calculateCOGS,
+  calculateProfitMargin,
+  suggestPrice,
+  getMarginHealth,
+  TARGET_MARGINS,
+} from '@madebuy/shared'
+import { Plus, Trash2, Calculator, Loader2, Package, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react'
 import { useTenantCategories, FALLBACK_PRODUCT_CATEGORIES } from '@/hooks/useTenantCategories'
 
 interface PieceFormProps {
@@ -17,9 +24,16 @@ interface MaterialUsageEntry {
   quantityUsed: number
 }
 
+interface FormErrors {
+  name?: string
+  category?: string
+  form?: string
+}
+
 export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
+  const [errors, setErrors] = useState<FormErrors>({})
 
   // Get dynamic categories based on maker type
   const { productCategories, isLoading: categoriesLoading } = useTenantCategories()
@@ -36,6 +50,7 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
     price: piece?.price || 0,
     currency: piece?.currency || 'AUD',
     stock: piece?.stock || undefined,
+    lowStockThreshold: piece?.lowStockThreshold || undefined,
     // Shipping dimensions
     shippingWeight: piece?.shippingWeight || undefined,
     shippingLength: piece?.shippingLength || undefined,
@@ -46,18 +61,49 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
   // Material usage tracking
   const [materialUsages, setMaterialUsages] = useState<MaterialUsageEntry[]>([])
 
-  // Calculate total COGS
-  const totalCOGS = useMemo(() => {
-    return materialUsages.reduce((total, usage) => {
-      const material = availableMaterials.find(m => m.id === usage.materialId)
-      if (!material) return total
-      return total + (material.costPerUnit * usage.quantityUsed)
-    }, 0)
+  // Target margin for suggested pricing (default 50%)
+  const [targetMargin, setTargetMargin] = useState<number>(TARGET_MARGINS.STANDARD)
+
+  // Convert material usages to PieceMaterialUsage format for COGS calculation
+  const materialsUsedForCOGS: PieceMaterialUsage[] = useMemo(() => {
+    return materialUsages
+      .filter(u => u.materialId && u.quantityUsed > 0)
+      .map(u => {
+        const material = availableMaterials.find(m => m.id === u.materialId)
+        return {
+          materialId: u.materialId,
+          quantity: u.quantityUsed,
+          unit: material?.unit || 'piece',
+        }
+      })
   }, [materialUsages, availableMaterials])
+
+  // Calculate total COGS using the shared utility
+  const totalCOGS = useMemo(() => {
+    return calculateCOGS(materialsUsedForCOGS, availableMaterials)
+  }, [materialsUsedForCOGS, availableMaterials])
+
+  // Calculate profit margin
+  const profitMargin = useMemo(() => {
+    // Price in form is in dollars, COGS is in cents
+    const priceInCents = formData.price ? formData.price * 100 : 0
+    return calculateProfitMargin(priceInCents, totalCOGS)
+  }, [formData.price, totalCOGS])
+
+  // Get margin health status
+  const marginHealth = useMemo(() => {
+    return getMarginHealth(profitMargin)
+  }, [profitMargin])
+
+  // Calculate suggested price for target margin
+  const suggestedPrice = useMemo(() => {
+    const suggested = suggestPrice(totalCOGS, targetMargin)
+    return suggested ? suggested / 100 : null // Convert cents to dollars
+  }, [totalCOGS, targetMargin])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    const numericFields = ['price', 'stock', 'shippingWeight', 'shippingLength', 'shippingWidth', 'shippingHeight']
+    const numericFields = ['price', 'stock', 'lowStockThreshold', 'shippingWeight', 'shippingLength', 'shippingWidth', 'shippingHeight']
     setFormData(prev => ({
       ...prev,
       [name]: numericFields.includes(name)
@@ -68,9 +114,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
   const addMaterialUsage = () => {
     if (availableMaterials.length === 0) {
-      alert('No materials available. Please add materials first.')
+      setErrors(prev => ({ ...prev, form: 'No materials available. Please add materials first.' }))
       return
     }
+    setErrors(prev => ({ ...prev, form: undefined }))
     setMaterialUsages(prev => [...prev, { materialId: '', quantityUsed: 0 }])
   }
 
@@ -91,24 +138,39 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Clear previous errors
+    const newErrors: FormErrors = {}
+
     if (!formData.name.trim()) {
-      alert('Piece name is required')
-      return
+      newErrors.name = 'Piece name is required'
     }
 
     if (!formData.category.trim()) {
-      alert('Category is required')
+      newErrors.category = 'Category is required'
+    }
+
+    // If there are validation errors, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
 
+    setErrors({})
     setSubmitting(true)
 
     try {
+      // Build piece data with materialsUsed for COGS
+      const pieceData = {
+        ...formData,
+        // Include materialsUsed for automatic COGS calculation
+        materialsUsed: materialsUsedForCOGS.length > 0 ? materialsUsedForCOGS : undefined,
+      }
+
       // Create the piece
       const pieceResponse = await fetch('/api/pieces', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(pieceData),
       })
 
       if (!pieceResponse.ok) {
@@ -117,7 +179,8 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
       const { piece: createdPiece } = await pieceResponse.json()
 
-      // Record material usages if any
+      // Record material usages for inventory deduction (separate from COGS tracking)
+      // This reduces material stock when materials are actually used
       if (materialUsages.length > 0) {
         const validUsages = materialUsages.filter(u => u.materialId && u.quantityUsed > 0)
 
@@ -137,7 +200,7 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
       router.refresh()
     } catch (error) {
       console.error('Piece creation error:', error)
-      alert('Failed to create piece. Please try again.')
+      setErrors({ form: 'Failed to create piece. Please try again.' })
     } finally {
       setSubmitting(false)
     }
@@ -160,11 +223,20 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
               id="name"
               name="name"
               value={formData.name}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (errors.name) setErrors(prev => ({ ...prev, name: undefined }))
+              }}
               placeholder="e.g., Sterling Silver Ring"
-              required
-              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full rounded-lg border p-2.5 focus:outline-none focus:ring-2 ${
+                errors.name
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+              }`}
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            )}
           </div>
 
           {/* Description */}
@@ -198,9 +270,15 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                 id="category"
                 name="category"
                 value={formData.category}
-                onChange={handleChange}
-                required
-                className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  handleChange(e)
+                  if (errors.category) setErrors(prev => ({ ...prev, category: undefined }))
+                }}
+                className={`w-full rounded-lg border p-2.5 focus:outline-none focus:ring-2 ${
+                  errors.category
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                }`}
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
@@ -211,9 +289,13 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                 <option value="Other">Other</option>
               </select>
             )}
-            <p className="mt-1 text-xs text-gray-500">
-              Manage categories in Settings &rarr; Product Categories
-            </p>
+            {errors.category ? (
+              <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+            ) : (
+              <p className="mt-1 text-xs text-gray-500">
+                Manage categories in Settings &rarr; Product Categories
+              </p>
+            )}
           </div>
 
           {/* Status */}
@@ -272,6 +354,27 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
             />
             <p className="mt-1 text-sm text-gray-500">
               Leave empty for unlimited or one-of-a-kind pieces
+            </p>
+          </div>
+
+          {/* Low Stock Threshold */}
+          <div>
+            <label htmlFor="lowStockThreshold" className="block text-sm font-medium text-gray-700 mb-1">
+              Low Stock Alert
+            </label>
+            <input
+              type="number"
+              id="lowStockThreshold"
+              name="lowStockThreshold"
+              value={formData.lowStockThreshold || ''}
+              onChange={handleChange}
+              min="0"
+              step="1"
+              placeholder="e.g., 5"
+              className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Get notified when stock falls to or below this level
             </p>
           </div>
         </div>
@@ -469,21 +572,112 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                 <span className="font-medium text-blue-900">Total Cost of Goods Sold (COGS)</span>
               </div>
               <span className="text-xl font-bold text-blue-900">
-                ${totalCOGS.toFixed(2)}
+                ${(totalCOGS / 100).toFixed(2)}
               </span>
             </div>
 
-            {formData.price && formData.price > 0 && (
-              <div className="flex items-center justify-between rounded-lg bg-green-50 border border-green-200 p-4">
-                <span className="font-medium text-green-900">Profit Margin</span>
-                <span className="text-xl font-bold text-green-900">
-                  ${(formData.price - totalCOGS).toFixed(2)} ({(((formData.price - totalCOGS) / formData.price) * 100).toFixed(1)}%)
-                </span>
+            {/* Profit Margin with Health Indicator */}
+            {formData.price && formData.price > 0 && totalCOGS > 0 && (
+              <div className={`flex items-center justify-between rounded-lg border p-4 ${
+                marginHealth === 'healthy' ? 'bg-green-50 border-green-200' :
+                marginHealth === 'warning' ? 'bg-yellow-50 border-yellow-200' :
+                marginHealth === 'low' ? 'bg-orange-50 border-orange-200' :
+                marginHealth === 'negative' ? 'bg-red-50 border-red-200' :
+                'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {marginHealth === 'healthy' ? (
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                  ) : marginHealth === 'negative' || marginHealth === 'low' ? (
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                  ) : (
+                    <TrendingUp className="h-5 w-5 text-yellow-600" />
+                  )}
+                  <div>
+                    <span className={`font-medium ${
+                      marginHealth === 'healthy' ? 'text-green-900' :
+                      marginHealth === 'warning' ? 'text-yellow-900' :
+                      marginHealth === 'low' ? 'text-orange-900' :
+                      marginHealth === 'negative' ? 'text-red-900' :
+                      'text-gray-900'
+                    }`}>Profit Margin</span>
+                    {marginHealth === 'low' && (
+                      <p className="text-xs text-orange-600 mt-0.5">Low margin - consider raising price</p>
+                    )}
+                    {marginHealth === 'negative' && (
+                      <p className="text-xs text-red-600 mt-0.5">Selling below cost!</p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className={`text-xl font-bold ${
+                    marginHealth === 'healthy' ? 'text-green-900' :
+                    marginHealth === 'warning' ? 'text-yellow-900' :
+                    marginHealth === 'low' ? 'text-orange-900' :
+                    marginHealth === 'negative' ? 'text-red-900' :
+                    'text-gray-900'
+                  }`}>
+                    {profitMargin !== null ? `${profitMargin.toFixed(1)}%` : '-'}
+                  </span>
+                  <p className="text-sm text-gray-600">
+                    ${((formData.price * 100 - totalCOGS) / 100).toFixed(2)} profit
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Suggested Pricing */}
+            {totalCOGS > 0 && (
+              <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium text-purple-900">Suggested Pricing</span>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="text-sm text-purple-800">Target Margin:</label>
+                  <select
+                    value={targetMargin}
+                    onChange={(e) => setTargetMargin(Number(e.target.value))}
+                    className="rounded border border-purple-300 px-2 py-1 text-sm bg-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  >
+                    <option value={TARGET_MARGINS.BUDGET}>30% (Budget)</option>
+                    <option value={TARGET_MARGINS.STANDARD}>50% (Standard)</option>
+                    <option value={TARGET_MARGINS.PREMIUM}>60% (Premium)</option>
+                    <option value={TARGET_MARGINS.ARTISAN}>70% (Artisan)</option>
+                    <option value={TARGET_MARGINS.EXCLUSIVE}>80% (Exclusive)</option>
+                  </select>
+                </div>
+                {suggestedPrice && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-purple-800">
+                      For {targetMargin}% margin, price at:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-purple-900">
+                        ${suggestedPrice.toFixed(2)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, price: suggestedPrice }))}
+                        className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* Form Error */}
+      {errors.form && (
+        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{errors.form}</p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3 justify-end">

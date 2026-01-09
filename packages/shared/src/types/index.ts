@@ -24,6 +24,7 @@ export * from './customer'
 export * from './discount'
 export * from './newsletter'
 export * from './collection'
+export * from './bundle'
 export * from './keyDates'
 export * from './payment'
 export * from './template'
@@ -32,6 +33,7 @@ export * from './payout'
 export * from './scanner'
 export * from './review'
 export * from './wishlist'
+export * from './dispute'
 
 // Re-export commonly used types for convenience
 export type {
@@ -53,6 +55,7 @@ export type {
   UpdatePieceInput,
   PieceFilters,
   PieceIntegrations,
+  PieceMaterialUsage,
   VariantOption,
   ProductVariant,
   ProductVariation,
@@ -306,6 +309,28 @@ export type {
   ProductReviewStats,
   ReviewModerationInput,
 } from './review'
+
+export type {
+  Dispute,
+  DisputeStatus,
+  DisputeReason,
+  CreateDisputeInput,
+  UpdateDisputeInput,
+  DisputeFilters,
+  DisputeListOptions,
+  DisputeStats,
+} from './dispute'
+
+export type {
+  Bundle,
+  BundleStatus,
+  BundlePiece,
+  BundleWithPieces,
+  BundleCartItem,
+  CreateBundleInput,
+  UpdateBundleInput,
+  BundleListOptions,
+} from './bundle'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)

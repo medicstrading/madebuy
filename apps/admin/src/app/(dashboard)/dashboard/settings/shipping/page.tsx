@@ -11,6 +11,7 @@ import {
   TestTube,
   Save,
   Settings,
+  Gift,
 } from 'lucide-react'
 
 interface BusinessAddress {
@@ -29,6 +30,7 @@ interface SendleSettings {
   connectedAt?: string
   environment: 'sandbox' | 'production'
   pickupAddress?: BusinessAddress
+  freeShippingThreshold?: number | null
 }
 
 export default function ShippingSettingsPage() {
@@ -52,6 +54,11 @@ export default function ShippingSettingsPage() {
   const [state, setState] = useState('')
   const [postcode, setPostcode] = useState('')
 
+  // Free shipping threshold state (stored as dollars for UI, converted to cents for API)
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState(false)
+  const [freeShippingAmount, setFreeShippingAmount] = useState('')
+  const [isSavingFreeShipping, setIsSavingFreeShipping] = useState(false)
+
   // Load current settings
   useEffect(() => {
     async function loadSettings() {
@@ -70,6 +77,12 @@ export default function ShippingSettingsPage() {
             setSuburb(data.pickupAddress.suburb || '')
             setState(data.pickupAddress.state || '')
             setPostcode(data.pickupAddress.postcode || '')
+          }
+          // Load free shipping threshold
+          if (data.freeShippingThreshold) {
+            setFreeShippingEnabled(true)
+            // Convert from cents to dollars for display
+            setFreeShippingAmount((data.freeShippingThreshold / 100).toString())
           }
         }
       } catch (err) {
@@ -156,6 +169,42 @@ export default function ShippingSettingsPage() {
       setError('Failed to test connection')
     } finally {
       setIsTesting(false)
+    }
+  }
+
+  // Save free shipping threshold
+  const handleSaveFreeShipping = async () => {
+    setIsSavingFreeShipping(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      // Convert dollars to cents, or null if disabled
+      const thresholdCents = freeShippingEnabled && freeShippingAmount
+        ? Math.round(parseFloat(freeShippingAmount) * 100)
+        : null
+
+      const response = await fetch('/api/shipping/sendle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          freeShippingThreshold: thresholdCents,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSettings(prev => prev ? { ...prev, freeShippingThreshold: data.freeShippingThreshold } : null)
+        setSuccess('Free shipping threshold saved successfully.')
+        setTimeout(() => setSuccess(null), 3000)
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to save free shipping settings')
+      }
+    } catch (err) {
+      setError('Failed to save free shipping settings')
+    } finally {
+      setIsSavingFreeShipping(false)
     }
   }
 
@@ -431,6 +480,118 @@ export default function ShippingSettingsPage() {
                 <Save className="h-4 w-4" />
               )}
               Save Credentials
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Free Shipping Threshold Section */}
+      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+              <Gift className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Free Shipping Threshold</h2>
+              <p className="text-sm text-gray-500">
+                Offer free shipping for orders above a certain amount
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Enable/Disable Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label htmlFor="freeShippingEnabled" className="text-sm font-medium text-gray-700">
+                Enable free shipping threshold
+              </label>
+              <p className="text-sm text-gray-500">
+                Customers will get free shipping when their order exceeds this amount
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={freeShippingEnabled}
+              onClick={() => setFreeShippingEnabled(!freeShippingEnabled)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                freeShippingEnabled ? 'bg-green-500' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  freeShippingEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Threshold Amount */}
+          {freeShippingEnabled && (
+            <div>
+              <label htmlFor="freeShippingAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                Minimum order amount for free shipping
+              </label>
+              <div className="relative mt-1 rounded-lg shadow-sm">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <span className="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <input
+                  type="number"
+                  id="freeShippingAmount"
+                  min="0"
+                  step="0.01"
+                  value={freeShippingAmount}
+                  onChange={(e) => setFreeShippingAmount(e.target.value)}
+                  placeholder="100.00"
+                  className="w-full rounded-lg border border-gray-300 pl-8 pr-12 py-2 text-gray-900 placeholder-gray-400 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span className="text-gray-500 sm:text-sm">AUD</span>
+                </div>
+              </div>
+              <p className="mt-1.5 text-xs text-gray-500">
+                Orders of ${freeShippingAmount || '0'} or more will qualify for free shipping
+              </p>
+            </div>
+          )}
+
+          {/* Preview */}
+          {freeShippingEnabled && freeShippingAmount && parseFloat(freeShippingAmount) > 0 && (
+            <div className="rounded-lg bg-green-50 border border-green-200 p-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">
+                    Preview: How customers will see this
+                  </p>
+                  <p className="mt-1 text-sm text-green-700">
+                    Cart message: &quot;Add ${(parseFloat(freeShippingAmount) - 50).toFixed(2)} more for free shipping!&quot;
+                  </p>
+                  <p className="text-sm text-green-700">
+                    Checkout: Orders over ${parseFloat(freeShippingAmount).toFixed(2)} will show &quot;Free Shipping&quot; as an option
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Save Button */}
+          <div className="pt-2">
+            <button
+              onClick={handleSaveFreeShipping}
+              disabled={isSavingFreeShipping || (freeShippingEnabled && !freeShippingAmount)}
+              className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingFreeShipping ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Save Free Shipping Settings
             </button>
           </div>
         </div>

@@ -5,6 +5,16 @@
 import type { MediaItem } from './media'
 import type { SocialVideo } from './product'
 
+/**
+ * PieceMaterialUsage - Tracks materials used in a piece for COGS calculation
+ * Different from MaterialUsage in material.ts which is for historical tracking records
+ */
+export interface PieceMaterialUsage {
+  materialId: string     // Reference to Material.id
+  quantity: number       // Amount used
+  unit: string          // Unit of measurement (should match material's unit)
+}
+
 export interface Piece {
   id: string
   tenantId: string
@@ -36,10 +46,18 @@ export interface Piece {
   // Pricing
   price?: number
   currency: string
+
+  // COGS (Cost of Goods Sold)
+  materialsUsed?: PieceMaterialUsage[]  // Materials used in this piece
+  calculatedCOGS?: number               // Total cost in cents, calculated from materialsUsed
+  profitMargin?: number                 // Percentage profit margin ((price - COGS) / price * 100)
+
+  // DEPRECATED: Legacy COGS field, use calculatedCOGS instead
   cogs?: number // Cost of Goods Sold (calculated from material usages)
 
   // Inventory
   stock?: number // Quantity available. Undefined = unlimited stock
+  lowStockThreshold?: number // Alert when stock falls to or below this level
 
   // Variants (optional - for products with size/color/etc options)
   hasVariants?: boolean
@@ -435,7 +453,10 @@ export interface CreatePieceInput {
   shippingHeight?: number
   price?: number
   currency?: string
+  // COGS tracking
+  materialsUsed?: PieceMaterialUsage[]  // Materials used for COGS calculation
   stock?: number
+  lowStockThreshold?: number
   category?: string
   tags?: string[]
   status?: PieceStatus
@@ -471,6 +492,10 @@ export interface UpdatePieceInput extends Partial<CreatePieceInput> {
   personalization?: PersonalizationConfig
   digital?: DigitalProductConfig
   variantAttributes?: VariantAttribute[]
+  // COGS tracking (explicit for clarity)
+  materialsUsed?: PieceMaterialUsage[]
+  calculatedCOGS?: number
+  profitMargin?: number
 }
 
 export interface PieceFilters {

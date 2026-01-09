@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, Star } from 'lucide-react'
 import type { CardProduct } from '@/lib/productMapping'
 
 interface ProductCardProps {
@@ -26,6 +26,7 @@ export const ProductCard = memo(function ProductCard({ product, variant = 'defau
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -37,6 +38,14 @@ export const ProductCard = memo(function ProductCard({ product, variant = 'defau
         <h3 className={`font-medium text-gray-900 truncate group-hover:text-primary ${variant === 'compact' ? 'text-sm' : ''}`}>
           {product.name}
         </h3>
+        {/* Rating display */}
+        {product.reviewCount > 0 && (
+          <div className="mt-1 flex items-center gap-1">
+            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+            <span className="text-xs font-medium text-gray-700">{product.rating.toFixed(1)}</span>
+            <span className="text-xs text-gray-500">({product.reviewCount})</span>
+          </div>
+        )}
         {product.price !== undefined && (
           <p className={`mt-1 font-semibold text-gray-900 ${variant === 'compact' ? 'text-sm' : ''}`}>
             ${product.price.toFixed(2)}

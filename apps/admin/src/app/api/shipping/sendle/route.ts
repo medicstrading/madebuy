@@ -32,6 +32,7 @@ export async function GET() {
       connectedAt: settings.connectedAt,
       environment: settings.environment,
       pickupAddress: settings.pickupAddress || null,
+      freeShippingThreshold: tenant.freeShippingThreshold || null,
     })
   } catch (error) {
     console.error('Failed to get Sendle settings:', error)
@@ -54,10 +55,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { apiKey, senderId, environment, pickupAddress } = body
+    const { apiKey, senderId, environment, pickupAddress, freeShippingThreshold } = body
 
-    // Validate required fields
-    if (!apiKey || !senderId) {
+    // Validate required fields (only if updating Sendle settings)
+    // freeShippingThreshold can be updated independently
+    if (apiKey !== undefined && senderId !== undefined && (!apiKey || !senderId)) {
       return NextResponse.json(
         { error: 'API Key and Sender ID are required' },
         { status: 400 }
@@ -78,29 +80,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
-    // Check if API key is being updated (not masked value)
-    const currentSettings = tenant.sendleSettings
-    const isNewApiKey = !apiKey.includes('***')
+    // Build updates object
+    const updates: Record<string, unknown> = {}
 
-    // Create updated settings
-    const newSettings: SendleSettings = {
-      apiKey: isNewApiKey ? apiKey : currentSettings?.apiKey,
-      senderId,
-      isConnected: false, // Reset connection status when credentials change
-      environment,
-      pickupAddress: pickupAddress || currentSettings?.pickupAddress,
+    // Handle Sendle settings if provided
+    if (apiKey !== undefined && senderId !== undefined) {
+      const currentSettings = tenant.sendleSettings
+      const isNewApiKey = !apiKey.includes('***')
+
+      const newSettings: SendleSettings = {
+        apiKey: isNewApiKey ? apiKey : currentSettings?.apiKey,
+        senderId,
+        isConnected: false, // Reset connection status when credentials change
+        environment,
+        pickupAddress: pickupAddress || currentSettings?.pickupAddress,
+      }
+      updates.sendleSettings = newSettings
+    }
+
+    // Handle free shipping threshold (can be updated independently)
+    if (freeShippingThreshold !== undefined) {
+      // Convert to number (cents) or null to disable
+      const threshold = freeShippingThreshold === null || freeShippingThreshold === ''
+        ? undefined
+        : Math.round(Number(freeShippingThreshold))
+
+      if (threshold === undefined || (typeof threshold === 'number' && threshold >= 0)) {
+        updates.freeShippingThreshold = threshold || undefined
+      }
     }
 
     // Update tenant
-    await tenants.updateTenant(user.id, { sendleSettings: newSettings })
+    await tenants.updateTenant(user.id, updates)
+
+    // Fetch updated tenant to return current state
+    const updatedTenant = await tenants.getTenantById(user.id)
+    const finalSettings = updatedTenant?.sendleSettings || tenant.sendleSettings
 
     return NextResponse.json({
-      apiKey: maskApiKey(newSettings.apiKey || ''),
-      senderId: newSettings.senderId,
-      isConnected: newSettings.isConnected,
-      connectedAt: newSettings.connectedAt,
-      environment: newSettings.environment,
-      pickupAddress: newSettings.pickupAddress || null,
+      apiKey: maskApiKey(finalSettings?.apiKey || ''),
+      senderId: finalSettings?.senderId || '',
+      isConnected: finalSettings?.isConnected || false,
+      connectedAt: finalSettings?.connectedAt,
+      environment: finalSettings?.environment || 'sandbox',
+      pickupAddress: finalSettings?.pickupAddress || null,
+      freeShippingThreshold: updatedTenant?.freeShippingThreshold || null,
     })
   } catch (error) {
     console.error('Failed to save Sendle settings:', error)

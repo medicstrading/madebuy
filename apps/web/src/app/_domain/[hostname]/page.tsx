@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
-import { domains } from '@madebuy/db'
+import { getTenantByActiveDomain } from '@/lib/tenant'
 
 interface DomainPageProps {
   params: Promise<{
@@ -17,8 +17,8 @@ export default async function DomainPage({ params }: DomainPageProps) {
   // Decode the hostname (it may be URL-encoded)
   const decodedHostname = decodeURIComponent(hostname)
 
-  // Look up the tenant by custom domain
-  const tenant = await domains.getTenantByDomain(decodedHostname)
+  // Look up the tenant by custom domain (cached)
+  const tenant = await getTenantByActiveDomain(decodedHostname)
 
   if (!tenant) {
     // Domain not found or not verified
@@ -33,7 +33,7 @@ export default async function DomainPage({ params }: DomainPageProps) {
 export async function generateMetadata({ params }: DomainPageProps) {
   const { hostname } = await params
   const decodedHostname = decodeURIComponent(hostname)
-  const tenant = await domains.getTenantByDomain(decodedHostname)
+  const tenant = await getTenantByActiveDomain(decodedHostname)
 
   if (!tenant) {
     return { title: 'Not Found' }

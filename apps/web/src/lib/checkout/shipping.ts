@@ -149,6 +149,7 @@ export async function getShippingQuotes(
           pieceId: item.product.id,
           quantity: item.quantity,
           weightGrams: (item.product as any).weightGrams,
+          price: item.product.price ? Math.round(item.product.price * 100) : undefined, // Price in cents
         })),
         destination: {
           postcode: destination.postcode,

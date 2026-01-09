@@ -39,7 +39,11 @@ export default async function CartPage({ params }: { params: { tenant: string } 
       {/* Cart Content */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-2xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
-        <CartContent tenant={params.tenant} tenantId={tenant.id} />
+        <CartContent
+          tenant={params.tenant}
+          tenantId={tenant.id}
+          freeShippingThreshold={tenant.freeShippingThreshold}
+        />
       </main>
     </div>
   )

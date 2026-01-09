@@ -62,13 +62,13 @@ const nextConfig = {
               isProd
                 ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com"
                 : "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com",
-              "style-src 'self' 'unsafe-inline'",
-              // Tightened img-src: removed data: for blob injection protection
-              "img-src 'self' blob: https://*.r2.dev https://*.stripe.com https://images.unsplash.com",
-              "font-src 'self'",
-              "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://*.r2.cloudflarestorage.com https://*.cloudflare.com https://*.stripe.com https://images.unsplash.com",
+              "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com https://*.stripe.com https://getlate.dev wss://*",
               "media-src 'self' blob: https://*.r2.dev",
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
+              "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self' https://checkout.stripe.com",
               "frame-ancestors 'self'",

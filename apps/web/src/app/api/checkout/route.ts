@@ -63,6 +63,13 @@ export async function POST(request: NextRequest) {
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
     const reservedItems: { pieceId: string; variantId?: string; quantity: number }[] = []
 
+    // First pass: validate all pieces and reserve stock
+    const validatedItems: Array<{
+      item: typeof items[0]
+      piece: Awaited<ReturnType<typeof pieces.getPiece>>
+      selectedVariant?: ProductVariant
+    }> = []
+
     for (const item of items) {
       const piece = await pieces.getPiece(tenantId, item.pieceId)
 
@@ -130,18 +137,33 @@ export async function POST(request: NextRequest) {
       }
 
       reservedItems.push({ pieceId: item.pieceId, variantId: item.variantId, quantity: item.quantity })
+      validatedItems.push({ item, piece, selectedVariant })
+    }
 
-      // Fetch primary media if available
+    // Batch fetch all media in one query (optimization: avoids N+1 queries)
+    const mediaIds = validatedItems
+      .map(({ piece }) => piece?.primaryMediaId || (piece?.mediaIds?.[0]))
+      .filter((id): id is string => !!id)
+
+    const mediaMap = new Map<string, Awaited<ReturnType<typeof media.getMedia>>>()
+    if (mediaIds.length > 0) {
+      const mediaItems = await media.getMediaByIds(tenantId, mediaIds)
+      for (const m of mediaItems) {
+        if (m) mediaMap.set(m.id, m)
+      }
+    }
+
+    // Second pass: build line items with pre-fetched media
+    for (const { item, piece, selectedVariant } of validatedItems) {
+      if (!piece) continue // Type guard
+
+      // Get image URL from pre-fetched media
       let imageUrl: string | undefined
-      if (piece.primaryMediaId) {
-        const primaryMedia = await media.getMedia(tenantId, piece.primaryMediaId)
-        if (primaryMedia) {
-          imageUrl = primaryMedia.variants.large?.url || primaryMedia.variants.original.url
-        }
-      } else if (piece.mediaIds.length > 0) {
-        const firstMedia = await media.getMedia(tenantId, piece.mediaIds[0])
-        if (firstMedia) {
-          imageUrl = firstMedia.variants.large?.url || firstMedia.variants.original.url
+      const mediaId = piece.primaryMediaId || piece.mediaIds?.[0]
+      if (mediaId) {
+        const mediaItem = mediaMap.get(mediaId)
+        if (mediaItem) {
+          imageUrl = mediaItem.variants.large?.url || mediaItem.variants.original.url
         }
       }
 
@@ -178,25 +200,27 @@ export async function POST(request: NextRequest) {
       sum + (item.price * item.quantity), 0
     )
 
-    // Fetch tenant's data including shipping and Stripe Connect configuration
+    // Verify tenant exists and is valid before processing
     const tenant = await tenants.getTenantById(tenantId)
     if (!tenant) {
       await stockReservations.cancelReservation(tempSessionId)
       return NextResponse.json(
-        { error: 'Store not found' },
-        { status: 404 }
+        { error: 'Invalid tenant' },
+        { status: 400 }
       )
     }
 
-    // Verify seller has Stripe Connect set up and is active
-    const connectAccountId = tenant.paymentConfig?.stripe?.connectAccountId
-    const connectStatus = tenant.paymentConfig?.stripe?.status
+    // Verify seller has Stripe Connect set up and can accept payments
+    const stripeConfig = tenant.paymentConfig?.stripe
+    const connectAccountId = stripeConfig?.connectAccountId
+    const connectStatus = stripeConfig?.status
+    const chargesEnabled = stripeConfig?.chargesEnabled
 
-    if (!connectAccountId || connectStatus !== 'active') {
+    if (!connectAccountId || connectStatus !== 'active' || !chargesEnabled) {
       await stockReservations.cancelReservation(tempSessionId)
       return NextResponse.json(
-        { error: 'This store is not currently accepting payments. Please contact the seller.' },
-        { status: 503 }
+        { error: 'Store not ready for payments' },
+        { status: 400 }
       )
     }
 

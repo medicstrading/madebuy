@@ -8,7 +8,10 @@
     "start": "next start -p 3301",
     "lint": "next lint",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@madebuy/db": "workspace:*",
@@ -24,6 +27,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

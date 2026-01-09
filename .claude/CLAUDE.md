@@ -82,3 +82,32 @@ Before deploying the subscription billing system live:
 4. **Set CRON_SECRET environment variable**
    - Generate: `openssl rand -hex 32`
    - Add to env: `CRON_SECRET=<generated_value>`
+
+---
+
+## NEXUS Model Routing (REQUIRED)
+
+**When spawning agents via the Task tool, you MUST use NEXUS model routing.**
+
+See the global CLAUDE.md (`~/.claude/CLAUDE.md`) for the full orchestration workflow.
+
+### Quick Reference
+```bash
+# Classify task before spawning agent
+python3 ~/.claude/nexus/classify.py "task description"
+```
+
+### Always Announce Routing
+Before spawning any agent, output:
+```
+[NEXUS] → <tier> (<reason>, <confidence>% confidence)
+```
+
+### Tier Selection
+| Tier | Use For |
+|------|---------|
+| Haiku | Formatting, docs, simple fixes (max 3 files) |
+| Sonnet | Implementation, debugging, refactoring |
+| Opus | Security, architecture, complex design |
+
+Security/auth tasks → Always opus or sonnet minimum

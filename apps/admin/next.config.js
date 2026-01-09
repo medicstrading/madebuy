@@ -23,6 +23,7 @@ const nextConfig = {
   // Security Headers
   async headers() {
     const isProd = process.env.NODE_ENV === 'production'
+    const isDev = process.env.NODE_ENV === 'development'
     return [
       {
         source: '/:path*',
@@ -60,13 +61,15 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https: https://*.stripe.com",
-              "font-src 'self' data:",
-              "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com https://api.late.so",
+              // Only allow unsafe-eval in development (needed for hot reload)
+              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://js.stripe.com https://challenges.cloudflare.com`,
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://*.r2.cloudflarestorage.com https://*.cloudflare.com https://*.stripe.com",
+              "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com https://*.stripe.com https://getlate.dev wss://*",
               "media-src 'self' blob: https:",
-              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
+              "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'self'",

@@ -207,7 +207,9 @@ export async function getDisputeStats(tenantId: string, defaultCurrency: string 
   const currencyResult = result[0]?.currencyInfo?.[0]
   const currency = currencyResult?._id || defaultCurrency
 
-  const statusMap = new Map(statusResults.map((r: any) => [r._id, { total: r.total, count: r.count }]))
+  const statusMap = new Map<string, { total: number; count: number }>(
+    statusResults.map((r: any) => [r._id, { total: r.total, count: r.count }])
+  )
 
   const needsResponse = statusMap.get('needs_response') || { total: 0, count: 0 }
   const underReview = statusMap.get('under_review') || { total: 0, count: 0 }

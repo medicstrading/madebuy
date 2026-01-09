@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { orders, pieces, tenants, stockReservations, transactions } from '@madebuy/db'
 import type { CreateOrderInput, Plan } from '@madebuy/shared'
 import { calculateStripeFee, getFeaturesForPlan } from '@madebuy/shared'
-import { sendOrderConfirmation } from '@/lib/email'
+import { sendOrderConfirmation, sendPaymentFailedEmail, sendLowStockAlertEmail } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -206,8 +206,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   console.log(`Transaction recorded for order ${order.id}`)
 
   // Send confirmation email to customer
+  const tenant = await tenants.getTenantById(tenantId)
   try {
-    const tenant = await tenants.getTenantById(tenantId)
     if (tenant && order.customerEmail) {
       await sendOrderConfirmation(order, tenant)
       console.log(`Confirmation email sent to ${order.customerEmail}`)
@@ -215,6 +215,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   } catch (emailError) {
     console.error('Failed to send confirmation email:', emailError)
     // Don't fail the webhook if email fails
+  }
+
+  // Check for low stock and send alert if needed
+  try {
+    const lowStockPieces = await pieces.getLowStockPieces(tenantId)
+    if (lowStockPieces.length > 0 && tenant) {
+      const adminBaseUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.madebuy.com.au'
+      await sendLowStockAlertEmail({
+        tenant,
+        pieces: lowStockPieces,
+        dashboardUrl: `${adminBaseUrl}/dashboard/inventory/low-stock`,
+      })
+      console.log(`Low stock alert sent: ${lowStockPieces.length} items`)
+    }
+  } catch (stockAlertError) {
+    console.error('Failed to send low stock alert:', stockAlertError)
+    // Don't fail the webhook if alert fails
   }
 }
 
@@ -328,7 +345,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 /**
  * Handle invoice payment failed
- * Notifies tenant about failed payment
+ * Notifies tenant about failed payment via email
+ * Stripe automatically retries failed payments (typically 4 attempts over ~3 weeks)
  */
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   const customerId = typeof invoice.customer === 'string'
@@ -347,8 +365,31 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     return
   }
 
-  console.error(`Invoice payment failed for tenant ${tenant.id}: ${invoice.id}`)
+  const attemptCount = invoice.attempt_count || 1
 
-  // TODO: Send email notification about failed payment
-  // TODO: Consider grace period before downgrading
+  // Calculate next retry date based on attempt count
+  // Stripe's Smart Retries typically retry at ~3, 5, and 7 days after each attempt
+  // We estimate conservatively for the email
+  let nextRetryDate: Date | undefined
+  if (attemptCount < 4) {
+    const daysUntilRetry = attemptCount <= 1 ? 3 : attemptCount === 2 ? 5 : 7
+    nextRetryDate = new Date()
+    nextRetryDate.setDate(nextRetryDate.getDate() + daysUntilRetry)
+  }
+
+  console.error(`Invoice payment failed for tenant ${tenant.id}: ${invoice.id} (attempt ${attemptCount}/4)`)
+
+  // Send email notification about failed payment
+  try {
+    await sendPaymentFailedEmail({
+      tenant,
+      invoice,
+      attemptCount,
+      nextRetryDate,
+    })
+    console.log(`Payment failed email sent to tenant ${tenant.id}`)
+  } catch (emailError) {
+    console.error('Failed to send payment failed email:', emailError)
+    // Don't fail the webhook if email fails
+  }
 }

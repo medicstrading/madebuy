@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { pieces } from '@madebuy/db'
+import { pieces, materials } from '@madebuy/db'
 import { checkCanAddPiece, getSubscriptionSummary } from '@/lib/subscription-check'
 import { CreatePieceInput, isMadeBuyError, toErrorResponse } from '@madebuy/shared'
 
@@ -71,7 +71,14 @@ export async function POST(request: NextRequest) {
 
     const data: CreatePieceInput = await request.json()
 
-    const piece = await pieces.createPiece(tenant.id, data)
+    // If piece has materialsUsed, fetch the materials catalog for COGS calculation
+    let materialsCatalog = undefined
+    if (data.materialsUsed && data.materialsUsed.length > 0) {
+      const { materials: allMaterials } = await materials.listMaterials(tenant.id, {}, { limit: 500 })
+      materialsCatalog = allMaterials
+    }
+
+    const piece = await pieces.createPiece(tenant.id, data, materialsCatalog)
 
     return NextResponse.json({ piece }, { status: 201 })
   } catch (error) {

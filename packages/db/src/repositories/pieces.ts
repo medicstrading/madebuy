@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Piece, CreatePieceInput, UpdatePieceInput, PieceFilters, ProductVariant } from '@madebuy/shared'
+import type { Piece, CreatePieceInput, UpdatePieceInput, PieceFilters, ProductVariant, PieceMaterialUsage, Material } from '@madebuy/shared'
+import { calculateCOGS, calculateProfitMargin } from '@madebuy/shared'
 
 // Maximum items to return in a single query (prevents memory issues)
 const MAX_QUERY_LIMIT = 500
@@ -12,7 +13,11 @@ function generateSlug(name: string): string {
     .replace(/\s+/g, '-')
 }
 
-export async function createPiece(tenantId: string, data: CreatePieceInput): Promise<Piece> {
+export async function createPiece(
+  tenantId: string,
+  data: CreatePieceInput,
+  materialsCatalog?: Material[]
+): Promise<Piece> {
   const db = await getDatabase()
 
   // Generate IDs for variants if provided
@@ -20,6 +25,15 @@ export async function createPiece(tenantId: string, data: CreatePieceInput): Pro
     ...v,
     id: nanoid(),
   }))
+
+  // Calculate COGS if materials are provided
+  let calculatedCOGS: number | undefined
+  let profitMargin: number | undefined
+
+  if (data.materialsUsed && data.materialsUsed.length > 0 && materialsCatalog) {
+    calculatedCOGS = calculateCOGS(data.materialsUsed, materialsCatalog)
+    profitMargin = calculateProfitMargin(data.price, calculatedCOGS) ?? undefined
+  }
 
   const piece: Piece = {
     id: nanoid(),
@@ -43,8 +57,13 @@ export async function createPiece(tenantId: string, data: CreatePieceInput): Pro
     shippingHeight: data.shippingHeight,
     price: data.price,
     currency: data.currency || 'AUD',
-    cogs: undefined,
+    // COGS tracking
+    materialsUsed: data.materialsUsed,
+    calculatedCOGS,
+    profitMargin,
+    cogs: calculatedCOGS, // Keep legacy field in sync
     stock: data.stock,
+    lowStockThreshold: data.lowStockThreshold,
     // Variants
     hasVariants: data.hasVariants || false,
     variantOptions: data.variantOptions,
@@ -359,4 +378,375 @@ export async function getStockAlerts(
   const results = await db.collection('pieces').aggregate(pipeline).toArray()
 
   return results as unknown as StockAlert[]
+}
+
+// ============================================================================
+// COGS (Cost of Goods Sold) Functions
+// ============================================================================
+
+/**
+ * Update piece's materialsUsed and recalculate COGS
+ */
+export async function updatePieceMaterialsUsed(
+  tenantId: string,
+  pieceId: string,
+  materialsUsed: PieceMaterialUsage[],
+  materialsCatalog: Material[]
+): Promise<void> {
+  const db = await getDatabase()
+
+  // Get current piece for price
+  const piece = await getPiece(tenantId, pieceId)
+  if (!piece) {
+    throw new Error(`Piece ${pieceId} not found`)
+  }
+
+  // Calculate new COGS
+  const calculatedCOGS = calculateCOGS(materialsUsed, materialsCatalog)
+  const profitMargin = calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
+
+  await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId },
+    {
+      $set: {
+        materialsUsed,
+        calculatedCOGS,
+        profitMargin,
+        cogs: calculatedCOGS, // Keep legacy field in sync
+        updatedAt: new Date(),
+      }
+    }
+  )
+}
+
+/**
+ * Recalculate COGS for a single piece using current material costs
+ * Useful when material costs are updated
+ */
+export async function recalculatePieceCOGS(
+  tenantId: string,
+  pieceId: string,
+  materialsCatalog: Material[]
+): Promise<{ calculatedCOGS: number; profitMargin: number | undefined }> {
+  const db = await getDatabase()
+
+  const piece = await getPiece(tenantId, pieceId)
+  if (!piece) {
+    throw new Error(`Piece ${pieceId} not found`)
+  }
+
+  if (!piece.materialsUsed || piece.materialsUsed.length === 0) {
+    return { calculatedCOGS: 0, profitMargin: undefined }
+  }
+
+  const calculatedCOGS = calculateCOGS(piece.materialsUsed, materialsCatalog)
+  const profitMargin = calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
+
+  await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId },
+    {
+      $set: {
+        calculatedCOGS,
+        profitMargin,
+        cogs: calculatedCOGS, // Keep legacy field in sync
+        updatedAt: new Date(),
+      }
+    }
+  )
+
+  return { calculatedCOGS, profitMargin }
+}
+
+/**
+ * Recalculate COGS for all pieces that use a specific material
+ * Call this when a material's costPerUnit is updated
+ */
+export async function recalculateCOGSForMaterial(
+  tenantId: string,
+  materialId: string,
+  materialsCatalog: Material[]
+): Promise<number> {
+  const db = await getDatabase()
+
+  // Find all pieces that use this material
+  const piecesUsingMaterial = await db.collection('pieces')
+    .find({
+      tenantId,
+      'materialsUsed.materialId': materialId
+    })
+    .toArray() as unknown as Piece[]
+
+  let updatedCount = 0
+
+  for (const piece of piecesUsingMaterial) {
+    if (!piece.materialsUsed) continue
+
+    const calculatedCOGS = calculateCOGS(piece.materialsUsed, materialsCatalog)
+    const profitMargin = calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
+
+    await db.collection('pieces').updateOne(
+      { tenantId, id: piece.id },
+      {
+        $set: {
+          calculatedCOGS,
+          profitMargin,
+          cogs: calculatedCOGS,
+          updatedAt: new Date(),
+        }
+      }
+    )
+    updatedCount++
+  }
+
+  return updatedCount
+}
+
+/**
+ * Get pieces with low profit margin
+ * Useful for dashboard alerts
+ */
+export async function getLowMarginPieces(
+  tenantId: string,
+  marginThreshold: number = 30
+): Promise<Piece[]> {
+  const db = await getDatabase()
+
+  const pieces = await db.collection('pieces')
+    .find({
+      tenantId,
+      status: 'available',
+      profitMargin: { $exists: true, $lt: marginThreshold, $ne: null }
+    })
+    .sort({ profitMargin: 1 })
+    .toArray() as unknown as Piece[]
+
+  return pieces
+}
+
+/**
+ * Get pieces without COGS data (no materials tracked)
+ */
+export async function getPiecesWithoutCOGS(tenantId: string): Promise<Piece[]> {
+  const db = await getDatabase()
+
+  const pieces = await db.collection('pieces')
+    .find({
+      tenantId,
+      $or: [
+        { materialsUsed: { $exists: false } },
+        { materialsUsed: { $size: 0 } },
+        { materialsUsed: null }
+      ]
+    })
+    .toArray() as unknown as Piece[]
+
+  return pieces
+}
+
+// ============================================================================
+// LOW STOCK ALERTS
+// ============================================================================
+
+/**
+ * Low stock piece with threshold info for alerts
+ */
+export interface LowStockPiece {
+  id: string
+  name: string
+  slug: string
+  stock: number
+  lowStockThreshold: number
+  status: string
+  category: string
+  price?: number
+  currency: string
+}
+
+/**
+ * Get pieces that are at or below their low stock threshold
+ * Only returns pieces that have an explicitly set threshold
+ * @param tenantId - The tenant ID
+ * @returns Array of pieces with low stock
+ */
+export async function getLowStockPieces(tenantId: string): Promise<LowStockPiece[]> {
+  const db = await getDatabase()
+
+  // Use aggregation to compare stock against each piece's threshold
+  const pipeline = [
+    // Match pieces for this tenant that have a threshold set and have finite stock
+    {
+      $match: {
+        tenantId,
+        lowStockThreshold: { $exists: true, $ne: null, $gt: 0 },
+        stock: { $exists: true, $ne: null }
+      }
+    },
+    // Add a field to check if stock is at or below threshold
+    {
+      $addFields: {
+        isLowStock: { $lte: ['$stock', '$lowStockThreshold'] }
+      }
+    },
+    // Only include pieces that are actually low on stock
+    {
+      $match: {
+        isLowStock: true
+      }
+    },
+    // Project only the fields we need
+    {
+      $project: {
+        id: 1,
+        name: 1,
+        slug: 1,
+        stock: 1,
+        lowStockThreshold: 1,
+        status: 1,
+        category: 1,
+        price: 1,
+        currency: 1
+      }
+    },
+    // Sort by stock level ascending (most urgent first)
+    {
+      $sort: { stock: 1 }
+    }
+  ]
+
+  const results = await db.collection('pieces').aggregate(pipeline).toArray()
+
+  return results as unknown as LowStockPiece[]
+}
+
+/**
+ * Get pieces that need restocking, optionally filtered by status
+ * Includes pieces below threshold or out of stock
+ */
+export async function getPiecesNeedingRestock(
+  tenantId: string,
+  options?: { status?: string; includeOutOfStock?: boolean }
+): Promise<LowStockPiece[]> {
+  const db = await getDatabase()
+
+  const statusFilter = options?.status ? { status: options.status } : {}
+  const includeOutOfStock = options?.includeOutOfStock ?? true
+
+  const conditions: any[] = [
+    // Pieces with threshold that are at or below it
+    {
+      lowStockThreshold: { $exists: true, $ne: null, $gt: 0 },
+      stock: { $exists: true, $ne: null },
+      $expr: { $lte: ['$stock', '$lowStockThreshold'] }
+    }
+  ]
+
+  // Optionally include completely out of stock items (stock = 0)
+  if (includeOutOfStock) {
+    conditions.push({
+      stock: 0
+    })
+  }
+
+  const pipeline = [
+    {
+      $match: {
+        tenantId,
+        ...statusFilter,
+        $or: conditions
+      }
+    },
+    {
+      $project: {
+        id: 1,
+        name: 1,
+        slug: 1,
+        stock: 1,
+        lowStockThreshold: 1,
+        status: 1,
+        category: 1,
+        price: 1,
+        currency: 1
+      }
+    },
+    { $sort: { stock: 1 } }
+  ]
+
+  const results = await db.collection('pieces').aggregate(pipeline).toArray()
+
+  return results as unknown as LowStockPiece[]
+}
+
+/**
+ * Check if a specific piece is below its low stock threshold
+ * Returns null if no threshold is set
+ */
+export async function checkLowStock(
+  tenantId: string,
+  pieceId: string
+): Promise<{ isLowStock: boolean; stock: number; threshold: number } | null> {
+  const piece = await getPiece(tenantId, pieceId)
+
+  if (!piece) return null
+
+  // If no threshold set, return null (not tracking)
+  if (piece.lowStockThreshold === undefined || piece.lowStockThreshold === null) {
+    return null
+  }
+
+  // If stock is undefined (unlimited), it's not low
+  if (piece.stock === undefined || piece.stock === null) {
+    return { isLowStock: false, stock: -1, threshold: piece.lowStockThreshold }
+  }
+
+  return {
+    isLowStock: piece.stock <= piece.lowStockThreshold,
+    stock: piece.stock,
+    threshold: piece.lowStockThreshold
+  }
+}
+
+/**
+ * Update low stock threshold for a piece
+ */
+export async function updateLowStockThreshold(
+  tenantId: string,
+  pieceId: string,
+  threshold: number | null
+): Promise<void> {
+  const db = await getDatabase()
+
+  await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId },
+    {
+      $set: {
+        lowStockThreshold: threshold,
+        updatedAt: new Date()
+      }
+    }
+  )
+}
+
+/**
+ * Bulk update low stock thresholds for multiple pieces
+ */
+export async function bulkUpdateLowStockThresholds(
+  tenantId: string,
+  updates: Array<{ pieceId: string; threshold: number | null }>
+): Promise<number> {
+  const db = await getDatabase()
+
+  const operations = updates.map(({ pieceId, threshold }) => ({
+    updateOne: {
+      filter: { tenantId, id: pieceId },
+      update: {
+        $set: {
+          lowStockThreshold: threshold,
+          updatedAt: new Date()
+        }
+      }
+    }
+  }))
+
+  const result = await db.collection('pieces').bulkWrite(operations)
+  return result.modifiedCount
 }

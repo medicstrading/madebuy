@@ -70,6 +70,7 @@ export interface Tenant {
   // Shipping configuration
   shippingMethods?: TenantShippingMethod[]
   sendleSettings?: SendleSettings
+  freeShippingThreshold?: number // Amount in cents required for free shipping (null = disabled)
 
   // Payment provider configuration (Stripe Connect, PayPal)
   paymentConfig?: TenantPaymentConfig

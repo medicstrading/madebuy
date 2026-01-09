@@ -1,23 +1,11 @@
-import { cache } from 'react'
 import { NextResponse } from 'next/server'
-import { tenants } from '@madebuy/db'
-import type { Tenant } from '@madebuy/shared'
 
-/**
- * Request-scoped tenant cache using React cache()
- * Prevents multiple database lookups for the same tenant within a single request
- */
-export const getCachedTenantById = cache(async (tenantId: string): Promise<Tenant | null> => {
-  return tenants.getTenantById(tenantId)
-})
-
-export const getCachedTenantBySlug = cache(async (slug: string): Promise<Tenant | null> => {
-  return tenants.getTenantBySlug(slug)
-})
-
-export const getCachedTenantByDomain = cache(async (domain: string): Promise<Tenant | null> => {
-  return tenants.getTenantByDomain(domain)
-})
+// Re-export cached tenant functions from tenant.ts for backwards compatibility
+export {
+  getTenantById as getCachedTenantById,
+  getTenantBySlug as getCachedTenantBySlug,
+  getTenantByDomain as getCachedTenantByDomain,
+} from './tenant'
 
 /**
  * Cache-Control header presets for different data types

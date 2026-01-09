@@ -8,7 +8,8 @@ export default async function NewPiecePage() {
   const tenant = await requireTenant()
 
   // Get all materials for this tenant to populate the material usage selector
-  const allMaterials = await materials.listMaterials(tenant.id)
+  const result = await materials.listMaterials(tenant.id)
+  const allMaterials = result.materials
 
   return (
     <div>

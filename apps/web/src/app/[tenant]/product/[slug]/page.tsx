@@ -1,6 +1,6 @@
 import { requireTenant } from '@/lib/tenant'
-import { pieces } from '@madebuy/db'
-import { populatePieceWithMedia } from '@/lib/pieces'
+import { reviews } from '@madebuy/db'
+import { getPieceBySlug, populatePieceWithMedia } from '@/lib/pieces'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
 import { AddToCartButton } from '@/components/cart/AddToCartButton'
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker'
+import { ReviewStars, ReviewsList } from '@/components/reviews'
 
 export async function generateMetadata({
   params
@@ -15,7 +16,7 @@ export async function generateMetadata({
   params: { tenant: string; slug: string }
 }) {
   const tenant = await requireTenant(params.tenant)
-  const piece = await pieces.getPieceBySlug(tenant.id, params.slug)
+  const piece = await getPieceBySlug(tenant.id, params.slug)
 
   if (!piece) {
     return {
@@ -35,14 +36,18 @@ export default async function PieceDetailPage({
   params: { tenant: string; slug: string }
 }) {
   const tenant = await requireTenant(params.tenant)
-  const rawPiece = await pieces.getPieceBySlug(tenant.id, params.slug)
+  const rawPiece = await getPieceBySlug(tenant.id, params.slug)
 
   if (!rawPiece || rawPiece.status !== 'available') {
     notFound()
   }
 
-  // Populate piece with media
-  const piece = await populatePieceWithMedia(rawPiece)
+  // Populate piece with media and fetch review stats
+  const [piece, reviewStats, initialReviews] = await Promise.all([
+    populatePieceWithMedia(rawPiece),
+    reviews.getProductReviewStats(tenant.id, rawPiece.id),
+    reviews.listApprovedReviews(tenant.id, rawPiece.id, { limit: 10 }),
+  ])
 
   const inStock = piece.stock === undefined || piece.stock > 0
 
@@ -115,6 +120,18 @@ export default async function PieceDetailPage({
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{piece.name}</h1>
 
+            {/* Rating Display */}
+            {reviewStats.totalReviews > 0 && (
+              <div className="mt-2">
+                <ReviewStars
+                  rating={reviewStats.averageRating}
+                  size="md"
+                  showValue
+                  reviewCount={reviewStats.totalReviews}
+                />
+              </div>
+            )}
+
             <div className="mt-4">
               <span className="text-3xl font-bold text-gray-900">
                 {formatCurrency(piece.price, piece.currency)}
@@ -177,10 +194,21 @@ export default async function PieceDetailPage({
 
             {/* Add to Cart */}
             <div className="mt-8">
-              <AddToCartButton product={piece} tenantId={params.tenant} disabled={!inStock} />
+              <AddToCartButton product={piece} tenantId={tenant.id} tenant={params.tenant} disabled={!inStock} />
             </div>
           </div>
         </div>
+
+        {/* Customer Reviews Section */}
+        <section className="mt-16 border-t border-gray-200 pt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Customer Reviews</h2>
+          <ReviewsList
+            tenantId={tenant.id}
+            pieceId={piece.id}
+            initialReviews={initialReviews}
+            initialStats={reviewStats}
+          />
+        </section>
       </main>
     </div>
   )

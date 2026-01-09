@@ -233,78 +233,84 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
       </div>
 
       {/* Mobile menu drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/50"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+      <div
+        className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
+          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className={`fixed inset-0 bg-black transition-opacity duration-300 ${
+            mobileMenuOpen ? 'opacity-50' : 'opacity-0'
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
 
-          {/* Drawer */}
-          <div
-            className="fixed top-0 left-0 bottom-0 w-[280px] bg-white shadow-xl"
-            style={{ backgroundColor: headerConfig?.backgroundColor || 'white' }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <span className="text-xl font-serif text-gray-900">{businessName}</span>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1 text-gray-500"
-                aria-label="Close menu"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex flex-col gap-1 p-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.url}
-                  href={link.url}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors px-4 py-3 rounded-md"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Social links in mobile drawer */}
-            {(socialLinks.instagram || socialLinks.facebook) && (
-              <div className="mt-auto p-4 border-t border-gray-100">
-                <p className="text-gray-500 text-sm mb-3">Follow us</p>
-                <div className="flex gap-3">
-                  {socialLinks.instagram && (
-                    <a
-                      href={socialLinks.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Visit our Instagram page"
-                      className="text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      <Instagram className="w-6 h-6" />
-                    </a>
-                  )}
-                  {socialLinks.facebook && (
-                    <a
-                      href={socialLinks.facebook}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Visit our Facebook page"
-                      className="text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      <Facebook className="w-6 h-6" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+        {/* Drawer */}
+        <div
+          className={`fixed top-0 left-0 bottom-0 w-[280px] bg-white shadow-xl transform transition-transform duration-300 ease-out ${
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          style={{ backgroundColor: headerConfig?.backgroundColor || 'white' }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <span className="text-xl font-serif text-gray-900">{businessName}</span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-1 text-gray-500"
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
+
+          {/* Navigation */}
+          <nav className="flex flex-col gap-1 p-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.url}
+                href={link.url}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors px-4 py-3 rounded-md"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Social links in mobile drawer */}
+          {(socialLinks.instagram || socialLinks.facebook) && (
+            <div className="mt-auto p-4 border-t border-gray-100">
+              <p className="text-gray-500 text-sm mb-3">Follow us</p>
+              <div className="flex gap-3">
+                {socialLinks.instagram && (
+                  <a
+                    href={socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Visit our Instagram page"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <Instagram className="w-6 h-6" />
+                  </a>
+                )}
+                {socialLinks.facebook && (
+                  <a
+                    href={socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Visit our Facebook page"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <Facebook className="w-6 h-6" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </header>
   )
 }

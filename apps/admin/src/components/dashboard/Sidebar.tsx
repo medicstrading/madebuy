@@ -24,6 +24,7 @@ import {
   BookOpen,
   Star,
   BarChart3,
+  Gift,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -56,6 +57,7 @@ const navigationGroups = [
     label: 'Products',
     items: [
       { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
+      { name: 'Bundles', href: '/dashboard/bundles', icon: Gift },
       { name: 'Media', href: '/dashboard/media', icon: Image },
       { name: 'Materials', href: '/dashboard/materials', icon: Layers },
     ]

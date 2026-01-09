@@ -11,9 +11,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const allMaterials = await materials.listMaterials(tenant.id)
+    const result = await materials.listMaterials(tenant.id)
 
-    return NextResponse.json({ materials: allMaterials })
+    return NextResponse.json({
+      materials: result.materials,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+    })
   } catch (error) {
     console.error('Error fetching materials:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

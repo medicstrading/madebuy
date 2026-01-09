@@ -7,7 +7,8 @@ import { DeleteMaterialButton } from '@/components/materials/DeleteMaterialButto
 
 export default async function MaterialsPage() {
   const tenant = await requireTenant()
-  const allMaterials = await materials.listMaterials(tenant.id)
+  const result = await materials.listMaterials(tenant.id)
+  const allMaterials = result.materials
   const lowStockMaterials = allMaterials.filter(m => m.isLowStock)
 
   return (

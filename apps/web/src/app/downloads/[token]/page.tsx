@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { downloads, pieces, tenants } from '@madebuy/db'
+import { downloads, pieces } from '@madebuy/db'
+import { getTenantById } from '@/lib/tenant'
 import { DownloadPageClient } from './DownloadPageClient'
 
 interface DownloadPageProps {
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: DownloadPageProps): Promise<M
 
   // Get piece for title
   const piece = await pieces.getPiece(record.tenantId, record.pieceId)
-  const tenant = await tenants.getTenantById(record.tenantId)
+  const tenant = await getTenantById(record.tenantId)
 
   return {
     title: piece ? `Download: ${piece.name}` : 'Your Download',
@@ -48,7 +49,7 @@ export default async function DownloadPage({ params }: DownloadPageProps) {
   }
 
   // Get tenant info
-  const tenant = await tenants.getTenantById(record.tenantId)
+  const tenant = await getTenantById(record.tenantId)
 
   // Check status
   const isExpired = record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)

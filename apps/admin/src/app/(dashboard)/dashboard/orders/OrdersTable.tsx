@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, X, ChevronRight, ChevronDown, Check, Truck, Package, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import type { Order } from '@madebuy/shared'
 
 interface OrdersTableProps {
@@ -19,8 +20,12 @@ const BULK_ACTIONS: { value: OrderStatus; label: string; icon: typeof Truck }[] 
   { value: 'cancelled', label: 'Mark as Cancelled', icon: XCircle },
 ]
 
+// Virtualization threshold - only virtualize when we have many items
+const VIRTUALIZATION_THRESHOLD = 50
+const ROW_HEIGHT = 72
+
 /**
- * OrdersTable - Client component with search and bulk actions
+ * OrdersTable - Client component with search, bulk actions, and virtualization
  *
  * Key behaviors:
  * - Empty search shows ALL results
@@ -28,9 +33,11 @@ const BULK_ACTIONS: { value: OrderStatus; label: string; icon: typeof Truck }[] 
  * - Search filters by order number, customer name, email
  * - Bulk selection with checkboxes
  * - Bulk status update via dropdown
+ * - Virtualized rendering for 50+ orders
  */
 export function OrdersTable({ orders }: OrdersTableProps) {
   const router = useRouter()
+  const parentRef = useRef<HTMLDivElement>(null)
   // Search starts empty, showing all results
   const [search, setSearch] = useState('')
   // Selection state
@@ -58,6 +65,16 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       order.customerEmail.toLowerCase().includes(query)
     )
   }, [orders, search])
+
+  // Virtualizer for table rows
+  const virtualizer = useVirtualizer({
+    count: filteredOrders.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+  })
+
+  const shouldVirtualize = filteredOrders.length >= VIRTUALIZATION_THRESHOLD
 
   const handleClearSearch = () => {
     setSearch('')  // Clear search, shows all results
@@ -216,103 +233,95 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
       {/* Orders Table */}
       <div className="rounded-lg bg-white shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="w-12 px-3 py-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={input => {
-                    if (input) input.indeterminate = someSelected
-                  }}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  aria-label="Select all orders"
+        {shouldVirtualize ? (
+          // Virtualized table for large lists
+          <div
+            ref={parentRef}
+            className="overflow-auto"
+            style={{ maxHeight: '70vh' }}
+          >
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <TableHeader
+                  allSelected={allSelected}
+                  someSelected={someSelected}
+                  onSelectAll={handleSelectAll}
                 />
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                Order
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                Customer
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                Total
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                Payment
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                Date
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                <span className="sr-only">View</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {filteredOrders.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                  No orders match your search
-                </td>
-              </tr>
-            ) : (
-              filteredOrders.map((order) => (
-                <tr
-                  key={order.id}
-                  className={`hover:bg-gray-50 group ${selectedIds.has(order.id) ? 'bg-blue-50' : ''}`}
-                >
-                  <td className="w-12 px-3 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(order.id)}
-                      onChange={(e) => handleSelectOrder(order.id, e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      aria-label={`Select order ${order.orderNumber}`}
-                    />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <Link href={`/dashboard/orders/${order.id}`} className="block">
-                      <div className="text-sm font-medium text-blue-600 group-hover:text-blue-800">
-                        {order.orderNumber}
-                      </div>
-                      <div className="text-xs text-gray-500">{order.items.length} items</div>
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">{order.customerName}</div>
-                    <div className="text-xs text-gray-500">{order.customerEmail}</div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                    {formatCurrency(order.total, order.currency)}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <OrderStatusBadge status={order.status} />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <PaymentStatusBadge status={order.paymentStatus} />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                    {formatDate(order.createdAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-right">
-                    <Link
-                      href={`/dashboard/orders/${order.id}`}
-                      className="text-gray-400 group-hover:text-gray-600"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </Link>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                      No orders match your search
+                    </td>
+                  </tr>
+                ) : (
+                  <>
+                    {/* Top spacer */}
+                    {virtualizer.getVirtualItems().length > 0 && virtualizer.getVirtualItems()[0].start > 0 && (
+                      <tr style={{ height: virtualizer.getVirtualItems()[0].start }} aria-hidden="true">
+                        <td colSpan={8} />
+                      </tr>
+                    )}
+                    {/* Virtual rows */}
+                    {virtualizer.getVirtualItems().map((virtualRow) => {
+                      const order = filteredOrders[virtualRow.index]
+                      return (
+                        <OrderRow
+                          key={order.id}
+                          order={order}
+                          isSelected={selectedIds.has(order.id)}
+                          onSelect={handleSelectOrder}
+                          style={{ height: ROW_HEIGHT }}
+                        />
+                      )
+                    })}
+                    {/* Bottom spacer */}
+                    {virtualizer.getVirtualItems().length > 0 && (
+                      <tr
+                        style={{
+                          height: virtualizer.getTotalSize() - (virtualizer.getVirtualItems()[virtualizer.getVirtualItems().length - 1]?.end || 0),
+                        }}
+                        aria-hidden="true"
+                      >
+                        <td colSpan={8} />
+                      </tr>
+                    )}
+                  </>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          // Non-virtualized table for small lists
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <TableHeader
+                allSelected={allSelected}
+                someSelected={someSelected}
+                onSelectAll={handleSelectAll}
+              />
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                    No orders match your search
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredOrders.map((order) => (
+                  <OrderRow
+                    key={order.id}
+                    order={order}
+                    isSelected={selectedIds.has(order.id)}
+                    onSelect={handleSelectOrder}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Confirmation Modal */}
@@ -359,6 +368,110 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         </div>
       )}
     </div>
+  )
+}
+
+interface TableHeaderProps {
+  allSelected: boolean
+  someSelected: boolean
+  onSelectAll: (checked: boolean) => void
+}
+
+function TableHeader({ allSelected, someSelected, onSelectAll }: TableHeaderProps) {
+  return (
+    <tr>
+      <th className="w-12 px-3 py-3">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          ref={input => {
+            if (input) input.indeterminate = someSelected
+          }}
+          onChange={(e) => onSelectAll(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          aria-label="Select all orders"
+        />
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+        Order
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+        Customer
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+        Total
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+        Status
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+        Payment
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+        Date
+      </th>
+      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+        <span className="sr-only">View</span>
+      </th>
+    </tr>
+  )
+}
+
+interface OrderRowProps {
+  order: Order
+  isSelected: boolean
+  onSelect: (orderId: string, checked: boolean) => void
+  style?: React.CSSProperties
+}
+
+function OrderRow({ order, isSelected, onSelect, style }: OrderRowProps) {
+  return (
+    <tr
+      className={`hover:bg-gray-50 group ${isSelected ? 'bg-blue-50' : ''}`}
+      style={style}
+    >
+      <td className="w-12 px-3 py-4">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => onSelect(order.id, e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          aria-label={`Select order ${order.orderNumber}`}
+        />
+      </td>
+      <td className="whitespace-nowrap px-6 py-4">
+        <Link href={`/dashboard/orders/${order.id}`} className="block">
+          <div className="text-sm font-medium text-blue-600 group-hover:text-blue-800">
+            {order.orderNumber}
+          </div>
+          <div className="text-xs text-gray-500">{order.items.length} items</div>
+        </Link>
+      </td>
+      <td className="px-6 py-4">
+        <div className="text-sm text-gray-900">{order.customerName}</div>
+        <div className="text-xs text-gray-500">{order.customerEmail}</div>
+      </td>
+      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+        {formatCurrency(order.total, order.currency)}
+      </td>
+      <td className="whitespace-nowrap px-6 py-4">
+        <OrderStatusBadge status={order.status} />
+      </td>
+      <td className="whitespace-nowrap px-6 py-4">
+        <PaymentStatusBadge status={order.paymentStatus} />
+      </td>
+      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+        {formatDate(order.createdAt)}
+      </td>
+      <td className="whitespace-nowrap px-6 py-4 text-right">
+        <Link
+          href={`/dashboard/orders/${order.id}`}
+          className="text-gray-400 group-hover:text-gray-600"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Link>
+      </td>
+    </tr>
   )
 }
 

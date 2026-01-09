@@ -8,7 +8,8 @@ export default async function MaterialsReportPage() {
   const tenant = await requireTenant()
 
   // Get all materials and pieces
-  const allMaterials = await materials.listMaterials(tenant.id)
+  const result = await materials.listMaterials(tenant.id)
+  const allMaterials = result.materials
   const allPieces = await pieces.listPieces(tenant.id)
 
   // Calculate total material value (stock on hand)

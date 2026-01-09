@@ -37,8 +37,8 @@ export default async function SocialConnectionsPage() {
             <span className="text-sm text-gray-700">Instagram (Ready)</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-gray-400"></div>
-            <span className="text-sm text-gray-500">TikTok (Coming Soon)</span>
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            <span className="text-sm text-gray-700">TikTok (Ready)</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-gray-400"></div>
@@ -49,8 +49,8 @@ export default async function SocialConnectionsPage() {
             <span className="text-sm text-gray-500">Facebook (Coming Soon)</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-gray-400"></div>
-            <span className="text-sm text-gray-500">Pinterest (Coming Soon)</span>
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            <span className="text-sm text-gray-700">Pinterest (Ready)</span>
           </div>
         </div>
       </div>

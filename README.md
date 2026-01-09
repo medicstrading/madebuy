@@ -1,252 +1,385 @@
 # MadeBuy - Multi-tenant E-commerce Platform
 
-A comprehensive e-commerce platform for handmade businesses with inventory management, social media integration, and multi-channel selling.
+An Etsy alternative marketplace for makers - Shopify features + Etsy exposure, zero transaction fees.
 
-## 🏗️ Architecture
+**Target:** Handmade businesses wanting professional storefronts without platform lock-in.
+
+## Quick Start
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Start MongoDB
+docker run -d --name madebuy-mongo -p 27017:27017 mongo:7
+
+# 3. Copy environment files
+cp apps/admin/.env.example apps/admin/.env.local
+cp apps/web/.env.example apps/web/.env.local
+# Edit .env.local files with your values
+
+# 4. Run development servers
+pnpm --filter admin dev --port 3300    # Admin: http://localhost:3300
+pnpm --filter web dev --port 3301      # Web: http://localhost:3301
+
+# 5. Create a test tenant
+pnpm create:tenant
+```
+
+**Fixed Ports:** Admin=3300, Web=3301 (do not use 3000/3001)
+
+---
+
+## Architecture
 
 ### Monorepo Structure
+
 ```
 madebuy/
 ├── apps/
-│   ├── admin/          # Admin dashboard (Next.js)
-│   └── web/            # Customer storefront (Next.js)
+│   ├── admin/          # Seller dashboard (Next.js 14, port 3300)
+│   └── web/            # Tenant storefronts + checkout (Next.js 14, port 3301)
 └── packages/
-    ├── db/             # MongoDB repositories
-    ├── shared/         # Shared types and utilities
-    ├── social/         # Social media & AI integrations
-    └── storage/        # R2/image storage
+    ├── db/             # MongoDB repositories (multi-tenant)
+    ├── shared/         # TypeScript types and utilities
+    ├── social/         # Social media publishing (Late API + OpenAI)
+    ├── storage/        # Cloudflare R2 image upload
+    └── rate-limit/     # Redis/in-memory rate limiting
 ```
+
+### Multi-Tenancy Pattern
+
+The web app uses dynamic routing for tenant storefronts:
+
+```
+/[tenant]/              → Individual seller storefront (e.g., /handmade-jewelry/)
+/[tenant]/[slug]        → Product detail page
+/[tenant]/cart          → Shopping cart
+/[tenant]/checkout      → Stripe checkout
+```
+
+Tenants are identified by `slug` in URLs and `id` in the database. Each tenant has isolated:
+- Products (pieces)
+- Media
+- Orders
+- Customers
+- Settings
+
+**Data Isolation:** Every database query is scoped by `tenantId` - there are no collection-wide operations.
 
 ### Tech Stack
-- **Framework**: Next.js 14 (App Router)
-- **Database**: MongoDB
-- **Storage**: Cloudflare R2
-- **Payments**: Stripe
-- **Email**: Resend
-- **Auth**: NextAuth.js
-- **Styling**: Tailwind CSS
-- **Package Manager**: pnpm
 
-## 🚀 Getting Started
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 14 (App Router) |
+| Database | MongoDB |
+| Storage | Cloudflare R2 |
+| Payments | Stripe + Stripe Connect |
+| Email | Resend |
+| Auth | NextAuth.js |
+| Styling | Tailwind CSS |
+| Monorepo | pnpm workspaces + Turborepo |
+
+---
+
+## Core Features
+
+### Seller Dashboard (Admin App)
+
+| Feature | Description |
+|---------|-------------|
+| Inventory Management | Products with variants, stock tracking, COGS |
+| Materials Tracking | Supply costs, usage reports, reorder alerts |
+| Media Library | Image/video upload to R2, variants, blur placeholders |
+| Order Management | Lifecycle tracking, status updates, exports |
+| Customer Management | Accounts, addresses, purchase history |
+| Social Publishing | Schedule posts via Late API with AI captions |
+| Blog | SEO-optimized content for storefronts |
+| Analytics | Sales, traffic, conversion funnels |
+
+### Customer Storefront (Web App)
+
+| Feature | Description |
+|---------|-------------|
+| Multi-tenant Routing | `/{tenant}` dynamic storefronts |
+| Product Catalog | Grid/list views, filtering, search |
+| Shopping Cart | Persistent, quantity management |
+| Stripe Checkout | Secure payment processing |
+| Order Confirmation | Email notifications |
+| Reviews | Customer ratings and feedback |
+| Wishlists | Save for later |
+
+---
+
+## Subscription Tiers
+
+| Plan | Price | Features |
+|------|-------|----------|
+| **Free** | $0 | 10 products, basic storefront |
+| **Maker** | $19/mo | Unlimited products, social publishing |
+| **Pro** | $39/mo | AI captions, custom domain, API access |
+| **Business** | $79/mo | Advanced analytics, priority support |
+
+Feature flags stored in `tenant.features`:
+- `socialPublishing` - Post to social media
+- `aiCaptions` - AI-generated captions
+- `unlimitedPieces` - No product limit
+- `customDomain` - Custom domain support
+- `apiAccess` - API for integrations
+- `advancedAnalytics` - Detailed reporting
+
+---
+
+## Development
 
 ### Prerequisites
+
 - Node.js 20+
 - pnpm 8+
-- MongoDB (local or Atlas)
-- PM2 (for production deployment)
+- MongoDB 7+ (local or Atlas)
+- Docker (for development environment)
 
-### Installation
+### Local Development
 
-1. **Clone and install dependencies**:
 ```bash
-cd madebuy
+# Install dependencies
 pnpm install
-```
 
-2. **Set up environment variables**:
-
-For Admin app:
-```bash
-cp apps/admin/.env.local.example apps/admin/.env.local
-# Edit apps/admin/.env.local with your values
-```
-
-For Web app:
-```bash
-cp apps/web/.env.local.example apps/web/.env.local
-# Edit apps/web/.env.local with your values
-```
-
-3. **Build the project**:
-```bash
-pnpm build
-```
-
-## 🧪 Development
-
-### Run in development mode:
-```bash
 # Run both apps
 pnpm dev
 
-# Run admin only
-pnpm dev:admin
+# Run specific app
+pnpm --filter admin dev --port 3300
+pnpm --filter web dev --port 3301
 
-# Run web only
-pnpm dev:web
-```
-
-Access the apps:
-- Admin: http://localhost:3301
-- Web: http://localhost:3302
-
-## 🚢 Production Deployment (PM2)
-
-### First-time setup:
-
-1. **Install PM2 globally** (if not installed):
-```bash
-npm install -g pm2
-```
-
-2. **Build for production**:
-```bash
+# Build all
 pnpm build
+
+# Lint
+pnpm lint
+
+# Run tests
+pnpm test
 ```
 
-3. **Start with PM2**:
-```bash
-pnpm pm2:start
-```
+### Docker Development (NUC)
 
-### PM2 Management Commands:
+Dev servers run in Docker containers. Code is mounted via SSHFS.
 
 ```bash
-# View status
-pnpm pm2:status
+# Find container name
+ssh nuc-dev "docker ps --format '{{.Names}}' | grep madebuy"
+
+# Run build INSIDE container
+ssh nuc-dev "docker exec madebuy-web-dev pnpm build"
+ssh nuc-dev "docker exec madebuy-admin-dev pnpm build"
+
+# Restart containers
+nuc-docker restart madebuy
 
 # View logs
-pnpm pm2:logs
-
-# Monitor in real-time
-pnpm pm2:monit
-
-# Restart apps
-pnpm pm2:restart
-
-# Stop apps
-pnpm pm2:stop
-
-# Delete apps from PM2
-pnpm pm2:delete
-
-# Build and restart (for updates)
-pnpm deploy:local
+nuc-docker logs madebuy-web-dev
 ```
 
-### PM2 Startup on Boot:
+**NEVER DO:**
+- Delete .next, dist, or build directories (owned by container root)
+- Run `rm -rf` on build artifacts
+- Run builds on host directly
 
-To make apps start automatically on system boot:
+---
+
+## Environment Variables
+
+See [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) for complete reference.
+
+### Quick Setup
+
+**Admin App** (`apps/admin/.env.local`):
+```bash
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB=madebuy
+NEXTAUTH_URL=http://localhost:3300
+NEXTAUTH_SECRET=your-secret-here
+
+# Storage (Cloudflare R2)
+R2_ACCOUNT_ID=xxx
+R2_ACCESS_KEY_ID=xxx
+R2_SECRET_ACCESS_KEY=xxx
+R2_BUCKET_NAME=madebuy
+R2_PUBLIC_URL=https://your-bucket.r2.dev
+
+# Optional
+OPENAI_API_KEY=sk-xxx          # AI captions
+LATE_API_KEY=xxx               # Social publishing
+REDIS_URL=redis://localhost:6379  # Rate limiting
+```
+
+**Web App** (`apps/web/.env.local`):
+```bash
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB=madebuy
+
+# Stripe
+STRIPE_SECRET_KEY=sk_xxx
+STRIPE_PUBLISHABLE_KEY=pk_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+
+# Storage
+R2_PUBLIC_URL=https://your-bucket.r2.dev
+
+# Optional
+RESEND_API_KEY=re_xxx
+REDIS_URL=redis://localhost:6379
+```
+
+---
+
+## Production Deployment
+
+### PM2 (VPS/Dedicated)
+
+```bash
+# Install PM2
+npm install -g pm2
+
+# Build and start
+pnpm build
+pnpm pm2:start
+
+# Management
+pnpm pm2:status    # View status
+pnpm pm2:logs      # View logs
+pnpm pm2:restart   # Restart apps
+pnpm deploy:local  # Build + restart
+```
+
+### Auto-start on Boot
+
 ```bash
 pm2 startup
-# Follow the command output instructions
 pm2 save
 ```
 
-## 📁 Environment Variables
+### Stripe Connect Setup (Required)
 
-### Admin App (apps/admin/.env.local)
+1. Get API keys from https://dashboard.stripe.com/apikeys
+2. Create webhook endpoint:
+   - URL: `https://madebuy.com.au/api/webhooks/stripe-connect`
+   - Events: `account.updated`, `account.application.deauthorized`, `payout.paid`, `payout.failed`, `charge.dispute.created`
+3. Add webhook secret to environment
 
-Required:
-- `MONGODB_URI` - MongoDB connection string
-- `MONGODB_DB` - Database name
-- `NEXTAUTH_URL` - Admin URL (http://localhost:3301)
-- `NEXTAUTH_SECRET` - Generate with: `openssl rand -base64 32`
-- `R2_ACCOUNT_ID` - Cloudflare R2 account
-- `R2_ACCESS_KEY_ID` - R2 access key
-- `R2_SECRET_ACCESS_KEY` - R2 secret
-- `R2_BUCKET_NAME` - R2 bucket name
-- `R2_PUBLIC_URL` - R2 public URL
+---
 
-Optional:
-- `OPENAI_API_KEY` - For AI caption generation
-- `INSTAGRAM_CLIENT_ID` - Instagram OAuth
-- `INSTAGRAM_CLIENT_SECRET` - Instagram OAuth
-- `LATE_API_KEY` - For social media publishing
+## Package Documentation
 
-### Web App (apps/web/.env.local)
+| Package | README |
+|---------|--------|
+| @madebuy/db | [packages/db/README.md](packages/db/README.md) |
+| @madebuy/shared | [packages/shared/README.md](packages/shared/README.md) |
+| @madebuy/storage | [packages/storage/README.md](packages/storage/README.md) |
+| @madebuy/social | [packages/social/README.md](packages/social/README.md) |
 
-Required:
-- `MONGODB_URI` - MongoDB connection string
-- `MONGODB_DB` - Database name
-- `STRIPE_SECRET_KEY` - Stripe secret key
-- `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret
-- `R2_PUBLIC_URL` - R2 public URL for images
+---
 
-Optional:
-- `RESEND_API_KEY` - For order confirmation emails
-- `DEFAULT_FROM_EMAIL` - Default sender email
+## Troubleshooting
 
-## 🔧 Key Features
+### Build Fails
 
-### Admin Dashboard
-- ✅ Inventory management (pieces/products)
-- ✅ Materials tracking with usage reports
-- ✅ Media library with R2 storage
-- ✅ Order management
-- ✅ Customer enquiries
-- ✅ Promotions
-- ✅ Social media publishing with AI captions
-- ✅ Instagram integration
-- ✅ Dashboard statistics
-
-### Customer Storefront
-- ✅ Multi-tenant architecture (/{tenant} routing)
-- ✅ Product catalog
-- ✅ Shopping cart
-- ✅ Stripe checkout
-- ✅ Order confirmation emails
-- ✅ Responsive design
-
-## 📝 Development Notes
-
-### Building
 ```bash
-# Build all packages and apps
-pnpm build
-
-# Build specific app
-pnpm build:admin
-pnpm build:web
-```
-
-### Linting
-```bash
-pnpm lint
-```
-
-### Cleaning
-```bash
-# Remove all node_modules and build artifacts
-pnpm clean
-```
-
-## 🐛 Troubleshooting
-
-### Build fails with TypeScript errors
-```bash
+# Clean and rebuild
 pnpm clean
 pnpm install
 pnpm build
 ```
 
-### PM2 apps not starting
-1. Check build completed: `ls -la apps/*/. next`
-2. Check logs: `pnpm pm2:logs`
-3. Verify environment variables are set in `.env.local` files
+### TypeScript Errors
 
-### MongoDB connection fails
-- Verify `MONGODB_URI` is correct
-- Check MongoDB is running: `mongosh`
-- For Atlas: check IP whitelist
+```bash
+# Check types
+pnpm tsc --noEmit
 
-## 📦 Package Scripts
+# Rebuild packages first
+cd packages/shared && pnpm build
+cd packages/db && pnpm build
+```
 
-Root level:
-- `pnpm dev` - Run all apps in development
-- `pnpm build` - Build all apps
-- `pnpm pm2:start` - Start production with PM2
-- `pnpm deploy:local` - Build and restart PM2
+### MongoDB Connection
 
-## 🔒 Security Notes
+```bash
+# Verify connection
+mongosh "mongodb://localhost:27017"
 
-- Never commit `.env.local` files
-- Rotate `NEXTAUTH_SECRET` regularly
-- Use webhook secrets for Stripe
-- Restrict R2 bucket CORS policies
-- Use environment-specific API keys
+# Check if running
+docker ps | grep mongo
 
-## 📄 License
+# Start MongoDB
+docker run -d --name madebuy-mongo -p 27017:27017 mongo:7
+```
 
-Private - All rights reserved
+### Docker Build Issues
+
+```bash
+# Don't delete .next directories - restart container instead
+ssh nuc-dev "docker restart madebuy-web-dev"
+
+# View container logs
+ssh nuc-dev "docker logs madebuy-web-dev --tail 100"
+```
+
+### Rate Limiting (Redis)
+
+```bash
+# Start Redis locally
+docker run -d --name redis -p 6379:6379 redis:7
+
+# Or use in-memory fallback (automatic when Redis unavailable)
+```
+
+---
+
+## Development Workflow
+
+### Adding a New Feature
+
+1. Create types in `packages/shared/src/types/`
+2. Add repository in `packages/db/src/repositories/`
+3. Export from `packages/db/src/index.ts`
+4. Add validation schemas in `packages/shared/src/validation/`
+5. Create API routes in `apps/admin/src/app/api/`
+6. Build UI components
+7. Add tests
+
+### Code Style
+
+- Use TypeScript strict mode
+- No `any` types (use proper types from @madebuy/shared)
+- Repository functions take `tenantId` as first parameter
+- Use Zod for API input validation
+- Use logger from @madebuy/shared (not console.log)
+
+### Git Workflow
+
+- Commit often with descriptive messages
+- Reference spec IDs: `fix: Spec 028 - Add DB package documentation`
+- Don't push without explicit permission
+
+---
+
+## Contributing
+
+This is a private repository. Contact the maintainer for access.
+
+### Code Review Checklist
+
+- [ ] TypeScript compiles without errors
+- [ ] All tests pass
+- [ ] No console.log statements
+- [ ] API routes have Zod validation
+- [ ] Multi-tenant isolation maintained
+- [ ] Rate limiting on public endpoints
+
+---
+
+## License
+
+Private - MadeBuy Pty Ltd. All rights reserved.

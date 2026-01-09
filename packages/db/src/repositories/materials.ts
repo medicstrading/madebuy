@@ -36,10 +36,33 @@ export async function getMaterial(tenantId: string, id: string): Promise<Materia
   return await db.collection('materials').findOne({ tenantId, id }) as Material | null
 }
 
+export interface MaterialFilters {
+  category?: string
+  isLowStock?: boolean
+  search?: string
+  supplier?: string
+}
+
+export interface MaterialListOptions {
+  page?: number
+  limit?: number
+  sortBy?: 'name' | 'createdAt' | 'quantityInStock' | 'costPerUnit'
+  sortOrder?: 'asc' | 'desc'
+}
+
+export interface MaterialListResult {
+  materials: Material[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export async function listMaterials(
   tenantId: string,
-  filters?: { category?: string; isLowStock?: boolean }
-): Promise<Material[]> {
+  filters?: MaterialFilters,
+  options?: MaterialListOptions
+): Promise<MaterialListResult> {
   const db = await getDatabase()
 
   const query: any = { tenantId }
@@ -52,12 +75,62 @@ export async function listMaterials(
     query.isLowStock = filters.isLowStock
   }
 
+  if (filters?.supplier) {
+    query.supplier = { $regex: filters.supplier, $options: 'i' }
+  }
+
+  // Text search on name, supplier, and tags
+  if (filters?.search) {
+    const searchRegex = { $regex: filters.search, $options: 'i' }
+    query.$or = [
+      { name: searchRegex },
+      { supplier: searchRegex },
+      { tags: searchRegex },
+      { category: searchRegex },
+      { supplierSku: searchRegex },
+    ]
+  }
+
+  // Pagination defaults
+  const page = options?.page || 1
+  const limit = Math.min(options?.limit || 50, 500)
+  const skip = (page - 1) * limit
+
+  // Sorting
+  const sortBy = options?.sortBy || 'name'
+  const sortOrder = options?.sortOrder === 'desc' ? -1 : 1
+  const sort: any = { [sortBy]: sortOrder }
+
+  // Get total count
+  const total = await db.collection('materials').countDocuments(query)
+
+  // Get paginated results
   const results = await db.collection('materials')
     .find(query)
-    .sort({ name: 1 })
+    .sort(sort)
+    .skip(skip)
+    .limit(limit)
     .toArray()
 
-  return results as any[]
+  return {
+    materials: results as any[],
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  }
+}
+
+/**
+ * Simple list for backwards compatibility
+ * @deprecated Use listMaterials with pagination instead
+ */
+export async function listAllMaterials(
+  tenantId: string,
+  filters?: { category?: string; isLowStock?: boolean }
+): Promise<Material[]> {
+  const result = await listMaterials(tenantId, filters, { limit: 500 })
+  return result.materials
 }
 
 export async function updateMaterial(

@@ -1,8 +1,25 @@
+import { cache } from 'react'
 import { pieces, media } from '@madebuy/db'
 import type { Piece, PieceWithMedia, MediaItem } from '@madebuy/shared'
 
 // Re-export type for use in components
 export type { PieceWithMedia }
+
+/**
+ * Get piece by slug (cached)
+ * Wrapped with React cache() to deduplicate requests during a single render pass
+ */
+export const getPieceBySlug = cache(async (tenantId: string, slug: string): Promise<Piece | null> => {
+  return await pieces.getPieceBySlug(tenantId, slug)
+})
+
+/**
+ * Get piece by ID (cached)
+ * Wrapped with React cache() to deduplicate requests during a single render pass
+ */
+export const getPieceById = cache(async (tenantId: string, id: string): Promise<Piece | null> => {
+  return await pieces.getPiece(tenantId, id)
+})
 
 /**
  * Populate a piece with its media objects (uses batch-fetched media map)

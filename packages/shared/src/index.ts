@@ -40,6 +40,9 @@ export { getDefaultPages, getDefaultSections } from './types/template'
 // Export subscription utilities
 export * from './lib/subscription'
 
+// Export COGS calculation utilities
+export * from './lib/cogs'
+
 // Export Stripe utilities (config only - Connect archived)
 export * from './stripe'
 

@@ -27,6 +27,7 @@ interface CartItemRequest {
   pieceId: string
   quantity: number
   weightGrams?: number
+  price?: number // Price in cents for free shipping calculation
 }
 
 interface DestinationRequest {
@@ -112,11 +113,12 @@ async function handleNewFormat(body: QuoteRequestNew) {
     )
   }
 
-  // Calculate total weight and dimensions from all items
+  // Calculate total weight, dimensions, and cart total from all items
   let totalWeightGrams = 0
   let maxLength = 0
   let maxWidth = 0
   let totalHeight = 0
+  let cartTotalCents = 0 // For free shipping calculation
 
   for (const item of body.items || []) {
     const piece = await pieces.getPiece(tenant.id, item.pieceId)
@@ -129,12 +131,21 @@ async function handleNewFormat(body: QuoteRequestNew) {
       maxLength = Math.max(maxLength, piece.shippingLength || 20)
       maxWidth = Math.max(maxWidth, piece.shippingWidth || 15)
       totalHeight += (piece.shippingHeight || 5) * qty
+
+      // Calculate cart total for free shipping (price in cents)
+      const priceCents = item.price || (piece.price ? Math.round(piece.price * 100) : 0)
+      cartTotalCents += priceCents * qty
     } else {
       // Default weights if piece not found
       totalWeightGrams += (item.weightGrams || 250) * (item.quantity || 1)
       maxLength = Math.max(maxLength, 20)
       maxWidth = Math.max(maxWidth, 15)
       totalHeight += 5 * (item.quantity || 1)
+
+      // Use provided price for cart total
+      if (item.price) {
+        cartTotalCents += item.price * (item.quantity || 1)
+      }
     }
   }
 
@@ -153,7 +164,8 @@ async function handleNewFormat(body: QuoteRequestNew) {
     totalWeightGrams,
     maxLength,
     maxWidth,
-    totalHeight
+    totalHeight,
+    cartTotalCents
   )
 }
 
@@ -233,14 +245,25 @@ async function getQuotes(
   weightGrams: number,
   lengthCm: number,
   widthCm: number,
-  heightCm: number
+  heightCm: number,
+  cartTotalCents: number = 0 // Cart total for free shipping calculation
 ) {
+  // Calculate free shipping eligibility
+  const freeShippingThreshold = tenant.freeShippingThreshold || null
+  const freeShippingEligible = freeShippingThreshold && cartTotalCents >= freeShippingThreshold
+  const amountUntilFreeShipping = freeShippingThreshold
+    ? Math.max(0, freeShippingThreshold - cartTotalCents)
+    : null
+
   // Check if Sendle is configured
   if (!tenant.sendleSettings?.isConnected || !tenant.sendleSettings.apiKey || !tenant.sendleSettings.senderId) {
     // Return fallback flat-rate if Sendle not configured
+    const quotes = createFallbackQuotes(freeShippingEligible)
     return NextResponse.json({
-      quotes: createFallbackQuotes(),
-      freeShippingEligible: false,
+      quotes,
+      freeShippingEligible,
+      freeShippingThreshold,
+      amountUntilFreeShipping,
       message: 'Shipping not configured - using standard rates',
     })
   }
@@ -286,24 +309,44 @@ async function getQuotes(
     })
 
     // Transform Sendle quotes to our format
-    const quotes: ShippingQuote[] = (sendleResponse.quotes || []).map((q: any, index: number) => ({
+    let quotes: ShippingQuote[] = (sendleResponse.quotes || []).map((q: any, index: number) => ({
       id: `sendle-${index}-${generateId()}`,
       carrier: 'Sendle',
       service: q.plan_name,
-      price: q.price_in_cents, // Keep as cents for frontend consistency
+      price: freeShippingEligible ? 0 : q.price_in_cents, // Free if eligible
       currency: 'AUD',
       estimatedDays: q.estimated_delivery_days || { min: 2, max: 7 },
-      features: q.features || [],
+      features: freeShippingEligible
+        ? [...(q.features || []), 'Free shipping applied']
+        : (q.features || []),
     }))
 
     // Sort by price (cheapest first)
     quotes.sort((a, b) => a.price - b.price)
 
+    // If free shipping eligible, add a "Free Shipping" option at the top
+    if (freeShippingEligible && quotes.length > 0) {
+      // Use the cheapest option's delivery time for free shipping
+      const cheapestQuote = quotes[0]
+      quotes = [
+        {
+          id: `free-shipping-${generateId()}`,
+          carrier: 'Free Shipping',
+          service: 'Standard Free Shipping',
+          price: 0,
+          currency: 'AUD',
+          estimatedDays: cheapestQuote.estimatedDays,
+          features: ['Free shipping for qualifying orders'],
+        },
+        ...quotes.filter(q => q.price > 0), // Keep paid options as alternatives
+      ]
+    }
+
     return NextResponse.json({
       quotes,
-      freeShippingEligible: false, // TODO: Implement free shipping threshold from tenant settings
-      freeShippingThreshold: null,
-      amountUntilFreeShipping: null,
+      freeShippingEligible,
+      freeShippingThreshold,
+      amountUntilFreeShipping,
       parcelDetails: {
         weightGrams,
         lengthCm,
@@ -316,8 +359,10 @@ async function getQuotes(
 
     // Return fallback flat-rate shipping options
     return NextResponse.json({
-      quotes: createFallbackQuotes(),
-      freeShippingEligible: false,
+      quotes: createFallbackQuotes(freeShippingEligible),
+      freeShippingEligible,
+      freeShippingThreshold,
+      amountUntilFreeShipping,
       message: 'Using fallback shipping rates',
       parcelDetails: {
         weightGrams,
@@ -332,7 +377,31 @@ async function getQuotes(
 /**
  * Create fallback shipping quotes when Sendle is unavailable
  */
-function createFallbackQuotes(): ShippingQuote[] {
+function createFallbackQuotes(freeShippingEligible: boolean = false): ShippingQuote[] {
+  // If free shipping eligible, return free option first
+  if (freeShippingEligible) {
+    return [
+      {
+        id: `free-shipping-${generateId()}`,
+        carrier: 'Free Shipping',
+        service: 'Standard Free Shipping',
+        price: 0,
+        currency: 'AUD',
+        estimatedDays: { min: 3, max: 7 },
+        features: ['Free shipping for qualifying orders', 'Tracking included'],
+      },
+      {
+        id: `express-${generateId()}`,
+        carrier: 'Express Shipping',
+        service: 'Express Delivery',
+        price: 1495, // $14.95 in cents - express still costs extra
+        currency: 'AUD',
+        estimatedDays: { min: 1, max: 3 },
+        features: ['Tracking included', 'Priority handling'],
+      },
+    ]
+  }
+
   return [
     {
       id: `standard-${generateId()}`,

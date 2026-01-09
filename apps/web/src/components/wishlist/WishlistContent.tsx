@@ -72,6 +72,7 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
                 alt={piece.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 640px) 50vw, 33vw"
               />
             ) : (
               <div className="flex items-center justify-center h-full">

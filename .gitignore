@@ -6,6 +6,11 @@ node_modules/
 # Testing
 coverage/
 
+# Playwright
+playwright-report/
+playwright/.cache/
+test-results/
+
 # Next.js
 .next/
 out/

@@ -11,6 +11,9 @@
 // Export database client and utilities
 export { getDatabase, serializeMongo, serializeMongoArray } from './client'
 
+// Export types
+export type { LowStockPiece } from './repositories/pieces'
+
 // Export active repositories
 export * as tenants from './repositories/tenants'
 export * as pieces from './repositories/pieces'
@@ -30,6 +33,7 @@ export * as discounts from './repositories/discounts'
 export * as downloads from './repositories/downloads'
 export * as newsletters from './repositories/newsletters'
 export * as collections from './repositories/collections'
+export * as bundles from './repositories/bundles'
 export * as keyDates from './repositories/keyDates'
 export * as auditLog from './repositories/auditLog'
 export * as transactions from './repositories/transactions'
@@ -39,6 +43,7 @@ export * as reviews from './repositories/reviews'
 export * as wishlist from './repositories/wishlist'
 export * as analytics from './repositories/analytics'
 export * as abandonedCarts from './repositories/abandonedCarts'
+export * as disputes from './repositories/disputes'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

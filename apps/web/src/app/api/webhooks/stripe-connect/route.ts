@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { tenants, payouts, transactions } from '@madebuy/db'
-import type { StripeConnectStatus, PayoutStatus } from '@madebuy/shared'
+import { tenants, payouts, transactions, disputes, orders } from '@madebuy/db'
+import type { StripeConnectStatus, PayoutStatus, DisputeStatus, DisputeReason } from '@madebuy/shared'
+import { sendPayoutFailedEmail, sendDisputeNotificationEmail } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -60,7 +61,15 @@ export async function POST(request: NextRequest) {
         break
 
       case 'charge.dispute.created':
-        await handleDisputeCreated(event.data.object as Stripe.Dispute)
+        await handleDisputeCreated(event.data.object as Stripe.Dispute, event.account!)
+        break
+
+      case 'charge.dispute.updated':
+        await handleDisputeUpdated(event.data.object as Stripe.Dispute)
+        break
+
+      case 'charge.dispute.closed':
+        await handleDisputeClosed(event.data.object as Stripe.Dispute)
         break
 
       default:
@@ -205,7 +214,7 @@ async function handlePayoutPaid(payout: Stripe.Payout, accountId: string) {
 
 /**
  * Handle payout.failed
- * Updates payout status with failure details
+ * Updates payout status with failure details and sends notification email
  */
 async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
@@ -222,7 +231,34 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
 
   console.error(`Payout ${payout.id} failed for tenant ${tenant.id}: ${payout.failure_message}`)
 
-  // TODO: Send notification email to tenant about failed payout
+  // Extract bank account last 4 digits if available
+  let bankAccountLast4: string | null = null
+  if (payout.destination) {
+    try {
+      // The destination is a bank account ID, we can try to get last4 from it
+      const bankAccount = await stripe.accounts.retrieveExternalAccount(
+        accountId,
+        typeof payout.destination === 'string' ? payout.destination : payout.destination.id
+      ) as Stripe.BankAccount
+      bankAccountLast4 = bankAccount.last4 || null
+    } catch (error) {
+      // If we can't retrieve the bank account, continue without last4
+      console.warn('Could not retrieve bank account details for payout notification:', error)
+    }
+  }
+
+  // Send notification email to tenant
+  try {
+    await sendPayoutFailedEmail({
+      tenant,
+      payout,
+      failureReason: payout.failure_message || null,
+      bankAccountLast4,
+    })
+  } catch (emailError) {
+    // Log but don't throw - we don't want email failures to affect webhook response
+    console.error('Failed to send payout failed notification email:', emailError)
+  }
 }
 
 /**
@@ -247,19 +283,142 @@ function mapStripePayoutStatus(status: string): PayoutStatus {
 
 /**
  * Handle dispute created
- * Platform is liable for disputes with Express accounts
+ * Creates dispute record and sends notification to tenant
  */
-async function handleDisputeCreated(dispute: Stripe.Dispute) {
+async function handleDisputeCreated(dispute: Stripe.Dispute, accountId: string) {
   console.error(`DISPUTE CREATED: ${dispute.id} - Amount: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`)
   console.error(`Reason: ${dispute.reason}`)
 
-  // TODO: Send alert to platform admins
-  // TODO: Create internal dispute tracking record
-  // TODO: Send notification to tenant
+  const tenant = await tenants.getTenantByStripeAccountId(accountId)
+  if (!tenant) {
+    console.error(`No tenant found for dispute account ${accountId}`)
+    return
+  }
 
-  // For now, just log the dispute details
+  // Check if we already have this dispute (idempotency)
+  const existing = await disputes.getDisputeByStripeId(dispute.id)
+  if (existing) {
+    console.log(`Dispute ${dispute.id} already exists, skipping`)
+    return
+  }
+
+  // Try to find the associated order via the charge's payment intent
+  let orderId: string | undefined
   const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id
-  console.error(`Dispute for charge ${chargeId}, status: ${dispute.status}`)
+  if (chargeId) {
+    try {
+      const charge = await stripe.charges.retrieve(chargeId, {
+        stripeAccount: accountId,
+      })
+      if (charge.payment_intent) {
+        const paymentIntentId = typeof charge.payment_intent === 'string'
+          ? charge.payment_intent
+          : charge.payment_intent.id
+        const order = await orders.getOrderByPaymentIntent(paymentIntentId)
+        if (order) {
+          orderId = order.id
+        }
+      }
+    } catch (err) {
+      console.warn('Could not retrieve charge for dispute:', err)
+    }
+  }
+
+  // Calculate evidence due date
+  const evidenceDueBy = dispute.evidence_details?.due_by
+    ? new Date(dispute.evidence_details.due_by * 1000)
+    : undefined
+
+  // Create dispute record
+  await disputes.createDispute({
+    tenantId: tenant.id,
+    orderId,
+    stripeDisputeId: dispute.id,
+    stripeChargeId: chargeId,
+    amount: dispute.amount,
+    currency: dispute.currency.toUpperCase(),
+    status: mapStripeDisputeStatus(dispute.status),
+    reason: dispute.reason as DisputeReason,
+    evidenceDueBy,
+  })
+
+  console.log(`Created dispute record ${dispute.id} for tenant ${tenant.id}: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`)
+
+  // Send notification email to tenant
+  try {
+    await sendDisputeNotificationEmail({
+      tenant,
+      dispute,
+      evidenceDueBy: evidenceDueBy || null,
+    })
+  } catch (emailError) {
+    console.error('Failed to send dispute notification email:', emailError)
+  }
+}
+
+/**
+ * Handle dispute updated
+ * Updates dispute status when Stripe reports changes
+ */
+async function handleDisputeUpdated(dispute: Stripe.Dispute) {
+  console.log(`DISPUTE UPDATED: ${dispute.id} - Status: ${dispute.status}`)
+
+  const existing = await disputes.getDisputeByStripeId(dispute.id)
+  if (!existing) {
+    console.warn(`No dispute record found for ${dispute.id}`)
+    return
+  }
+
+  await disputes.updateDispute(dispute.id, {
+    status: mapStripeDisputeStatus(dispute.status),
+  })
+
+  console.log(`Updated dispute ${dispute.id} to status ${dispute.status}`)
+}
+
+/**
+ * Handle dispute closed
+ * Updates dispute status and sets resolved timestamp
+ */
+async function handleDisputeClosed(dispute: Stripe.Dispute) {
+  console.log(`DISPUTE CLOSED: ${dispute.id} - Status: ${dispute.status}`)
+
+  const existing = await disputes.getDisputeByStripeId(dispute.id)
+  if (!existing) {
+    console.warn(`No dispute record found for ${dispute.id}`)
+    return
+  }
+
+  await disputes.updateDispute(dispute.id, {
+    status: mapStripeDisputeStatus(dispute.status),
+    resolvedAt: new Date(),
+  })
+
+  console.log(`Closed dispute ${dispute.id} with status ${dispute.status}`)
+}
+
+/**
+ * Map Stripe dispute status to our DisputeStatus type
+ */
+function mapStripeDisputeStatus(status: string): DisputeStatus {
+  switch (status) {
+    case 'warning_needs_response':
+    case 'needs_response':
+      return 'needs_response'
+    case 'warning_under_review':
+    case 'under_review':
+      return 'under_review'
+    case 'won':
+      return 'won'
+    case 'lost':
+      return 'lost'
+    case 'charge_refunded':
+      return 'charge_refunded'
+    case 'warning_closed':
+      return 'warning_closed'
+    default:
+      return 'needs_response'
+  }
 }
 
 /**

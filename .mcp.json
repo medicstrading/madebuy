@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "railway": {
+      "command": "npx",
+      "args": ["-y", "@railway/mcp-server"],
+      "env": {
+        "RAILWAY_TOKEN": "de217a35-4e9e-4e1d-991d-4fb7ab9d69a0"
+      }
+    },
+    "vultr": {
+      "command": "npx",
+      "args": ["-y", "vultr-mcp-server"],
+      "env": {
+        "VULTR_API_KEY": "T4MDL5WMBIOFG4JT6Z2W3FOGIX2VV37G7WDQ"
+      }
+    },
+    "coolify": {
+      "command": "npx",
+      "args": ["-y", "@stumason/coolify-mcp"],
+      "env": {
+        "COOLIFY_API_TOKEN": "1fo1iFNqoFuctLywAMTjAN0jO3rszJmYMimqqoHBadcbe382",
+        "COOLIFY_BASE_URL": "http://108.61.169.147:8000"
+      }
+    }
+  }
+}

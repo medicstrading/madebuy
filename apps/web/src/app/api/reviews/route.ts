@@ -1,6 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { reviews, orders } from '@madebuy/db'
+import { reviews, orders, tenants } from '@madebuy/db'
 import type { CreateReviewInput } from '@madebuy/shared'
+
+/**
+ * GET /api/reviews
+ * Get approved reviews for a piece (public endpoint)
+ * Query params:
+ *   - tenantId (required): The tenant ID
+ *   - pieceId (required): The piece/product ID
+ *   - limit (optional): Max number of reviews (default 20)
+ *   - offset (optional): Pagination offset (default 0)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const tenantId = searchParams.get('tenantId')
+    const pieceId = searchParams.get('pieceId')
+    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const offset = parseInt(searchParams.get('offset') || '0', 10)
+
+    if (!tenantId || !pieceId) {
+      return NextResponse.json(
+        { error: 'tenantId and pieceId are required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate tenant exists
+    const tenant = await tenants.getTenantById(tenantId)
+    if (!tenant) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+    }
+
+    // Get approved reviews for this piece
+    const [pieceReviews, stats] = await Promise.all([
+      reviews.listApprovedReviews(tenantId, pieceId, { limit, offset }),
+      reviews.getProductReviewStats(tenantId, pieceId),
+    ])
+
+    return NextResponse.json({
+      reviews: pieceReviews,
+      stats,
+    })
+  } catch (error) {
+    console.error('Error fetching reviews:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch reviews' },
+      { status: 500 }
+    )
+  }
+}
 
 /**
  * POST /api/reviews
