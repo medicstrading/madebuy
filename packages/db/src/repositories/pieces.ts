@@ -92,6 +92,23 @@ export async function getPieceBySlug(tenantId: string, slug: string): Promise<Pi
   return await db.collection('pieces').findOne({ tenantId, slug }) as unknown as Piece | null
 }
 
+/**
+ * Get multiple pieces by their IDs in a single query (batch lookup)
+ */
+export async function getPiecesByIds(
+  tenantId: string,
+  pieceIds: string[]
+): Promise<Map<string, Piece>> {
+  if (pieceIds.length === 0) {
+    return new Map()
+  }
+  const db = await getDatabase()
+  const pieceList = await db.collection('pieces')
+    .find({ tenantId, id: { $in: pieceIds } })
+    .toArray() as unknown as Piece[]
+  return new Map(pieceList.map(p => [p.id, p]))
+}
+
 export async function listPieces(
   tenantId: string,
   filters?: PieceFilters & { limit?: number; offset?: number }

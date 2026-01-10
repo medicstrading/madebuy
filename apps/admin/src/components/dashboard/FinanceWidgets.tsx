@@ -29,6 +29,15 @@ interface LedgerSummary {
   }
   monthChange: number
   feesYTD: number
+  profitability: {
+    revenue: number
+    materialCosts: number
+    actualProfit: number
+    profitMargin: number
+    revenueChange: number
+    profitChange: number
+    marginChange: number
+  }
 }
 
 function formatCurrency(cents: number): string {
@@ -108,12 +117,15 @@ export function FinanceWidgets() {
     )
   }
 
-  const isPositiveChange = data.monthChange >= 0
+  const { profitability } = data
+  const isRevenuePositive = profitability.revenueChange >= 0
+  const isProfitPositive = profitability.profitChange >= 0
+  const isMarginPositive = profitability.marginChange >= 0
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-        <h2 className="text-base font-semibold text-gray-900">Finances</h2>
+        <h2 className="text-base font-semibold text-gray-900">Profitability</h2>
         <Link
           href="/dashboard/ledger"
           className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
@@ -124,43 +136,47 @@ export function FinanceWidgets() {
       </div>
       <div className="p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Today's Sales */}
+          {/* Revenue */}
           <FinanceCard
-            title="Today's Sales"
-            value={formatCurrency(data.todaySales.net)}
-            subtitle={`${data.todaySales.count} order${data.todaySales.count !== 1 ? 's' : ''}`}
+            title="Revenue"
+            value={formatCurrency(profitability.revenue)}
+            subtitle="This month"
             icon={DollarSign}
-            color="green"
-          />
-
-          {/* Pending Payout */}
-          <FinanceCard
-            title="Pending Payout"
-            value={formatCurrency(data.pendingPayout.amount + data.pendingPayout.inTransit)}
-            subtitle={data.pendingPayout.nextDate ? `Est. ${formatDate(data.pendingPayout.nextDate)}` : 'No pending payouts'}
-            icon={Clock}
             color="blue"
-            badge={data.pendingPayout.inTransit > 0 ? `${formatCurrencyCompact(data.pendingPayout.inTransit)} in transit` : undefined}
-          />
-
-          {/* This Month */}
-          <FinanceCard
-            title="This Month"
-            value={formatCurrency(data.thisMonth.net)}
-            subtitle={`${data.thisMonth.count} sale${data.thisMonth.count !== 1 ? 's' : ''}`}
-            icon={isPositiveChange ? TrendingUp : TrendingDown}
-            color={isPositiveChange ? 'emerald' : 'red'}
-            trend={data.monthChange}
+            trend={profitability.revenueChange}
             trendLabel="vs last month"
           />
 
-          {/* Fees YTD */}
+          {/* Material Costs */}
           <FinanceCard
-            title="Fees (YTD)"
-            value={formatCurrency(data.feesYTD)}
-            subtitle="Stripe processing fees"
+            title="Material Costs"
+            value={formatCurrency(profitability.materialCosts)}
+            subtitle="Cost of goods sold"
             icon={CreditCard}
-            color="gray"
+            color="amber"
+          />
+
+          {/* Actual Profit */}
+          <FinanceCard
+            title="Actual Profit"
+            value={formatCurrency(profitability.actualProfit)}
+            subtitle="Revenue minus costs"
+            icon={isProfitPositive ? TrendingUp : TrendingDown}
+            color={isProfitPositive ? 'emerald' : 'red'}
+            trend={profitability.profitChange}
+            trendLabel="vs last month"
+          />
+
+          {/* Profit Margin */}
+          <FinanceCard
+            title="Profit Margin"
+            value={`${profitability.profitMargin}%`}
+            subtitle="Gross margin"
+            icon={isMarginPositive ? TrendingUp : TrendingDown}
+            color={profitability.profitMargin >= 50 ? 'emerald' : profitability.profitMargin >= 30 ? 'amber' : 'red'}
+            trend={profitability.marginChange}
+            trendLabel="vs last month"
+            trendSuffix="%"
           />
         </div>
       </div>
@@ -176,6 +192,7 @@ function FinanceCard({
   color,
   trend,
   trendLabel,
+  trendSuffix = '%',
   badge,
 }: {
   title: string
@@ -185,6 +202,7 @@ function FinanceCard({
   color: 'green' | 'blue' | 'emerald' | 'red' | 'gray' | 'amber'
   trend?: number
   trendLabel?: string
+  trendSuffix?: string
   badge?: string
 }) {
   const colorClasses = {
@@ -211,7 +229,7 @@ function FinanceCard({
             }`}
           >
             {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-            {Math.abs(trend)}%
+            {isPositive ? '+' : ''}{trend}{trendSuffix}
           </div>
         )}
         {badge && (

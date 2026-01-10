@@ -1,6 +1,105 @@
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { transactions } from '@madebuy/db'
+import { transactions, pieces, getDatabase } from '@madebuy/db'
+import type { Order } from '@madebuy/shared'
+
+/**
+ * Get paid orders within a date range
+ */
+async function getPaidOrdersInRange(
+  tenantId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<Order[]> {
+  const db = await getDatabase()
+  const results = await db.collection('orders')
+    .find({
+      tenantId,
+      paymentStatus: 'paid',
+      paidAt: { $gte: startDate, $lte: endDate },
+    })
+    .toArray()
+  return results as unknown as Order[]
+}
+
+/**
+ * Calculate profitability metrics from orders
+ */
+async function calculateProfitability(
+  tenantId: string,
+  currentOrders: Order[],
+  previousOrders: Order[]
+) {
+  // Collect all piece IDs from current orders
+  const pieceIds = new Set<string>()
+  for (const order of currentOrders) {
+    for (const item of order.items || []) {
+      pieceIds.add(item.pieceId)
+    }
+  }
+  for (const order of previousOrders) {
+    for (const item of order.items || []) {
+      pieceIds.add(item.pieceId)
+    }
+  }
+
+  // Batch fetch all pieces for COGS lookup
+  const piecesMap = await pieces.getPiecesByIds(tenantId, Array.from(pieceIds))
+
+  // Calculate current period metrics
+  let currentRevenue = 0
+  let currentMaterialCosts = 0
+  for (const order of currentOrders) {
+    for (const item of order.items || []) {
+      const revenue = item.price * item.quantity
+      currentRevenue += revenue
+      const piece = piecesMap.get(item.pieceId)
+      if (piece?.cogs) {
+        currentMaterialCosts += piece.cogs * item.quantity
+      }
+    }
+  }
+
+  // Calculate previous period metrics for comparison
+  let previousRevenue = 0
+  let previousMaterialCosts = 0
+  for (const order of previousOrders) {
+    for (const item of order.items || []) {
+      const revenue = item.price * item.quantity
+      previousRevenue += revenue
+      const piece = piecesMap.get(item.pieceId)
+      if (piece?.cogs) {
+        previousMaterialCosts += piece.cogs * item.quantity
+      }
+    }
+  }
+
+  const currentProfit = currentRevenue - currentMaterialCosts
+  const previousProfit = previousRevenue - previousMaterialCosts
+  const currentMargin = currentRevenue > 0 ? Math.round((currentProfit / currentRevenue) * 100) : 0
+  const previousMargin = previousRevenue > 0 ? Math.round((previousProfit / previousRevenue) * 100) : 0
+
+  // Calculate changes
+  const revenueChange = previousRevenue > 0
+    ? Math.round(((currentRevenue - previousRevenue) / previousRevenue) * 100)
+    : 0
+  const profitChange = previousProfit > 0
+    ? Math.round(((currentProfit - previousProfit) / previousProfit) * 100)
+    : 0
+  const marginChange = previousMargin > 0
+    ? currentMargin - previousMargin
+    : 0
+
+  return {
+    revenue: currentRevenue,
+    materialCosts: currentMaterialCosts,
+    actualProfit: currentProfit,
+    profitMargin: currentMargin,
+    revenueChange,
+    profitChange,
+    marginChange,
+  }
+}
 
 /**
  * GET /api/ledger/summary
@@ -82,6 +181,17 @@ export async function GET() {
 
     const feesYTD = ytdTransactions.reduce((sum, tx) => sum + (tx.stripeFee || 0), 0)
 
+    // Calculate profitability metrics (compares this month vs last month)
+    const [thisMonthOrders, lastMonthOrders] = await Promise.all([
+      getPaidOrdersInRange(tenant.id, thisMonthStart, thisMonthEnd),
+      getPaidOrdersInRange(tenant.id, lastMonthStart, lastMonthEnd),
+    ])
+    const profitability = await calculateProfitability(
+      tenant.id,
+      thisMonthOrders,
+      lastMonthOrders
+    )
+
     return NextResponse.json({
       todaySales,
       pendingPayout: {
@@ -103,6 +213,7 @@ export async function GET() {
       },
       monthChange,
       feesYTD,
+      profitability,
     })
   } catch (error) {
     console.error('Error fetching ledger summary:', error)
