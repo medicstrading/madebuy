@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "mongodb": {
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server@latest"],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb+srv://madebuy:K4BBpJgposvGnuyK@madebuy.xvs5hdd.mongodb.net/madebuy?appName=MADEBUY"
+      }
+    },
     "railway": {
       "command": "npx",
       "args": ["-y", "@railway/mcp-server"]

@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "project_name": "madebuy",
   "created_at": "2026-01-08T11:15:43.212Z",
-  "last_updated": "2026-01-09T17:51:36.776578",
+  "last_updated": "2026-01-09T23:17:54.868564",
   "entities": {
     "credentials_madebuy-deployment-credentials_20260109195232": {
       "id": "credentials_madebuy-deployment-credentials_20260109195232",
@@ -53,6 +53,42 @@
         "performance",
         "stability",
         "strategy"
+      ]
+    },
+    "integration_railway-mcp-integration_20260109225245": {
+      "id": "integration_railway-mcp-integration_20260109225245",
+      "type": "integration",
+      "tier": "project",
+      "scope": "madebuy",
+      "created_at": "2026-01-09T22:52:45.127358",
+      "updated_at": "2026-01-09T23:17:54.868469",
+      "name": "railway-mcp-integration",
+      "observations": [
+        "Railway MCP configured in .mcp.json for MadeBuy",
+        "Token: de217a35-4e9e-4e1d-991d-4fb7ab9d69a0",
+        "Commands: npx -y @railway/mcp-server",
+        "Added in commit 22ceef2 on Jan 9, 2026",
+        "Also has Vultr and Coolify MCP servers configured",
+        "CORRECTED: Package is @anthropic-ai/mcp-server-railway (not @railway/mcp-server)",
+        "CORRECTED: Env var is RAILWAY_API_TOKEN (not RAILWAY_TOKEN)",
+        "Uses API token auth only - no CLI login needed",
+        "Get token from Railway Dashboard \u2192 Account Settings \u2192 Tokens",
+        "Config updated in .mcp.json on Jan 9, 2026",
+        "Full .mcp.json config: { railway: { command: 'npx', args: ['-y', '@anthropic-ai/mcp-server-railway'], env: { RAILWAY_API_TOKEN: '...' } } }",
+        "Available tools: list-projects, list-services, deploy, get-logs, set-variables, list-variables, create-project-and-link, generate-domain, deploy-template",
+        "Requires Claude Code restart after config changes to reload MCP servers",
+        "GitHub repo: https://github.com/railwayapp/mcp-server",
+        "RAILWAY_TOKEN env var requires Dashboard API token, NOT session token from CLI login",
+        "Session token from ~/.railway/config.json starts with 'rw_' - doesn't work as env var",
+        "Solution: Pass HOME=/home/aaron env var so MCP can find ~/.railway/config.json",
+        "Final working config: { command: 'npx', args: ['-y', '@anthropic-ai/mcp-server-railway'], env: { HOME: '/home/aaron' } }",
+        "MadeBuy already linked to Railway project 'artistic-simplicity' (id: 16b15ab6-92d1-47ed-887d-726ed57ebb50)"
+      ],
+      "tags": [
+        "railway",
+        "mcp",
+        "deployment",
+        "infrastructure"
       ]
     }
   },
@@ -4207,5 +4243,15 @@
       ],
       "commit": "578536d"
     }
-  ]
+  ],
+  "credentials": {
+    "madebuy test credentials": {
+      "value_encrypted": "bszZksq/jgfj+tDoKaR7fgxRS9HZRQma/zKx0nY2Hr46GyrfCYaVQtChHVBmn94aZEt51TuebUk+Ac5ZiQiV81MM6Y+/TWSV8aplD0RjVF1c96TSv2jog/5HpdM=",
+      "type": "encrypted",
+      "created_at": "2026-01-10T00:14:58.800669",
+      "tags": [
+        "credential"
+      ]
+    }
+  }
 }
