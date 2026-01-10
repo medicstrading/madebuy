@@ -34,6 +34,7 @@ export * from './scanner'
 export * from './review'
 export * from './wishlist'
 export * from './dispute'
+export * from './captionStyle'
 
 // Re-export commonly used types for convenience
 export type {
@@ -331,6 +332,65 @@ export type {
   UpdateBundleInput,
   BundleListOptions,
 } from './bundle'
+
+export type {
+  CaptionStyleProfile,
+  CaptionStyleOptions,
+  CaptionTone,
+  EmojiUsage,
+  LengthPreference,
+  HashtagStyle,
+  CallToActionStyle,
+  ExamplePost,
+  LearnedExample,
+  CreateCaptionStyleInput,
+  UpdateCaptionStyleInput,
+} from './captionStyle'
+
+export {
+  PLATFORM_DEFAULT_STYLES,
+  PLATFORM_GUIDELINES,
+  TONE_LABELS,
+  EMOJI_USAGE_LABELS,
+  LENGTH_LABELS,
+  HASHTAG_LABELS,
+  CTA_LABELS,
+} from './captionStyle'
+
+export * from './marketplace'
+
+export type {
+  MarketplacePlatform,
+  MarketplaceConnectionStatus,
+  MarketplaceConnection,
+  MarketplaceListingStatus,
+  MarketplaceListing,
+  MarketplaceOrderStatus,
+  MarketplaceOrder,
+  MarketplaceOrderItem,
+  CreateMarketplaceConnectionInput,
+  UpdateMarketplaceConnectionInput,
+  CreateMarketplaceListingInput,
+  UpdateMarketplaceListingInput,
+  CreateMarketplaceOrderInput,
+  MarketplaceListingFilters,
+  MarketplaceOrderFilters,
+  MarketplaceOAuthConfig,
+  MarketplaceOAuthState,
+  MarketplaceTokenResponse,
+  ListingSyncResult,
+  InventorySyncResult,
+  OrderImportResult,
+  EbayConfig,
+  EtsyConfig,
+} from './marketplace'
+
+export {
+  MARKETPLACE_LABELS,
+  MARKETPLACE_LISTING_STATUS_LABELS,
+  MARKETPLACE_ORDER_STATUS_LABELS,
+  MARKETPLACE_FEATURES,
+} from './marketplace'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)

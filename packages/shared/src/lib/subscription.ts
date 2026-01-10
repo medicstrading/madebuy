@@ -224,6 +224,7 @@ export function getUpgradeMessage(currentPlan: Plan, feature: keyof TenantFeatur
     prioritySupport: 'Priority support',
     apiAccess: 'API access',
     advancedAnalytics: 'Advanced analytics',
+    marketplaceSync: 'Marketplace sync',
   }
 
   return `${featureNames[feature]} requires a ${requiredPlanName} plan or higher. Upgrade to unlock this feature.`

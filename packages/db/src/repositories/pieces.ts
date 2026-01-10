@@ -750,3 +750,72 @@ export async function bulkUpdateLowStockThresholds(
   const result = await db.collection('pieces').bulkWrite(operations)
   return result.modifiedCount
 }
+
+/**
+ * Decrement stock for a piece atomically
+ * Returns true if successful, false if insufficient stock
+ *
+ * For unlimited stock (null/undefined), returns true without decrementing
+ * to avoid setting stock to negative values.
+ */
+export async function decrementStock(
+  tenantId: string,
+  pieceId: string,
+  quantity: number = 1
+): Promise<boolean> {
+  const db = await getDatabase()
+
+  // First, check if the piece has unlimited stock (null/undefined)
+  const piece = await db.collection('pieces').findOne(
+    { tenantId, id: pieceId },
+    { projection: { stock: 1 } }
+  )
+
+  if (!piece) {
+    return false // Piece not found
+  }
+
+  // If stock is null or undefined (unlimited), don't decrement - just return success
+  if (piece.stock === null || piece.stock === undefined) {
+    return true
+  }
+
+  // Check if there's enough stock
+  if (typeof piece.stock === 'number' && piece.stock < quantity) {
+    return false // Insufficient stock
+  }
+
+  // Atomically decrement stock only if there's enough
+  const result = await db.collection('pieces').updateOne(
+    {
+      tenantId,
+      id: pieceId,
+      stock: { $gte: quantity },
+    },
+    {
+      $inc: { stock: -quantity },
+      $set: { updatedAt: new Date() },
+    }
+  )
+
+  return result.modifiedCount > 0
+}
+
+/**
+ * Increment stock for a piece (e.g., for restocking or order cancellations)
+ */
+export async function incrementStock(
+  tenantId: string,
+  pieceId: string,
+  quantity: number = 1
+): Promise<void> {
+  const db = await getDatabase()
+
+  await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId },
+    {
+      $inc: { stock: quantity },
+      $set: { updatedAt: new Date() },
+    }
+  )
+}

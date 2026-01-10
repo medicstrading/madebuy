@@ -140,6 +140,7 @@ export interface TenantFeatures {
   prioritySupport: boolean
   apiAccess: boolean
   advancedAnalytics: boolean
+  marketplaceSync?: boolean // eBay/Etsy marketplace integration (Pro+)
 }
 
 // Usage tracking - stored separately on tenant for quota enforcement

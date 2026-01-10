@@ -11,6 +11,8 @@ import {
   Receipt,
   Percent,
   Bell,
+  Sparkles,
+  Store,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +32,12 @@ const settingsNavItems = [
     href: '/dashboard/settings/payments',
     icon: CreditCard,
     description: 'Stripe Connect setup',
+  },
+  {
+    name: 'Marketplaces',
+    href: '/dashboard/settings/marketplace',
+    icon: Store,
+    description: 'eBay & Etsy connections',
   },
   {
     name: 'Shipping',
@@ -66,6 +74,12 @@ const settingsNavItems = [
     href: '/dashboard/settings/notifications',
     icon: Bell,
     description: 'Email notification preferences',
+  },
+  {
+    name: 'Caption Style',
+    href: '/dashboard/settings/caption-style',
+    icon: Sparkles,
+    description: 'AI caption preferences',
   },
 ]
 
