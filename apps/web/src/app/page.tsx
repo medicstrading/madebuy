@@ -21,7 +21,6 @@ import {
   Image,
   Video,
   Cloud,
-  Zap,
   ArrowRight,
   Play,
   Layout,
@@ -100,26 +99,23 @@ export default function LandingPage() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Tagline badge */}
-            <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-10">
-              <Zap className="w-4 h-4" />
-              <span>One platform. Everything you need.</span>
-            </div>
-
-            {/* Main headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-[1.15] mb-8 tracking-tight">
-              From workshop to world{' '}
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">— simplified.</span>
-                <svg className="absolute -bottom-1 left-0 w-full h-3 text-amber-300/60" viewBox="0 0 200 12" preserveAspectRatio="none">
-                  <path d="M0,8 Q40,2 80,8 T160,6 T200,8" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+            {/* Main headline - Cinematic entrance */}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 leading-[1.1] mb-10 tracking-tight">
+              <span className="inline-block animate-fade-up-1">From</span>{' '}
+              <span className="inline-block animate-fade-up-1">workshop</span>{' '}
+              <span className="inline-block animate-fade-up-2">to</span>{' '}
+              <span className="inline-block animate-fade-up-2">world</span>{' '}
+              <span className="relative inline-block animate-fade-up-3">
+                <span className="relative z-10 bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent animate-glow">— simplified.</span>
+                <svg className="absolute -bottom-2 left-0 w-full h-4" viewBox="0 0 200 12" preserveAspectRatio="none">
+                  <path className="animate-draw-line" d="M0,8 Q40,2 80,8 T160,6 T200,8" fill="none" stroke="#FCD34D" strokeWidth="5" strokeLinecap="round" />
                 </svg>
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Inventory, media storage, social scheduling, and marketplace selling — all in one place. You didn&apos;t start making things to juggle 10 different apps.
+            <p className="text-xl lg:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-up-4">
+              Inventory, media storage, social scheduling, and marketplace selling — all in one place.
             </p>
 
             {/* Platform logos row */}
@@ -1017,6 +1013,28 @@ export default function LandingPage() {
         .animate-float-delayed {
           animation: float 5s ease-in-out infinite 2.5s;
         }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes drawLine {
+          from { stroke-dashoffset: 300; }
+          to { stroke-dashoffset: 0; }
+        }
+        @keyframes glowPulse {
+          0%, 100% { filter: drop-shadow(0 0 20px rgba(251, 146, 60, 0.3)); }
+          50% { filter: drop-shadow(0 0 40px rgba(251, 146, 60, 0.5)); }
+        }
+        .animate-fade-up-1 { animation: fadeUp 0.8s ease-out forwards; opacity: 0; }
+        .animate-fade-up-2 { animation: fadeUp 0.8s ease-out 0.15s forwards; opacity: 0; }
+        .animate-fade-up-3 { animation: fadeUp 0.8s ease-out 0.3s forwards; opacity: 0; }
+        .animate-fade-up-4 { animation: fadeUp 0.8s ease-out 0.5s forwards; opacity: 0; }
+        .animate-draw-line {
+          stroke-dasharray: 300;
+          stroke-dashoffset: 300;
+          animation: drawLine 1s ease-out 0.7s forwards;
+        }
+        .animate-glow { animation: glowPulse 3s ease-in-out infinite 1s; }
       `}</style>
     </div>
   )
