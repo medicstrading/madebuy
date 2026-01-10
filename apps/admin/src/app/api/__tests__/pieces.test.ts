@@ -45,8 +45,16 @@ describe('Pieces API', () => {
     slug: 'silver-ring',
     description: 'A beautiful silver ring',
     price: 99.99,
-    status: 'available',
+    status: 'available' as const,
     mediaIds: [],
+    materials: [],
+    techniques: [],
+    currency: 'AUD',
+    isFeatured: false,
+    category: 'Rings',
+    tags: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   beforeEach(() => {

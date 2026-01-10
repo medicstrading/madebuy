@@ -192,6 +192,10 @@ describe('Tenants Repository', () => {
         status: 'active',
         chargesEnabled: true,
         payoutsEnabled: true,
+        onboardingComplete: true,
+        detailsSubmitted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
 
       const data = getMockCollectionData('tenants')
@@ -265,12 +269,12 @@ describe('Tenants Repository', () => {
     })
 
     it('should update onboarding step', async () => {
-      await tenants.updateOnboardingStep('tenant-123', 'payment')
+      await tenants.updateOnboardingStep('tenant-123', 'design')
 
       const data = getMockCollectionData('tenants')
       const updated = data.find(t => t.id === 'tenant-123')
 
-      expect(updated?.onboardingStep).toBe('payment')
+      expect(updated?.onboardingStep).toBe('design')
     })
 
     it('should complete onboarding', async () => {

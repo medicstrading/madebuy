@@ -191,7 +191,7 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
                       {formatCurrency(item.product.price, item.product.currency)} each
                     </p>
                     {/* Show bundle savings */}
-                    {isBundle && bundleData?.discountPercent > 0 && (
+                    {isBundle && bundleData && bundleData.discountPercent > 0 && (
                       <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
                         <Percent className="h-3 w-3" />
                         <span>Save {bundleData.discountPercent}%</span>

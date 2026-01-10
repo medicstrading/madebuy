@@ -23,6 +23,7 @@ describe('Orders Repository', () => {
         name: 'Silver Ring',
         price: 99.99,
         quantity: 2,
+        category: 'Jewelry',
       },
     ],
     subtotal: 199.98,
@@ -35,10 +36,11 @@ describe('Orders Repository', () => {
       line1: '123 Test St',
       city: 'Sydney',
       state: 'NSW',
-      postalCode: '2000',
+      postcode: '2000',
       country: 'AU',
     },
     shippingMethod: 'standard',
+    shippingType: 'domestic' as const,
     paymentMethod: 'stripe' as const,
     paymentStatus: 'pending' as const,
     status: 'pending' as const,
@@ -55,15 +57,17 @@ describe('Orders Repository', () => {
           customerEmail: 'test@example.com',
           customerName: 'Test User',
           items: [
-            { pieceId: 'piece-1', name: 'Ring', price: 100, quantity: 2 },
+            { pieceId: 'piece-1', name: 'Ring', price: 100, quantity: 2, category: 'Jewelry' },
           ],
           shippingAddress: {
             line1: '456 Test Ave',
             city: 'Melbourne',
             state: 'VIC',
-            postalCode: '3000',
+            postcode: '3000',
             country: 'AU',
           },
+          shippingMethod: 'standard',
+          shippingType: 'domestic',
         },
         { shipping: 10, tax: 20, discount: 5 }
       )
@@ -84,14 +88,16 @@ describe('Orders Repository', () => {
         {
           customerEmail: 'test1@example.com',
           customerName: 'Test 1',
-          items: [{ pieceId: 'piece-1', name: 'Item', price: 50, quantity: 1 }],
+          items: [{ pieceId: 'piece-1', name: 'Item', price: 50, quantity: 1, category: 'General' }],
           shippingAddress: {
             line1: '1 Test St',
             city: 'Sydney',
             state: 'NSW',
-            postalCode: '2000',
+            postcode: '2000',
             country: 'AU',
           },
+          shippingMethod: 'standard',
+          shippingType: 'domestic',
         },
         { shipping: 5, tax: 5 }
       )
@@ -101,14 +107,16 @@ describe('Orders Repository', () => {
         {
           customerEmail: 'test2@example.com',
           customerName: 'Test 2',
-          items: [{ pieceId: 'piece-2', name: 'Item', price: 60, quantity: 1 }],
+          items: [{ pieceId: 'piece-2', name: 'Item', price: 60, quantity: 1, category: 'General' }],
           shippingAddress: {
             line1: '2 Test St',
             city: 'Sydney',
             state: 'NSW',
-            postalCode: '2000',
+            postcode: '2000',
             country: 'AU',
           },
+          shippingMethod: 'standard',
+          shippingType: 'domestic',
         },
         { shipping: 5, tax: 6 }
       )
@@ -122,14 +130,16 @@ describe('Orders Repository', () => {
         {
           customerEmail: 'test@example.com',
           customerName: 'Test',
-          items: [{ pieceId: 'piece-1', name: 'Item', price: 100, quantity: 1 }],
+          items: [{ pieceId: 'piece-1', name: 'Item', price: 100, quantity: 1, category: 'General' }],
           shippingAddress: {
             line1: '1 Test St',
             city: 'Sydney',
             state: 'NSW',
-            postalCode: '2000',
+            postcode: '2000',
             country: 'AU',
           },
+          shippingMethod: 'standard',
+          shippingType: 'domestic',
         },
         { shipping: 10, tax: 10, stripeSessionId: 'cs_test_unique_123' }
       )

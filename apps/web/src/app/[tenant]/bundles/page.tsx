@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: BundlesPageProps): Promise<Me
   if (!tenant) return { title: 'Shop Not Found' }
 
   return {
-    title: `Bundles | ${tenant.shopName || tenant.name}`,
-    description: `Save more with our product bundles at ${tenant.shopName || tenant.name}`,
+    title: `Bundles | ${tenant.businessName}`,
+    description: `Save more with our product bundles at ${tenant.businessName}`,
   }
 }
 
@@ -37,7 +37,7 @@ export default async function BundlesPage({ params }: BundlesPageProps) {
     activeBundles.map(bundle => bundles.getBundleWithPieces(tenant.id, bundle.id))
   )
 
-  const validBundles = bundlesWithPieces.filter(Boolean) as Awaited<ReturnType<typeof bundles.getBundleWithPieces>>[]
+  const validBundles = bundlesWithPieces.filter((b): b is NonNullable<typeof b> => b !== null)
 
   return (
     <div className="min-h-screen bg-gray-50">

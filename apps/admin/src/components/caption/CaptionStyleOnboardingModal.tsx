@@ -175,7 +175,7 @@ export function CaptionStyleOnboardingModal({
                 Teach AI Your {platformName} Style
               </h3>
               <p className="text-gray-600 max-w-md mx-auto mb-6">
-                We'll learn how you like to write captions so every AI-generated
+                We&apos;ll learn how you like to write captions so every AI-generated
                 caption matches your unique voice and style.
               </p>
               <div className="grid grid-cols-3 gap-4 text-sm max-w-md mx-auto">
@@ -202,7 +202,7 @@ export function CaptionStyleOnboardingModal({
                 Share Your Caption Style
               </h3>
               <p className="text-gray-600 mb-4">
-                Paste 3-5 captions you've written before or ones you love.
+                Paste 3-5 captions you&apos;ve written before or ones you love.
                 These help AI learn your voice.
               </p>
 

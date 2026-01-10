@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
  * - error_description: Human-readable error message
  */
 export async function GET(request: NextRequest) {
-  const baseRedirectPath = '/dashboard/connections/social'
+  const baseRedirectPath = '/dashboard/connections'
 
   try {
     const searchParams = request.nextUrl.searchParams

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentTenant } from '@/lib/session'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import { marketplace } from '@madebuy/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,17 @@ export default async function DashboardLayout({
 
   if (!tenant) {
     redirect('/login')
+  }
+
+  // Fetch marketplace connections to determine sidebar visibility
+  const [ebayConnection, etsyConnection] = await Promise.all([
+    marketplace.getConnectionByMarketplace(tenant.id, 'ebay').catch(() => null),
+    marketplace.getConnectionByMarketplace(tenant.id, 'etsy').catch(() => null),
+  ])
+
+  const marketplaceConnections = {
+    ebay: ebayConnection?.status === 'connected' && ebayConnection?.enabled === true,
+    etsy: etsyConnection?.status === 'connected' && etsyConnection?.enabled === true,
   }
 
   // Serialize to plain objects for client components (avoid MongoDB ObjectId/Date hydration issues)
@@ -30,7 +42,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardShell user={user} tenant={serializedTenant}>
+    <DashboardShell user={user} tenant={serializedTenant} marketplaceConnections={marketplaceConnections}>
       {children}
     </DashboardShell>
   )

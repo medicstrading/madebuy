@@ -204,8 +204,8 @@ export default function SettingsPage() {
             description="These categories appear in your inventory dropdown. Add custom ones or remove presets you don't need."
             presetCategories={presetProductCategories}
             customCategories={tenant.customCategories || []}
-            onAddCategory={(cat) => handleAddCategory(cat, 'product')}
-            onRemoveCategory={(cat) => handleRemoveCategory(cat, 'product')}
+            onAddCategory={(cat: string) => handleAddCategory(cat, 'product')}
+            onRemoveCategory={(cat: string) => handleRemoveCategory(cat, 'product')}
             disabled={saveStatus === 'saving'}
           />
         </div>
@@ -232,8 +232,8 @@ export default function SettingsPage() {
             description="These categories appear in your materials dropdown. Add custom ones for your specific supplies."
             presetCategories={presetMaterialCategories}
             customCategories={tenant.customMaterialCategories || []}
-            onAddCategory={(cat) => handleAddCategory(cat, 'material')}
-            onRemoveCategory={(cat) => handleRemoveCategory(cat, 'material')}
+            onAddCategory={(cat: string) => handleAddCategory(cat, 'material')}
+            onRemoveCategory={(cat: string) => handleRemoveCategory(cat, 'material')}
             disabled={saveStatus === 'saving'}
           />
         </div>

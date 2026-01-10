@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: BundlePageProps): Promise<Met
   if (!bundle || bundle.status !== 'active') return { title: 'Bundle Not Found' }
 
   return {
-    title: `${bundle.name} | ${tenant.shopName || tenant.name}`,
+    title: `${bundle.name} | ${tenant.businessName}`,
     description: bundle.description || `Save ${bundle.discountPercent}% with this bundle of ${bundle.pieceDetails.length} products`,
   }
 }

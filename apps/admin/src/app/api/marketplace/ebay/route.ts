@@ -19,6 +19,7 @@ export async function GET() {
     if (!connection) {
       return NextResponse.json({
         connected: false,
+        enabled: false,
         marketplace: 'ebay',
       })
     }
@@ -26,6 +27,7 @@ export async function GET() {
     // Don't expose tokens to client
     return NextResponse.json({
       connected: connection.status === 'connected',
+      enabled: connection.enabled ?? false,
       marketplace: 'ebay',
       status: connection.status,
       shopName: connection.shopName,
@@ -70,6 +72,43 @@ export async function DELETE() {
     console.error('Error disconnecting eBay:', error)
     return NextResponse.json(
       { error: 'Failed to disconnect eBay' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * PATCH /api/marketplace/ebay
+ *
+ * Update eBay connection settings (e.g., toggle enabled)
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const tenant = await getCurrentTenant()
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { enabled } = body
+
+    if (typeof enabled !== 'boolean') {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    }
+
+    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+
+    if (!connection) {
+      return NextResponse.json({ error: 'No eBay connection found' }, { status: 404 })
+    }
+
+    await marketplace.updateConnection(tenant.id, connection.id, { enabled })
+
+    return NextResponse.json({ success: true, enabled })
+  } catch (error) {
+    console.error('Error updating eBay connection:', error)
+    return NextResponse.json(
+      { error: 'Failed to update eBay connection' },
       { status: 500 }
     )
   }

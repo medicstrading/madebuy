@@ -123,7 +123,7 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
                 className="w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a category</option>
-                {categories.map((cat) => (
+                {categories.map((cat: string) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>

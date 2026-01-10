@@ -7,6 +7,11 @@ import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcuts'
 import { ShortcutsHelp } from '@/components/ui/ShortcutsHelp'
 import { ShortcutsHint } from '@/components/ui/ShortcutsHint'
 
+interface MarketplaceConnections {
+  ebay: boolean
+  etsy: boolean
+}
+
 interface DashboardShellProps {
   children: React.ReactNode
   user: {
@@ -19,9 +24,10 @@ interface DashboardShellProps {
     businessName: string
     plan?: string
   } | null
+  marketplaceConnections?: MarketplaceConnections
 }
 
-export function DashboardShell({ children, user, tenant }: DashboardShellProps) {
+export function DashboardShell({ children, user, tenant, marketplaceConnections }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -31,6 +37,7 @@ export function DashboardShell({ children, user, tenant }: DashboardShellProps) 
           tenant={tenant}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          marketplaceConnections={marketplaceConnections}
         />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header

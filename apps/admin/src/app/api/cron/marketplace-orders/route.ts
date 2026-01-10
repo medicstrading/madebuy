@@ -277,7 +277,7 @@ async function mapEbayOrderToMadeBuy(
 ): Promise<CreateMarketplaceOrderInput> {
   // Map order items and try to match with MadeBuy pieces
   const items = await Promise.all(
-    (ebayOrder.lineItems || []).map(async (item) => {
+    (ebayOrder.lineItems || []).map(async (item: any) => {
       // Try to find the piece by SKU
       let pieceId: string | undefined
       if (item.sku) {
@@ -307,7 +307,7 @@ async function mapEbayOrderToMadeBuy(
   )
 
   // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0)
+  const subtotal = items.reduce((sum: number, item: any) => sum + item.totalPrice, 0)
   const shippingCost = parseFloat(
     ebayOrder.pricingSummary?.deliveryCost?.value || '0'
   )

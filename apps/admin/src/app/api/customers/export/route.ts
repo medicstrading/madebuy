@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch customers matching filters with limit to prevent memory issues
-    const customerData = await customers.exportCustomers(tenant.id, filters, MAX_EXPORT_RECORDS)
+    const customerData = await customers.exportCustomers(tenant.id, filters)
 
     // Warn if export was truncated
     if (customerData.length >= MAX_EXPORT_RECORDS) {

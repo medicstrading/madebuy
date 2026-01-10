@@ -29,7 +29,7 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
 
   // Get the pieces that are in the wishlist
   const wishlistPieces = pieceIds
-    .map(pieceId => allPieces.find(p => p.id === pieceId))
+    .map((pieceId: string) => allPieces.find((p: PieceWithMedia) => p.id === pieceId))
     .filter((p): p is PieceWithMedia => p !== undefined)
 
   if (wishlistPieces.length === 0) {
@@ -53,7 +53,7 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
 
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {wishlistPieces.map((piece) => (
+      {wishlistPieces.map((piece: PieceWithMedia) => (
         <div
           key={piece.id}
           className="group rounded-2xl border border-gray-100 bg-white overflow-hidden hover:shadow-lg transition-shadow"

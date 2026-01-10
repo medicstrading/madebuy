@@ -281,7 +281,7 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                 }`}
               >
                 <option value="">Select a category</option>
-                {categories.map((cat) => (
+                {categories.map((cat: string) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>

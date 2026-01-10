@@ -60,6 +60,7 @@ export async function createConnection(
     shopName: input.shopName,
     scopes: input.scopes,
     status: 'connected',
+    enabled: false, // User must explicitly enable marketplace in sidebar
     createdAt: new Date(),
     updatedAt: new Date(),
   }

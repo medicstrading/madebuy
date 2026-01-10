@@ -102,7 +102,7 @@ export default async function PieceDetailPage({
             {/* Additional images */}
             {piece.allImages && piece.allImages.length > 1 && (
               <div className="mt-4 grid grid-cols-4 gap-2">
-                {piece.allImages.slice(0, 4).map((img, idx) => (
+                {piece.allImages.slice(0, 4).map((img: any, idx: number) => (
                   <div key={idx} className="relative aspect-square overflow-hidden rounded-md">
                     <Image
                       src={img.variants.thumb?.url || img.variants.original.url}
@@ -150,7 +150,7 @@ export default async function PieceDetailPage({
               <div className="mt-6">
                 <h2 className="text-lg font-semibold text-gray-900">Materials</h2>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {piece.materials.map((material, idx) => (
+                  {piece.materials.map((material: string, idx: number) => (
                     <span
                       key={idx}
                       className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
@@ -166,7 +166,7 @@ export default async function PieceDetailPage({
             {piece.tags && piece.tags.length > 0 && (
               <div className="mt-6">
                 <div className="flex flex-wrap gap-2">
-                  {piece.tags.map((tag, idx) => (
+                  {piece.tags.map((tag: string, idx: number) => (
                     <span
                       key={idx}
                       className="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700"

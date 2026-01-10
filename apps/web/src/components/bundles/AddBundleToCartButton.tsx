@@ -48,9 +48,17 @@ export function AddBundleToCartButton({
       createdAt: bundle.createdAt,
       updatedAt: bundle.updatedAt,
       // Store bundle details in a way the cart can use
-      materials: [],
-      techniques: [],
+      attributes: {},
       allImages: [],
+      marketplace: {
+        listed: false,
+        categories: [],
+        approvalStatus: 'pending',
+        marketplaceViews: 0,
+        marketplaceSales: 0,
+        avgRating: 0,
+        totalReviews: 0,
+      },
       // Bundle metadata with proper typing
       _bundleData: {
         bundleId: bundle.id,

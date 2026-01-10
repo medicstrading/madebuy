@@ -39,6 +39,7 @@ export interface MarketplaceConnection {
 
   // Connection state
   status: MarketplaceConnectionStatus
+  enabled: boolean // Show in sidebar/enable marketplace features
   lastError?: string
   lastSyncAt?: Date
 
@@ -234,6 +235,7 @@ export interface UpdateMarketplaceConnectionInput {
   refreshToken?: string
   tokenExpiresAt?: Date
   status?: MarketplaceConnectionStatus
+  enabled?: boolean
   lastError?: string
   lastSyncAt?: Date
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { marketplace } from '@madebuy/db'
 
@@ -19,6 +19,7 @@ export async function GET() {
     if (!connection) {
       return NextResponse.json({
         connected: false,
+        enabled: false,
         marketplace: 'etsy',
       })
     }
@@ -26,6 +27,7 @@ export async function GET() {
     // Don't expose tokens to client
     return NextResponse.json({
       connected: connection.status === 'connected',
+      enabled: connection.enabled ?? false,
       marketplace: 'etsy',
       status: connection.status,
       shopName: connection.shopName,
@@ -70,6 +72,43 @@ export async function DELETE() {
     console.error('Error disconnecting Etsy:', error)
     return NextResponse.json(
       { error: 'Failed to disconnect Etsy' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * PATCH /api/marketplace/etsy
+ *
+ * Update Etsy connection settings (e.g., toggle enabled)
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const tenant = await getCurrentTenant()
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { enabled } = body
+
+    if (typeof enabled !== 'boolean') {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    }
+
+    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+
+    if (!connection) {
+      return NextResponse.json({ error: 'No Etsy connection found' }, { status: 404 })
+    }
+
+    await marketplace.updateConnection(tenant.id, connection.id, { enabled })
+
+    return NextResponse.json({ success: true, enabled })
+  } catch (error) {
+    console.error('Error updating Etsy connection:', error)
+    return NextResponse.json(
+      { error: 'Failed to update Etsy connection' },
       { status: 500 }
     )
   }

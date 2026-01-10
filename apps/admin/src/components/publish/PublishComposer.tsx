@@ -580,7 +580,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                 {connectedPlatforms.length === 0 && (
                   <p className="text-sm text-gray-500">
                     No platforms connected.{' '}
-                    <a href="/dashboard/connections/social" className="text-blue-600 hover:underline">
+                    <a href="/dashboard/connections" className="text-blue-600 hover:underline">
                       Connect accounts
                     </a>
                   </p>

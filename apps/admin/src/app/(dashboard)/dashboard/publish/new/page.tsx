@@ -13,8 +13,8 @@ export default async function NewPublishPage() {
 
   // Get connected platforms
   const connectedPlatforms: SocialPlatform[] = tenant.socialConnections
-    ?.filter(conn => conn.isActive)
-    .map(conn => conn.platform) || []
+    ?.filter((conn: any) => conn.isActive)
+    .map((conn: any) => conn.platform) || []
 
   // Add website-blog if enabled
   if (tenant.websiteDesign?.blog?.enabled) {
@@ -47,7 +47,7 @@ export default async function NewPublishPage() {
             You need to connect at least one social media account before you can publish.
           </p>
           <Link
-            href="/dashboard/connections/social"
+            href="/dashboard/connections"
             className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
           >
             Connect Accounts

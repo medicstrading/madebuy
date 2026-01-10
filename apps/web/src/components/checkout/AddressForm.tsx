@@ -33,7 +33,7 @@ export function AddressForm({
 
   // Handle field changes
   const handleChange = useCallback(
-    (field: keyof ShippingAddress, fieldValue: string) => {
+    (field: keyof ShippingAddress & string, fieldValue: string) => {
       const newAddress: ShippingAddress = {
         name: value.name || '',
         phone: value.phone || '',

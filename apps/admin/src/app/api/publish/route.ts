@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Check if tenant has social connections for the requested platforms
     const requestedPlatforms = data.platforms
-    const connectedPlatforms = tenant.socialConnections?.map(c => c.platform) || []
+    const connectedPlatforms = tenant.socialConnections?.map((c: any) => c.platform) || []
 
     // Add website-blog if enabled
     if (tenant.websiteDesign?.blog?.enabled) {

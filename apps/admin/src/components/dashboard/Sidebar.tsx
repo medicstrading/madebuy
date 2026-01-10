@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -15,6 +16,7 @@ import {
   Settings,
   Paintbrush,
   ChevronRight,
+  ChevronDown,
   Tag,
   Newspaper,
   FolderOpen,
@@ -25,8 +27,14 @@ import {
   Star,
   BarChart3,
   Gift,
+  Store,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+interface MarketplaceConnections {
+  ebay: boolean
+  etsy: boolean
+}
 
 interface SidebarProps {
   tenant?: {
@@ -36,6 +44,7 @@ interface SidebarProps {
   } | null
   isOpen?: boolean
   onClose?: () => void
+  marketplaceConnections?: MarketplaceConnections
 }
 
 const planLabels: Record<string, string> = {
@@ -93,8 +102,13 @@ const navigationGroups = [
   }
 ]
 
-export function Sidebar({ tenant, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: SidebarProps) {
   const pathname = usePathname()
+  const [marketplaceExpanded, setMarketplaceExpanded] = useState(
+    pathname?.startsWith('/dashboard/marketplace') || false
+  )
+
+  const hasAnyMarketplace = marketplaceConnections?.ebay || marketplaceConnections?.etsy
 
   const sidebarContent = (
     <>
@@ -120,38 +134,107 @@ export function Sidebar({ tenant, isOpen, onClose }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         {navigationGroups.map((group, groupIndex) => (
-          <div key={group.label} className={cn(groupIndex > 0 && 'mt-6')}>
-            <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {group.label}
-            </h3>
-            <div className="space-y-1">
-              {group.items.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
-                const Icon = item.icon
-
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={onClose}
+          <div key={group.label}>
+            {/* Insert Marketplace before System group */}
+            {group.label === 'System' && hasAnyMarketplace && (
+              <div className="mt-6">
+                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  Marketplace
+                </h3>
+                <div className="space-y-1">
+                  {/* Expandable Marketplace parent */}
+                  <button
+                    onClick={() => setMarketplaceExpanded(!marketplaceExpanded)}
                     className={cn(
-                      'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                      isActive
+                      'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                      pathname?.startsWith('/dashboard/marketplace')
                         ? 'bg-blue-50 text-blue-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     )}
                   >
-                    <Icon className={cn(
+                    <Store className={cn(
                       'h-5 w-5 transition-colors',
-                      isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                      pathname?.startsWith('/dashboard/marketplace') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
                     )} />
-                    <span className="flex-1">{item.name}</span>
-                    {isActive && (
-                      <ChevronRight className="h-4 w-4 text-blue-400" />
-                    )}
-                  </Link>
-                )
-              })}
+                    <span className="flex-1 text-left">Marketplaces</span>
+                    <ChevronDown className={cn(
+                      'h-4 w-4 transition-transform duration-200',
+                      marketplaceExpanded ? 'rotate-180' : ''
+                    )} />
+                  </button>
+
+                  {/* Marketplace sub-items */}
+                  {marketplaceExpanded && (
+                    <div className="ml-4 space-y-1 border-l border-gray-200 pl-3">
+                      {marketplaceConnections?.ebay && (
+                        <Link
+                          href="/dashboard/marketplace/ebay"
+                          onClick={onClose}
+                          className={cn(
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                            pathname === '/dashboard/marketplace/ebay'
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          )}
+                        >
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-xs font-bold text-blue-600">e</span>
+                          <span>eBay</span>
+                        </Link>
+                      )}
+                      {marketplaceConnections?.etsy && (
+                        <Link
+                          href="/dashboard/marketplace/etsy"
+                          onClick={onClose}
+                          className={cn(
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                            pathname === '/dashboard/marketplace/etsy'
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          )}
+                        >
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-100 text-xs font-bold text-orange-600">E</span>
+                          <span>Etsy</span>
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className={cn(groupIndex > 0 && 'mt-6')}>
+              <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                {group.label}
+              </h3>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+                  const Icon = item.icon
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={onClose}
+                      className={cn(
+                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                        isActive
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      )}
+                    >
+                      <Icon className={cn(
+                        'h-5 w-5 transition-colors',
+                        isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                      )} />
+                      <span className="flex-1">{item.name}</span>
+                      {isActive && (
+                        <ChevronRight className="h-4 w-4 text-blue-400" />
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
           </div>
         ))}

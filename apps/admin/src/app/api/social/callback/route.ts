@@ -15,13 +15,13 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('OAuth error:', error)
       return NextResponse.redirect(
-        new URL('/dashboard/connections/social?error=oauth_failed', request.url)
+        new URL('/dashboard/connections?error=oauth_failed', request.url)
       )
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/dashboard/connections/social?error=missing_params', request.url)
+        new URL('/dashboard/connections?error=missing_params', request.url)
       )
     }
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     if (!tenantId || !platform) {
       return NextResponse.redirect(
-        new URL('/dashboard/connections/social?error=invalid_state', request.url)
+        new URL('/dashboard/connections?error=invalid_state', request.url)
       )
     }
 
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const tenant = await tenants.getTenantById(tenantId)
     if (!tenant) {
       return NextResponse.redirect(
-        new URL('/dashboard/connections/social?error=tenant_not_found', request.url)
+        new URL('/dashboard/connections?error=tenant_not_found', request.url)
       )
     }
 
@@ -83,12 +83,12 @@ export async function GET(request: NextRequest) {
 
     // Redirect back to settings page with success
     return NextResponse.redirect(
-      new URL(`/dashboard/connections/social?success=${platform}`, request.url)
+      new URL(`/dashboard/connections?success=${platform}`, request.url)
     )
   } catch (error) {
     console.error('OAuth callback error:', error)
     return NextResponse.redirect(
-      new URL('/dashboard/connections/social?error=callback_failed', request.url)
+      new URL('/dashboard/connections?error=callback_failed', request.url)
     )
   }
 }

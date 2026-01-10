@@ -18,7 +18,7 @@ export async function DELETE(
     // Remove the connection from tenant's social connections
     const existingConnections = tenant.socialConnections || []
     const updatedConnections = existingConnections.filter(
-      c => c.platform !== platform
+      (c: any) => c.platform !== platform
     )
 
     await tenants.updateTenant(tenant.id, {

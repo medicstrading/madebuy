@@ -128,7 +128,7 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tenantId,
-          items: items.map(item => ({
+          items: items.map((item: any) => ({
             pieceId: item.product.id,
             quantity: item.quantity,
             price: item.product.price,
@@ -518,7 +518,7 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
           {/* Items */}
           <div className="mt-4 space-y-4">
-            {items.map(item => {
+            {items.map((item: any) => {
               // Get image URL - handle both string and MediaItem types
               const imageUrl = typeof item.product.primaryImage === 'string'
                 ? item.product.primaryImage

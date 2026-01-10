@@ -47,7 +47,7 @@ export default async function PublishPage() {
             Connect your Instagram, Facebook, or other social media accounts to start publishing.
           </p>
           <Link
-            href="/dashboard/connections/social"
+            href="/dashboard/connections"
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             Connect Accounts

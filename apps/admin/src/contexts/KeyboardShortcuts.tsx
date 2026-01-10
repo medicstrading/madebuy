@@ -92,13 +92,13 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
   // Get context-aware "new" path
   const getNewItemPath = useCallback(() => {
     // Find exact match first
-    if (NEW_ITEM_PATHS[pathname]) {
+    if (pathname && NEW_ITEM_PATHS[pathname]) {
       return NEW_ITEM_PATHS[pathname]
     }
 
     // Find partial match for nested routes
     for (const [basePath, newPath] of Object.entries(NEW_ITEM_PATHS)) {
-      if (pathname.startsWith(basePath)) {
+      if (pathname && pathname.startsWith(basePath)) {
         return newPath
       }
     }
