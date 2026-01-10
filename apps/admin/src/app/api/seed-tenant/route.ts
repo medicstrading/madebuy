@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
-import { getDb } from '@madebuy/db'
+import { getDatabase } from '@madebuy/db'
 
 // One-time seed endpoint - DELETE AFTER USE
 // Protected by SEED_SECRET environment variable
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const db = await getDb()
+    const db = await getDatabase()
     const tenantsCollection = db.collection('tenants')
 
     // Check if tenant already exists
