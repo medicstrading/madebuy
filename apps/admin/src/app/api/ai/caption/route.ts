@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { media } from '@madebuy/db'
+import { media, captionStyles } from '@madebuy/db'
 import { generateCaption } from '@madebuy/social'
+import type { SocialPlatform } from '@madebuy/shared'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { mediaIds, style, productName, productDescription, includeHashtags } = await request.json()
+    const {
+      mediaIds,
+      style,
+      productName,
+      productDescription,
+      includeHashtags,
+      platform,
+    } = await request.json()
 
     if (!mediaIds || !Array.isArray(mediaIds) || mediaIds.length === 0) {
       return NextResponse.json({ error: 'Media IDs required' }, { status: 400 })
@@ -28,7 +36,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No valid media found' }, { status: 404 })
     }
 
-    // Generate caption using AI
+    // Fetch style profile if platform is specified
+    let styleProfile = null
+    if (platform) {
+      styleProfile = await captionStyles.getCaptionStyleProfile(
+        tenant.id,
+        platform as SocialPlatform
+      )
+    }
+
+    // Generate caption using AI with style profile
     const result = await generateCaption({
       mediaIds, // Required by interface but not used by implementation
       imageUrls: validMediaFiles.map(m => m!.variants.original.url),
@@ -36,9 +53,16 @@ export async function POST(request: NextRequest) {
       productDescription,
       style: style || 'professional',
       includeHashtags: includeHashtags !== false,
+      tenantId: tenant.id,
+      platform: platform as SocialPlatform | undefined,
+      styleProfile: styleProfile || undefined,
     })
 
-    return NextResponse.json(result)
+    return NextResponse.json({
+      ...result,
+      hasStyleProfile: !!styleProfile,
+      onboardingComplete: styleProfile?.onboardingComplete ?? false,
+    })
   } catch (error) {
     console.error('Error generating caption:', error)
     return NextResponse.json(
