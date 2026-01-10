@@ -4,10 +4,15 @@ import { nanoid } from 'nanoid'
 import { getDb } from '@madebuy/db'
 
 // One-time seed endpoint - DELETE AFTER USE
-// Protected by secret key in query param
-const SEED_SECRET = 'madebuy-seed-2024'
+// Protected by SEED_SECRET environment variable
+const SEED_SECRET = process.env.SEED_SECRET
 
 export async function GET(request: Request) {
+  // Require SEED_SECRET env var to be set
+  if (!SEED_SECRET) {
+    return NextResponse.json({ error: 'Endpoint disabled' }, { status: 404 })
+  }
+
   const { searchParams } = new URL(request.url)
   const secret = searchParams.get('secret')
 
@@ -76,7 +81,6 @@ export async function GET(request: Request) {
         id: tenantId,
         email: 'admin@test.com',
         businessName: 'Test Shop',
-        password: 'admin123',
       }
     })
   } catch (error: any) {
