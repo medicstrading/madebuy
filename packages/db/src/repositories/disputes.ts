@@ -2,7 +2,6 @@ import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
 import type {
   Dispute,
-  DisputeStatus,
   CreateDisputeInput,
   UpdateDisputeInput,
   DisputeFilters,
@@ -215,8 +214,8 @@ export async function getDisputeStats(tenantId: string, defaultCurrency: string 
   const underReview = statusMap.get('under_review') || { total: 0, count: 0 }
   const won = statusMap.get('won') || { total: 0, count: 0 }
   const lost = statusMap.get('lost') || { total: 0, count: 0 }
-  const chargeRefunded = statusMap.get('charge_refunded') || { total: 0, count: 0 }
-  const warningClosed = statusMap.get('warning_closed') || { total: 0, count: 0 }
+  // const chargeRefunded = statusMap.get('charge_refunded') || { total: 0, count: 0 }
+  // const warningClosed = statusMap.get('warning_closed') || { total: 0, count: 0 }
 
   const totalCount = statusResults.reduce((sum: number, r: any) => sum + r.count, 0)
   const totalAmount = statusResults.reduce((sum: number, r: any) => sum + r.total, 0)

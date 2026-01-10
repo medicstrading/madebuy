@@ -152,6 +152,7 @@ export type {
   ProductAttributes,
   ProductWithMedia,
   ProductWithSeller,
+  CartProduct,
   CreateProductInput,
   UpdateProductInput,
   ProductFilters,

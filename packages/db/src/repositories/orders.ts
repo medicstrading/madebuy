@@ -106,7 +106,7 @@ export async function listOrders(
 ): Promise<Order[]> {
   const db = await getDatabase()
 
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.status) {
     query.status = filters.status
@@ -154,7 +154,7 @@ export async function listOrders(
 
   const results = await cursor.toArray()
 
-  return results as any[]
+  return results as unknown as Order[]
 }
 
 export async function updateOrderStatus(

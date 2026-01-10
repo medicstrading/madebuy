@@ -7,6 +7,11 @@ import type {
   InvoiceFilters,
 } from '@madebuy/shared'
 
+// Database record type
+interface InvoiceDbRecord extends InvoiceRecord {
+  _id?: unknown
+}
+
 /**
  * Create a new invoice record
  */
@@ -57,7 +62,7 @@ export async function listInvoices(
 ): Promise<InvoiceRecord[]> {
   const db = await getDatabase()
 
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.status) {
     query.status = filters.status
@@ -68,13 +73,14 @@ export async function listInvoices(
   }
 
   if (filters?.dateFrom || filters?.dateTo) {
-    query.uploadedAt = {}
+    const dateQuery: Record<string, Date> = {}
     if (filters.dateFrom) {
-      query.uploadedAt.$gte = filters.dateFrom
+      dateQuery.$gte = filters.dateFrom
     }
     if (filters.dateTo) {
-      query.uploadedAt.$lte = filters.dateTo
+      dateQuery.$lte = filters.dateTo
     }
+    query.uploadedAt = dateQuery
   }
 
   const results = await db.collection('invoices')
@@ -82,7 +88,7 @@ export async function listInvoices(
     .sort({ uploadedAt: -1 })
     .toArray()
 
-  return results as any[]
+  return results as unknown as InvoiceRecord[]
 }
 
 /**
@@ -137,7 +143,7 @@ export async function getRecentInvoices(
     .limit(limit)
     .toArray()
 
-  return results as any[]
+  return results as unknown as InvoiceRecord[]
 }
 
 /**
@@ -157,7 +163,7 @@ export async function getInvoicesBySupplier(
     .sort({ uploadedAt: -1 })
     .toArray()
 
-  return results as any[]
+  return results as unknown as InvoiceRecord[]
 }
 
 /**
@@ -174,16 +180,16 @@ export async function getInvoiceStats(tenantId: string): Promise<{
 
   const invoices = await db.collection('invoices')
     .find({ tenantId })
-    .toArray() as any[]
+    .toArray() as InvoiceDbRecord[]
 
   const stats = {
     totalInvoices: invoices.length,
-    processedCount: invoices.filter((inv: any) => inv.status === 'processed').length,
-    pendingCount: invoices.filter((inv: any) => inv.status === 'pending').length,
-    errorCount: invoices.filter((inv: any) => inv.status === 'error').length,
+    processedCount: invoices.filter((inv) => inv.status === 'processed').length,
+    pendingCount: invoices.filter((inv) => inv.status === 'pending').length,
+    errorCount: invoices.filter((inv) => inv.status === 'error').length,
     totalSpent: invoices
-      .filter((inv: any) => inv.totalAmount && inv.status === 'processed')
-      .reduce((sum: number, inv: any) => sum + inv.totalAmount, 0)
+      .filter((inv) => inv.totalAmount && inv.status === 'processed')
+      .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
   }
 
   return stats

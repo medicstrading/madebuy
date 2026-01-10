@@ -38,6 +38,7 @@ export default function CustomerDetailPage() {
 
   useEffect(() => {
     if (customerId) fetchCustomer()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerId])
 
   async function fetchCustomer() {

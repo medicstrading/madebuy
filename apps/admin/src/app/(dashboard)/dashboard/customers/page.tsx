@@ -35,10 +35,12 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchCustomers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, debouncedSearch, filterSubscribed])
 
   useEffect(() => {
     fetchStats()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function fetchCustomers() {

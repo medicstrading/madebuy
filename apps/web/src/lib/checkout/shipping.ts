@@ -75,7 +75,7 @@ const DEFAULT_ITEM_WEIGHT_GRAMS = 250
 export function requiresShipping(items: CartItem[]): boolean {
   // Check if any item is NOT a digital product
   return items.some(item => {
-    const isDigital = (item.product as any).isDigital || (item.product as any).digitalConfig
+    const isDigital = item.product.isDigital || item.product.digitalConfig
     return !isDigital
   })
 }
@@ -85,7 +85,7 @@ export function requiresShipping(items: CartItem[]): boolean {
  */
 export function isDigitalOnlyOrder(items: CartItem[]): boolean {
   return items.every(item => {
-    const isDigital = (item.product as any).isDigital || (item.product as any).digitalConfig
+    const isDigital = item.product.isDigital || item.product.digitalConfig
     return isDigital
   })
 }
@@ -95,7 +95,7 @@ export function isDigitalOnlyOrder(items: CartItem[]): boolean {
  */
 export function calculateTotalWeight(items: CartItem[]): number {
   return items.reduce((total, item) => {
-    const weight = (item.product as any).weightGrams ?? DEFAULT_ITEM_WEIGHT_GRAMS
+    const weight = item.product.weightGrams ?? DEFAULT_ITEM_WEIGHT_GRAMS
     return total + weight * item.quantity
   }, 0)
 }
@@ -148,7 +148,7 @@ export async function getShippingQuotes(
         items: items.map(item => ({
           pieceId: item.product.id,
           quantity: item.quantity,
-          weightGrams: (item.product as any).weightGrams,
+          weightGrams: item.product.weightGrams,
           price: item.product.price ? Math.round(item.product.price * 100) : undefined, // Price in cents
         })),
         destination: {

@@ -65,7 +65,7 @@ export async function listMaterials(
 ): Promise<MaterialListResult> {
   const db = await getDatabase()
 
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.category) {
     query.category = filters.category
@@ -99,10 +99,10 @@ export async function listMaterials(
   // Sorting
   const sortBy = options?.sortBy || 'name'
   const sortOrder = options?.sortOrder === 'desc' ? -1 : 1
-  const sort: any = { [sortBy]: sortOrder }
+  const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder }
 
   // Get total count
-  const total = await db.collection('materials').countDocuments(query)
+  const total = await db.collection('materials').countDocuments(query as Record<string, unknown>)
 
   // Get paginated results
   const results = await db.collection('materials')
@@ -113,7 +113,7 @@ export async function listMaterials(
     .toArray()
 
   return {
-    materials: results as any[],
+    materials: results as unknown as Material[],
     total,
     page,
     limit,
@@ -226,7 +226,7 @@ export async function getMaterialUsageForPiece(tenantId: string, pieceId: string
     .find({ tenantId, pieceId })
     .toArray()
 
-  return results as any[]
+  return results as unknown as MaterialUsage[]
 }
 
 export async function calculatePieceCOGS(tenantId: string, pieceId: string): Promise<number> {
@@ -268,7 +268,7 @@ export async function restockMaterialFromInvoice(
 ): Promise<void> {
   const db = await getDatabase()
 
-  const updateData: any = {
+  const updateData: Record<string, unknown> = {
     $inc: { quantityInStock: quantityAdded },
     $addToSet: { invoiceIds: invoiceId },
     $set: {
@@ -278,8 +278,8 @@ export async function restockMaterialFromInvoice(
   }
 
   // Update cost per unit if provided
-  if (costPerUnit !== undefined) {
-    updateData.$set.costPerUnit = costPerUnit
+  if (costPerUnit !== undefined && updateData.$set) {
+    (updateData.$set as Record<string, unknown>).costPerUnit = costPerUnit
   }
 
   await db.collection('materials').updateOne(

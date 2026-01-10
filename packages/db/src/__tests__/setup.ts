@@ -3,7 +3,7 @@
  * Mocks MongoDB client and provides utilities for testing repositories
  */
 
-import { vi, beforeEach, afterEach, afterAll } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 import type { Db, Collection, FindCursor, AggregationCursor, InsertOneResult, UpdateResult, DeleteResult, BulkWriteResult } from 'mongodb'
 
 // Mock data storage (simulates MongoDB collections)
@@ -502,12 +502,14 @@ vi.mock('../client', () => ({
   getDatabase: vi.fn(async () => mockDb),
   serializeMongo: vi.fn(<T>(doc: any): T => {
     if (!doc) return doc
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, ...rest } = doc
     return rest as T
   }),
   serializeMongoArray: vi.fn(<T>(docs: any[]): T[] => {
     return docs.map(doc => {
       if (!doc) return doc
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { _id, ...rest } = doc
       return rest as T
     })

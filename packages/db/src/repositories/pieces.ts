@@ -84,12 +84,12 @@ export async function createPiece(
 
 export async function getPiece(tenantId: string, id: string): Promise<Piece | null> {
   const db = await getDatabase()
-  return await db.collection('pieces').findOne({ tenantId, id }) as Piece | null
+  return await db.collection('pieces').findOne({ tenantId, id }) as unknown as Piece | null
 }
 
 export async function getPieceBySlug(tenantId: string, slug: string): Promise<Piece | null> {
   const db = await getDatabase()
-  return await db.collection('pieces').findOne({ tenantId, slug }) as Piece | null
+  return await db.collection('pieces').findOne({ tenantId, slug }) as unknown as Piece | null
 }
 
 export async function listPieces(
@@ -98,7 +98,7 @@ export async function listPieces(
 ): Promise<Piece[]> {
   const db = await getDatabase()
 
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.status) {
     query.status = filters.status
@@ -127,7 +127,7 @@ export async function listPieces(
     .limit(limit)
     .toArray()
 
-  return results as any[]
+  return results as unknown as Piece[]
 }
 
 export async function updatePiece(
@@ -183,7 +183,7 @@ export async function findPiecesByEtsyListingId(listingId: string): Promise<Piec
   const db = await getDatabase()
   return await db.collection('pieces')
     .find({ 'integrations.etsy.listingId': listingId })
-    .toArray() as any[]
+    .toArray() as unknown as Piece[]
 }
 
 // Variant-specific functions
@@ -631,11 +631,11 @@ export async function getPiecesNeedingRestock(
   const statusFilter = options?.status ? { status: options.status } : {}
   const includeOutOfStock = options?.includeOutOfStock ?? true
 
-  const conditions: any[] = [
+  const conditions: Record<string, unknown>[] = [
     // Pieces with threshold that are at or below it
     {
-      lowStockThreshold: { $exists: true, $ne: null, $gt: 0 },
-      stock: { $exists: true, $ne: null },
+      lowStockThreshold: { $exists: true, $ne: undefined, $gt: 0 },
+      stock: { $exists: true, $ne: undefined },
       $expr: { $lte: ['$stock', '$lowStockThreshold'] }
     }
   ]

@@ -1,5 +1,5 @@
-import type { CheerioAPI, Cheerio } from 'cheerio'
-import type { Element, AnyNode } from 'domhandler'
+import type { CheerioAPI } from 'cheerio'
+import type { Element } from 'domhandler'
 import type { DetectedSection, SectionType } from '../types'
 
 /**
@@ -51,7 +51,7 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'first-section',
-        check: ($el, $) => $el.is('section:first-of-type, main > *:first-child, body > *:nth-child(-n+3)'),
+        check: ($el) => $el.is('section:first-of-type, main > *:first-child, body > *:nth-child(-n+3)'),
         weight: 0.1,
       },
     ],

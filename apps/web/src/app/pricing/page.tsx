@@ -154,7 +154,7 @@ export default function PricingPage() {
 
         <div className="mt-16 text-center">
           <p className="text-gray-600">
-            All plans include: Secure payments via Stripe | Australian-based support | Carbon-neutral shipping with Sendle
+            All plans include: Secure payments via Stripe | Australian-based support | Zero transaction fees
           </p>
         </div>
       </main>

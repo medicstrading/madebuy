@@ -132,9 +132,6 @@ export type ProductAttributes = {
   quantity?: number // Number of items in pack
   toolsRequired?: string[]
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
-
-  // Extensible for any custom attributes
-  [key: string]: any
 }
 
 /**
@@ -279,6 +276,34 @@ export interface ProductWithSeller extends ProductWithMedia {
     badges: SellerBadge[]
     memberSince: Date
   }
+}
+
+/**
+ * CartProduct - Product with all fields needed for checkout/cart operations
+ * Extends ProductWithMedia with optional shipping and digital product fields
+ */
+export interface CartProduct extends ProductWithMedia {
+  // Digital product fields (optional - only for digital products)
+  isDigital?: boolean
+  digitalConfig?: {
+    files: Array<{
+      id: string
+      name: string
+      url: string
+      fileType: string
+      fileSize: number
+    }>
+    deliveryMethod: 'instant' | 'email'
+    downloadLimit?: number
+    expirationDays?: number
+  }
+
+  // Shipping fields (optional - only for physical products)
+  weightGrams?: number
+  requiresShipping?: boolean
+
+  // Variant fields (optional - for products with variants)
+  selectedVariantId?: string
 }
 
 export type SellerBadge =

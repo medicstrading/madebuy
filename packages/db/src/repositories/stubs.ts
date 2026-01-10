@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Stub repositories for archived functionality
  * These provide no-op implementations to keep checkout working

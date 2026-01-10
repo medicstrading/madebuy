@@ -629,7 +629,7 @@ export async function bulkUpdateStock(
 
   const updated = result.modifiedCount + result.upsertedCount
   const failed = updates
-    .filter((_, i) => !result.modifiedCount)
+    .filter(() => !result.modifiedCount)
     .map(u => u.variantId)
     .slice(0, updates.length - updated)
 
@@ -929,7 +929,8 @@ export async function listVariants(
     .find({ tenantId, pieceId, isDeleted: { $ne: true } })
     .toArray()
 
-  return results.map(({ tenantId: _, _id, ...variant }) => ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return results.map(({ tenantId: _tenantId, _id, ...variant }) => ({
     id: variant.id,
     pieceId: variant.pieceId,
     options: variant.attributes || variant.options || {},
@@ -960,7 +961,8 @@ export async function getVariant(
 
   if (!result) return null
 
-  const { tenantId: _, _id, ...variant } = result as Record<string, unknown>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { tenantId: _tenantId, _id, ...variant } = result as Record<string, unknown>
   return {
     id: variant.id as string,
     pieceId: variant.pieceId as string,

@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import type { Filter, Document } from 'mongodb'
 import { getDatabase, getMongoClient } from '../client'
 import type {
   Bundle,
@@ -10,7 +11,11 @@ import type {
   BundleListOptions,
   Piece,
 } from '@madebuy/shared'
-import * as pieces from './pieces'
+
+// Database record type
+interface BundleDbRecord extends Bundle {
+  _id?: unknown
+}
 
 // Maximum items to return in a single query
 const MAX_QUERY_LIMIT = 100
@@ -139,7 +144,7 @@ export async function updateBundle(
   const current = await getBundle(tenantId, id)
   if (!current) return null
 
-  const updateData: any = {
+  const updateData: Partial<BundleDbRecord> = {
     ...input,
     updatedAt: new Date(),
   }
@@ -189,7 +194,7 @@ export async function listBundles(
 ): Promise<{ items: Bundle[]; total: number; hasMore: boolean }> {
   const db = await getDatabase()
 
-  const filter: any = { tenantId }
+  const filter: Filter<BundleDbRecord> = { tenantId }
 
   if (options.status) {
     if (Array.isArray(options.status)) {
@@ -206,12 +211,12 @@ export async function listBundles(
 
   const [items, total] = await Promise.all([
     db.collection('bundles')
-      .find(filter)
+      .find(filter as Filter<Document>)
       .sort({ [sortBy]: sortOrder })
       .skip(offset)
       .limit(limit)
       .toArray(),
-    db.collection('bundles').countDocuments(filter),
+    db.collection('bundles').countDocuments(filter as Filter<Document>),
   ])
 
   return {
@@ -411,9 +416,9 @@ export async function countBundles(
   status?: BundleStatus
 ): Promise<number> {
   const db = await getDatabase()
-  const filter: any = { tenantId }
+  const filter: Filter<BundleDbRecord> = { tenantId }
   if (status) filter.status = status
-  return db.collection('bundles').countDocuments(filter)
+  return db.collection('bundles').countDocuments(filter as Filter<Document>)
 }
 
 /**

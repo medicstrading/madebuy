@@ -52,7 +52,7 @@ export default function SignUpPage() {
               Join Australia&apos;s Marketplace for Makers
             </h1>
             <p className="text-gray-600">
-              List unlimited products with zero transaction fees
+              Start free with zero transaction fees on every plan
             </p>
           </div>
 

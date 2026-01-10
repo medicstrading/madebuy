@@ -223,6 +223,7 @@ async function ensureIndexes(db: Db) {
 export function serializeMongo<T>(doc: any): T {
   if (!doc) return doc
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _id, ...rest } = doc
   return rest as T
 }

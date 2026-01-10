@@ -33,6 +33,7 @@ export default function CalendarPage() {
 
   useEffect(() => {
     fetchKeyDates()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate])
 
   async function fetchKeyDates() {

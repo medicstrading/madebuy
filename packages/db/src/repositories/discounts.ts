@@ -182,7 +182,8 @@ export async function validateDiscountCode(
   code: string,
   orderTotal: number,
   pieceIds: string[],
-  customerEmail?: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _customerEmail?: string
 ): Promise<DiscountValidationResult> {
   const discount = await getDiscountCodeByCode(tenantId, code)
 

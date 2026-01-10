@@ -199,29 +199,35 @@ export default function LandingPage() {
 
                   {/* Two-column layout */}
                   <div className="grid lg:grid-cols-2 gap-4">
-                    {/* Product list */}
+                    {/* Inventory list - matches real admin inventory table */}
                     <div className="bg-white rounded-xl border border-gray-100 p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 text-sm">Products</h3>
+                        <h3 className="font-semibold text-gray-900 text-sm">Inventory</h3>
                         <span className="text-xs text-gray-400">12 items</span>
                       </div>
                       <div className="space-y-2">
                         {[
-                          { name: 'Ceramic Mug', profit: '$37' },
-                          { name: 'Wall Hanging', profit: '$96' },
+                          { name: 'Ceramic Mug', stock: 8, status: 'Available', margin: '67%', marginColor: 'text-emerald-600' },
+                          { name: 'Wall Hanging', stock: 2, status: 'Low Stock', margin: '72%', marginColor: 'text-emerald-600' },
                         ].map((product) => (
-                          <div key={product.name} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                          <div key={product.name} className={`flex items-center gap-3 p-2 rounded-lg ${product.status === 'Low Stock' ? 'bg-amber-50/50' : 'bg-gray-50'}`}>
                             <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-gray-900 text-sm truncate">{product.name}</p>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${product.status === 'Low Stock' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                  {product.status}
+                                </span>
+                                <span className="text-xs text-gray-400">×{product.stock}</span>
+                              </div>
                             </div>
-                            <p className="font-bold text-emerald-600 text-sm">{product.profit}</p>
+                            <p className={`font-bold text-sm ${product.marginColor}`}>{product.margin}</p>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Social schedule */}
+                    {/* Social schedule - matches real publish page */}
                     <div className="bg-white rounded-xl border border-gray-100 p-4">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-gray-900 text-sm">Scheduled Posts</h3>
@@ -229,8 +235,8 @@ export default function LandingPage() {
                       </div>
                       <div className="space-y-2">
                         {[
-                          { platform: 'Instagram', time: 'Today 6pm', icon: Instagram, color: 'bg-pink-50 text-pink-500' },
-                          { platform: 'TikTok', time: 'Tomorrow 2pm', icon: TikTokIcon, color: 'bg-gray-100 text-gray-700' },
+                          { platform: 'Instagram', time: 'Today 6pm', status: 'scheduled', icon: Instagram, color: 'bg-pink-50 text-pink-500' },
+                          { platform: 'TikTok', time: 'Tomorrow 2pm', status: 'draft', icon: TikTokIcon, color: 'bg-gray-100 text-gray-700' },
                         ].map((post) => (
                           <div key={post.platform} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
                             <div className={`w-8 h-8 rounded-lg ${post.color} flex items-center justify-center`}>
@@ -240,7 +246,9 @@ export default function LandingPage() {
                               <p className="font-medium text-gray-900 text-sm">{post.platform}</p>
                               <p className="text-xs text-gray-500">{post.time}</p>
                             </div>
-                            <Sparkles className="w-4 h-4 text-violet-400" />
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${post.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                              {post.status}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -456,15 +464,15 @@ export default function LandingPage() {
             {/* Visual */}
             <div className="relative">
               <div className="bg-gray-800/50 rounded-3xl p-6 lg:p-8 border border-gray-700/50 backdrop-blur-sm">
-                {/* Platform grid */}
+                {/* Platform grid - shows connected accounts like real Connections page */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   {[
-                    { icon: Instagram, name: 'Instagram', color: 'from-pink-500 to-purple-600', posts: '12 posts' },
-                    { icon: TikTokIcon, name: 'TikTok', color: 'from-gray-700 to-gray-900', posts: '8 videos' },
-                    { icon: Facebook, name: 'Facebook', color: 'from-blue-500 to-blue-700', posts: '10 posts' },
-                    { icon: Youtube, name: 'YouTube', color: 'from-red-500 to-red-700', posts: '4 videos' },
-                    { icon: PinterestIcon, name: 'Pinterest', color: 'from-red-500 to-red-600', posts: '15 pins' },
-                    { icon: Twitter, name: 'Twitter', color: 'from-sky-400 to-sky-600', posts: '20 posts' },
+                    { icon: Instagram, name: 'Instagram', color: 'from-pink-500 to-purple-600', status: 'Connected', connected: true },
+                    { icon: TikTokIcon, name: 'TikTok', color: 'from-gray-700 to-gray-900', status: 'Connected', connected: true },
+                    { icon: Facebook, name: 'Facebook', color: 'from-blue-500 to-blue-700', status: 'Connected', connected: true },
+                    { icon: Youtube, name: 'YouTube', color: 'from-red-500 to-red-700', status: 'Connect', connected: false },
+                    { icon: PinterestIcon, name: 'Pinterest', color: 'from-red-500 to-red-600', status: 'Connected', connected: true },
+                    { icon: Twitter, name: 'Twitter', color: 'from-sky-400 to-sky-600', status: 'Connect', connected: false },
                   ].map((platform) => (
                     <div
                       key={platform.name}
@@ -474,7 +482,10 @@ export default function LandingPage() {
                         <platform.icon />
                       </div>
                       <p className="font-semibold text-white text-sm">{platform.name}</p>
-                      <p className="text-gray-500 text-xs">{platform.posts}</p>
+                      <p className={`text-xs ${platform.connected ? 'text-emerald-400' : 'text-gray-500'}`}>
+                        {platform.connected && <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1" />}
+                        {platform.status}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -677,19 +688,19 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Australian Tax Ready */}
+            {/* Invoice Scanning */}
             <div className="group bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 lg:p-10 border border-blue-100 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300">
               <div className="flex items-start gap-6">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform">
                   <FileText className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Australian Tax Ready</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Smart Invoice Scanning</h3>
                   <p className="text-gray-600 leading-relaxed mb-4">
-                    GST/BAS compliance built in. Auto-generated statements. Hand your accountant a clean PDF, not a shoebox.
+                    Snap a photo of supplier invoices. AI extracts materials, quantities, and costs automatically. No manual data entry.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {['GST tracking', 'BAS reports', 'Export to PDF'].map((tag) => (
+                    {['AI extraction', 'Auto-import', 'Cost tracking'].map((tag) => (
                       <span key={tag} className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
                         {tag}
                       </span>
@@ -738,10 +749,10 @@ export default function LandingPage() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="text-center lg:text-left">
               <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-                Join hundreds of makers who&apos;ve taken control
+                Take control of your handmade business
               </h3>
               <p className="text-amber-100 text-lg">
-                Stop juggling apps. Start growing your handmade business.
+                Stop juggling apps. Start growing with one connected platform.
               </p>
             </div>
             <Link
@@ -795,10 +806,9 @@ export default function LandingPage() {
                 description: 'Try it out',
                 features: [
                   '5 products',
+                  '3 images per product',
                   '50 MB storage',
-                  'Basic website',
-                  'MadeBuy subdomain',
-                  'Email support',
+                  '10 orders/month',
                 ],
                 cta: 'Start Free',
                 popular: false,
@@ -809,11 +819,11 @@ export default function LandingPage() {
                 description: 'For growing makers',
                 features: [
                   '50 products',
+                  '8 images per product',
                   '500 MB storage',
-                  'Website builder',
-                  '2 social platforms',
+                  'Custom domain',
+                  '1 social platform',
                   '20 AI captions/month',
-                  'Etsy sync',
                 ],
                 cta: 'Get Started',
                 popular: true,
@@ -824,11 +834,11 @@ export default function LandingPage() {
                 description: 'Full-time makers',
                 features: [
                   '200 products',
+                  '15 images per product',
                   '2 GB storage',
-                  'Custom domain',
-                  'All social platforms',
+                  '3 social platforms',
                   '100 AI captions/month',
-                  'Etsy + eBay sync',
+                  'Priority support',
                 ],
                 cta: 'Get Started',
                 popular: false,
@@ -839,10 +849,10 @@ export default function LandingPage() {
                 description: 'Established brands',
                 features: [
                   'Unlimited products',
+                  '30 images per product',
                   '10 GB storage',
-                  'Custom domain',
+                  'Unlimited social platforms',
                   'Unlimited AI captions',
-                  'All marketplace sync',
                   '3 team members',
                 ],
                 cta: 'Get Started',
@@ -909,7 +919,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200/60 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-8">
             <Calendar className="w-4 h-4" />
-            <span>14-day free trial, no card required</span>
+            <span>Free plan available, no card required</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 tracking-tight">

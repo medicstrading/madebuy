@@ -107,6 +107,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleConnectCloudflare = async (e: React.FormEvent) => {

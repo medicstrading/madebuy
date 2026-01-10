@@ -128,12 +128,12 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tenantId,
-          items: items.map((item: any) => ({
+          items: items.map(item => ({
             pieceId: item.product.id,
             quantity: item.quantity,
             price: item.product.price,
             currency: item.product.currency,
-            variantId: (item.product as any).selectedVariantId,
+            variantId: item.product.selectedVariantId,
           })),
           customerInfo: {
             email: shippingAddress.email,
@@ -518,12 +518,13 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
           {/* Items */}
           <div className="mt-4 space-y-4">
-            {items.map((item: any) => {
+            {items.map(item => {
               // Get image URL - handle both string and MediaItem types
               const imageUrl = typeof item.product.primaryImage === 'string'
                 ? item.product.primaryImage
-                : (item.product.primaryImage as any)?.variants?.medium?.url ||
-                  (item.product.primaryImage as any)?.variants?.original?.url
+                : item.product.primaryImage?.variants?.thumb?.url ||
+                  item.product.primaryImage?.variants?.large?.url ||
+                  item.product.primaryImage?.variants?.original?.url
 
               return (
               <div key={item.product.id} className="flex gap-3">

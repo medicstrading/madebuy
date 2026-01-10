@@ -147,6 +147,107 @@ export interface LateOAuthTokenResponse {
 }
 
 // =============================================================================
+// Internal API Request/Response Types
+// =============================================================================
+
+/**
+ * Generic API error response from Late.dev
+ */
+export interface LateAPIError {
+  message?: string
+  error?: string
+  details?: string
+  error_description?: string
+  raw?: string
+}
+
+/**
+ * GET /profiles response
+ */
+export interface LateProfilesAPIResponse {
+  profiles: LateProfile[]
+}
+
+/**
+ * GET /accounts response
+ */
+export interface LateAccountsAPIResponse {
+  accounts: LateAccount[]
+}
+
+/**
+ * GET /connect/{platform} response
+ */
+export interface LateConnectAPIResponse {
+  authUrl: string
+}
+
+/**
+ * POST /posts request
+ */
+export interface LateCreatePostAPIRequest {
+  content: string
+  scheduledFor?: string
+  platforms: LatePlatform[]
+  mediaItems?: LateMedia[]
+}
+
+/**
+ * POST /posts response
+ */
+export interface LateCreatePostAPIResponse {
+  id: string
+  scheduledId?: string
+  platformPosts?: Array<{
+    platform: string
+    accountId: string
+    platformPostId?: string
+    platformPostUrl?: string
+    permalink?: string
+    error?: string
+  }>
+}
+
+/**
+ * GET /posts/{id} response
+ */
+export interface LateGetPostAPIResponse {
+  id: string
+  status?: 'scheduled' | 'published' | 'failed'
+  content: string
+  scheduledFor?: string
+  createdAt: string
+  updatedAt: string
+  platformPosts?: Array<{
+    platform: string
+    accountId: string
+    platformPostId?: string
+    platformPostUrl?: string
+    permalink?: string
+    error?: string
+  }>
+}
+
+/**
+ * POST /media response
+ */
+export interface LateUploadMediaAPIResponse {
+  url: string
+  mediaId?: string
+  type: 'image' | 'video'
+}
+
+/**
+ * POST /oauth/token response (legacy)
+ */
+export interface LateOAuthTokenAPIResponse {
+  accessToken: string
+  refreshToken?: string
+  expiresIn?: number
+  scope?: string
+}
+
+// =============================================================================
 // Late.dev API Client
 // =============================================================================
 
@@ -170,7 +271,7 @@ export class LateClient {
    * Get all profiles
    */
   async getProfiles(): Promise<LateProfilesResponse> {
-    const response = await this.request('GET', '/profiles')
+    const response = await this.request<void, LateProfilesAPIResponse>('GET', '/profiles')
     return response
   }
 
@@ -196,7 +297,7 @@ export class LateClient {
    * Get all connected accounts
    */
   async getAccounts(): Promise<LateAccountsResponse> {
-    const response = await this.request('GET', '/accounts')
+    const response = await this.request<void, LateAccountsAPIResponse>('GET', '/accounts')
     return response
   }
 
@@ -248,7 +349,7 @@ export class LateClient {
    * Disconnect an account
    */
   async disconnectAccount(accountId: string): Promise<void> {
-    await this.request('DELETE', `/accounts/${accountId}`)
+    await this.request<void, void>('DELETE', `/accounts/${accountId}`)
   }
 
   // ===========================================================================
@@ -260,7 +361,7 @@ export class LateClient {
    */
   async createPost(post: LatePost): Promise<LatePostResponse> {
     try {
-      const response = await this.request('POST', '/posts', post)
+      const response = await this.request<LateCreatePostAPIRequest, LateCreatePostAPIResponse>('POST', '/posts', post)
 
       return {
         success: true,
@@ -268,12 +369,11 @@ export class LateClient {
         scheduledId: response.scheduledId,
         platformPosts: response.platformPosts
       }
-    } catch (error: any) {
+    } catch (error) {
       // Extract the most detailed error message available (sanitized for client)
-      const errorMessage = error.message ||
-                          error.error ||
-                          (typeof error === 'string' ? error : null) ||
-                          'Failed to publish via Late.dev'
+      const errorMessage = error instanceof Error
+        ? error.message
+        : (typeof error === 'string' ? error : 'Failed to publish via Late.dev')
 
       return {
         success: false,
@@ -333,26 +433,26 @@ export class LateClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
+      const error = await response.json() as LateAPIError
       throw new Error(error.message || 'Failed to upload media')
     }
 
-    const data = await response.json()
+    const data = await response.json() as LateUploadMediaAPIResponse
     return data.url
   }
 
   /**
    * Get post status
    */
-  async getPost(postId: string): Promise<any> {
-    return await this.request('GET', `/posts/${postId}`)
+  async getPost(postId: string): Promise<LateGetPostAPIResponse> {
+    return await this.request<void, LateGetPostAPIResponse>('GET', `/posts/${postId}`)
   }
 
   /**
    * Delete a scheduled post
    */
   async deletePost(postId: string): Promise<void> {
-    await this.request('DELETE', `/posts/${postId}`)
+    await this.request<void, void>('DELETE', `/posts/${postId}`)
   }
 
   /**
@@ -363,7 +463,7 @@ export class LateClient {
     return {
       id: post.id,
       status: post.status || 'published',
-      results: post.platformPosts?.map((pp: any) => ({
+      results: post.platformPosts?.map(pp => ({
         platform: pp.platform as SocialPlatform,
         status: pp.error ? 'failed' as const : 'success' as const,
         postId: pp.platformPostId,
@@ -398,14 +498,18 @@ export class LateClient {
    * Note: Late.dev handles this internally, tokens are stored in your Late.dev account
    */
   async getOAuthToken(request: LateOAuthTokenRequest): Promise<LateOAuthTokenResponse> {
-    return await this.request('POST', '/oauth/token', request)
+    return await this.request<LateOAuthTokenRequest, LateOAuthTokenAPIResponse>('POST', '/oauth/token', request)
   }
 
   // ===========================================================================
   // Internal Request Handler
   // ===========================================================================
 
-  private async request(method: string, endpoint: string, data?: any): Promise<any> {
+  private async request<TRequest = void, TResponse = unknown>(
+    method: string,
+    endpoint: string,
+    data?: TRequest
+  ): Promise<TResponse> {
     const url = `${this.baseUrl}${endpoint}`
 
     const headers: Record<string, string> = {
@@ -427,13 +531,13 @@ export class LateClient {
 
     if (!response.ok) {
       // Try to parse as JSON, but also capture raw text in case it's not JSON
-      let errorData: any = {}
+      let errorData: LateAPIError = {}
       let rawBody = ''
 
       try {
         const text = await response.text()
         rawBody = text
-        errorData = JSON.parse(text)
+        errorData = JSON.parse(text) as LateAPIError
       } catch {
         // Response is not JSON, use raw text
         errorData = { raw: rawBody }
@@ -452,10 +556,10 @@ export class LateClient {
 
     // Handle 204 No Content
     if (response.status === 204) {
-      return {}
+      return {} as TResponse
     }
 
-    return await response.json()
+    return await response.json() as TResponse
   }
 }
 
@@ -475,7 +579,8 @@ export function getLateClient(): LateClient {
 // Legacy singleton export for backwards compatibility
 export const lateClient = new Proxy({} as LateClient, {
   get(_, prop) {
-    return (getLateClient() as any)[prop]
+    const client = getLateClient()
+    return client[prop as keyof LateClient]
   }
 })
 

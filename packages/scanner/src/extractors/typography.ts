@@ -1,7 +1,7 @@
 import type { CheerioAPI } from 'cheerio'
 import type { Element } from 'domhandler'
 import type { TypographyPreset } from '@madebuy/shared'
-import type { DetectedFont, TypographyExtractionResult, FontSource } from '../types'
+import type { DetectedFont, TypographyExtractionResult } from '../types'
 
 // Map detected fonts to MadeBuy typography presets
 const FONT_TO_PRESET_MAP: Record<string, TypographyPreset> = {

@@ -9,6 +9,11 @@ import type {
   VideoProcessingStatus,
 } from '@madebuy/shared'
 
+// Database record type
+interface MediaDbRecord extends MediaItem {
+  _id?: unknown
+}
+
 export async function createMedia(tenantId: string, data: CreateMediaInput): Promise<MediaItem> {
   const db = await getDatabase()
 
@@ -63,7 +68,7 @@ export async function listMedia(
 ): Promise<MediaItem[]> {
   const db = await getDatabase()
 
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.type) {
     query.type = filters.type
@@ -104,7 +109,7 @@ export async function listMedia(
     .limit(limit)
     .toArray()
 
-  return results as any[]
+  return results as unknown as MediaItem[]
 }
 
 export async function updateMedia(
@@ -135,7 +140,7 @@ export async function getMediaByIds(tenantId: string, ids: string[]): Promise<Me
     .find({ tenantId, id: { $in: ids } })
     .toArray()
 
-  return results as any[]
+  return results as unknown as MediaItem[]
 }
 
 export async function addPublishDestination(
@@ -213,7 +218,7 @@ export async function getMediaByPiece(
     .sort({ displayOrder: 1 })
     .toArray()
 
-  return results as any[]
+  return results as unknown as MediaItem[]
 }
 
 /**
@@ -261,7 +266,7 @@ export async function getVideosPendingProcessing(): Promise<MediaItem[]> {
     .limit(10) // Batch of 10
     .toArray()
 
-  return results as any[]
+  return results as unknown as MediaItem[]
 }
 
 /**
@@ -275,7 +280,7 @@ export async function updateVideoProcessingStatus(
 ): Promise<void> {
   const db = await getDatabase()
 
-  const updates: any = {
+  const updates: Partial<MediaDbRecord> = {
     processingStatus: status,
     updatedAt: new Date(),
   }
@@ -284,7 +289,7 @@ export async function updateVideoProcessingStatus(
     updates.processingError = error
   } else if (status === 'complete') {
     // Clear any previous error on success
-    updates.processingError = null
+    updates.processingError = undefined
   }
 
   await db.collection('media').updateOne(
@@ -304,7 +309,7 @@ export async function updateVideoMetadata(
 ): Promise<void> {
   const db = await getDatabase()
 
-  const updates: any = {
+  const updates: Partial<MediaDbRecord> = {
     video: videoMetadata,
     processingStatus: 'complete' as VideoProcessingStatus,
     updatedAt: new Date(),

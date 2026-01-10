@@ -8,9 +8,7 @@ import type {
   CustomerStats,
   CustomerLTV,
   CohortData,
-  CreateCustomerInput,
   UpdateCustomerInput,
-  CustomerListOptions,
   CustomerWithOrders,
   RegisterCustomerInput,
   CustomerAuthResult,
@@ -24,6 +22,35 @@ const EMAIL_CHANGE_TOKEN_EXPIRY_HOURS = 24
 
 // Dummy hash for timing attack prevention
 const DUMMY_HASH = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VttYJGpD4Gm.Ey'
+
+// Database record type for Customer collection
+interface CustomerRecord extends Customer {
+  _id?: unknown
+}
+
+// Aggregation result types
+interface CustomerStatsAggResult {
+  totalCustomers: number
+  repeatCustomers: number
+  totalRevenue: number
+  totalOrders: number
+  averageLTV: number
+  averageOrderValue: number
+}
+
+interface TopCustomerRecord {
+  id: string
+  email: string
+  name: string
+  totalSpent: number
+  totalOrders: number
+}
+
+interface AcquisitionSourceAggResult {
+  _id: string
+  customers: number
+  revenue: number
+}
 
 /**
  * Create or update a customer from order data
@@ -131,13 +158,14 @@ export async function listCustomers(
   pagination?: { page?: number; limit?: number }
 ): Promise<{ customers: Customer[]; total: number }> {
   const db = await getDatabase()
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.minSpent) {
     query.totalSpent = { $gte: filters.minSpent }
   }
   if (filters?.maxSpent) {
-    query.totalSpent = { ...query.totalSpent, $lte: filters.maxSpent }
+    const existing = query.totalSpent as Record<string, unknown> | undefined
+    query.totalSpent = { ...existing, $lte: filters.maxSpent }
   }
   if (filters?.minOrders) {
     query.totalOrders = { $gte: filters.minOrders }
@@ -169,7 +197,7 @@ export async function listCustomers(
       .skip(skip)
       .limit(limit)
       .toArray(),
-    db.collection('customers').countDocuments(query),
+    db.collection('customers').countDocuments(query as Record<string, unknown>),
   ])
 
   return { customers: customers as unknown as Customer[], total }
@@ -184,7 +212,7 @@ export async function updateCustomer(
   updates: UpdateCustomerInput
 ): Promise<void> {
   const db = await getDatabase()
-  const updateData: any = { ...updates, updatedAt: new Date() }
+  const updateData: Record<string, unknown> = { ...updates, updatedAt: new Date() }
 
   if (updates.emailSubscribed !== undefined) {
     if (updates.emailSubscribed) {
@@ -206,7 +234,7 @@ export async function getCustomerStats(
   endDate?: Date
 ): Promise<CustomerStats> {
   const db = await getDatabase()
-  const dateFilter: any = {}
+  const dateFilter: { $gte?: Date; $lte?: Date } = {}
 
   if (startDate) {
     dateFilter.$gte = startDate
@@ -215,7 +243,7 @@ export async function getCustomerStats(
     dateFilter.$lte = endDate
   }
 
-  const matchQuery: any = { tenantId }
+  const matchQuery: Record<string, unknown> = { tenantId }
   if (Object.keys(dateFilter).length > 0) {
     matchQuery.createdAt = dateFilter
   }
@@ -258,16 +286,16 @@ export async function getCustomerStats(
         },
       },
     ])
-    .toArray()
+    .toArray() as CustomerStatsAggResult[]
 
   // Get new customers (first order within period)
-  const newCustomersQuery: any = { tenantId }
+  const newCustomersQuery: Record<string, unknown> = { tenantId }
   if (Object.keys(dateFilter).length > 0) {
     newCustomersQuery.firstOrderAt = dateFilter
   }
   const newCustomers = await db
     .collection('customers')
-    .countDocuments(newCustomersQuery)
+    .countDocuments(newCustomersQuery as Record<string, unknown>)
 
   // Get new customers this month
   const startOfMonth = new Date()
@@ -283,9 +311,9 @@ export async function getCustomerStats(
     .find({ tenantId })
     .sort({ totalSpent: -1 })
     .limit(10)
-    .toArray()
+    .toArray() as unknown as TopCustomerRecord[]
 
-  const topCustomers = topCustomersData.map((c: any) => ({
+  const topCustomers = topCustomersData.map((c) => ({
     id: c.id,
     email: c.email,
     name: c.name,
@@ -321,15 +349,15 @@ export async function getTopCustomers(
     .find({ tenantId })
     .sort({ totalSpent: -1 })
     .limit(limit)
-    .toArray()
+    .toArray() as CustomerRecord[]
 
-  return customers.map((c: any) => {
-    const daysSinceFirstOrder = Math.floor(
+  return customers.map((c) => {
+    const daysSinceFirstOrder = c.firstOrderAt ? Math.floor(
       (now.getTime() - new Date(c.firstOrderAt).getTime()) / (1000 * 60 * 60 * 24)
-    )
-    const daysSinceLastOrder = Math.floor(
+    ) : 0
+    const daysSinceLastOrder = c.lastOrderAt ? Math.floor(
       (now.getTime() - new Date(c.lastOrderAt).getTime()) / (1000 * 60 * 60 * 24)
-    )
+    ) : 0
 
     // Simple LTV prediction based on order frequency and average value
     const ordersPerMonth = daysSinceFirstOrder > 0
@@ -485,7 +513,7 @@ export async function getCohortAnalysis(
 
       if (checkMonth > now) break
 
-      const monthData = retentionData.find((r: any) => r._id === monthStr)
+      const monthData = retentionData.find((r) => r._id === monthStr)
       if (monthData) {
         retention.push(
           Math.round(((monthData.uniqueCustomers?.length || 0) / totalCohortCustomers) * 100)
@@ -530,9 +558,9 @@ export async function getAcquisitionSources(
       },
       { $sort: { revenue: -1 } },
     ])
-    .toArray()
+    .toArray() as AcquisitionSourceAggResult[]
 
-  return sources.map((s: any) => ({
+  return sources.map((s) => ({
     source: s._id,
     customers: s.customers,
     revenue: s.revenue,
@@ -555,7 +583,7 @@ export async function exportCustomers(
   filters?: CustomerFilters
 ): Promise<Customer[]> {
   const db = await getDatabase()
-  const query: any = { tenantId }
+  const query: Record<string, unknown> = { tenantId }
 
   if (filters?.emailSubscribed !== undefined) {
     query.emailSubscribed = filters.emailSubscribed
@@ -912,9 +940,9 @@ export async function updateCustomerAddress(
 ): Promise<Customer | null> {
   const db = await getDatabase()
 
-  const updateFields: any = {}
+  const updateFields: Record<string, unknown> = {}
   Object.keys(address).forEach((key) => {
-    updateFields[`addresses.$.${key}`] = (address as any)[key]
+    updateFields[`addresses.$.${key}`] = address[key as keyof typeof address]
   })
 
   const result = await db.collection('customers').findOneAndUpdate(
@@ -1104,7 +1132,7 @@ export async function updateEmailSubscription(
   const db = await getDatabase()
   const now = new Date()
 
-  const updateData: any = {
+  const updateData: Record<string, unknown> = {
     emailSubscribed: subscribed,
     updatedAt: now,
   }
@@ -1134,6 +1162,16 @@ export async function deleteCustomer(tenantId: string, customerId: string): Prom
 /**
  * Get customer with their orders
  */
+interface OrderSummary {
+  id: string
+  orderNumber: string
+  createdAt: Date
+  total: number
+  status: string
+  paymentStatus: string
+  items?: Array<unknown>
+}
+
 export async function getCustomerWithOrders(
   tenantId: string,
   customerId: string
@@ -1147,11 +1185,11 @@ export async function getCustomerWithOrders(
     .collection('orders')
     .find({ tenantId, customerEmail: customer.email })
     .sort({ createdAt: -1 })
-    .toArray()
+    .toArray() as unknown as OrderSummary[]
 
   return {
     ...(customer as unknown as Customer),
-    orders: orders.map((order: any) => ({
+    orders: orders.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
       createdAt: order.createdAt,

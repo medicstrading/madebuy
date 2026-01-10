@@ -63,6 +63,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filter, sortBy])
 
   async function fetchData() {

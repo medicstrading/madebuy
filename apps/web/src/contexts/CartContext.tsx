@@ -1,16 +1,16 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react'
-import type { ProductWithMedia } from '@madebuy/shared'
+import type { CartProduct } from '@madebuy/shared'
 
 export interface CartItem {
-  product: ProductWithMedia
+  product: CartProduct
   quantity: number
 }
 
 interface CartContextType {
   items: CartItem[]
-  addItem: (product: ProductWithMedia, quantity?: number) => void
+  addItem: (product: CartProduct, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
@@ -97,7 +97,7 @@ export function CartProvider({
     }
   }, [items, tenantId])
 
-  const addItem = useCallback((product: ProductWithMedia, quantity: number = 1) => {
+  const addItem = useCallback((product: CartProduct, quantity: number = 1) => {
     setItems(prev => {
       const existing = prev.find(item => item.product.id === product.id)
 

@@ -1,6 +1,7 @@
 import type { MakerType } from '../constants/makerPresets'
 import type { TenantPaymentConfig } from './payment'
 import type { WebsiteTemplate, WebsitePage, PageSection, HeaderConfig, FooterConfig } from './template'
+import type { ExtractedDesign } from './scanner'
 
 /**
  * Tenant - Multi-tenant user/shop owner
@@ -101,15 +102,13 @@ export interface DomainOnboardingState {
     description?: string
   }
   // Design import from external sources (e.g., Wix, Squarespace)
-  // Note: extractedDesign uses ExtractedDesign type from scanner.ts when fully typed
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   designImport?: {
     sourceUrl?: string
     sourcePlatform?: string
     importedAt?: Date
     scannedAt?: Date
     sections?: unknown[] // Imported section data
-    extractedDesign?: any // Full ExtractedDesign type from scanner.ts
+    extractedDesign?: ExtractedDesign // Full ExtractedDesign type from scanner.ts
   }
 }
 
