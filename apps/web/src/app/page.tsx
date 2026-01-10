@@ -24,6 +24,8 @@ import {
   Zap,
   ArrowRight,
   Play,
+  Layout,
+  Globe,
 } from 'lucide-react'
 
 // Platform icons as SVG components for better quality
@@ -287,7 +289,33 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Website Builder */}
+            <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 border border-emerald-100 overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-200/30 to-transparent rounded-full blur-2xl" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                    <Layout className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Website Builder</h3>
+                </div>
+                <p className="text-gray-600 mb-6">
+                  Design your own storefront with drag-and-drop ease. No coding needed. Bring your own domain.
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm text-emerald-700">
+                    <Globe className="w-4 h-4" />
+                    <span>Custom domain</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-emerald-700">
+                    <Layout className="w-4 h-4" />
+                    <span>Drag & drop</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Media Storage */}
             <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 rounded-3xl p-8 border border-violet-100 overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-200/30 to-transparent rounded-full blur-2xl" />
@@ -299,9 +327,9 @@ export default function LandingPage() {
                   <h3 className="text-xl font-bold text-gray-900">Media Library</h3>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  Store all your product photos and videos in one place. Organize, tag, and reuse across listings and social posts.
+                  Store all your product photos and videos. Organize, tag, and reuse across listings and posts.
                 </p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 text-sm text-violet-700">
                     <Image className="w-4 h-4" />
                     <span>Photos</span>
@@ -309,10 +337,6 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2 text-sm text-violet-700">
                     <Video className="w-4 h-4" />
                     <span>Videos</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-violet-700">
-                    <Cloud className="w-4 h-4" />
-                    <span>Up to 10GB</span>
                   </div>
                 </div>
               </div>
@@ -329,11 +353,11 @@ export default function LandingPage() {
                   <h3 className="text-xl font-bold text-gray-900">Social Manager</h3>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  Schedule posts to all platforms. AI writes captions in your voice. A week of content in 10 minutes.
+                  Schedule posts to all platforms. AI writes captions in your voice. A week in 10 minutes.
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {[Instagram, Facebook, TikTokIcon, Youtube, PinterestIcon, Twitter].map((Icon, i) => (
-                    <div key={i} className="w-8 h-8 rounded-lg bg-white/80 border border-pink-100 flex items-center justify-center text-gray-500">
+                    <div key={i} className="w-7 h-7 rounded-lg bg-white/80 border border-pink-100 flex items-center justify-center text-gray-500">
                       <Icon />
                     </div>
                   ))}
@@ -352,7 +376,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-bold text-gray-900">Sell Everywhere</h3>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  Sync products directly to Etsy & eBay. Manage inventory from one dashboard. Never oversell again.
+                  Sync products to Etsy & eBay. Manage inventory from one dashboard. Never oversell.
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-white/80 rounded-lg border border-blue-100">
@@ -772,7 +796,8 @@ export default function LandingPage() {
                 features: [
                   '5 products',
                   '50 MB storage',
-                  'Basic profit tracking',
+                  'Basic website',
+                  'MadeBuy subdomain',
                   'Email support',
                 ],
                 cta: 'Start Free',
@@ -785,10 +810,10 @@ export default function LandingPage() {
                 features: [
                   '50 products',
                   '500 MB storage',
+                  'Website builder',
                   '2 social platforms',
                   '20 AI captions/month',
                   'Etsy sync',
-                  'GST reports',
                 ],
                 cta: 'Get Started',
                 popular: true,
@@ -800,10 +825,10 @@ export default function LandingPage() {
                 features: [
                   '200 products',
                   '2 GB storage',
+                  'Custom domain',
                   'All social platforms',
                   '100 AI captions/month',
                   'Etsy + eBay sync',
-                  'Priority support',
                 ],
                 cta: 'Get Started',
                 popular: false,
@@ -815,9 +840,9 @@ export default function LandingPage() {
                 features: [
                   'Unlimited products',
                   '10 GB storage',
+                  'Custom domain',
                   'Unlimited AI captions',
                   'All marketplace sync',
-                  'API access',
                   '3 team members',
                 ],
                 cta: 'Get Started',
