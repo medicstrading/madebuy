@@ -85,7 +85,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-16 lg:pt-36 lg:pb-20">
+      <section className="relative pt-32 pb-16 lg:pt-44 lg:pb-20">
         {/* Organic background shapes */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-amber-100/60 via-orange-50/40 to-transparent rounded-full blur-3xl" />
@@ -101,13 +101,13 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             {/* Tagline badge */}
-            <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-10">
               <Zap className="w-4 h-4" />
               <span>One platform. Everything you need.</span>
             </div>
 
             {/* Main headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-[1.1] mb-6 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-[1.15] mb-8 tracking-tight">
               From workshop to world{' '}
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">— simplified.</span>
