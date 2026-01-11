@@ -1001,7 +1001,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Animations */}
+      {/* Float animations for decorative elements */}
       <style jsx>{`
         @keyframes float {
           0%, 100% { transform: translateY(0); }
@@ -1013,28 +1013,6 @@ export default function LandingPage() {
         .animate-float-delayed {
           animation: float 5s ease-in-out infinite 2.5s;
         }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes drawLine {
-          from { stroke-dashoffset: 300; }
-          to { stroke-dashoffset: 0; }
-        }
-        @keyframes glowPulse {
-          0%, 100% { filter: drop-shadow(0 0 20px rgba(251, 146, 60, 0.3)); }
-          50% { filter: drop-shadow(0 0 40px rgba(251, 146, 60, 0.5)); }
-        }
-        .animate-fade-up-1 { animation: fadeUp 0.8s ease-out forwards; opacity: 0; }
-        .animate-fade-up-2 { animation: fadeUp 0.8s ease-out 0.15s forwards; opacity: 0; }
-        .animate-fade-up-3 { animation: fadeUp 0.8s ease-out 0.3s forwards; opacity: 0; }
-        .animate-fade-up-4 { animation: fadeUp 0.8s ease-out 0.5s forwards; opacity: 0; }
-        .animate-draw-line {
-          stroke-dasharray: 300;
-          stroke-dashoffset: 300;
-          animation: drawLine 1s ease-out 0.7s forwards;
-        }
-        .animate-glow { animation: glowPulse 3s ease-in-out infinite 1s; }
       `}</style>
     </div>
   )
