@@ -62,3 +62,6 @@ Thumbs.db
 # Git worktrees
 .worktrees/
 .mcp.json
+
+# Nexus local memory (contains secrets)
+.nexus/

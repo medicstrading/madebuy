@@ -26,6 +26,7 @@ RUN pnpm --filter @madebuy/web build
 # Production stage
 FROM node:20-alpine AS runner
 
+RUN apk add --no-cache ffmpeg
 RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN npm install -g pm2
 
