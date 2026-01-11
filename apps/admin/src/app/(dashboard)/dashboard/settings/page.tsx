@@ -138,6 +138,11 @@ export default function SettingsPage() {
     ? MAKER_MATERIAL_PRESETS[tenant.makerType]
     : []
 
+  // Check if user has existing custom categories (blocks maker type changes)
+  const hasExistingCategories =
+    (tenant.customCategories?.length ?? 0) > 0 ||
+    (tenant.customMaterialCategories?.length ?? 0) > 0
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -182,6 +187,7 @@ export default function SettingsPage() {
             value={tenant.makerType}
             onChange={handleMakerTypeChange}
             disabled={saveStatus === 'saving'}
+            hasExistingCategories={hasExistingCategories}
           />
         </div>
       </section>

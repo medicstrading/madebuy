@@ -24,6 +24,12 @@ import {
   RefreshCw,
   Share2,
   ShoppingBag,
+  CreditCard,
+  Building2,
+  User,
+  CheckCircle2,
+  Link2,
+  Settings,
 } from 'lucide-react'
 
 // =============================================================================
@@ -56,7 +62,42 @@ interface MarketplaceConnectionData {
   createdAt?: string
 }
 
-type TabId = 'social' | 'marketplaces'
+interface StripeConnectStatus {
+  connected: boolean
+  connectAccountId?: string
+  status: 'pending' | 'active' | 'restricted' | 'disabled' | null
+  chargesEnabled: boolean
+  payoutsEnabled: boolean
+  onboardingComplete: boolean
+  detailsSubmitted: boolean
+  businessType?: 'individual' | 'company'
+  requirements?: {
+    currentlyDue?: string[]
+    eventuallyDue?: string[]
+    pastDue?: string[]
+    disabledReason?: string
+  }
+}
+
+interface XeroConnectionStatus {
+  mappings: {
+    productSales: string
+    shippingIncome: string
+    platformFees: string
+    paymentFees: string
+    bankAccount: string
+  }
+  lastSyncAt: string | null
+  status: 'connected' | 'needs_reauth' | 'error' | 'disconnected'
+}
+
+interface XeroAccountGroups {
+  revenue: { code: string; name: string; type: string }[]
+  expense: { code: string; name: string; type: string }[]
+  bank: { code: string; name: string; type: string }[]
+}
+
+type TabId = 'social' | 'marketplaces' | 'payments'
 
 // =============================================================================
 // Platform Configs
@@ -140,15 +181,18 @@ function Tabs({
   onTabChange,
   socialCount,
   marketplaceCount,
+  paymentsCount,
 }: {
   activeTab: TabId
   onTabChange: (tab: TabId) => void
   socialCount: number
   marketplaceCount: number
+  paymentsCount: number
 }) {
   const tabs = [
     { id: 'social' as TabId, label: 'Social', icon: Share2, count: socialCount },
     { id: 'marketplaces' as TabId, label: 'Marketplaces', icon: ShoppingBag, count: marketplaceCount },
+    { id: 'payments' as TabId, label: 'Payments', icon: CreditCard, count: paymentsCount },
   ]
 
   return (
@@ -434,6 +478,434 @@ function MarketplaceCard({
 }
 
 // =============================================================================
+// Stripe Connect Card Component
+// =============================================================================
+
+function StripeConnectCard({
+  status,
+  isLoading,
+  isCreating,
+  isRedirecting,
+  onCreateAccount,
+  onStartOnboarding,
+  onOpenDashboard,
+  onRefresh,
+}: {
+  status: StripeConnectStatus | null
+  isLoading: boolean
+  isCreating: boolean
+  isRedirecting: boolean
+  onCreateAccount: (type: 'individual' | 'company') => void
+  onStartOnboarding: () => void
+  onOpenDashboard: () => void
+  onRefresh: () => void
+}) {
+  const formatRequirement = (req: string) => {
+    const mappings: Record<string, string> = {
+      external_account: 'Bank account for payouts',
+      'individual.dob': 'Date of birth',
+      'individual.address': 'Address',
+      'individual.first_name': 'First name',
+      'individual.last_name': 'Last name',
+      'individual.email': 'Email address',
+      'individual.phone': 'Phone number',
+      'individual.id_number': 'Tax file number (TFN)',
+      'business_profile.url': 'Business website',
+      'business_profile.mcc': 'Business category',
+      tos_acceptance: 'Accept terms of service',
+    }
+    return mappings[req] || req.replace(/_/g, ' ').replace(/\./g, ' - ')
+  }
+
+  const StatusBadge = ({ statusVal }: { statusVal: string | null }) => {
+    const styles = {
+      active: 'bg-green-100 text-green-800 border-green-200',
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      restricted: 'bg-orange-100 text-orange-800 border-orange-200',
+      disabled: 'bg-red-100 text-red-800 border-red-200',
+    }
+    const labels = {
+      active: 'Active',
+      pending: 'Pending Verification',
+      restricted: 'Restricted',
+      disabled: 'Disabled',
+    }
+    const style = styles[statusVal as keyof typeof styles] || styles.pending
+    const label = labels[statusVal as keyof typeof labels] || 'Unknown'
+    return (
+      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${style}`}>
+        {label}
+      </span>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
+            <CreditCard className="h-6 w-6 text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900">Stripe Connect</h3>
+            <p className="text-sm text-gray-500">Receive payments from customers</p>
+          </div>
+          {status?.connected && <StatusBadge statusVal={status.status} />}
+        </div>
+      </div>
+
+      <div className="p-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : !status?.connected ? (
+          <div className="space-y-6">
+            <p className="text-gray-600">
+              To receive payments from customers, connect a Stripe account.
+              Stripe handles all payment processing securely.
+            </p>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <button
+                onClick={() => onCreateAccount('individual')}
+                disabled={isCreating}
+                className="flex flex-col items-center gap-3 rounded-lg border-2 border-gray-200 p-6 hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
+              >
+                <User className="h-8 w-8 text-gray-600" />
+                <div className="text-center">
+                  <p className="font-semibold text-gray-900">Individual / Sole Trader</p>
+                  <p className="text-sm text-gray-500">For solo makers</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onCreateAccount('company')}
+                disabled={isCreating}
+                className="flex flex-col items-center gap-3 rounded-lg border-2 border-gray-200 p-6 hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
+              >
+                <Building2 className="h-8 w-8 text-gray-600" />
+                <div className="text-center">
+                  <p className="font-semibold text-gray-900">Company / Business</p>
+                  <p className="text-sm text-gray-500">For registered businesses</p>
+                </div>
+              </button>
+            </div>
+
+            {isCreating && (
+              <div className="flex items-center justify-center gap-2 text-gray-500">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Setting up your account...</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onRefresh}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </button>
+            </div>
+
+            {/* Capabilities */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+                {status.chargesEnabled ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                )}
+                <div>
+                  <p className="font-medium text-gray-900">Accept Payments</p>
+                  <p className="text-sm text-gray-500">
+                    {status.chargesEnabled ? 'Enabled' : 'Pending verification'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+                {status.payoutsEnabled ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                )}
+                <div>
+                  <p className="font-medium text-gray-900">Receive Payouts</p>
+                  <p className="text-sm text-gray-500">
+                    {status.payoutsEnabled ? 'Enabled' : 'Pending verification'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Requirements */}
+            {status.requirements?.currentlyDue && status.requirements.currentlyDue.length > 0 && (
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                <p className="font-medium text-yellow-800 mb-2">Action Required</p>
+                <ul className="list-disc list-inside text-sm text-yellow-700 space-y-1">
+                  {status.requirements.currentlyDue.slice(0, 5).map((req) => (
+                    <li key={req}>{formatRequirement(req)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3">
+              {!status.onboardingComplete && (
+                <button
+                  onClick={onStartOnboarding}
+                  disabled={isRedirecting}
+                  className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white font-medium hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {isRedirecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-4 w-4" />
+                  )}
+                  Continue Setup
+                </button>
+              )}
+
+              {status.onboardingComplete && (
+                <button
+                  onClick={onOpenDashboard}
+                  disabled={isRedirecting}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-white font-medium hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {isRedirecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-4 w-4" />
+                  )}
+                  Open Stripe Dashboard
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// =============================================================================
+// Xero Card Component
+// =============================================================================
+
+function XeroCard({
+  connection,
+  accounts,
+  isLoading,
+  isSyncing,
+  isSaving,
+  mappings,
+  onMappingsChange,
+  onConnect,
+  onDisconnect,
+  onSync,
+  onSaveMappings,
+}: {
+  connection: XeroConnectionStatus | null
+  accounts: XeroAccountGroups | null
+  isLoading: boolean
+  isSyncing: boolean
+  isSaving: boolean
+  mappings: {
+    productSales: string
+    shippingIncome: string
+    platformFees: string
+    paymentFees: string
+    bankAccount: string
+  }
+  onMappingsChange: (mappings: typeof mappings) => void
+  onConnect: () => void
+  onDisconnect: () => void
+  onSync: () => void
+  onSaveMappings: () => void
+}) {
+  const isConnected = connection && connection.status !== 'disconnected'
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#13B5EA]">
+            <span className="text-white font-bold text-xl">X</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900">Xero</h3>
+            <p className="text-sm text-gray-500">Sync transactions to accounting</p>
+          </div>
+          {isConnected && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+              <CheckCircle className="h-3 w-3" />
+              Connected
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="p-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : !isConnected ? (
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Connect Xero to automatically sync your sales and expenses for easy bookkeeping.
+            </p>
+            <a
+              href="/api/xero/connect"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#13B5EA] px-4 py-2 text-white font-medium hover:bg-[#0ea5d3]"
+            >
+              <Link2 className="h-4 w-4" />
+              Connect Xero
+            </a>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Actions */}
+            <div className="flex items-center justify-between">
+              <div>
+                {connection.lastSyncAt && (
+                  <p className="text-sm text-gray-500">
+                    Last synced: {new Date(connection.lastSyncAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onSync}
+                  disabled={isSyncing}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  Sync Now
+                </button>
+                <button
+                  onClick={onDisconnect}
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                >
+                  <Unlink className="h-4 w-4" />
+                  Disconnect
+                </button>
+              </div>
+            </div>
+
+            {/* Account Mappings */}
+            {accounts && (
+              <div className="space-y-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-gray-500" />
+                  <h4 className="font-medium text-gray-900">Account Mappings</h4>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Sales</label>
+                    <select
+                      value={mappings.productSales}
+                      onChange={(e) => onMappingsChange({ ...mappings, productSales: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
+                    >
+                      <option value="">Select account...</option>
+                      {accounts.revenue.map((acc) => (
+                        <option key={acc.code} value={acc.code}>
+                          {acc.code} - {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Income</label>
+                    <select
+                      value={mappings.shippingIncome}
+                      onChange={(e) => onMappingsChange({ ...mappings, shippingIncome: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
+                    >
+                      <option value="">Select account...</option>
+                      {accounts.revenue.map((acc) => (
+                        <option key={acc.code} value={acc.code}>
+                          {acc.code} - {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Platform Fees</label>
+                    <select
+                      value={mappings.platformFees}
+                      onChange={(e) => onMappingsChange({ ...mappings, platformFees: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
+                    >
+                      <option value="">Select account...</option>
+                      {accounts.expense.map((acc) => (
+                        <option key={acc.code} value={acc.code}>
+                          {acc.code} - {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Fees</label>
+                    <select
+                      value={mappings.paymentFees}
+                      onChange={(e) => onMappingsChange({ ...mappings, paymentFees: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
+                    >
+                      <option value="">Select account...</option>
+                      {accounts.expense.map((acc) => (
+                        <option key={acc.code} value={acc.code}>
+                          {acc.code} - {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Bank Account</label>
+                    <select
+                      value={mappings.bankAccount}
+                      onChange={(e) => onMappingsChange({ ...mappings, bankAccount: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
+                    >
+                      <option value="">Select account...</option>
+                      {accounts.bank.map((acc) => (
+                        <option key={acc.code} value={acc.code}>
+                          {acc.code} - {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onSaveMappings}
+                  disabled={isSaving}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Save Mappings
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// =============================================================================
 // Main Component
 // =============================================================================
 
@@ -453,6 +925,26 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   const [disconnectingPlatform, setDisconnectingPlatform] = useState<MarketplacePlatform | null>(null)
   const [togglingPlatform, setTogglingPlatform] = useState<MarketplacePlatform | null>(null)
 
+  // Stripe state
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
+  const [stripeLoading, setStripeLoading] = useState(true)
+  const [stripeCreating, setStripeCreating] = useState(false)
+  const [stripeRedirecting, setStripeRedirecting] = useState(false)
+
+  // Xero state
+  const [xeroConnection, setXeroConnection] = useState<XeroConnectionStatus | null>(null)
+  const [xeroAccounts, setXeroAccounts] = useState<XeroAccountGroups | null>(null)
+  const [xeroLoading, setXeroLoading] = useState(true)
+  const [xeroSyncing, setXeroSyncing] = useState(false)
+  const [xeroSaving, setXeroSaving] = useState(false)
+  const [xeroMappings, setXeroMappings] = useState({
+    productSales: '',
+    shippingIncome: '',
+    platformFees: '',
+    paymentFees: '',
+    bankAccount: '',
+  })
+
   // Messages
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -461,10 +953,11 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
     const success = searchParams?.get('success')
     const error = searchParams?.get('error')
     const tab = searchParams?.get('tab')
+    const connected = searchParams?.get('connected')
+    const onboarding = searchParams?.get('onboarding')
 
-    if (tab === 'marketplaces') {
-      setActiveTab('marketplaces')
-    }
+    if (tab === 'marketplaces') setActiveTab('marketplaces')
+    if (tab === 'payments') setActiveTab('payments')
 
     if (success) {
       if (success === 'ebay' || success === 'etsy') {
@@ -473,6 +966,18 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
       } else {
         setMessage({ type: 'success', text: 'Successfully connected! Your account should appear below.' })
       }
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+
+    if (connected === 'xero') {
+      setMessage({ type: 'success', text: 'Successfully connected to Xero!' })
+      setActiveTab('payments')
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+
+    if (onboarding === 'complete') {
+      setMessage({ type: 'success', text: 'Stripe onboarding step completed! We\'re verifying your details.' })
+      setActiveTab('payments')
       window.history.replaceState({}, '', window.location.pathname)
     }
 
@@ -528,11 +1033,48 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
     }
   }, [])
 
+  // Fetch Stripe status
+  const fetchStripeStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/stripe/connect')
+      if (res.ok) {
+        setStripeStatus(await res.json())
+      }
+    } catch (error) {
+      console.error('Failed to fetch Stripe status:', error)
+    } finally {
+      setStripeLoading(false)
+    }
+  }, [])
+
+  // Fetch Xero status
+  const fetchXeroStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/xero/mappings')
+      if (res.ok) {
+        const data = await res.json()
+        setXeroConnection(data)
+        setXeroMappings(data.mappings)
+        // Load accounts if connected
+        const accountsRes = await fetch('/api/xero/accounts')
+        if (accountsRes.ok) {
+          setXeroAccounts(await accountsRes.json())
+        }
+      }
+    } catch (error) {
+      // Not connected
+    } finally {
+      setXeroLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchSocialConnections()
     fetchEbayStatus()
     fetchEtsyStatus()
-  }, [fetchSocialConnections, fetchEbayStatus, fetchEtsyStatus])
+    fetchStripeStatus()
+    fetchXeroStatus()
+  }, [fetchSocialConnections, fetchEbayStatus, fetchEtsyStatus, fetchStripeStatus, fetchXeroStatus])
 
   // Connect social platform
   async function handleSocialConnect(platform: string) {
@@ -604,11 +1146,10 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
         body: JSON.stringify({ enabled }),
       })
       if (res.ok) {
-        // Update local state
         if (platform === 'ebay') {
-          setEbayConnection((prev) => prev ? { ...prev, enabled } : null)
+          setEbayConnection((prev) => (prev ? { ...prev, enabled } : null))
         } else {
-          setEtsyConnection((prev) => prev ? { ...prev, enabled } : null)
+          setEtsyConnection((prev) => (prev ? { ...prev, enabled } : null))
         }
         setMessage({
           type: 'success',
@@ -625,9 +1166,107 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
     }
   }
 
+  // Stripe handlers
+  async function handleStripeCreateAccount(businessType: 'individual' | 'company') {
+    setStripeCreating(true)
+    try {
+      const response = await fetch('/api/stripe/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessType }),
+      })
+      if (response.ok) {
+        await fetchStripeStatus()
+        handleStripeStartOnboarding()
+      } else {
+        const data = await response.json()
+        setMessage({ type: 'error', text: data.error || 'Failed to create account' })
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to create account' })
+    } finally {
+      setStripeCreating(false)
+    }
+  }
+
+  async function handleStripeStartOnboarding() {
+    setStripeRedirecting(true)
+    try {
+      const response = await fetch('/api/stripe/connect/onboarding', { method: 'POST' })
+      if (response.ok) {
+        const data = await response.json()
+        window.location.href = data.url
+      } else {
+        const data = await response.json()
+        setMessage({ type: 'error', text: data.error || 'Failed to start onboarding' })
+        setStripeRedirecting(false)
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to start onboarding' })
+      setStripeRedirecting(false)
+    }
+  }
+
+  async function handleStripeOpenDashboard() {
+    setStripeRedirecting(true)
+    try {
+      const response = await fetch('/api/stripe/connect/dashboard', { method: 'POST' })
+      if (response.ok) {
+        const data = await response.json()
+        window.open(data.url, '_blank')
+      } else {
+        const data = await response.json()
+        setMessage({ type: 'error', text: data.error || 'Failed to open dashboard' })
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to open dashboard' })
+    } finally {
+      setStripeRedirecting(false)
+    }
+  }
+
+  // Xero handlers
+  async function handleXeroDisconnect() {
+    if (!confirm('Disconnect Xero? This will stop syncing transactions.')) return
+    await fetch('/api/xero/disconnect', { method: 'POST' })
+    setXeroConnection(null)
+    setXeroAccounts(null)
+    setMessage({ type: 'success', text: 'Disconnected from Xero' })
+  }
+
+  async function handleXeroSync() {
+    setXeroSyncing(true)
+    try {
+      await fetch('/api/xero/sync', { method: 'POST' })
+      await fetchXeroStatus()
+      setMessage({ type: 'success', text: 'Xero sync completed' })
+    } finally {
+      setXeroSyncing(false)
+    }
+  }
+
+  async function handleXeroSaveMappings() {
+    setXeroSaving(true)
+    try {
+      const res = await fetch('/api/xero/mappings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(xeroMappings),
+      })
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Xero mappings saved' })
+      }
+    } finally {
+      setXeroSaving(false)
+    }
+  }
+
   // Count connected
   const socialConnectedCount = socialAccounts.filter((a) => a.isActive).length
   const marketplaceConnectedCount = (ebayConnection?.connected ? 1 : 0) + (etsyConnection?.connected ? 1 : 0)
+  const paymentsConnectedCount =
+    (stripeStatus?.connected ? 1 : 0) +
+    (xeroConnection && xeroConnection.status !== 'disconnected' ? 1 : 0)
 
   // Get account by platform
   const getAccountByPlatform = (platform: string) =>
@@ -637,9 +1276,13 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   const handleRefresh = () => {
     setSocialLoading(true)
     setMarketplaceLoading({ ebay: true, etsy: true })
+    setStripeLoading(true)
+    setXeroLoading(true)
     fetchSocialConnections()
     fetchEbayStatus()
     fetchEtsyStatus()
+    fetchStripeStatus()
+    fetchXeroStatus()
   }
 
   return (
@@ -649,7 +1292,7 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Connections</h1>
           <p className="mt-1 text-gray-500">
-            Connect your accounts to publish content and sync inventory
+            Connect your accounts to publish content, sync inventory, and receive payments
           </p>
         </div>
         <button
@@ -685,6 +1328,7 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
         onTabChange={setActiveTab}
         socialCount={socialConnectedCount}
         marketplaceCount={marketplaceConnectedCount}
+        paymentsCount={paymentsConnectedCount}
       />
 
       {/* Tab Content */}
@@ -765,6 +1409,56 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
                 <li className="flex items-start gap-2">
                   <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>Orders imported hourly for unified fulfillment</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <StripeConnectCard
+                status={stripeStatus}
+                isLoading={stripeLoading}
+                isCreating={stripeCreating}
+                isRedirecting={stripeRedirecting}
+                onCreateAccount={handleStripeCreateAccount}
+                onStartOnboarding={handleStripeStartOnboarding}
+                onOpenDashboard={handleStripeOpenDashboard}
+                onRefresh={fetchStripeStatus}
+              />
+
+              <XeroCard
+                connection={xeroConnection}
+                accounts={xeroAccounts}
+                isLoading={xeroLoading}
+                isSyncing={xeroSyncing}
+                isSaving={xeroSaving}
+                mappings={xeroMappings}
+                onMappingsChange={setXeroMappings}
+                onConnect={() => (window.location.href = '/api/xero/connect')}
+                onDisconnect={handleXeroDisconnect}
+                onSync={handleXeroSync}
+                onSaveMappings={handleXeroSaveMappings}
+              />
+            </div>
+
+            {/* Info box */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
+              <h3 className="mb-2 text-sm font-semibold text-blue-900">About Payment & Accounting</h3>
+              <ul className="space-y-1.5 text-sm text-blue-800">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                  <span>MadeBuy charges 0% platform fees - you keep more earnings</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                  <span>Stripe processing: 1.7% + $0.30 for Australian cards</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                  <span>Automatic transaction sync to Xero for easy bookkeeping</span>
                 </li>
               </ul>
             </div>

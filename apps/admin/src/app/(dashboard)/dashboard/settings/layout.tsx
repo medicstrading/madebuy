@@ -4,16 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Settings,
-  CreditCard,
   Truck,
-  Globe,
   MapPin,
-  Calculator,
   Receipt,
   Percent,
   Bell,
   Sparkles,
-  Store,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -35,40 +31,16 @@ const settingsNavItems = [
     description: 'Currency and localization',
   },
   {
-    name: 'Payments',
-    href: '/dashboard/settings/payments',
-    icon: CreditCard,
-    description: 'Stripe Connect setup',
-  },
-  {
-    name: 'Marketplaces',
-    href: '/dashboard/settings/marketplace',
-    icon: Store,
-    description: 'eBay & Etsy connections',
-  },
-  {
     name: 'Shipping',
     href: '/dashboard/settings/shipping',
     icon: Truck,
     description: 'Sendle integration',
   },
   {
-    name: 'Domain',
-    href: '/dashboard/settings/domain',
-    icon: Globe,
-    description: 'Custom domain setup',
-  },
-  {
     name: 'Billing',
     href: '/dashboard/settings/billing',
     icon: Receipt,
     description: 'Subscription and invoices',
-  },
-  {
-    name: 'Accounting',
-    href: '/dashboard/settings/accounting',
-    icon: Calculator,
-    description: 'Xero/MYOB connection',
   },
   {
     name: 'Tax / GST',
