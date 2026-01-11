@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireTenant } from '@/lib/session'
-import { Package, Image, ShoppingCart, Mail, TrendingUp, TrendingDown, Plus, Share, Settings, ArrowRight, Eye, Star, Clock } from 'lucide-react'
+import { Package, Image, ShoppingCart, Mail, Plus, Share, Settings, ArrowRight } from 'lucide-react'
 import { pieces, media, orders, enquiries } from '@madebuy/db'
 import Link from 'next/link'
 import { FinanceWidgets } from '@/components/dashboard/FinanceWidgets'
@@ -30,6 +30,13 @@ const getCachedDashboardStats = unstable_cache(
   { revalidate: 60, tags: ['dashboard'] }
 )
 
+function getTimeOfDayGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export default async function DashboardPage() {
   const tenant = await requireTenant()
 
@@ -39,29 +46,37 @@ export default async function DashboardPage() {
   }
 
   const stats = await getCachedDashboardStats(tenant.id)
+  const greeting = getTimeOfDayGreeting()
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-xl">
+      {/* Welcome Banner - Hero Moment */}
+      <div className="animate-fade-in-scale delay-0 relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-10 text-white shadow-2xl">
+        {/* Grain texture overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
         <div className="relative z-10">
-          <p className="text-slate-400 text-sm font-medium tracking-wide uppercase mb-2">Welcome back</p>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">{tenant.businessName}</h1>
-          <p className="text-slate-300 max-w-md text-base">
-            Here&apos;s what&apos;s happening with your store today.
+          <p className="text-slate-400 text-sm font-medium tracking-widest uppercase mb-3">{greeting}</p>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">{tenant.businessName}</h1>
+          <p className="text-slate-300 max-w-lg text-lg">
+            Your studio command center. Here&apos;s what&apos;s happening today.
           </p>
         </div>
-        {/* Decorative gradient orbs */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-3xl" />
-        <div className="absolute -right-10 top-10 h-32 w-32 rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-500/10 blur-2xl" />
-        <div className="absolute bottom-0 left-1/3 h-24 w-48 rounded-full bg-gradient-to-r from-indigo-500/10 to-transparent blur-2xl" />
+        {/* Decorative gradient orbs - more prominent */}
+        <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/25 to-purple-500/25 blur-3xl" />
+        <div className="absolute -right-8 top-12 h-40 w-40 rounded-full bg-gradient-to-br from-cyan-500/15 to-blue-500/15 blur-2xl" />
+        <div className="absolute -bottom-8 left-1/4 h-32 w-56 rounded-full bg-gradient-to-r from-indigo-500/15 to-transparent blur-2xl" />
+        <div className="absolute bottom-4 right-8 h-20 w-20 rounded-full bg-gradient-to-br from-amber-500/10 to-orange-500/10 blur-xl" />
       </div>
 
-      {/* Overview Section - Contained Card */}
-      <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      {/* Studio Vitals - Overview Stats */}
+      <section className="animate-fade-in-up delay-1 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-base font-semibold text-gray-900">Overview</h2>
-          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">Last 30 days</span>
+          <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">Studio Vitals</h2>
         </div>
         <div className="p-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -69,53 +84,55 @@ export default async function DashboardPage() {
               title="Products"
               value={stats.pieces}
               icon={Package}
-              trend={12}
-              trendLabel="vs last month"
               color="blue"
+              delay={2}
             />
             <StatCard
               title="Media Files"
               value={stats.media}
               icon={Image}
-              trend={8}
-              trendLabel="vs last month"
               color="purple"
+              delay={3}
             />
             <StatCard
               title="Orders"
               value={stats.orders}
               icon={ShoppingCart}
-              trend={-3}
-              trendLabel="vs last month"
               color="green"
+              delay={4}
             />
             <StatCard
               title="Enquiries"
               value={stats.enquiries}
               icon={Mail}
-              trend={24}
-              trendLabel="vs last month"
               color="amber"
+              delay={5}
             />
           </div>
         </div>
       </section>
 
       {/* Finance Widgets */}
-      <FinanceWidgets />
+      <div className="animate-fade-in-up delay-2">
+        <FinanceWidgets />
+      </div>
 
       {/* Low Stock Alerts */}
-      <LowStockAlerts />
+      <div className="animate-fade-in-up delay-3">
+        <LowStockAlerts />
+      </div>
 
       {/* Analytics Widget */}
-      <AnalyticsWidget />
+      <div className="animate-fade-in-up delay-4">
+        <AnalyticsWidget />
+      </div>
 
       {/* Orders & Quick Actions Row */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Orders Section - Contained Card */}
+      <div className="grid gap-6 lg:grid-cols-3 animate-fade-in-up delay-5">
+        {/* Recent Orders Section */}
         <section className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-base font-semibold text-gray-900">Recent Orders</h2>
+            <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">Recent Orders</h2>
             <Link
               href="/dashboard/orders"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
@@ -140,7 +157,7 @@ export default async function DashboardPage() {
                     </p>
                   </div>
                   <OrderStatusBadge status={order.status} />
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-gray-900 tabular-nums">
                     ${(order.total / 100).toFixed(2)}
                   </p>
                 </div>
@@ -157,10 +174,10 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Quick Actions Section - Contained Card */}
+        {/* Quick Actions Section */}
         <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-base font-semibold text-gray-900">Quick Actions</h2>
+            <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">Quick Actions</h2>
           </div>
           <div className="p-4">
             <div className="space-y-2">
@@ -189,33 +206,6 @@ export default async function DashboardPage() {
           </div>
         </section>
       </div>
-
-      {/* Activity Section - Contained Card */}
-      <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-base font-semibold text-gray-900">Recent Activity</h2>
-          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">Today</span>
-        </div>
-        <div className="p-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <ActivityItem
-              icon={Eye}
-              text="Store viewed"
-              time="2 minutes ago"
-            />
-            <ActivityItem
-              icon={Star}
-              text="New review received"
-              time="1 hour ago"
-            />
-            <ActivityItem
-              icon={ShoppingCart}
-              text="Product added to cart"
-              time="3 hours ago"
-            />
-          </div>
-        </div>
-      </section>
     </div>
   )
 }
@@ -224,39 +214,51 @@ function StatCard({
   title,
   value,
   icon: Icon,
-  trend,
-  trendLabel,
-  color
+  color,
+  delay = 0
 }: {
   title: string
   value: number
   icon: any
-  trend: number
-  trendLabel: string
   color: 'blue' | 'purple' | 'green' | 'amber'
+  delay?: number
 }) {
-  const colorClasses = {
-    blue: 'bg-blue-500 text-white',
-    purple: 'bg-purple-500 text-white',
-    green: 'bg-emerald-500 text-white',
-    amber: 'bg-amber-500 text-white',
+  const colorConfig = {
+    blue: {
+      icon: 'bg-blue-500 text-white',
+      border: 'hover:border-blue-200',
+      glow: 'hover:shadow-blue-100/50',
+    },
+    purple: {
+      icon: 'bg-purple-500 text-white',
+      border: 'hover:border-purple-200',
+      glow: 'hover:shadow-purple-100/50',
+    },
+    green: {
+      icon: 'bg-emerald-500 text-white',
+      border: 'hover:border-emerald-200',
+      glow: 'hover:shadow-emerald-100/50',
+    },
+    amber: {
+      icon: 'bg-amber-500 text-white',
+      border: 'hover:border-amber-200',
+      glow: 'hover:shadow-amber-100/50',
+    },
   }
 
-  const isPositive = trend >= 0
+  const config = colorConfig[color]
 
   return (
-    <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-5 transition-all hover:shadow-md hover:border-gray-300">
+    <div
+      className={`animate-fade-in-up delay-${delay} rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200 p-5 transition-all duration-300 hover:shadow-lg ${config.border} ${config.glow} hover:-translate-y-0.5`}
+    >
       <div className="flex items-start justify-between">
-        <div className={`rounded-xl p-2.5 shadow-sm ${colorClasses[color]}`}>
+        <div className={`rounded-xl p-2.5 shadow-sm ${config.icon}`}>
           <Icon className="h-5 w-5" />
-        </div>
-        <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-red-700 bg-red-50'}`}>
-          {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-          {Math.abs(trend)}%
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-3xl font-bold text-gray-900 tracking-tight">{value}</p>
+        <p className="text-4xl font-bold text-gray-900 tracking-tight tabular-nums">{value}</p>
         <p className="text-sm text-gray-500 mt-1 font-medium">{title}</p>
       </div>
     </div>
@@ -285,7 +287,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-xl p-3 border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all"
+      className="group flex items-center gap-3 rounded-xl p-3 border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all duration-200"
     >
       <div className={`rounded-xl p-2.5 transition-all ${colorClasses[color]}`}>
         <Icon className="h-4 w-4" />
@@ -295,31 +297,9 @@ function QuickAction({
         <p className="text-xs text-gray-500">{description}</p>
       </div>
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 group-hover:bg-gray-200 transition-colors">
-        <ArrowRight className="h-4 w-4 text-gray-500" />
+        <ArrowRight className="h-4 w-4 text-gray-500 group-hover:translate-x-0.5 transition-transform" />
       </div>
     </Link>
-  )
-}
-
-function ActivityItem({
-  icon: Icon,
-  text,
-  time
-}: {
-  icon: any
-  text: string
-  time: string
-}) {
-  return (
-    <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50/50 border border-gray-100 hover:bg-gray-50 transition-colors">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-gray-200 shadow-sm">
-        <Icon className="h-5 w-5 text-gray-600" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-700">{text}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{time}</p>
-      </div>
-    </div>
   )
 }
 
