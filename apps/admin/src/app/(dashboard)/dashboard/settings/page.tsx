@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, Settings, Palette, Package, Boxes } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Loader2, Settings, Package, Boxes, RotateCcw } from 'lucide-react'
 import { MakerTypeSelector } from '@/components/settings/MakerTypeSelector'
 import { CategoryManager } from '@/components/settings/CategoryManager'
 import type { Tenant, MakerType } from '@madebuy/shared/src/types/tenant'
@@ -11,10 +12,12 @@ import {
 } from '@madebuy/shared/src/constants/makerPresets'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const [tenant, setTenant] = useState<Tenant | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [isRestartingOnboarding, setIsRestartingOnboarding] = useState(false)
 
   // Load tenant data
   useEffect(() => {
@@ -236,6 +239,62 @@ export default function SettingsPage() {
             onRemoveCategory={(cat: string) => handleRemoveCategory(cat, 'material')}
             disabled={saveStatus === 'saving'}
           />
+        </div>
+      </section>
+
+      {/* Restart Onboarding Section */}
+      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
+              <RotateCcw className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Setup Wizard</h2>
+              <p className="text-sm text-gray-500">
+                Run through the initial setup process again
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <p className="text-sm text-gray-600 mb-4">
+            Restart the setup wizard to configure your domain, location settings, and website design.
+            Your existing data won&apos;t be affected.
+          </p>
+          <button
+            onClick={async () => {
+              setIsRestartingOnboarding(true)
+              try {
+                await fetch('/api/tenant', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    onboardingComplete: false,
+                    onboardingStep: 'domain',
+                  }),
+                })
+                router.push('/dashboard/onboarding')
+              } catch (err) {
+                console.error('Failed to restart onboarding:', err)
+                setIsRestartingOnboarding(false)
+              }
+            }}
+            disabled={isRestartingOnboarding}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRestartingOnboarding ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Starting...
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-4 w-4" />
+                Restart Setup Wizard
+              </>
+            )}
+          </button>
         </div>
       </section>
 

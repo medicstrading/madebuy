@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentTenant } from '@/lib/session'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import { RegionalProvider } from '@/components/providers/RegionalProvider'
 import { marketplace } from '@madebuy/db'
 
 export const dynamic = 'force-dynamic'
@@ -42,8 +43,10 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardShell user={user} tenant={serializedTenant} marketplaceConnections={marketplaceConnections}>
-      {children}
-    </DashboardShell>
+    <RegionalProvider settings={tenant.regionalSettings || null}>
+      <DashboardShell user={user} tenant={serializedTenant} marketplaceConnections={marketplaceConnections}>
+        {children}
+      </DashboardShell>
+    </RegionalProvider>
   )
 }

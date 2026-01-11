@@ -65,6 +65,7 @@ export async function PATCH(request: NextRequest) {
       'websiteDesign',
       'onboardingComplete',
       'onboardingStep',
+      'regionalSettings',
     ]
 
     // Filter to only allowed fields

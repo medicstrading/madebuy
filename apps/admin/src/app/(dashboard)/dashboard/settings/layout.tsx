@@ -7,6 +7,7 @@ import {
   CreditCard,
   Truck,
   Globe,
+  MapPin,
   Calculator,
   Receipt,
   Percent,
@@ -26,6 +27,12 @@ const settingsNavItems = [
     href: '/dashboard/settings',
     icon: Settings,
     description: 'Maker type and categories',
+  },
+  {
+    name: 'Regional',
+    href: '/dashboard/settings/regional',
+    icon: MapPin,
+    description: 'Currency and localization',
   },
   {
     name: 'Payments',

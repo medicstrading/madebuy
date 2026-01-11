@@ -8,7 +8,23 @@ import type { ExtractedDesign } from './scanner'
  */
 
 // Onboarding step type
-export type OnboardingStep = 'domain' | 'design' | 'complete'
+export type OnboardingStep = 'domain' | 'location' | 'design' | 'complete'
+
+// Regional settings for localization
+export type MeasurementSystem = 'metric' | 'imperial'
+
+export interface RegionalSettings {
+  countryCode: string              // ISO 3166-1 alpha-2 (e.g., 'AU', 'US', 'GB')
+  currency: string                 // ISO 4217 code (e.g., 'AUD', 'USD', 'GBP')
+  locale: string                   // BCP 47 locale (e.g., 'en-AU', 'en-US')
+  timezone: string                 // IANA timezone (e.g., 'Australia/Sydney')
+  measurementSystem: MeasurementSystem
+
+  // Optional overrides for power users
+  customCurrency?: string
+  customLocale?: string
+  customTimezone?: string
+}
 
 export interface Tenant {
   id: string
@@ -26,6 +42,9 @@ export interface Tenant {
   description?: string
   location?: string
   phone?: string
+
+  // Regional/localization settings
+  regionalSettings?: RegionalSettings
 
   // Maker type & categories
   makerType?: MakerType
@@ -312,6 +331,7 @@ export interface UpdateTenantInput {
   domainStatus?: DomainStatus
   socialConnections?: SocialConnection[]
   websiteDesign?: TenantWebsiteDesign
+  regionalSettings?: RegionalSettings
 }
 
 // Re-export MakerType for convenience

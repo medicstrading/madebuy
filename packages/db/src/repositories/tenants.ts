@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
+import { DEFAULT_REGIONAL_SETTINGS } from '@madebuy/shared'
 import type { Tenant, StripeConnectStatus, PayPalConnectStatus, TenantPaymentConfig, OnboardingStep } from '@madebuy/shared'
 
 export async function createTenant(email: string, passwordHash: string, businessName: string): Promise<Tenant> {
@@ -32,6 +33,8 @@ export async function createTenant(email: string, passwordHash: string, business
     plan: 'free',
     onboardingComplete: false,
     onboardingStep: 'domain',
+    regionalSettings: DEFAULT_REGIONAL_SETTINGS,
+    location: 'Australia',
     createdAt: new Date(),
     updatedAt: new Date(),
   }

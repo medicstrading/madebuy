@@ -130,31 +130,31 @@ export default function DomainOnboardingPage() {
   }
 
   const handleContinue = async () => {
-    // Update onboarding step and continue
+    // Update onboarding step and continue to location
     try {
       await fetch('/api/tenant', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ onboardingStep: 'design' }),
+        body: JSON.stringify({ onboardingStep: 'location' }),
       })
-      router.push('/dashboard/website-design')
+      router.push('/dashboard/onboarding/location')
     } catch (err) {
       console.error('Failed to update onboarding step:', err)
-      router.push('/dashboard/website-design')
+      router.push('/dashboard/onboarding/location')
     }
   }
 
   const handleSkipDomain = async () => {
-    // Continue without custom domain
+    // Continue without custom domain to location step
     try {
       await fetch('/api/tenant', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ onboardingStep: 'design' }),
+        body: JSON.stringify({ onboardingStep: 'location' }),
       })
-      router.push('/dashboard/website-design')
+      router.push('/dashboard/onboarding/location')
     } catch (err) {
-      router.push('/dashboard/website-design')
+      router.push('/dashboard/onboarding/location')
     }
   }
 
@@ -501,7 +501,7 @@ export default function DomainOnboardingPage() {
             onClick={handleContinue}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white font-medium hover:bg-blue-700"
           >
-            Continue to Design
+            Continue
             <ArrowRight className="h-5 w-5" />
           </button>
         </div>

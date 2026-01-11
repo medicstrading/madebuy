@@ -34,6 +34,15 @@ export {
 // Export typography constants
 export { TYPOGRAPHY_PRESETS, getTypographyConfig } from './constants/typography'
 
+// Export country/regional presets
+export {
+  COUNTRY_PRESETS,
+  getCountryPreset,
+  getCountryByName,
+  DEFAULT_REGIONAL_SETTINGS,
+  type CountryPreset,
+} from './constants/countryPresets'
+
 // Export template utilities
 export { getDefaultPages, getDefaultSections } from './types/template'
 
