@@ -1,5 +1,8 @@
 import { requireTenant } from '@/lib/tenant'
 import { pieces, media, collections, blog } from '@madebuy/db'
+
+// Force dynamic rendering - this route requires database access
+export const dynamic = 'force-dynamic'
 import { populatePiecesWithMedia } from '@/lib/pieces'
 import { LAYOUT_TO_TEMPLATE_MAP, getDefaultPages } from '@madebuy/shared'
 import type { PageSection, WebsiteTemplate, WebsitePage } from '@madebuy/shared'

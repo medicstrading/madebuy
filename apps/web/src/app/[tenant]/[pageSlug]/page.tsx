@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation'
 import { requireTenant } from '@/lib/tenant'
+
+// Force dynamic rendering - this route requires database access
+export const dynamic = 'force-dynamic'
 import { pieces, media, collections, blog } from '@madebuy/db'
 import { populatePiecesWithMedia } from '@/lib/pieces'
 import { getDefaultPages, LAYOUT_TO_TEMPLATE_MAP } from '@madebuy/shared'
