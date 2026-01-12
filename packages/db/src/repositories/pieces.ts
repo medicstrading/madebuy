@@ -147,6 +147,45 @@ export async function listPieces(
   return results as unknown as Piece[]
 }
 
+/**
+ * Search pieces using MongoDB full-text search
+ * Only searches published, available pieces for storefront use
+ */
+export async function searchPieces(
+  tenantId: string,
+  query: string,
+  options?: { limit?: number; category?: string }
+): Promise<Piece[]> {
+  const db = await getDatabase()
+
+  // Clean and validate query
+  const searchQuery = query.trim()
+  if (!searchQuery) {
+    return []
+  }
+
+  const filter: Record<string, unknown> = {
+    tenantId,
+    status: 'available',
+    isPublishedToWebsite: true,
+    $text: { $search: searchQuery }
+  }
+
+  if (options?.category) {
+    filter.category = options.category
+  }
+
+  const limit = Math.min(options?.limit || 50, MAX_QUERY_LIMIT)
+
+  const results = await db.collection('pieces')
+    .find(filter, { projection: { score: { $meta: 'textScore' } } })
+    .sort({ score: { $meta: 'textScore' } })
+    .limit(limit)
+    .toArray()
+
+  return results as unknown as Piece[]
+}
+
 export async function updatePiece(
   tenantId: string,
   id: string,

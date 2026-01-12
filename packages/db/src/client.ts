@@ -82,6 +82,11 @@ async function ensureIndexes(db: Db) {
     { tenantId: 1, lowStockThreshold: 1, stock: 1 },
     { name: 'low_stock_pieces' }
   )
+  // Full-text search index for storefront search
+  await db.collection('pieces').createIndex(
+    { name: 'text', description: 'text', tags: 'text', category: 'text' },
+    { weights: { name: 10, tags: 5, category: 3, description: 1 }, name: 'pieces_text_search' }
+  )
 
   // Media
   await db.collection('media').createIndex({ tenantId: 1 })

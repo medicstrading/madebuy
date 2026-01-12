@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Instagram, Facebook, ShoppingBag, User, Heart } from 'lucide-react'
+import { Menu, X, Instagram, Facebook, ShoppingBag, User, Heart, Search } from 'lucide-react'
 import type { Tenant, HeaderConfig, WebsitePage } from '@madebuy/shared'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
@@ -154,8 +154,21 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
             ))}
           </nav>
 
-          {/* Right side: wishlist + cart + social */}
+          {/* Right side: search + wishlist + cart + social */}
           <div className="flex items-center gap-2 lg:gap-4">
+            {/* Search */}
+            <Link
+              href={`/${tenantSlug}/search`}
+              className={`p-2 rounded-lg transition-colors ${
+                isTransparent
+                  ? 'text-white hover:bg-white/10'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              aria-label="Search products"
+            >
+              <Search className="w-5 h-5" />
+            </Link>
+
             {/* Wishlist */}
             <Link
               href={`/${tenantSlug}/wishlist`}
@@ -263,6 +276,18 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
             >
               <X className="w-6 h-6" />
             </button>
+          </div>
+
+          {/* Search link */}
+          <div className="p-4 border-b border-gray-100">
+            <Link
+              href={`/${tenantSlug}/search`}
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 text-gray-700 hover:text-gray-900 px-4 py-3 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <Search className="w-5 h-5" />
+              <span>Search Products</span>
+            </Link>
           </div>
 
           {/* Navigation */}
