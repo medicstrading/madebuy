@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Instagram, Facebook } from 'lucide-react'
 import type { SectionProps } from './SectionRenderer'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export function AboutSection({ settings, tenant }: SectionProps) {
   const title = settings.title || 'About Us'
@@ -35,7 +36,7 @@ export function AboutSection({ settings, tenant }: SectionProps) {
           {content && (
             <div
               className="text-lg text-gray-600 leading-relaxed mb-8 prose prose-gray max-w-none"
-              dangerouslySetInnerHTML={{ __html: content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
             />
           )}
 

@@ -131,9 +131,12 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
           items: items.map(item => ({
             pieceId: item.product.id,
             quantity: item.quantity,
-            price: item.product.price,
+            price: (item.product.price || 0) + (item.personalizationTotal || 0),
+            basePrice: item.product.price,
             currency: item.product.currency,
             variantId: item.product.selectedVariantId,
+            personalization: item.personalization,
+            personalizationTotal: item.personalizationTotal,
           })),
           customerInfo: {
             email: shippingAddress.email,

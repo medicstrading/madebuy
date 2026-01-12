@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { tenants } from '@madebuy/db'
+import { validatePassword, ADMIN_PASSWORD_REQUIREMENTS } from '@madebuy/shared'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,10 +25,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate password length
-    if (password.length < 8) {
+    // Validate password strength (12+ chars, uppercase, lowercase, numbers, special chars)
+    const passwordValidation = validatePassword(password, ADMIN_PASSWORD_REQUIREMENTS)
+    if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
+        { error: passwordValidation.errors[0] || 'Password does not meet security requirements' },
         { status: 400 }
       )
     }

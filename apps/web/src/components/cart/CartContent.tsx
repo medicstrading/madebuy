@@ -5,7 +5,7 @@ import { useCart } from '@/contexts/CartContext'
 import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ImageIcon, Tag, Truck, Package, Percent } from 'lucide-react'
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ImageIcon, Tag, Truck, Package, Percent, Palette } from 'lucide-react'
 import { CartRecovery } from './CartRecovery'
 import type { BundleProductData } from '@madebuy/shared'
 
@@ -54,7 +54,7 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
         } : undefined,
       } as Parameters<typeof addItem>[0]
 
-      addItem(product, item.quantity)
+      addItem(product, { quantity: item.quantity })
     }
 
     // Store discount code if provided
@@ -124,12 +124,14 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
             const itemHref = isBundle
               ? `/${tenant}/bundle/${item.product.slug}`
               : `/${tenant}/product/${item.product.slug}`
+            const hasPersonalization = item.personalization && item.personalization.length > 0
+            const itemPrice = (item.product.price || 0) + (item.personalizationTotal || 0)
 
             return (
               <div
-                key={item.product.id}
+                key={item.id}
                 className={`flex gap-4 rounded-2xl border bg-white p-4 hover:shadow-md transition-shadow ${
-                  isBundle ? 'border-purple-200 bg-purple-50/30' : 'border-gray-100'
+                  isBundle ? 'border-purple-200 bg-purple-50/30' : hasPersonalization ? 'border-blue-200' : 'border-gray-100'
                 }`}
               >
                 {/* Image */}
@@ -197,13 +199,35 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
                         <span>Save {bundleData.discountPercent}%</span>
                       </div>
                     )}
+                    {/* Show personalization details */}
+                    {hasPersonalization && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center gap-1 text-xs text-blue-600">
+                          <Palette className="h-3 w-3" />
+                          <span>Personalized</span>
+                        </div>
+                        <div className="pl-4 space-y-0.5">
+                          {item.personalization!.map((p, idx) => (
+                            <div key={idx} className="text-xs text-gray-500">
+                              <span className="font-medium">{p.fieldName}:</span>{' '}
+                              {typeof p.value === 'boolean' ? (p.value ? 'Yes' : 'No') : String(p.value)}
+                              {p.priceAdjustment > 0 && (
+                                <span className="ml-1 text-blue-600">
+                                  (+{formatCurrency(p.priceAdjustment / 100)})
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Quantity Controls */}
                   <div className="flex items-center gap-4">
                     <div className="flex items-center rounded-lg border border-gray-200 bg-white">
                       <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="flex h-9 w-9 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-l-lg"
                         aria-label="Decrease quantity"
                       >
@@ -211,7 +235,7 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
                       </button>
                       <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="flex h-9 w-9 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-r-lg disabled:opacity-50"
                         aria-label="Increase quantity"
                         disabled={
@@ -224,7 +248,7 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
                     </div>
 
                     <button
-                      onClick={() => removeItem(item.product.id)}
+                      onClick={() => removeItem(item.id)}
                       className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       aria-label="Remove from cart"
                     >
@@ -236,15 +260,18 @@ export function CartContent({ tenant, tenantId, freeShippingThreshold }: CartCon
                 {/* Subtotal */}
                 <div className="flex flex-col items-end justify-center">
                   <p className="text-lg font-semibold text-gray-900">
-                    {formatCurrency(
-                      item.product.price ? item.product.price * item.quantity : undefined,
-                      item.product.currency
-                    )}
+                    {formatCurrency(itemPrice * item.quantity, item.product.currency)}
                   </p>
                   {/* Show original price for bundles */}
                   {isBundle && bundleData?.originalPrice && (
                     <p className="text-sm text-gray-400 line-through">
                       {formatCurrency(bundleData.originalPrice * item.quantity / 100)}
+                    </p>
+                  )}
+                  {/* Show personalization price breakdown */}
+                  {hasPersonalization && item.personalizationTotal && item.personalizationTotal > 0 && (
+                    <p className="text-xs text-blue-600">
+                      Includes {formatCurrency((item.personalizationTotal / 100) * item.quantity)} personalization
                     </p>
                   )}
                 </div>

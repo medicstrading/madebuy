@@ -28,6 +28,7 @@ import {
   BarChart3,
   Gift,
   Store,
+  Receipt,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -76,6 +77,7 @@ const navigationGroups = [
     items: [
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
       { name: 'Ledger', href: '/dashboard/ledger', icon: BookOpen },
+      { name: 'GST Summary', href: '/dashboard/reports/gst', icon: Receipt },
       { name: 'Reviews', href: '/dashboard/reviews', icon: Star },
       { name: 'Customers', href: '/dashboard/customers', icon: Users },
       { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },

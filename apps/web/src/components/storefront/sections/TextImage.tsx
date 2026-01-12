@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ImageIcon } from 'lucide-react'
 import type { SectionProps } from './SectionRenderer'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export function TextImage({ settings, tenant, tenantSlug }: SectionProps) {
   const title = settings.title
@@ -44,7 +45,7 @@ export function TextImage({ settings, tenant, tenantSlug }: SectionProps) {
       {content && (
         <div
           className="text-lg text-gray-600 leading-relaxed mb-8 prose prose-gray max-w-none"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
         />
       )}
       {ctaText && (

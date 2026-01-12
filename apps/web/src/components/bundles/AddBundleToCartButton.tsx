@@ -68,7 +68,7 @@ export function AddBundleToCartButton({
       },
     }
 
-    addItem(bundleProduct, 1)
+    addItem(bundleProduct, { quantity: 1 })
     setAdded(true)
     setShowPreview(true)
 

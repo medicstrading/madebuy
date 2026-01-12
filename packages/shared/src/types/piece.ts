@@ -488,6 +488,7 @@ export interface UpdatePieceInput extends Partial<CreatePieceInput> {
   socialVideoUrls?: string[] // Raw URLs from form
   isPublishedToWebsite?: boolean
   websiteSlug?: string
+  slug?: string // For overriding auto-generated slug (e.g., during import)
   soldTo?: Piece['soldTo']
   personalization?: PersonalizationConfig
   digital?: DigitalProductConfig

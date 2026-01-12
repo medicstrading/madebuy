@@ -2,7 +2,7 @@ import { requireTenant } from '@/lib/session'
 import { orders } from '@madebuy/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package, MapPin, CreditCard, User, FileText } from 'lucide-react'
+import { ArrowLeft, Package, MapPin, CreditCard, User, FileText, Palette } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ShippingActions } from './ShippingActions'
 
@@ -72,6 +72,38 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                     <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                     {item.category && (
                       <p className="text-xs text-gray-400">{item.category}</p>
+                    )}
+                    {/* Personalization details */}
+                    {item.personalizations && item.personalizations.length > 0 && (
+                      <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-100">
+                        <div className="flex items-center gap-1 text-xs text-blue-700 font-medium mb-1">
+                          <Palette className="h-3 w-3" />
+                          Personalization
+                        </div>
+                        <div className="space-y-0.5">
+                          {item.personalizations.map((p, idx) => (
+                            <div key={idx} className="text-xs text-gray-700">
+                              <span className="font-medium">{p.fieldName}:</span>{' '}
+                              {typeof p.value === 'boolean' ? (p.value ? 'Yes' : 'No') : String(p.value)}
+                              {p.fileUrl && (
+                                <a
+                                  href={p.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="ml-1 text-blue-600 hover:underline"
+                                >
+                                  (View file)
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {item.personalizationTotal && item.personalizationTotal > 0 && (
+                          <p className="mt-1 text-xs text-blue-600">
+                            +{formatCurrency(item.personalizationTotal / 100, order.currency)} personalization
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                   <div className="text-right">

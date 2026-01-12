@@ -53,7 +53,8 @@ export function MiniCartPreview({
   if (!isOpen && !isAnimating) return null
 
   // Get recently added item for highlight
-  const recentlyAdded = items.find((item) => item.product.id === addedProductId)
+  // Match by product ID (not cart item ID) since the preview uses the raw product ID
+  const recentlyAdded = items.find((item) => item.product.id === addedProductId || item.id.startsWith(addedProductId || ''))
 
   // Show up to 3 items in preview
   const previewItems = items.slice(0, 3)
@@ -119,14 +120,15 @@ export function MiniCartPreview({
                 <p className="font-medium text-gray-900 truncate">
                   {recentlyAdded.product.name}
                 </p>
+                {recentlyAdded.personalization && recentlyAdded.personalization.length > 0 && (
+                  <p className="text-xs text-blue-600">Personalized</p>
+                )}
                 <p className="text-sm text-gray-500">
                   Qty: {recentlyAdded.quantity}
                 </p>
                 <p className="text-sm font-medium text-gray-900">
                   {formatCurrency(
-                    recentlyAdded.product.price
-                      ? recentlyAdded.product.price * recentlyAdded.quantity
-                      : undefined,
+                    ((recentlyAdded.product.price || 0) + (recentlyAdded.personalizationTotal || 0)) * recentlyAdded.quantity,
                     recentlyAdded.product.currency
                   )}
                 </p>
@@ -143,10 +145,10 @@ export function MiniCartPreview({
             </p>
             <div className="space-y-3">
               {previewItems
-                .filter((item) => item.product.id !== addedProductId)
+                .filter((item) => item.id !== recentlyAdded?.id)
                 .slice(0, 2)
                 .map((item) => (
-                  <div key={item.product.id} className="flex gap-3 items-center">
+                  <div key={item.id} className="flex gap-3 items-center">
                     {item.product.primaryImage ? (
                       <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                         <Image

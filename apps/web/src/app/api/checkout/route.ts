@@ -167,13 +167,37 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Determine price (variant can override base price)
-      const effectivePrice = selectedVariant?.price ?? item.price
+      // Determine price (variant can override base price, personalization adds to it)
+      const basePrice = selectedVariant?.price ?? item.price
+      const personalizationTotal = item.personalizationTotal || 0
+      const effectivePrice = basePrice + personalizationTotal
 
       // Build product name with variant info
       let productName = piece.name
       if (selectedVariant) {
         productName += ` (${formatVariantOptions(selectedVariant.options)})`
+      }
+
+      // Build description including personalization details
+      let description = piece.description || ''
+      if (item.personalization && item.personalization.length > 0) {
+        const personalizationLines = item.personalization
+          .map((p: { fieldName: string; value: unknown }) => `${p.fieldName}: ${String(p.value)}`)
+          .join(', ')
+        description = description
+          ? `${description}\n\nPersonalization: ${personalizationLines}`
+          : `Personalization: ${personalizationLines}`
+      }
+
+      // Build metadata including variant and personalization
+      const productMetadata: Record<string, string> = {}
+      if (selectedVariant) {
+        productMetadata.variantId = selectedVariant.id
+        productMetadata.variantSku = selectedVariant.sku || ''
+      }
+      if (item.personalization && item.personalization.length > 0) {
+        productMetadata.hasPersonalization = 'true'
+        productMetadata.personalizationTotal = String(personalizationTotal)
       }
 
       // Create Stripe line item
@@ -182,22 +206,19 @@ export async function POST(request: NextRequest) {
           currency: (item.currency || piece.currency || 'aud').toLowerCase(),
           product_data: {
             name: productName,
-            description: piece.description || undefined,
+            description: description || undefined,
             images: imageUrl ? [imageUrl] : undefined,
-            metadata: selectedVariant ? {
-              variantId: selectedVariant.id,
-              variantSku: selectedVariant.sku || '',
-            } : undefined,
+            metadata: Object.keys(productMetadata).length > 0 ? productMetadata : undefined,
           },
-          unit_amount: Math.round(effectivePrice * 100), // Convert to cents
+          unit_amount: Math.round(effectivePrice * 100), // Convert to cents (includes personalization)
         },
         quantity: item.quantity,
       })
     }
 
-    // Calculate subtotal for free shipping threshold
-    const subtotal = items.reduce((sum: number, item: { price: number; quantity: number }) =>
-      sum + (item.price * item.quantity), 0
+    // Calculate subtotal for free shipping threshold (includes personalization costs)
+    const subtotal = items.reduce((sum: number, item: { price: number; quantity: number; personalizationTotal?: number }) =>
+      sum + ((item.price + (item.personalizationTotal || 0)) * item.quantity), 0
     )
 
     // Verify tenant exists and is valid before processing

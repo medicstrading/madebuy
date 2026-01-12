@@ -10,6 +10,7 @@ import {
   Percent,
   Bell,
   Sparkles,
+  Upload,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -59,6 +60,12 @@ const settingsNavItems = [
     href: '/dashboard/settings/caption-style',
     icon: Sparkles,
     description: 'AI caption preferences',
+  },
+  {
+    name: 'Import Products',
+    href: '/dashboard/settings/import',
+    icon: Upload,
+    description: 'Bulk CSV import',
   },
 ]
 

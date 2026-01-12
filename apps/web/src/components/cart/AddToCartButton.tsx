@@ -22,7 +22,7 @@ export function AddToCartButton({ product, tenantId, tenant, disabled }: AddToCa
 
   const handleAddToCart = () => {
     // Cast to ProductWithMedia for cart compatibility
-    addItem(product as ProductWithMedia, 1)
+    addItem(product as ProductWithMedia, { quantity: 1 })
     setAdded(true)
     setShowPreview(true)
 

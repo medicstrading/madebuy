@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { orders, pieces, tenants, stockReservations, transactions } from '@madebuy/db'
+import { orders, pieces, tenants, stockReservations, transactions, downloads } from '@madebuy/db'
 import type { CreateOrderInput, Plan } from '@madebuy/shared'
 import { calculateStripeFee, getFeaturesForPlan } from '@madebuy/shared'
-import { sendOrderConfirmation, sendPaymentFailedEmail, sendLowStockAlertEmail } from '@/lib/email'
+import { sendOrderConfirmation, sendPaymentFailedEmail, sendLowStockAlertEmail, sendDownloadEmail } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -101,9 +101,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
     return
   }
 
-  // Parse items from metadata
+  // Parse items from metadata (with error handling)
   const itemsJson = session.metadata?.items
-  const items = itemsJson ? JSON.parse(itemsJson) : []
+  let items: Array<{ pieceId: string; variantId?: string; price: number; quantity: number; personalization?: unknown[]; personalizationTotal?: number }> = []
+  if (itemsJson) {
+    try {
+      items = JSON.parse(itemsJson)
+    } catch (parseError) {
+      console.error('Failed to parse items from session metadata:', parseError)
+      return // Can't create order without items
+    }
+  }
 
   // Complete stock reservations first (decrements actual stock atomically)
   const reservationSessionId = session.metadata?.reservationSessionId
@@ -131,6 +139,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       quantity: item.quantity,
       category: piece.category,
       description: piece.description,
+      personalizations: item.personalization, // Maps from cart personalization to order personalizations
+      personalizationTotal: item.personalizationTotal || 0,
     })
   }
 
@@ -205,12 +215,64 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   })
   console.log(`Transaction recorded for order ${order.id}`)
 
+  // Create download records for digital products
+  const downloadLinks: { pieceId: string; pieceName: string; token: string }[] = []
+  for (const item of order.items) {
+    const piece = await pieces.getPiece(tenantId, item.pieceId)
+    if (piece?.digital?.isDigital && piece.digital.files?.length > 0) {
+      try {
+        const downloadRecord = await downloads.createDownloadRecord(tenantId, {
+          orderId: order.id,
+          orderItemId: item.pieceId, // Using pieceId as orderItemId since we don't have separate item IDs
+          pieceId: item.pieceId,
+          customerEmail: order.customerEmail,
+          customerName: order.customerName,
+          maxDownloads: piece.digital.downloadLimit,
+          expiryDays: piece.digital.downloadExpiryDays,
+        })
+        downloadLinks.push({
+          pieceId: item.pieceId,
+          pieceName: piece.name,
+          token: downloadRecord.downloadToken,
+        })
+        console.log(`Download record created for piece ${piece.name} in order ${order.id}`)
+      } catch (downloadError) {
+        console.error(`Failed to create download record for piece ${item.pieceId}:`, downloadError)
+        // Don't fail the webhook - continue with other items
+      }
+    }
+  }
+
   // Send confirmation email to customer
   const tenant = await tenants.getTenantById(tenantId)
   try {
     if (tenant && order.customerEmail) {
       await sendOrderConfirmation(order, tenant)
       console.log(`Confirmation email sent to ${order.customerEmail}`)
+
+      // Send download emails for digital products
+      for (const download of downloadLinks) {
+        try {
+          const piece = await pieces.getPiece(tenantId, download.pieceId)
+          if (piece?.digital?.files) {
+            const downloadRecord = await downloads.getDownloadRecordByToken(download.token)
+            if (downloadRecord) {
+              await sendDownloadEmail({
+                order,
+                tenant,
+                downloadRecord,
+                productName: piece.name,
+                files: piece.digital.files,
+                downloadLimit: piece.digital.downloadLimit,
+                expiryDate: downloadRecord.tokenExpiresAt ? new Date(downloadRecord.tokenExpiresAt) : undefined,
+              })
+              console.log(`Download email sent for ${piece.name}`)
+            }
+          }
+        } catch (downloadEmailError) {
+          console.error(`Failed to send download email for ${download.pieceName}:`, downloadEmailError)
+        }
+      }
     }
   } catch (emailError) {
     console.error('Failed to send confirmation email:', emailError)
@@ -299,11 +361,27 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const features = getFeaturesForPlan(plan)
 
   // Map Stripe status to our subscription status
+  // Stripe statuses: active, past_due, unpaid, canceled, incomplete, incomplete_expired, trialing, paused
   let subscriptionStatus: 'active' | 'cancelled' | 'past_due' = 'active'
-  if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
-    subscriptionStatus = 'cancelled'
-  } else if (subscription.status === 'past_due') {
-    subscriptionStatus = 'past_due'
+  switch (subscription.status) {
+    case 'canceled':
+    case 'unpaid':
+    case 'incomplete_expired':
+      subscriptionStatus = 'cancelled'
+      break
+    case 'past_due':
+    case 'incomplete':
+      subscriptionStatus = 'past_due'
+      break
+    case 'active':
+    case 'trialing':
+    case 'paused': // Paused still has access until resumed or cancelled
+      subscriptionStatus = 'active'
+      break
+    default:
+      // Unknown status - default to active but log warning
+      console.warn(`Unknown Stripe subscription status: ${subscription.status}, defaulting to active`)
+      subscriptionStatus = 'active'
   }
 
   // Update tenant

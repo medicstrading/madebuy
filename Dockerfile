@@ -30,6 +30,9 @@ RUN apk add --no-cache ffmpeg
 RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN npm install -g pm2
 
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
 WORKDIR /app
 
 # Copy built assets
@@ -57,6 +60,17 @@ COPY --from=builder /app/ecosystem.config.js ./
 
 ENV NODE_ENV=production
 
-EXPOSE 3301 3302
+# Create logs directory and set ownership
+RUN mkdir -p logs && chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose ports (admin=3300, web=3301)
+EXPOSE 3300 3301
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3301/api/health || exit 1
 
 CMD ["pm2-runtime", "ecosystem.config.js"]

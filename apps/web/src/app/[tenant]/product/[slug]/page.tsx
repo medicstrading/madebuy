@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
-import { AddToCartButton } from '@/components/cart/AddToCartButton'
+import { ProductAddToCart } from '@/components/product/ProductAddToCart'
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker'
 import { ReviewStars, ReviewsList } from '@/components/reviews'
 
@@ -42,12 +42,19 @@ export default async function PieceDetailPage({
     notFound()
   }
 
-  // Populate piece with media and fetch review stats
-  const [piece, reviewStats, initialReviews] = await Promise.all([
-    populatePieceWithMedia(rawPiece),
-    reviews.getProductReviewStats(tenant.id, rawPiece.id),
-    reviews.listApprovedReviews(tenant.id, rawPiece.id, { limit: 10 }),
-  ])
+  // Populate piece with media and fetch review stats (reviews fail gracefully)
+  const piece = await populatePieceWithMedia(rawPiece)
+  let reviewStats = { averageRating: 0, totalReviews: 0, ratingDistribution: {} }
+  let initialReviews: Awaited<ReturnType<typeof reviews.listApprovedReviews>> = []
+  try {
+    ;[reviewStats, initialReviews] = await Promise.all([
+      reviews.getProductReviewStats(tenant.id, rawPiece.id),
+      reviews.listApprovedReviews(tenant.id, rawPiece.id, { limit: 10 }),
+    ])
+  } catch (reviewError) {
+    console.error('Failed to load reviews:', reviewError)
+    // Continue without reviews - non-critical feature
+  }
 
   const inStock = piece.stock === undefined || piece.stock > 0
 
@@ -194,7 +201,13 @@ export default async function PieceDetailPage({
 
             {/* Add to Cart */}
             <div className="mt-8">
-              <AddToCartButton product={piece} tenantId={tenant.id} tenant={params.tenant} disabled={!inStock} />
+              <ProductAddToCart
+                product={piece}
+                tenantId={tenant.id}
+                tenant={params.tenant}
+                disabled={!inStock}
+                personalization={piece.personalization}
+              />
             </div>
           </div>
         </div>
