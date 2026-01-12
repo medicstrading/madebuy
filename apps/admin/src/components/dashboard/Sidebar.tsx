@@ -65,7 +65,7 @@ const navigationGroups = [
     ]
   },
   {
-    label: 'Products',
+    label: 'Catalog',
     items: [
       { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
       { name: 'Bundles', href: '/dashboard/bundles', icon: Gift },
@@ -77,28 +77,22 @@ const navigationGroups = [
     label: 'Sales',
     items: [
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
-      { name: 'Ledger', href: '/dashboard/ledger', icon: BookOpen },
-      { name: 'GST Summary', href: '/dashboard/reports/gst', icon: Receipt },
-      { name: 'Reviews', href: '/dashboard/reviews', icon: Star },
       { name: 'Customers', href: '/dashboard/customers', icon: Users },
-      { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
+      { name: 'Reports', href: '/dashboard/reports', icon: Receipt },
+      { name: 'Reviews', href: '/dashboard/reviews', icon: Star },
     ]
   },
   {
     label: 'Marketing',
     items: [
       { name: 'Website Design', href: '/dashboard/website-design', icon: Paintbrush },
-      { name: 'Collections', href: '/dashboard/collections', icon: FolderOpen },
-      { name: 'Publish', href: '/dashboard/publish', icon: Share2 },
-      { name: 'Blog', href: '/dashboard/blog', icon: FileText },
-      { name: 'Newsletters', href: '/dashboard/newsletters', icon: Newspaper },
+      { name: 'Content', href: '/dashboard/content', icon: Share2 },
+      { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
     ]
   },
   {
-    label: 'System',
+    label: 'Settings',
     items: [
-      { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
-      { name: 'Enquiries', href: '/dashboard/enquiries', icon: Mail },
       { name: 'Connections', href: '/dashboard/connections', icon: Plug },
       { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ]
@@ -140,82 +134,42 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         {navigationGroups.map((group, groupIndex) => (
           <div key={group.label}>
-            {/* Insert Marketplace before System group - always visible */}
-            {group.label === 'System' && (
+            {/* Insert Marketplace before Settings group - only if Etsy or eBay connected */}
+            {group.label === 'Settings' && (hasEtsy || hasEbay) && (
               <div className="mt-6">
+                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  Marketplaces
+                </h3>
                 <div className="space-y-1">
-                  {/* Expandable Marketplace parent */}
-                  <button
-                    onClick={() => setMarketplaceExpanded(!marketplaceExpanded)}
-                    className={cn(
-                      'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                      pathname?.startsWith('/dashboard/marketplace')
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    )}
-                  >
-                    <Store className={cn(
-                      'h-5 w-5 transition-colors',
-                      pathname?.startsWith('/dashboard/marketplace') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                    )} />
-                    <span className="flex-1 text-left">Marketplaces</span>
-                    <ChevronDown className={cn(
-                      'h-4 w-4 transition-transform duration-200',
-                      marketplaceExpanded ? 'rotate-180' : ''
-                    )} />
-                  </button>
-
-                  {/* Marketplace sub-items */}
-                  {marketplaceExpanded && (
-                    <div className="ml-4 space-y-1 border-l border-gray-200 pl-3">
-                      {/* Website - always visible */}
-                      <Link
-                        href="/dashboard/marketplace/website"
-                        onClick={onClose}
-                        className={cn(
-                          'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
-                          pathname === '/dashboard/marketplace/website'
-                            ? 'bg-blue-50 text-blue-600'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        )}
-                      >
-                        <Globe className={cn(
-                          'h-5 w-5 transition-colors',
-                          pathname === '/dashboard/marketplace/website' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                        )} />
-                        <span>Website</span>
-                      </Link>
-                      {hasEtsy && (
-                        <Link
-                          href="/dashboard/marketplace/etsy"
-                          onClick={onClose}
-                          className={cn(
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
-                            pathname === '/dashboard/marketplace/etsy'
-                              ? 'bg-blue-50 text-blue-600'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          )}
-                        >
-                          <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-100 text-xs font-bold text-orange-600">E</span>
-                          <span>Etsy</span>
-                        </Link>
+                  {hasEtsy && (
+                    <Link
+                      href="/dashboard/marketplace/etsy"
+                      onClick={onClose}
+                      className={cn(
+                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                        pathname === '/dashboard/marketplace/etsy'
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       )}
-                      {hasEbay && (
-                        <Link
-                          href="/dashboard/marketplace/ebay"
-                          onClick={onClose}
-                          className={cn(
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
-                            pathname === '/dashboard/marketplace/ebay'
-                              ? 'bg-blue-50 text-blue-600'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          )}
-                        >
-                          <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-xs font-bold text-blue-600">e</span>
-                          <span>eBay</span>
-                        </Link>
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-100 text-xs font-bold text-orange-600">E</span>
+                      <span>Etsy</span>
+                    </Link>
+                  )}
+                  {hasEbay && (
+                    <Link
+                      href="/dashboard/marketplace/ebay"
+                      onClick={onClose}
+                      className={cn(
+                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                        pathname === '/dashboard/marketplace/ebay'
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       )}
-                    </div>
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-xs font-bold text-blue-600">e</span>
+                      <span>eBay</span>
+                    </Link>
                   )}
                 </div>
               </div>

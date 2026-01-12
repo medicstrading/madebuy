@@ -31,8 +31,11 @@ export default function LoginPage() {
       } else {
         // Use callbackUrl if provided and valid, otherwise default to dashboard
         const callbackUrl = searchParams?.get('callbackUrl')
-        // Validate callback URL: must start with / but not // (prevents open redirect to //evil.com)
-        const isValidCallback = callbackUrl && /^\/[^\/\\]/.test(callbackUrl)
+        // Validate callback URL: must start with / and not // or /\ (prevents open redirect)
+        const isValidCallback = callbackUrl &&
+          callbackUrl.startsWith('/') &&
+          !callbackUrl.startsWith('//') &&
+          !callbackUrl.startsWith('/\\')
         const redirectTo = isValidCallback ? callbackUrl : '/dashboard'
         router.push(redirectTo)
         router.refresh()

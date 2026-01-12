@@ -38,27 +38,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update all pieces in parallel
+    // Batch fetch all pieces in one query to verify ownership (prevents N+1)
     console.log(`Starting bulk update of ${pieceIds.length} pieces to status: ${status}`)
 
-    const updatePromises = pieceIds.map(async (pieceId: string) => {
-      try {
-        // Verify piece exists and belongs to tenant
-        const piece = await pieces.getPiece(tenant.id, pieceId)
-        if (!piece) {
-          console.log(`  Piece ${pieceId}: NOT FOUND`)
-          return { pieceId, success: false, error: 'Piece not found' }
-        }
+    const pieceMap = await pieces.getPiecesByIds(tenant.id, pieceIds)
 
+    // Build results array - identify pieces that don't exist or don't belong to tenant
+    const results: Array<{ pieceId: string; success: boolean; error?: string }> = []
+    const validPieceIds: string[] = []
+
+    for (const pieceId of pieceIds) {
+      const piece = pieceMap.get(pieceId)
+      if (!piece) {
+        console.log(`  Piece ${pieceId}: NOT FOUND`)
+        results.push({ pieceId, success: false, error: 'Piece not found' })
+      } else {
         console.log(`  Piece ${pieceId} (${piece.name}): ${piece.status} -> ${status}`)
+        validPieceIds.push(pieceId)
+      }
+    }
 
-        // Update the status
+    // Update all valid pieces in parallel
+    const updatePromises = validPieceIds.map(async (pieceId: string) => {
+      try {
         await pieces.updatePiece(tenant.id, pieceId, { status })
-
-        // Verify update worked
-        const updated = await pieces.getPiece(tenant.id, pieceId)
-        console.log(`  Piece ${pieceId} after update: ${updated?.status}`)
-
         return { pieceId, success: true }
       } catch (err: any) {
         console.log(`  Piece ${pieceId}: ERROR - ${err.message}`)
@@ -66,7 +69,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    const results = await Promise.all(updatePromises)
+    const updateResults = await Promise.all(updatePromises)
+    results.push(...updateResults)
     console.log('Bulk update results:', results)
 
     const successCount = results.filter(r => r.success).length

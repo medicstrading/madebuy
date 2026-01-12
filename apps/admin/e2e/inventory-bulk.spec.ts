@@ -27,7 +27,7 @@ test.describe('Inventory Bulk Operations', () => {
       await page.goto('/dashboard/inventory')
 
       // Wait for table to load
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       // Should have checkboxes
       const checkboxes = page.getByRole('checkbox')
@@ -39,7 +39,7 @@ test.describe('Inventory Bulk Operations', () => {
 
     test('should select individual items', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       // Get all checkboxes except the header checkbox
       const checkboxes = page.getByRole('checkbox')
@@ -62,7 +62,7 @@ test.describe('Inventory Bulk Operations', () => {
 
     test('should select all items with header checkbox', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       const count = await checkboxes.count()
@@ -81,7 +81,7 @@ test.describe('Inventory Bulk Operations', () => {
 
     test('should clear selection', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       const count = await checkboxes.count()
@@ -110,7 +110,7 @@ test.describe('Inventory Bulk Operations', () => {
   test.describe('Bulk Actions Toolbar', () => {
     test('should show bulk actions toolbar when items selected', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       const count = await checkboxes.count()
@@ -130,7 +130,7 @@ test.describe('Inventory Bulk Operations', () => {
 
     test('should open bulk actions dropdown', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       const count = await checkboxes.count()
@@ -162,7 +162,7 @@ test.describe('Inventory Bulk Operations', () => {
   test.describe('Bulk Status Change', () => {
     test('should open status change modal', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       if ((await checkboxes.count()) <= 1) {
@@ -186,7 +186,7 @@ test.describe('Inventory Bulk Operations', () => {
 
     test('should change status via bulk action', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       if ((await checkboxes.count()) <= 1) {
@@ -214,7 +214,7 @@ test.describe('Inventory Bulk Operations', () => {
       await confirmButton.click()
 
       // Should complete without error (success toast or modal closes)
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
       const errorVisible = await page.getByText(/error|failed/i).isVisible()
         .catch(() => false)
 
@@ -225,7 +225,7 @@ test.describe('Inventory Bulk Operations', () => {
   test.describe('Bulk Delete', () => {
     test('should show confirmation for delete action', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       if ((await checkboxes.count()) <= 1) {
@@ -257,7 +257,7 @@ test.describe('Inventory Bulk Operations', () => {
   test.describe('Selection Persistence', () => {
     test('should clear selection after action completes', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       if ((await checkboxes.count()) <= 1) {
@@ -281,7 +281,7 @@ test.describe('Inventory Bulk Operations', () => {
         await confirmButton.click()
 
         // Wait for action to complete
-        await page.waitForTimeout(2000)
+        await page.waitForLoadState('networkidle')
 
         // Selection should be cleared (no "selected" text)
         const selectionVisible = await page.getByText(/\d+ selected/i).isVisible()
@@ -302,7 +302,7 @@ test.describe('Inventory Bulk Operations', () => {
   test.describe('Row Highlighting', () => {
     test('should highlight selected rows', async ({ page }) => {
       await page.goto('/dashboard/inventory')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       const checkboxes = page.getByRole('checkbox')
       if ((await checkboxes.count()) <= 1) {

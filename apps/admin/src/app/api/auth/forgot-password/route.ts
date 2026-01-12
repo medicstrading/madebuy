@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { tenants, passwordResets } from '@madebuy/db'
 import { sendPasswordResetEmail } from '@/lib/email'
+import { rateLimit, rateLimiters } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 3 requests per 15 minutes (uses auth limiter)
+    const rateLimitResponse = await rateLimit(request, rateLimiters.auth, 3)
+    if (rateLimitResponse) return rateLimitResponse
+
     const body = await request.json()
     const { email } = body
 

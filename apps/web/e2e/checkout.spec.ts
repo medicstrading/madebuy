@@ -16,18 +16,26 @@ import { test, expect } from '@playwright/test'
 const testTenant = process.env.E2E_TEST_TENANT || 'demo'
 
 test.describe('Storefront', () => {
-  // Check if tenant exists before running tests
-  test.beforeEach(async ({ page }, testInfo) => {
-    // Quick check if tenant exists
-    await page.goto(`/${testTenant}`, { waitUntil: 'domcontentloaded' })
-    // Wait for page to hydrate
-    await page.waitForTimeout(500)
-    // Check visible text only (not script tags)
-    const bodyText = await page.locator('body').innerText()
-    const isTenantMissing = bodyText.includes('Shop not found') ||
-      (bodyText.includes('404') && bodyText.includes('Page Not Found'))
+  // Track whether tenant exists - checked once in beforeAll
+  let tenantExists = true
 
-    if (isTenantMissing) {
+  // Check if tenant exists once before all tests
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage()
+    try {
+      await page.goto(`/${testTenant}`, { waitUntil: 'domcontentloaded' })
+      await page.waitForLoadState('networkidle')
+      const bodyText = await page.locator('body').innerText()
+      tenantExists = !bodyText.includes('Shop not found') &&
+        !(bodyText.includes('404') && bodyText.includes('Page Not Found'))
+    } finally {
+      await page.close()
+    }
+  })
+
+  // Skip individual tests if tenant doesn't exist
+  test.beforeEach(async ({}, testInfo) => {
+    if (!tenantExists) {
       testInfo.skip(true, `Test tenant "${testTenant}" not found in database - skipping storefront tests`)
     }
   })
@@ -48,7 +56,7 @@ test.describe('Storefront', () => {
       await page.goto(`/${testTenant}`)
 
       // Wait for page to load
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
 
       // Look for product cards/items - multiple possible selectors
       const productCards = page.locator('[data-testid="product-card"]')
@@ -113,7 +121,7 @@ test.describe('Storefront', () => {
       await page.goto(`/${testTenant}/cart`)
 
       // Wait for cart to load
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       // Should show total or subtotal (even if $0 for empty cart)
       const hasTotalSection = await page.getByText(/total|subtotal/i).isVisible().catch(() => false)
@@ -132,7 +140,7 @@ test.describe('Storefront', () => {
       await page.goto(`/${testTenant}/cart`)
 
       // Wait for cart to load
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
 
       // Find checkout button
       const checkoutButton = page.getByRole('button', { name: /checkout|proceed/i })
@@ -159,7 +167,7 @@ test.describe('Storefront', () => {
       await page.goto(`/${testTenant}/checkout`)
 
       // Wait for page load
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
 
       // If redirected to cart (empty) or homepage, skip
       if (page.url().includes('/cart') || !page.url().includes('/checkout')) {

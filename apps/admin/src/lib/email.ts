@@ -65,7 +65,7 @@ function buildNewsletterHtml(
       ${sections.showGreeting && header.greetingText ? `<p style="margin-bottom: 20px;">${header.greetingText}</p>` : ''}
 
       <div class="newsletter-content">
-        ${newsletter.content}
+        ${escapeHtml(newsletter.content)}
       </div>
 
       ${newsletter.images && newsletter.images.length > 0 ? `
@@ -785,7 +785,10 @@ export interface SendPasswordResetEmailParams {
  */
 function buildPasswordResetEmailHtml(data: SendPasswordResetEmailParams): string {
   const { resetToken, businessName } = data
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3300'
+  const baseUrl = process.env.NEXTAUTH_URL
+  if (!baseUrl) {
+    throw new Error('NEXTAUTH_URL environment variable is required for password reset emails')
+  }
   const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(resetToken)}`
 
   return `

@@ -52,15 +52,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Add all pieces to collection
+    // Add all pieces to collection, tracking failures
     let addedCount = 0
+    const failedPieces: Array<{ pieceId: string; error: string }> = []
+
     for (const pieceId of pieceIds) {
       try {
         await collections.addPieceToCollection(tenant.id, targetCollectionId, pieceId)
         addedCount++
       } catch (err) {
-        // Piece might already be in collection, continue
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
         console.error(`Failed to add piece ${pieceId} to collection:`, err)
+        failedPieces.push({ pieceId, error: errorMessage })
       }
     }
 
@@ -69,7 +72,9 @@ export async function POST(request: NextRequest) {
       collectionId: targetCollectionId,
       collectionName: collection.name,
       added: addedCount,
+      failed: failedPieces.length,
       total: pieceIds.length,
+      errors: failedPieces.length > 0 ? failedPieces : undefined,
     })
   } catch (error) {
     console.error('Bulk collection error:', error)
