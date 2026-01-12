@@ -19,57 +19,42 @@ export const authOptions: NextAuthOptions = {
         const tenant = await tenants.getTenantByEmail(credentials.email)
 
         if (!tenant) {
-          // Log failed login attempt (unknown email)
-          // Wrapped in try-catch to ensure auth flow continues even if logging fails (P0 fix)
-          try {
-            await auditLog.logAuditEvent({
-              eventType: 'auth.login.failed',
-              actorEmail: credentials.email,
-              actorType: 'anonymous',
-              success: false,
-              errorMessage: 'Unknown email address',
-            })
-          } catch (e) {
-            console.error('Audit log failed (login failure - unknown email):', e)
-          }
+          // Log failed login attempt (unknown email) - fire-and-forget for faster response
+          auditLog.logAuditEvent({
+            eventType: 'auth.login.failed',
+            actorEmail: credentials.email,
+            actorType: 'anonymous',
+            success: false,
+            errorMessage: 'Unknown email address',
+          }).catch(e => console.error('Audit log failed (login failure - unknown email):', e))
           return null
         }
 
         const isValid = await bcrypt.compare(credentials.password, tenant.passwordHash)
 
         if (!isValid) {
-          // Log failed login attempt (wrong password)
-          // Wrapped in try-catch to ensure auth flow continues even if logging fails (P0 fix)
-          try {
-            await auditLog.logAuditEvent({
-              tenantId: tenant.id,
-              eventType: 'auth.login.failed',
-              actorId: tenant.id,
-              actorEmail: tenant.email,
-              actorType: 'tenant',
-              success: false,
-              errorMessage: 'Invalid password',
-            })
-          } catch (e) {
-            console.error('Audit log failed (login failure - invalid password):', e)
-          }
-          return null
-        }
-
-        // Log successful login
-        // Wrapped in try-catch to ensure auth flow continues even if logging fails (P0 fix)
-        try {
-          await auditLog.logAuditEvent({
+          // Log failed login attempt (wrong password) - fire-and-forget for faster response
+          auditLog.logAuditEvent({
             tenantId: tenant.id,
-            eventType: 'auth.login.success',
+            eventType: 'auth.login.failed',
             actorId: tenant.id,
             actorEmail: tenant.email,
             actorType: 'tenant',
-            success: true,
-          })
-        } catch (e) {
-          console.error('Audit log failed (login success):', e)
+            success: false,
+            errorMessage: 'Invalid password',
+          }).catch(e => console.error('Audit log failed (login failure - invalid password):', e))
+          return null
         }
+
+        // Log successful login - fire-and-forget for faster response
+        auditLog.logAuditEvent({
+          tenantId: tenant.id,
+          eventType: 'auth.login.success',
+          actorId: tenant.id,
+          actorEmail: tenant.email,
+          actorType: 'tenant',
+          success: true,
+        }).catch(e => console.error('Audit log failed (login success):', e))
 
         return {
           id: tenant.id,

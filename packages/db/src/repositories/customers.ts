@@ -15,13 +15,13 @@ import type {
 } from '@madebuy/shared'
 import { validatePassword, DEFAULT_PASSWORD_REQUIREMENTS } from '@madebuy/shared'
 
-const BCRYPT_ROUNDS = 12
+const BCRYPT_ROUNDS = 10  // Reduced from 12 for faster login (~100ms vs ~400ms)
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 24
 const RESET_TOKEN_EXPIRY_HOURS = 24
 const EMAIL_CHANGE_TOKEN_EXPIRY_HOURS = 24
 
-// Dummy hash for timing attack prevention
-const DUMMY_HASH = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VttYJGpD4Gm.Ey'
+// Dummy hash for timing attack prevention (cost 10 to match BCRYPT_ROUNDS)
+const DUMMY_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
 
 // Database record type for Customer collection
 interface CustomerRecord extends Customer {
@@ -713,11 +713,11 @@ export async function authenticateCustomer(
     return { success: false, error: 'Invalid email or password' }
   }
 
-  // Update last login
-  await db.collection('customers').updateOne(
+  // Update last login (fire-and-forget for faster response)
+  db.collection('customers').updateOne(
     { tenantId, id: customer.id },
     { $set: { lastLoginAt: new Date() } }
-  )
+  ).catch(e => console.error('Failed to update lastLoginAt:', e))
 
   return { success: true, customer: customer as unknown as Customer }
 }

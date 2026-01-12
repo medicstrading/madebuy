@@ -19,10 +19,10 @@ export async function getDatabase(): Promise<Db> {
 
   if (!cachedClient) {
     cachedClient = new MongoClient(MONGODB_URI, {
-      // Connection pool settings optimized for serverless/edge
+      // Connection pool settings optimized for persistent servers
       maxPoolSize: 10,
-      minPoolSize: 0,
-      maxIdleTimeMS: 30000, // Close idle connections after 30 seconds
+      minPoolSize: 2,        // Keep 2 warm connections to avoid cold start
+      maxIdleTimeMS: 120000, // Close idle connections after 2 minutes (was 30s)
       maxConnecting: 2,
       // Reliability settings
       retryWrites: true,
