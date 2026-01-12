@@ -9,6 +9,7 @@ if (!MONGODB_URI && process.env.NODE_ENV !== 'production') {
 
 let cachedClient: MongoClient | null = null
 let cachedDb: Db | null = null
+let indexesEnsured = false // Track if indexes have been created this process
 
 export async function getDatabase(): Promise<Db> {
   if (!MONGODB_URI) {
@@ -36,7 +37,17 @@ export async function getDatabase(): Promise<Db> {
   }
 
   cachedDb = cachedClient.db(MONGODB_DB)
-  await ensureIndexes(cachedDb)
+
+  // Only ensure indexes ONCE per process, and do it non-blocking
+  // This prevents 200-500ms delay on every first request
+  if (!indexesEnsured) {
+    indexesEnsured = true
+    // Fire and forget - don't block the request
+    ensureIndexes(cachedDb).catch(err => {
+      console.error('Failed to ensure indexes:', err)
+      indexesEnsured = false // Allow retry on next connection
+    })
+  }
 
   return cachedDb
 }
@@ -220,6 +231,11 @@ async function ensureIndexes(db: Db) {
   await db.collection('customers').createIndex({ verificationToken: 1 }, { sparse: true })
   await db.collection('customers').createIndex({ resetToken: 1 }, { sparse: true })
   await db.collection('customers').createIndex({ emailChangeToken: 1 }, { sparse: true })
+
+  // Analytics Events (P9 fix - was missing, causing slow analytics queries)
+  await db.collection('analytics_events').createIndex({ tenantId: 1, createdAt: -1, event: 1 })
+  await db.collection('analytics_events').createIndex({ tenantId: 1, productId: 1, event: 1 })
+  await db.collection('analytics_events').createIndex({ tenantId: 1, event: 1, createdAt: -1 })
 
   console.log('✅ Database indexes created')
 }

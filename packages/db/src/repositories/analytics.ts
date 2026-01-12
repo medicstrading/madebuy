@@ -46,6 +46,7 @@ export async function trackEvent(
 
 /**
  * Get funnel data for a tenant within a date range
+ * Uses single aggregation instead of 4 separate countDocuments (P8 optimization)
  */
 export async function getFunnelData(
   tenantId: string,
@@ -54,17 +55,35 @@ export async function getFunnelData(
 ): Promise<FunnelData> {
   const db = await getDatabase()
 
-  const query = {
-    tenantId,
-    createdAt: { $gte: startDate, $lte: endDate }
+  // Single aggregation with $group by event type - much faster than 4 countDocuments
+  const pipeline = [
+    {
+      $match: {
+        tenantId,
+        createdAt: { $gte: startDate, $lte: endDate },
+        event: { $in: ['view_product', 'add_to_cart', 'start_checkout', 'complete_purchase'] }
+      }
+    },
+    {
+      $group: {
+        _id: '$event',
+        count: { $sum: 1 }
+      }
+    }
+  ]
+
+  const results = await db.collection('analytics_events').aggregate(pipeline).toArray()
+
+  // Convert to map for easy lookup
+  const counts: Record<string, number> = {}
+  for (const r of results) {
+    counts[r._id] = r.count
   }
 
-  const [viewProduct, addToCart, startCheckout, completePurchase] = await Promise.all([
-    db.collection('analytics_events').countDocuments({ ...query, event: 'view_product' }),
-    db.collection('analytics_events').countDocuments({ ...query, event: 'add_to_cart' }),
-    db.collection('analytics_events').countDocuments({ ...query, event: 'start_checkout' }),
-    db.collection('analytics_events').countDocuments({ ...query, event: 'complete_purchase' }),
-  ])
+  const viewProduct = counts['view_product'] || 0
+  const addToCart = counts['add_to_cart'] || 0
+  const startCheckout = counts['start_checkout'] || 0
+  const completePurchase = counts['complete_purchase'] || 0
 
   // Calculate conversion rates (avoid division by zero)
   const viewToCartRate = viewProduct > 0 ? (addToCart / viewProduct) * 100 : 0
@@ -86,6 +105,7 @@ export async function getFunnelData(
 
 /**
  * Get funnel data by product
+ * Uses single aggregation instead of 4 separate countDocuments
  */
 export async function getFunnelDataByProduct(
   tenantId: string,
@@ -95,18 +115,35 @@ export async function getFunnelDataByProduct(
 ): Promise<FunnelData> {
   const db = await getDatabase()
 
-  const query = {
-    tenantId,
-    productId,
-    createdAt: { $gte: startDate, $lte: endDate }
+  // Single aggregation with $group by event type
+  const pipeline = [
+    {
+      $match: {
+        tenantId,
+        productId,
+        createdAt: { $gte: startDate, $lte: endDate },
+        event: { $in: ['view_product', 'add_to_cart', 'start_checkout', 'complete_purchase'] }
+      }
+    },
+    {
+      $group: {
+        _id: '$event',
+        count: { $sum: 1 }
+      }
+    }
+  ]
+
+  const results = await db.collection('analytics_events').aggregate(pipeline).toArray()
+
+  const counts: Record<string, number> = {}
+  for (const r of results) {
+    counts[r._id] = r.count
   }
 
-  const [viewProduct, addToCart, startCheckout, completePurchase] = await Promise.all([
-    db.collection('analytics_events').countDocuments({ ...query, event: 'view_product' }),
-    db.collection('analytics_events').countDocuments({ ...query, event: 'add_to_cart' }),
-    db.collection('analytics_events').countDocuments({ ...query, event: 'start_checkout' }),
-    db.collection('analytics_events').countDocuments({ ...query, event: 'complete_purchase' }),
-  ])
+  const viewProduct = counts['view_product'] || 0
+  const addToCart = counts['add_to_cart'] || 0
+  const startCheckout = counts['start_checkout'] || 0
+  const completePurchase = counts['complete_purchase'] || 0
 
   const viewToCartRate = viewProduct > 0 ? (addToCart / viewProduct) * 100 : 0
   const cartToCheckoutRate = addToCart > 0 ? (startCheckout / addToCart) * 100 : 0

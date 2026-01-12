@@ -21,12 +21,12 @@ import {
   Boxes,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { MakerType } from '@madebuy/shared/src/constants/makerPresets'
 import {
   MAKER_TYPES,
   MAKER_CATEGORY_PRESETS,
   MAKER_MATERIAL_PRESETS,
-} from '@madebuy/shared/src/constants/makerPresets'
+  type MakerType,
+} from '@madebuy/shared'
 
 // Icon mapping for maker types
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {

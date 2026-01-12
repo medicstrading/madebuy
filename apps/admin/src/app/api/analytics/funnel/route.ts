@@ -45,7 +45,12 @@ export async function GET(request: Request) {
       : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000)
 
     const result = await getCachedFunnelData(tenant.id, startDate, endDate, productId)
-    return NextResponse.json(result)
+    // P13: Add cache headers for browser caching
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'private, max-age=120, stale-while-revalidate=300',
+      },
+    })
   } catch (error) {
     console.error('Error fetching funnel data:', error)
     return NextResponse.json(

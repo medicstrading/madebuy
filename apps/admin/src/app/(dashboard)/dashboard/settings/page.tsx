@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Loader2, Settings, Package, Boxes, RotateCcw } from 'lucide-react'
 import { MakerTypeSelector } from '@/components/settings/MakerTypeSelector'
 import { CategoryManager } from '@/components/settings/CategoryManager'
-import type { Tenant, MakerType } from '@madebuy/shared/src/types/tenant'
+import type { Tenant } from '@madebuy/shared'
 import {
   MAKER_CATEGORY_PRESETS,
   MAKER_MATERIAL_PRESETS,
-} from '@madebuy/shared/src/constants/makerPresets'
+  type MakerType,
+} from '@madebuy/shared'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -168,7 +169,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Maker Type Section */}
-      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <section className="rounded-xl border border-gray-200 bg-white">
         <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">

@@ -5,6 +5,38 @@ import { transactions, pieces, getDatabase } from '@madebuy/db'
 import type { Order } from '@madebuy/shared'
 
 /**
+ * Get YTD fees using aggregation (P7 optimization)
+ * Much faster than fetching 10000+ transactions and summing in JS
+ */
+async function getYtdFeesSummary(
+  tenantId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<number> {
+  const db = await getDatabase()
+
+  const pipeline = [
+    {
+      $match: {
+        tenantId,
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: endDate },
+        stripeFee: { $exists: true, $gt: 0 }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalFees: { $sum: '$stripeFee' }
+      }
+    }
+  ]
+
+  const results = await db.collection('transactions').aggregate(pipeline).toArray()
+  return results[0]?.totalFees || 0
+}
+
+/**
  * Get paid orders within a date range
  */
 async function getPaidOrdersInRange(
@@ -125,12 +157,13 @@ const getCachedLedgerSummary = unstable_cache(
     const yearStart = new Date(now.getFullYear(), 0, 1)
 
     // Fetch all data in parallel where possible
+    // P7 optimization: Use aggregation for YTD fees instead of fetching 10000 transactions
     const [
       todayTransactions,
       thisMonthSummary,
       lastMonthSummary,
       balance,
-      ytdTransactions,
+      ytdFeesSummary,
       thisMonthOrders,
       lastMonthOrders,
     ] = await Promise.all([
@@ -145,14 +178,8 @@ const getCachedLedgerSummary = unstable_cache(
       transactions.getTransactionSummary(tenantId, thisMonthStart, thisMonthEnd),
       transactions.getTransactionSummary(tenantId, lastMonthStart, lastMonthEnd),
       transactions.getTenantBalance(tenantId),
-      transactions.listTransactions(tenantId, {
-        filters: {
-          startDate: yearStart,
-          endDate: now,
-          status: 'completed',
-        },
-        limit: 10000,
-      }),
+      // Use aggregation to sum fees instead of fetching all transactions
+      getYtdFeesSummary(tenantId, yearStart, now),
       getPaidOrdersInRange(tenantId, thisMonthStart, thisMonthEnd),
       getPaidOrdersInRange(tenantId, lastMonthStart, lastMonthEnd),
     ])
@@ -169,7 +196,7 @@ const getCachedLedgerSummary = unstable_cache(
       ? Math.round(((thisMonthSummary.sales.net - lastMonthSummary.sales.net) / lastMonthNet) * 100)
       : 0
 
-    const feesYTD = ytdTransactions.reduce((sum, tx) => sum + (tx.stripeFee || 0), 0)
+    const feesYTD = ytdFeesSummary
 
     const profitability = await calculateProfitability(tenantId, thisMonthOrders, lastMonthOrders)
 
@@ -214,7 +241,12 @@ export async function GET() {
     }
 
     const summary = await getCachedLedgerSummary(tenant.id)
-    return NextResponse.json(summary)
+    // P13: Add cache headers for browser caching
+    return NextResponse.json(summary, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+      },
+    })
   } catch (error) {
     console.error('Error fetching ledger summary:', error)
     return NextResponse.json(

@@ -33,8 +33,18 @@ export async function GET(request: NextRequest) {
     const threshold = searchParams.get('threshold')
     const thresholdValue = threshold ? parseInt(threshold, 10) : 5
 
+    // Validate threshold to prevent NaN or negative values
+    if (isNaN(thresholdValue) || thresholdValue < 0) {
+      return NextResponse.json({ error: 'Invalid threshold value' }, { status: 400 })
+    }
+
     const result = await getCachedStockAlerts(tenant.id, thresholdValue)
-    return NextResponse.json(result)
+    // P13: Add cache headers for browser caching
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+      },
+    })
   } catch (error) {
     console.error('Error fetching stock alerts:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

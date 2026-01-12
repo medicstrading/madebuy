@@ -1,21 +1,34 @@
 import { requireTenant } from '@/lib/session'
 import { pieces, materials, media, collections } from '@madebuy/db'
 import { InventoryPageClient } from '@/components/inventory/InventoryPageClient'
+import { unstable_cache } from 'next/cache'
 
 export const metadata = {
   title: 'Inventory - MadeBuy Admin',
 }
 
+// Cache inventory data for 30 seconds - balances freshness with performance
+const getCachedInventoryData = unstable_cache(
+  async (tenantId: string) => {
+    // Fetch all data needed for all tabs in parallel
+    // Note: For very large inventories (500+ items), consider implementing
+    // pagination in the client component instead
+    const [allPieces, lowStockPieces, allMedia, collectionsResult] = await Promise.all([
+      pieces.listPieces(tenantId, { limit: 500 }), // Reasonable limit for UI performance
+      pieces.getLowStockPieces(tenantId),
+      media.listMedia(tenantId, { limit: 1000 }),
+      collections.listCollections(tenantId),
+    ])
+    return { allPieces, lowStockPieces, allMedia, collectionsResult }
+  },
+  ['inventory-data'],
+  { revalidate: 30, tags: ['inventory'] }
+)
+
 export default async function InventoryPage() {
   const tenant = await requireTenant()
 
-  // Fetch all data needed for all tabs in parallel
-  const [allPieces, lowStockPieces, allMedia, collectionsResult] = await Promise.all([
-    pieces.listPieces(tenant.id),
-    pieces.getLowStockPieces(tenant.id),
-    media.listMedia(tenant.id),
-    collections.listCollections(tenant.id),
-  ])
+  const { allPieces, lowStockPieces, allMedia, collectionsResult } = await getCachedInventoryData(tenant.id)
 
   const allCollections = collectionsResult.items
 

@@ -71,16 +71,20 @@ interface RateLimitStore {
 // In-memory store for rate limiting
 // WARNING: Not suitable for multi-instance deployments - see REDIS MIGRATION GUIDE above
 const rateLimitStore = new Map<string, RateLimitStore>()
+let lastCleanup = Date.now()
+const CLEANUP_INTERVAL = 10 * 60 * 1000 // 10 minutes
 
-// Clean up expired entries every 10 minutes
-setInterval(() => {
+// Lazy cleanup: check on each request instead of setInterval (avoids memory leaks in serverless)
+function cleanupExpiredEntries() {
   const now = Date.now()
+  if (now - lastCleanup < CLEANUP_INTERVAL) return
+  lastCleanup = now
   for (const [key, value] of rateLimitStore.entries()) {
     if (now > value.resetTime) {
       rateLimitStore.delete(key)
     }
   }
-}, 10 * 60 * 1000)
+}
 
 export class RateLimiter {
   private interval: number
@@ -97,6 +101,9 @@ export class RateLimiter {
     remaining: number
     reset: number
   }> {
+    // Lazy cleanup instead of setInterval (serverless-friendly)
+    cleanupExpiredEntries()
+
     const token = this.getToken(request)
     const now = Date.now()
     const maxRequests = limit || this.uniqueTokenPerInterval
@@ -127,14 +134,15 @@ export class RateLimiter {
 
   private getToken(request: NextRequest): string {
     // Get IP from various headers (handles proxies, load balancers)
+    // WARNING: x-forwarded-for can be spoofed by clients. This is safe because:
+    // 1. In production, we're behind Caddy which sets the real client IP
+    // 2. Rate limiting is defense-in-depth, not primary security control
+    // 3. Authenticated users bypass rate limiting entirely
     const forwarded = request.headers.get('x-forwarded-for')
     const realIp = request.headers.get('x-real-ip')
-    const ip = forwarded?.split(',')[0] || realIp || 'unknown'
+    const ip = forwarded?.split(',')[0]?.trim() || realIp || 'unknown'
 
-    // Include pathname for route-specific limits
-    const pathname = new URL(request.url).pathname
-
-    return `${ip}:${pathname}`
+    return ip
   }
 }
 

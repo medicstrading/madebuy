@@ -46,6 +46,18 @@ export {
 // Export template utilities
 export { getDefaultPages, getDefaultSections } from './types/template'
 
+// Export maker type presets
+export {
+  MAKER_TYPES,
+  MAKER_CATEGORY_PRESETS,
+  MAKER_MATERIAL_PRESETS,
+  getTenantCategories,
+  getTenantMaterialCategories,
+  getMakerTypeInfo,
+  type MakerType,
+  type MakerTypeInfo,
+} from './constants/makerPresets'
+
 // Export subscription utilities
 export * from './lib/subscription'
 

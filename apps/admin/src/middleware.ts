@@ -54,33 +54,13 @@ const INTERNAL_CRON_ROUTES = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Apply rate limiting based on route
-  let rateLimitResponse: NextResponse | null = null
-
-  if (pathname === '/api/auth/callback/credentials' || pathname === '/api/auth/signin') {
-    // Strict rate limiting for login attempts only (5 requests per 15 minutes)
-    rateLimitResponse = await rateLimit(request, rateLimiters.auth)
-  } else if (pathname.startsWith('/api/auth')) {
-    // Session checks use standard API rate limit (100/min)
-    rateLimitResponse = await rateLimit(request, rateLimiters.api)
-  } else if (pathname.startsWith('/api/media/upload') || pathname.startsWith('/api/upload')) {
-    // Moderate rate limiting for uploads
-    rateLimitResponse = await rateLimit(request, rateLimiters.upload)
-  } else if (pathname.startsWith('/api')) {
-    // Standard rate limiting for API routes
-    rateLimitResponse = await rateLimit(request, rateLimiters.api)
-  } else {
-    // General rate limiting for page routes
-    rateLimitResponse = await rateLimit(request, rateLimiters.general)
-  }
-
-  // Return rate limit response if exceeded
-  if (rateLimitResponse) {
-    return rateLimitResponse
-  }
-
-  // Allow public routes (after rate limiting)
+  // Allow public routes first (no auth or rate limit needed)
   if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    // Only rate limit login attempts (unauthenticated, critical path)
+    if (pathname === '/api/auth/callback/credentials' || pathname === '/api/auth/signin') {
+      const rateLimitResponse = await rateLimit(request, rateLimiters.auth)
+      if (rateLimitResponse) return rateLimitResponse
+    }
     return NextResponse.next()
   }
 
@@ -90,7 +70,6 @@ export async function middleware(request: NextRequest) {
   }
 
   // Internal cron routes: allow if valid CRON_SECRET is provided (timing-safe)
-  // This lets cron jobs call internal endpoints without session auth
   if (INTERNAL_CRON_ROUTES.some((route) => pathname.startsWith(route))) {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
@@ -100,7 +79,8 @@ export async function middleware(request: NextRequest) {
     // If no valid cron secret, fall through to normal session auth check
   }
 
-  // Check JWT token with correct configuration for Auth.js v5
+  // Check JWT token FIRST - authenticated users skip rate limiting
+  // This is much faster than rate limiting every request
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
@@ -110,38 +90,31 @@ export async function middleware(request: NextRequest) {
       : 'authjs.session-token',
   })
 
+  // If authenticated with valid token, skip rate limiting entirely
+  // Rate limiting is primarily to prevent abuse from unauthenticated users
+  if (token?.email) {
+    return NextResponse.next()
+  }
+
   // Debug logging disabled in production for security
   if (process.env.NODE_ENV === 'development') {
     console.log('[MIDDLEWARE]', { pathname, hasToken: !!token })
   }
 
-  // Handle unauthenticated requests
-  if (!token) {
-    // API routes should return 401 JSON, not redirect
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-    // Page routes redirect to login with validated callback URL
-    const loginUrl = new URL('/login', request.url)
-    // Only set callbackUrl if it's a valid internal path (prevent open redirect)
-    if (isValidCallbackUrl(pathname)) {
-      loginUrl.searchParams.set('callbackUrl', pathname)
-    }
-    return NextResponse.redirect(loginUrl)
+  // Unauthenticated request - apply rate limiting before rejecting
+  // This prevents brute force attacks on protected routes
+  if (pathname.startsWith('/api/')) {
+    const rateLimitResponse = await rateLimit(request, rateLimiters.api)
+    if (rateLimitResponse) return rateLimitResponse
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Verify token has required claims for all API routes
-  if (pathname.startsWith('/api/') && !token.email) {
-    return NextResponse.json(
-      { error: 'Unauthorized - invalid token' },
-      { status: 401 }
-    )
+  // Page routes redirect to login with validated callback URL
+  const loginUrl = new URL('/login', request.url)
+  if (isValidCallbackUrl(pathname)) {
+    loginUrl.searchParams.set('callbackUrl', pathname)
   }
-
-  return NextResponse.next()
+  return NextResponse.redirect(loginUrl)
 }
 
 export const config = {
