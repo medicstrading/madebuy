@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Globe, MapPin, Palette, CheckCircle2 } from 'lucide-react'
+import { Loader2, MapPin, Palette, CheckCircle2 } from 'lucide-react'
 import type { OnboardingStep } from '@madebuy/shared'
 
 interface TenantData {
@@ -14,13 +14,6 @@ interface TenantData {
 
 const STEPS = [
   {
-    id: 'domain',
-    title: 'Connect Your Domain',
-    description: 'Set up your storefront URL or custom domain',
-    icon: Globe,
-    href: '/dashboard/onboarding/domain',
-  },
-  {
     id: 'location',
     title: 'Select Your Location',
     description: 'Set your currency, timezone, and regional settings',
@@ -30,7 +23,7 @@ const STEPS = [
   {
     id: 'design',
     title: 'Design Your Website',
-    description: 'Import your existing design or start fresh',
+    description: 'Choose your look and customize your storefront',
     icon: Palette,
     href: '/dashboard/onboarding/design',
   },

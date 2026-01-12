@@ -7,8 +7,8 @@ import type { ExtractedDesign } from './scanner'
  * Tenant - Multi-tenant user/shop owner
  */
 
-// Onboarding step type
-export type OnboardingStep = 'domain' | 'location' | 'design' | 'complete'
+// Onboarding step type (domain setup moved to Website Design menu)
+export type OnboardingStep = 'location' | 'design' | 'complete'
 
 // Regional settings for localization
 export type MeasurementSystem = 'metric' | 'imperial'

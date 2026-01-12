@@ -277,7 +277,7 @@ export default function SettingsPage() {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     onboardingComplete: false,
-                    onboardingStep: 'domain',
+                    onboardingStep: 'location',
                   }),
                 })
                 router.push('/dashboard/onboarding')
