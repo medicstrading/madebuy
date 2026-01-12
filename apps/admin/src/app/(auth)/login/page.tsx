@@ -31,7 +31,9 @@ export default function LoginPage() {
       } else {
         // Use callbackUrl if provided and valid, otherwise default to dashboard
         const callbackUrl = searchParams?.get('callbackUrl')
-        const redirectTo = callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/dashboard'
+        // Validate callback URL: must start with / but not // (prevents open redirect to //evil.com)
+        const isValidCallback = callbackUrl && /^\/[^\/\\]/.test(callbackUrl)
+        const redirectTo = isValidCallback ? callbackUrl : '/dashboard'
         router.push(redirectTo)
         router.refresh()
       }
@@ -78,9 +80,14 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"

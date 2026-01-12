@@ -2,9 +2,11 @@
 
 import { useRef, useMemo, useState, useCallback } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useRouter } from 'next/navigation'
 import { AlertTriangle, TrendingUp, TrendingDown, Search, X, Package } from 'lucide-react'
 import Link from 'next/link'
 import { DeletePieceButton } from './DeletePieceButton'
+import { BulkActionsToolbar } from './BulkActionsToolbar'
 import type { Piece } from '@madebuy/shared'
 import { getMarginHealth, calculateProfitMargin } from '@madebuy/shared'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -31,9 +33,12 @@ type MarginHealth = 'healthy' | 'warning' | 'low' | 'negative' | 'unknown'
  * - Virtualized rows for performance with 100+ items
  * - Fixed header during scroll
  * - Margin health indicators
+ * - Bulk selection and actions
  */
 export function InventoryTable({ pieces }: InventoryTableProps) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const parentRef = useRef<HTMLDivElement>(null)
 
   // Filter pieces based on search
@@ -60,34 +65,78 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
     setSearch('')
   }, [])
 
+  // Selection handlers
+  const handleSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredPieces.map(p => p.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }, [filteredPieces])
+
+  const handleSelectPiece = useCallback((pieceId: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (checked) {
+        next.add(pieceId)
+      } else {
+        next.delete(pieceId)
+      }
+      return next
+    })
+  }, [])
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set())
+  }, [])
+
+  const handleActionComplete = useCallback(() => {
+    setSelectedIds(new Set())
+    router.refresh()
+  }, [router])
+
   const virtualItems = virtualizer.getVirtualItems()
   const shouldVirtualize = filteredPieces.length >= VIRTUALIZATION_THRESHOLD
+
+  const allSelected = filteredPieces.length > 0 && filteredPieces.every(p => selectedIds.has(p.id))
+  const someSelected = selectedIds.size > 0 && !allSelected
 
   return (
     <div className="space-y-4">
       {/* Search Bar */}
-      <div className="relative max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-gray-400" />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, description, or category..."
+            maxLength={200}
+            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {search && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            </button>
+          )}
         </div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, description, or category..."
-          maxLength={200}
-          className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {search && (
-          <button
-            onClick={handleClearSearch}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            aria-label="Clear search"
-          >
-            <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-          </button>
-        )}
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <BulkActionsToolbar
+          selectedIds={selectedIds}
+          onClearSelection={handleClearSelection}
+          onActionComplete={handleActionComplete}
+        />
+      )}
 
       {/* Results count */}
       <div className="text-sm text-gray-500">
@@ -103,6 +152,11 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
         ) : (
           <>Showing all {pieces.length} pieces</>
         )}
+        {selectedIds.size > 0 && (
+          <span className="ml-2 font-medium text-blue-600">
+            ({selectedIds.size} selected)
+          </span>
+        )}
       </div>
 
       {/* Table */}
@@ -116,12 +170,16 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
           >
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
-                <TableHeader />
+                <TableHeader
+                  allSelected={allSelected}
+                  someSelected={someSelected}
+                  onSelectAll={handleSelectAll}
+                />
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredPieces.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
                       No pieces found
                     </td>
                   </tr>
@@ -130,7 +188,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                     {/* Top spacer */}
                     {virtualItems.length > 0 && virtualItems[0].start > 0 && (
                       <tr style={{ height: virtualItems[0].start }} aria-hidden="true">
-                        <td colSpan={9} />
+                        <td colSpan={10} />
                       </tr>
                     )}
                     {/* Virtual rows */}
@@ -140,6 +198,8 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                         <InventoryRow
                           key={piece.id}
                           piece={piece}
+                          isSelected={selectedIds.has(piece.id)}
+                          onSelect={handleSelectPiece}
                           style={{ height: ROW_HEIGHT }}
                         />
                       )
@@ -152,7 +212,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                         }}
                         aria-hidden="true"
                       >
-                        <td colSpan={9} />
+                        <td colSpan={10} />
                       </tr>
                     )}
                   </>
@@ -164,18 +224,27 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
           // Non-virtualized table for small lists
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
-              <TableHeader />
+              <TableHeader
+                allSelected={allSelected}
+                someSelected={someSelected}
+                onSelectAll={handleSelectAll}
+              />
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredPieces.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
                     No pieces found
                   </td>
                 </tr>
               ) : (
                 filteredPieces.map((piece) => (
-                  <InventoryRow key={piece.id} piece={piece} />
+                  <InventoryRow
+                    key={piece.id}
+                    piece={piece}
+                    isSelected={selectedIds.has(piece.id)}
+                    onSelect={handleSelectPiece}
+                  />
                 ))
               )}
             </tbody>
@@ -186,9 +255,27 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
   )
 }
 
-function TableHeader() {
+interface TableHeaderProps {
+  allSelected: boolean
+  someSelected: boolean
+  onSelectAll: (checked: boolean) => void
+}
+
+function TableHeader({ allSelected, someSelected, onSelectAll }: TableHeaderProps) {
   return (
     <tr>
+      <th className="w-12 px-3 py-3">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          ref={input => {
+            if (input) input.indeterminate = someSelected
+          }}
+          onChange={(e) => onSelectAll(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          aria-label="Select all pieces"
+        />
+      </th>
       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
         Name
       </th>
@@ -222,10 +309,12 @@ function TableHeader() {
 
 interface InventoryRowProps {
   piece: PieceWithCOGS
+  isSelected: boolean
+  onSelect: (pieceId: string, checked: boolean) => void
   style?: React.CSSProperties
 }
 
-function InventoryRow({ piece, style }: InventoryRowProps) {
+function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps) {
   // Calculate margin values
   const cogsCents = piece.calculatedCOGS ?? piece.cogs ?? 0
   const priceCents = piece.price ? piece.price * 100 : 0
@@ -242,6 +331,7 @@ function InventoryRow({ piece, style }: InventoryRowProps) {
   return (
     <tr
       className={`hover:bg-gray-50 ${
+        isSelected ? 'bg-blue-50' :
         isOutOfStock ? 'bg-red-50/30' :
         isLowStock ? 'bg-amber-50/30' :
         marginHealth === 'low' ? 'bg-orange-50/50' :
@@ -249,6 +339,15 @@ function InventoryRow({ piece, style }: InventoryRowProps) {
       }`}
       style={style}
     >
+      <td className="w-12 px-3 py-4">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => onSelect(piece.id, e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          aria-label={`Select ${piece.name}`}
+        />
+      </td>
       <td className="whitespace-nowrap px-6 py-4">
         <Link href={`/dashboard/inventory/${piece.id}`} className="block">
           <div className="flex items-center gap-2">

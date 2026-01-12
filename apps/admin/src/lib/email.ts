@@ -770,3 +770,131 @@ export async function sendLowStockAlertEmail(data: LowStockAlertEmailData): Prom
     }
   }
 }
+
+/**
+ * Password reset email data
+ */
+export interface SendPasswordResetEmailParams {
+  to: string
+  resetToken: string
+  businessName: string
+}
+
+/**
+ * Build password reset email HTML
+ */
+function buildPasswordResetEmailHtml(data: SendPasswordResetEmailParams): string {
+  const { resetToken, businessName } = data
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3300'
+  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(resetToken)}`
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #374151; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f9fafb;">
+  <div style="padding: 40px 20px;">
+    <div style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden;">
+      <!-- Header -->
+      <div style="padding: 40px 40px 30px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+        <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #111827;">MadeBuy</h1>
+      </div>
+
+      <!-- Content -->
+      <div style="padding: 40px;">
+        <h2 style="margin: 0 0 20px; font-size: 20px; font-weight: 600; color: #111827;">Reset Your Password</h2>
+
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 24px; color: #374151;">
+          Hi ${escapeHtml(businessName)},
+        </p>
+
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 24px; color: #374151;">
+          We received a request to reset your password for your MadeBuy account. Click the button below to create a new password:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">Reset Password</a>
+        </div>
+
+        <p style="margin: 0 0 20px; font-size: 14px; line-height: 20px; color: #6b7280;">
+          Or copy and paste this link into your browser:
+        </p>
+
+        <p style="margin: 0 0 20px; font-size: 14px; line-height: 20px; color: #2563eb; word-break: break-all;">
+          ${resetUrl}
+        </p>
+
+        <div style="margin: 30px 0 0; padding: 20px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: #92400e;">
+            <strong>Important:</strong> This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          This email was sent from MadeBuy
+        </p>
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          © ${new Date().getFullYear()} MadeBuy. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
+
+/**
+ * Send password reset email with reset link
+ */
+export async function sendPasswordResetEmail(data: SendPasswordResetEmailParams): Promise<{
+  success: boolean
+  error?: string
+}> {
+  const client = getResendClient()
+
+  if (!client) {
+    // In development mode without Resend, log to console
+    console.log('[EMAIL] Password reset email (not sent - no Resend API key):')
+    console.log(`  To: ${data.to}`)
+    console.log(`  Reset URL: ${process.env.NEXTAUTH_URL}/reset-password?token=${data.resetToken}`)
+    return {
+      success: true, // Return success in dev mode for testing
+    }
+  }
+
+  const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'noreply@madebuy.com.au'
+  const htmlContent = buildPasswordResetEmailHtml(data)
+
+  try {
+    const result = await client.emails.send({
+      from: `MadeBuy <${fromEmail}>`,
+      to: data.to,
+      subject: 'Reset Your MadeBuy Password',
+      html: htmlContent,
+    })
+
+    if (result.error) {
+      console.error('Failed to send password reset email:', result.error)
+      return {
+        success: false,
+        error: result.error.message,
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send password reset email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}

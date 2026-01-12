@@ -47,6 +47,7 @@ export * as disputes from './repositories/disputes'
 export * as captionStyles from './repositories/captionStyles'
 export * as marketplace from './repositories/marketplace'
 export * as imports from './repositories/imports'
+export * as passwordResets from './repositories/passwordResets'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

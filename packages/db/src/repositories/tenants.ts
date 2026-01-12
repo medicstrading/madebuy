@@ -32,7 +32,7 @@ export async function createTenant(email: string, passwordHash: string, business
     },
     plan: 'free',
     onboardingComplete: false,
-    onboardingStep: 'domain',
+    onboardingStep: 'location',
     regionalSettings: DEFAULT_REGIONAL_SETTINGS,
     location: 'Australia',
     createdAt: new Date(),
