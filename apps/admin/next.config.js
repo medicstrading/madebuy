@@ -7,7 +7,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  transpilePackages: ['@madebuy/shared', '@madebuy/db', '@madebuy/storage', '@madebuy/social', '@madebuy/cloudflare'],
+  transpilePackages: ['@madebuy/shared', '@madebuy/db', '@madebuy/storage', '@madebuy/social', '@madebuy/shipping'],
 
   // Bundle optimization
   experimental: {
@@ -15,9 +15,24 @@ const nextConfig = {
     optimizePackageImports: [
       '@madebuy/shared',
       '@madebuy/db',
+      '@madebuy/storage',
       'lucide-react',
       'date-fns',
     ],
+  },
+
+  // Webpack config to handle server-only packages
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Don't bundle server-only packages in client bundle
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'sharp': false,
+        'tesseract.js': false,
+        'pdf-lib': false,
+      }
+    }
+    return config
   },
 
   // Security Headers
