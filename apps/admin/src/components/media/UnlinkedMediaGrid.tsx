@@ -1,12 +1,12 @@
 'use client'
 
 import { useRef, useMemo, useState, useCallback } from 'react'
-import { Video, Star, X } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { Play, Link2, Star, X } from 'lucide-react'
 import type { MediaItem } from '@madebuy/shared'
 import { useMediaLibrary } from './MediaLibraryClient'
 import { useRouter } from 'next/navigation'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { MediaPreviewModal } from './MediaPreviewModal'
 
 interface UnlinkedMediaGridProps {
   media: MediaItem[]
@@ -24,6 +24,7 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
   const { openLinkModal } = useMediaLibrary()
   const router = useRouter()
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const parentRef = useRef<HTMLDivElement>(null)
 
   const handleDelete = useCallback(async (e: React.MouseEvent, mediaId: string) => {
@@ -73,65 +74,104 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
     return null
   }
 
+  const handlePreview = useCallback((index: number) => {
+    setPreviewIndex(index)
+  }, [])
+
+  const previewItem = previewIndex !== null ? media[previewIndex] : null
+
   // For small lists, render without virtualization
   if (media.length < VIRTUALIZATION_THRESHOLD) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        {media.map((item) => (
-          <MediaThumbnail
-            key={item.id}
-            item={item}
-            deleting={deleting}
-            onDelete={handleDelete}
-            onLink={openLinkModal}
+      <>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          {media.map((item, index) => (
+            <MediaThumbnail
+              key={item.id}
+              item={item}
+              deleting={deleting}
+              onDelete={handleDelete}
+              onLink={openLinkModal}
+              onPreview={() => handlePreview(index)}
+            />
+          ))}
+        </div>
+
+        {/* Preview Modal */}
+        {previewItem && previewIndex !== null && (
+          <MediaPreviewModal
+            item={previewItem}
+            onClose={() => setPreviewIndex(null)}
+            onPrev={() => setPreviewIndex(Math.max(0, previewIndex - 1))}
+            onNext={() => setPreviewIndex(Math.min(media.length - 1, previewIndex + 1))}
+            hasPrev={previewIndex > 0}
+            hasNext={previewIndex < media.length - 1}
           />
-        ))}
-      </div>
+        )}
+      </>
     )
   }
 
   // Virtualized rendering for large lists
   const virtualItems = virtualizer.getVirtualItems()
 
+  // Calculate flat index for virtualized items
+  const getItemIndex = (rowIndex: number, colIndex: number) => rowIndex * COLUMNS + colIndex
+
   return (
-    <div
-      ref={parentRef}
-      className="overflow-auto"
-      style={{ maxHeight: '60vh', contain: 'strict' }}
-    >
+    <>
       <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
+        ref={parentRef}
+        className="overflow-auto"
+        style={{ maxHeight: '60vh', contain: 'strict' }}
       >
-        {virtualItems.map((virtualRow) => (
-          <div
-            key={virtualRow.key}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              transform: `translateY(${virtualRow.start}px)`,
-            }}
-          >
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 pb-4">
-              {rows[virtualRow.index].map((item) => (
-                <MediaThumbnail
-                  key={item.id}
-                  item={item}
-                  deleting={deleting}
-                  onDelete={handleDelete}
-                  onLink={openLinkModal}
-                />
-              ))}
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualItems.map((virtualRow) => (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 pb-4">
+                {rows[virtualRow.index].map((item, colIndex) => (
+                  <MediaThumbnail
+                    key={item.id}
+                    item={item}
+                    deleting={deleting}
+                    onDelete={handleDelete}
+                    onLink={openLinkModal}
+                    onPreview={() => handlePreview(getItemIndex(virtualRow.index, colIndex))}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* Preview Modal */}
+      {previewItem && previewIndex !== null && (
+        <MediaPreviewModal
+          item={previewItem}
+          onClose={() => setPreviewIndex(null)}
+          onPrev={() => setPreviewIndex(Math.max(0, previewIndex - 1))}
+          onNext={() => setPreviewIndex(Math.min(media.length - 1, previewIndex + 1))}
+          hasPrev={previewIndex > 0}
+          hasNext={previewIndex < media.length - 1}
+        />
+      )}
+    </>
   )
 }
 
@@ -140,13 +180,47 @@ interface MediaThumbnailProps {
   deleting: string | null
   onDelete: (e: React.MouseEvent, mediaId: string) => void
   onLink: (mediaId: string) => void
+  onPreview: () => void
 }
 
-function MediaThumbnail({ item, deleting, onDelete, onLink }: MediaThumbnailProps) {
+function MediaThumbnail({ item, deleting, onDelete, onLink, onPreview }: MediaThumbnailProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [isHovered, setIsHovered] = useState(false)
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    if (item.type === 'video' && videoRef.current) {
+      videoRef.current.play().catch(() => {})
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+    if (item.type === 'video' && videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+  }
+
+  const handleClick = () => {
+    // Stop video preview before opening modal
+    if (item.type === 'video' && videoRef.current) {
+      videoRef.current.pause()
+    }
+    onPreview()
+  }
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onLink(item.id)
+  }
+
   return (
     <div
-      className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer transition-transform hover:scale-105"
-      onClick={() => onLink(item.id)}
+      className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer"
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {item.type === 'image' ? (
         <img
@@ -156,44 +230,56 @@ function MediaThumbnail({ item, deleting, onDelete, onLink }: MediaThumbnailProp
           loading="lazy"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-gray-200">
-          <Video className="h-12 w-12 text-gray-400" />
+        <div className="relative h-full w-full bg-gray-900">
+          <video
+            ref={videoRef}
+            src={item.variants.original.url}
+            poster={item.video?.thumbnailUrl}
+            className="h-full w-full object-cover"
+            muted
+            loop
+            playsInline
+          />
+          {/* Play icon - only when not hovering */}
+          {!isHovered && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Play className="h-8 w-8 text-white/70 drop-shadow-lg" />
+            </div>
+          )}
+          {/* Duration badge */}
+          {item.video?.duration && (
+            <div className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded">
+              {Math.floor(item.video.duration / 60)}:{String(Math.floor(item.video.duration % 60)).padStart(2, '0')}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Delete button */}
+      {/* Link button - bottom right, only on hover */}
+      <button
+        onClick={handleLinkClick}
+        className="absolute bottom-1.5 left-1.5 p-1.5 bg-blue-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-700 z-10"
+        title="Link to piece"
+      >
+        <Link2 className="h-3.5 w-3.5" />
+      </button>
+
+      {/* Delete button - top right, only on hover */}
       <button
         onClick={(e) => onDelete(e, item.id)}
         disabled={deleting === item.id}
-        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 disabled:opacity-50 z-10"
-        title="Delete media"
+        className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50 z-10"
+        title="Delete"
       >
-        <X className="h-4 w-4" />
+        <X className="h-3.5 w-3.5" />
       </button>
 
+      {/* Favorite star */}
       {item.isFavorite && (
-        <div className="absolute top-2 left-2">
-          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+        <div className="absolute top-1.5 left-1.5">
+          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow" />
         </div>
       )}
-
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="text-xs text-white line-clamp-2">
-            {item.caption || item.originalFilename}
-          </p>
-          <p className="mt-1 text-xs text-gray-300">
-            {formatDate(item.createdAt)}
-          </p>
-        </div>
-      </div>
-
-      {/* Click to link indicator */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-blue-600/10">
-        <div className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-full">
-          Click to Link
-        </div>
-      </div>
     </div>
   )
 }

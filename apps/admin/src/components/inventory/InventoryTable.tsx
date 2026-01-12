@@ -13,6 +13,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 
 interface PieceWithCOGS extends Piece {
   cogs: number
+  thumbnailUrl?: string
 }
 
 interface InventoryTableProps {
@@ -179,7 +180,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredPieces.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                       No pieces found
                     </td>
                   </tr>
@@ -188,7 +189,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                     {/* Top spacer */}
                     {virtualItems.length > 0 && virtualItems[0].start > 0 && (
                       <tr style={{ height: virtualItems[0].start }} aria-hidden="true">
-                        <td colSpan={10} />
+                        <td colSpan={11} />
                       </tr>
                     )}
                     {/* Virtual rows */}
@@ -212,7 +213,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                         }}
                         aria-hidden="true"
                       >
-                        <td colSpan={10} />
+                        <td colSpan={11} />
                       </tr>
                     )}
                   </>
@@ -233,7 +234,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredPieces.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                     No pieces found
                   </td>
                 </tr>
@@ -276,6 +277,7 @@ function TableHeader({ allSelected, someSelected, onSelectAll }: TableHeaderProp
           aria-label="Select all pieces"
         />
       </th>
+      <th className="w-14 px-2 py-3"></th>
       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
         Name
       </th>
@@ -347,6 +349,21 @@ function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps)
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           aria-label={`Select ${piece.name}`}
         />
+      </td>
+      <td className="w-14 px-2 py-2">
+        <Link href={`/dashboard/inventory/${piece.id}`}>
+          {piece.thumbnailUrl ? (
+            <img
+              src={piece.thumbnailUrl}
+              alt={piece.name}
+              className="h-10 w-10 rounded object-cover"
+            />
+          ) : (
+            <div className="h-10 w-10 rounded bg-gray-100 flex items-center justify-center">
+              <Package className="h-5 w-5 text-gray-400" />
+            </div>
+          )}
+        </Link>
       </td>
       <td className="whitespace-nowrap px-6 py-4">
         <Link href={`/dashboard/inventory/${piece.id}`} className="block">

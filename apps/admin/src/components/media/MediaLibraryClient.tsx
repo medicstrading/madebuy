@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, createContext, useContext } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { MediaUploadModal } from './MediaUploadModal'
 import { LinkMediaModal } from './LinkMediaModal'
+import { BulkUploadModal } from './BulkUploadModal'
 import type { Piece } from '@madebuy/shared'
 
 interface PieceWithCount {
@@ -32,6 +33,7 @@ interface MediaLibraryClientProps {
 
 export function MediaLibraryClient({ children, piecesData }: MediaLibraryClientProps) {
   const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showBulkUploadModal, setShowBulkUploadModal] = useState(false)
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null)
 
@@ -45,31 +47,50 @@ export function MediaLibraryClient({ children, piecesData }: MediaLibraryClientP
     setSelectedMediaId(null)
   }
 
+  // Extract just the pieces for bulk upload
+  const pieces = piecesData.map(pd => pd.piece)
+
   return (
     <MediaLibraryContext.Provider value={{ openLinkModal }}>
       <div>
-        {/* Upload Button */}
+        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Media Library</h1>
             <p className="mt-2 text-gray-600">Organize media by inventory pieces</p>
           </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Upload Media
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowBulkUploadModal(true)}
+              className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            >
+              <Upload className="h-4 w-4" />
+              Bulk Upload
+            </button>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
+              Upload
+            </button>
+          </div>
         </div>
 
         {/* Content from server component */}
         {children}
 
-        {/* Upload Modal */}
+        {/* Simple Upload Modal */}
         <MediaUploadModal
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
+        />
+
+        {/* Bulk Upload Modal */}
+        <BulkUploadModal
+          isOpen={showBulkUploadModal}
+          onClose={() => setShowBulkUploadModal(false)}
+          pieces={pieces}
         />
 
         {/* Link Media Modal */}

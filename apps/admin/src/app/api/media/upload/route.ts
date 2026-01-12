@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { media } from '@madebuy/db'
+import { media, pieces } from '@madebuy/db'
 import { uploadToR2, uploadToLocal, processImageWithVariants } from '@madebuy/storage'
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const caption = formData.get('caption') as string | null
+    const pieceId = formData.get('pieceId') as string | null
 
     if (!file) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 })
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
-    const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo']
+    const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo']
 
     const isImage = validImageTypes.includes(file.type)
     const isVideo = validVideoTypes.includes(file.type)
@@ -147,11 +148,20 @@ export async function POST(request: NextRequest) {
       type,
       originalFilename: file.name,
       mimeType: file.type,
+      sizeBytes: file.size,
       variants,
       caption: caption || undefined,
+      pieceId: pieceId || undefined,
+      // Video processing happens asynchronously - mark as pending
+      processingStatus: type === 'video' ? 'pending' : undefined,
     })
 
-    return NextResponse.json({ media: mediaItem }, { status: 201 })
+    // Link media to piece if pieceId provided
+    if (pieceId) {
+      await pieces.addMediaToPiece(tenant.id, pieceId, mediaItem.id)
+    }
+
+    return NextResponse.json({ media: mediaItem, id: mediaItem.id }, { status: 201 })
   } catch (error) {
     console.error('Error uploading media:', error)
     return NextResponse.json(

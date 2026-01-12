@@ -3,30 +3,49 @@ import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { nanoid } from 'nanoid'
 import type { MediaVariant } from '@madebuy/shared'
 
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID!
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID!
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY!
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'madebuy'
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || `https://pub-${R2_ACCOUNT_ID}.r2.dev`
-
 // Allowed MIME types for uploads
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo']
 const ALLOWED_DOCUMENT_TYPES = ['application/pdf']
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_DOCUMENT_TYPES]
 
-if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
-  console.warn('⚠️  R2 credentials not configured. Storage functions will fail.')
+// Lazy initialization - env vars are read at first use, not module load time
+// This fixes issues where the storage package loads before Next.js injects .env.local
+let _r2Client: S3Client | null = null
+let _r2Config: { accountId: string; bucketName: string; publicUrl: string } | null = null
+
+function getR2Config() {
+  if (!_r2Config) {
+    const accountId = process.env.R2_ACCOUNT_ID || ''
+    const bucketName = process.env.R2_BUCKET_NAME || 'madebuy'
+    const publicUrl = process.env.R2_PUBLIC_URL || `https://pub-${accountId}.r2.dev`
+
+    if (!accountId || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+      console.warn('⚠️  R2 credentials not configured. Storage functions will fail.')
+    }
+
+    _r2Config = { accountId, bucketName, publicUrl }
+  }
+  return _r2Config
 }
 
-const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: R2_ACCESS_KEY_ID,
-    secretAccessKey: R2_SECRET_ACCESS_KEY,
-  },
-})
+function getR2Client(): S3Client {
+  if (!_r2Client) {
+    const accountId = process.env.R2_ACCOUNT_ID || ''
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID || ''
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || ''
+
+    _r2Client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    })
+  }
+  return _r2Client
+}
 
 export interface UploadOptions {
   tenantId: string
@@ -38,6 +57,7 @@ export interface UploadOptions {
 
 export async function uploadToR2(options: UploadOptions): Promise<MediaVariant> {
   const { tenantId, fileName, buffer, contentType, metadata } = options
+  const config = getR2Config()
 
   // Validate content type
   if (!ALLOWED_TYPES.includes(contentType)) {
@@ -58,16 +78,16 @@ export async function uploadToR2(options: UploadOptions): Promise<MediaVariant> 
     : undefined
 
   const command = new PutObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: config.bucketName,
     Key: key,
     Body: buffer,
     ContentType: contentType,
     Metadata: sanitizedMetadata,
   })
 
-  await r2Client.send(command)
+  await getR2Client().send(command)
 
-  const url = `${R2_PUBLIC_URL}/${key}`
+  const url = `${config.publicUrl}/${key}`
 
   return {
     url,
@@ -79,21 +99,23 @@ export async function uploadToR2(options: UploadOptions): Promise<MediaVariant> 
 }
 
 export async function deleteFromR2(key: string): Promise<void> {
+  const config = getR2Config()
   const command = new DeleteObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: config.bucketName,
     Key: key,
   })
 
-  await r2Client.send(command)
+  await getR2Client().send(command)
 }
 
 export async function getFromR2(key: string): Promise<Buffer> {
+  const config = getR2Config()
   const command = new GetObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: config.bucketName,
     Key: key,
   })
 
-  const response = await r2Client.send(command)
+  const response = await getR2Client().send(command)
   const stream = response.Body as any
 
   const chunks: Buffer[] = []
@@ -105,7 +127,8 @@ export async function getFromR2(key: string): Promise<Buffer> {
 }
 
 export function getPublicUrl(key: string): string {
-  return `${R2_PUBLIC_URL}/${key}`
+  const config = getR2Config()
+  return `${config.publicUrl}/${key}`
 }
 
 /**
@@ -114,12 +137,13 @@ export function getPublicUrl(key: string): string {
  * @param expiresIn - Expiration time in seconds (default: 1 hour)
  */
 export async function getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  const config = getR2Config()
   const command = new GetObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: config.bucketName,
     Key: key,
   })
 
-  return await awsGetSignedUrl(r2Client, command, { expiresIn })
+  return await awsGetSignedUrl(getR2Client(), command, { expiresIn })
 }
 
 /**
@@ -135,6 +159,8 @@ export async function putToR2(
   contentType: string,
   metadata?: Record<string, string>
 ): Promise<void> {
+  const config = getR2Config()
+
   // Validate content type
   if (!ALLOWED_TYPES.includes(contentType)) {
     throw new Error(`Invalid file type: ${contentType}. Allowed types: ${ALLOWED_TYPES.join(', ')}`)
@@ -150,12 +176,12 @@ export async function putToR2(
     : undefined
 
   const command = new PutObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: config.bucketName,
     Key: key,
     Body: buffer,
     ContentType: contentType,
     Metadata: sanitizedMetadata,
   })
 
-  await r2Client.send(command)
+  await getR2Client().send(command)
 }

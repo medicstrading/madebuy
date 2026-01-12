@@ -1,20 +1,31 @@
 import { requireTenant } from '@/lib/session'
-import { pieces, materials } from '@madebuy/db'
+import { pieces, materials, media } from '@madebuy/db'
 import { Plus, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { InventoryTable } from '@/components/inventory/InventoryTable'
 
 export default async function InventoryPage() {
   const tenant = await requireTenant()
-  const allPieces = await pieces.listPieces(tenant.id)
-  const lowStockPieces = await pieces.getLowStockPieces(tenant.id)
+  const [allPieces, lowStockPieces, allMedia] = await Promise.all([
+    pieces.listPieces(tenant.id),
+    pieces.getLowStockPieces(tenant.id),
+    media.listMedia(tenant.id),
+  ])
+
+  // Create media lookup map (use thumb if available, fallback to original)
+  const mediaMap = new Map(allMedia.map(m => [m.id, m.variants.thumb?.url || m.variants.original?.url]))
 
   // Batch fetch COGS for all pieces in single aggregation query
   const pieceIds = allPieces.map(p => p.id)
   const cogsMap = await materials.calculateBatchCOGS(tenant.id, pieceIds)
   const piecesWithCOGS = allPieces.map(piece => ({
     ...piece,
-    cogs: cogsMap.get(piece.id) || 0
+    cogs: cogsMap.get(piece.id) || 0,
+    thumbnailUrl: piece.primaryMediaId
+      ? mediaMap.get(piece.primaryMediaId)
+      : piece.mediaIds?.[0]
+        ? mediaMap.get(piece.mediaIds[0])
+        : undefined
   }))
 
   // Low stock counts

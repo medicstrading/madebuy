@@ -6,36 +6,38 @@ import { MediaLibraryClient } from '@/components/media/MediaLibraryClient'
 import { UnlinkedMediaGrid } from '@/components/media/UnlinkedMediaGrid'
 import { PieceMediaThumbnail } from '@/components/media/PieceMediaThumbnail'
 import { PieceFolderHeader } from '@/components/media/PieceFolderHeader'
-import { getSignedUrl } from '@madebuy/storage'
+
+// Serialize MongoDB document for client components (strip _id, convert dates)
+function serializeMedia(item: any): MediaItem {
+  const { _id, ...rest } = item
+  return {
+    ...rest,
+    createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : item.createdAt,
+    updatedAt: item.updatedAt instanceof Date ? item.updatedAt.toISOString() : item.updatedAt,
+  } as MediaItem
+}
+
+function serializePiece(piece: any): Piece {
+  const { _id, ...rest } = piece
+  return {
+    ...rest,
+    createdAt: piece.createdAt instanceof Date ? piece.createdAt.toISOString() : piece.createdAt,
+    updatedAt: piece.updatedAt instanceof Date ? piece.updatedAt.toISOString() : piece.updatedAt,
+  } as Piece
+}
 
 export default async function MediaPage() {
   const tenant = await requireTenant()
   const allMedia = await media.listMedia(tenant.id)
   const allPieces = await pieces.listPieces(tenant.id)
 
-  // Generate signed URLs for all media items
-  const mediaWithSignedUrls = await Promise.all(
-    allMedia.map(async (item) => {
-      const variants = { ...item.variants }
+  // Use stored URLs directly - no signed URL generation needed
+  // Product images are public (visible on storefronts, social media, etc.)
+  // URLs stored in DB are already public (R2 public URL or Unsplash for seed data)
+  const serializedMedia = allMedia.map(item => serializeMedia(item))
 
-      // Replace each variant URL with a signed URL
-      for (const [variantName, variant] of Object.entries(variants)) {
-        if (variant && variant.key) {
-          try {
-            const signedUrl = await getSignedUrl(variant.key, 3600) // 1 hour expiration
-            variants[variantName as keyof typeof variants] = { ...variant, url: signedUrl }
-          } catch (error) {
-            console.error(`Failed to generate signed URL for ${variant.key}:`, error)
-          }
-        }
-      }
-
-      return { ...item, variants }
-    })
-  )
-
-  // Create a map for quick media lookup (using signed URLs)
-  const mediaMap = new Map(mediaWithSignedUrls.map(m => [m.id, m]))
+  // Create a map for quick media lookup
+  const mediaMap = new Map(serializedMedia.map(m => [m.id, m]))
 
   // Track which media are linked to pieces
   const linkedMediaIds = new Set<string>()
@@ -50,7 +52,7 @@ export default async function MediaPage() {
       .filter((m): m is MediaItem => m !== undefined)
 
     return {
-      piece,
+      piece: serializePiece(piece),
       media: pieceMedia,
       primaryMedia: piece.primaryMediaId
         ? mediaMap.get(piece.primaryMediaId)
@@ -59,20 +61,20 @@ export default async function MediaPage() {
   })
 
   // Unlinked media (orphans)
-  const unlinkedMedia = mediaWithSignedUrls.filter(m => !linkedMediaIds.has(m.id))
+  const unlinkedMedia = serializedMedia.filter(m => !linkedMediaIds.has(m.id))
 
   const stats = {
-    total: mediaWithSignedUrls.length,
-    images: mediaWithSignedUrls.filter(m => m.type === 'image').length,
-    videos: mediaWithSignedUrls.filter(m => m.type === 'video').length,
-    favorites: mediaWithSignedUrls.filter(m => m.isFavorite).length,
+    total: serializedMedia.length,
+    images: serializedMedia.filter(m => m.type === 'image').length,
+    videos: serializedMedia.filter(m => m.type === 'video').length,
+    favorites: serializedMedia.filter(m => m.isFavorite).length,
     folders: piecesWithMedia.length,
     unlinked: unlinkedMedia.length,
   }
 
-  // Prepare pieces data for client component
+  // Prepare pieces data for client component (serialized)
   const piecesData = allPieces.map(piece => ({
-    piece,
+    piece: serializePiece(piece),
     mediaCount: (piece.mediaIds || []).length,
   }))
 
@@ -88,7 +90,7 @@ export default async function MediaPage() {
         <StatCard title="Unlinked" value={stats.unlinked} icon={FolderOpen} color="gray" />
       </div>
 
-      {mediaWithSignedUrls.length === 0 ? (
+      {serializedMedia.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No media yet</h3>
@@ -167,7 +169,7 @@ export default async function MediaPage() {
           )}
 
           {/* Empty State */}
-          {piecesWithMedia.length === 0 && unlinkedMedia.length === 0 && mediaWithSignedUrls.length > 0 && (
+          {piecesWithMedia.length === 0 && unlinkedMedia.length === 0 && serializedMedia.length > 0 && (
             <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
               <Folder className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-4 text-lg font-medium text-gray-900">No organized media</h3>

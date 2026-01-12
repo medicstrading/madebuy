@@ -1,14 +1,19 @@
+import { cache } from 'react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from './auth'
 import { tenants } from '@madebuy/db'
 import type { Tenant } from '@madebuy/shared'
 
-export async function getCurrentUser() {
+// Cached per-request - prevents duplicate session lookups within same request
+export const getCurrentUser = cache(async () => {
   const session = await getServerSession(authOptions)
   return session?.user
-}
+})
 
-export async function getCurrentTenant(): Promise<Tenant | null> {
+// Cached per-request - prevents duplicate tenant DB lookups within same request
+// This is critical: layout, page, and API routes all call this, but now it only
+// executes once per request regardless of how many times it's called
+export const getCurrentTenant = cache(async (): Promise<Tenant | null> => {
   const user = await getCurrentUser()
 
   if (!user?.id) {
@@ -16,7 +21,7 @@ export async function getCurrentTenant(): Promise<Tenant | null> {
   }
 
   return await tenants.getTenantById(user.id)
-}
+})
 
 export async function requireAuth() {
   const user = await getCurrentUser()

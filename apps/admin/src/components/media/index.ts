@@ -14,3 +14,5 @@ export { PieceMediaThumbnail } from './PieceMediaThumbnail'
 // Enhanced Media Components
 export { MediaGallery } from './MediaGallery'
 export { VideoPlayer } from './VideoPlayer'
+export { MediaPreviewModal } from './MediaPreviewModal'
+export { BulkUploadModal } from './BulkUploadModal'

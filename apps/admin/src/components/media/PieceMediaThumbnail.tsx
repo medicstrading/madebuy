@@ -1,10 +1,10 @@
 'use client'
 
-import { Video, Star, X } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { Play, Star, X } from 'lucide-react'
 import type { MediaItem } from '@madebuy/shared'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { MediaPreviewModal } from './MediaPreviewModal'
 
 interface PieceMediaThumbnailProps {
   item: MediaItem
@@ -13,6 +13,9 @@ interface PieceMediaThumbnailProps {
 export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -40,8 +43,37 @@ export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
     }
   }
 
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    if (item.type === 'video' && videoRef.current) {
+      videoRef.current.play().catch(() => {})
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+    if (item.type === 'video' && videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+  }
+
+  const handleClick = () => {
+    // Stop video preview before opening modal
+    if (item.type === 'video' && videoRef.current) {
+      videoRef.current.pause()
+    }
+    setShowPreview(true)
+  }
+
   return (
-    <div className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+    <>
+    <div
+      className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+    >
       {item.type === 'image' ? (
         <img
           src={item.variants.thumb?.url || item.variants.original.url}
@@ -49,37 +81,56 @@ export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
           className="h-full w-full object-cover"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-gray-200">
-          <Video className="h-12 w-12 text-gray-400" />
+        <div className="relative h-full w-full bg-gray-900">
+          <video
+            ref={videoRef}
+            src={item.variants.original.url}
+            poster={item.video?.thumbnailUrl}
+            className="h-full w-full object-cover"
+            muted
+            loop
+            playsInline
+          />
+          {/* Play icon - only when not hovering */}
+          {!isHovered && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Play className="h-8 w-8 text-white/70 drop-shadow-lg" />
+            </div>
+          )}
+          {/* Duration badge */}
+          {item.video?.duration && (
+            <div className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded">
+              {Math.floor(item.video.duration / 60)}:{String(Math.floor(item.video.duration % 60)).padStart(2, '0')}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Delete button */}
+      {/* Delete button - subtle, top right */}
       <button
         onClick={handleDelete}
         disabled={deleting}
-        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 disabled:opacity-50 z-10"
-        title="Delete media"
+        className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50 z-10"
+        title="Delete"
       >
-        <X className="h-4 w-4" />
+        <X className="h-3.5 w-3.5" />
       </button>
 
+      {/* Favorite star */}
       {item.isFavorite && (
-        <div className="absolute top-2 left-2">
-          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+        <div className="absolute top-1.5 left-1.5">
+          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow" />
         </div>
       )}
-
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="text-xs text-white line-clamp-2">
-            {item.caption || item.originalFilename}
-          </p>
-          <p className="mt-1 text-xs text-gray-300">
-            {formatDate(item.createdAt)}
-          </p>
-        </div>
-      </div>
     </div>
+
+    {/* Preview Modal */}
+    {showPreview && (
+      <MediaPreviewModal
+        item={item}
+        onClose={() => setShowPreview(false)}
+      />
+    )}
+    </>
   )
 }

@@ -29,6 +29,7 @@ import {
   Gift,
   Store,
   Receipt,
+  Globe,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -110,7 +111,9 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
     pathname?.startsWith('/dashboard/marketplace') || false
   )
 
-  const hasAnyMarketplace = marketplaceConnections?.ebay || marketplaceConnections?.etsy
+  // Marketplace section is always visible - Website is always available, eBay/Etsy are conditional
+  const hasEbay = marketplaceConnections?.ebay
+  const hasEtsy = marketplaceConnections?.etsy
 
   const sidebarContent = (
     <>
@@ -137,12 +140,9 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         {navigationGroups.map((group, groupIndex) => (
           <div key={group.label}>
-            {/* Insert Marketplace before System group */}
-            {group.label === 'System' && hasAnyMarketplace && (
+            {/* Insert Marketplace before System group - always visible */}
+            {group.label === 'System' && (
               <div className="mt-6">
-                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  Marketplace
-                </h3>
                 <div className="space-y-1">
                   {/* Expandable Marketplace parent */}
                   <button
@@ -168,22 +168,24 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                   {/* Marketplace sub-items */}
                   {marketplaceExpanded && (
                     <div className="ml-4 space-y-1 border-l border-gray-200 pl-3">
-                      {marketplaceConnections?.ebay && (
-                        <Link
-                          href="/dashboard/marketplace/ebay"
-                          onClick={onClose}
-                          className={cn(
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
-                            pathname === '/dashboard/marketplace/ebay'
-                              ? 'bg-blue-50 text-blue-600'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          )}
-                        >
-                          <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-xs font-bold text-blue-600">e</span>
-                          <span>eBay</span>
-                        </Link>
-                      )}
-                      {marketplaceConnections?.etsy && (
+                      {/* Website - always visible */}
+                      <Link
+                        href="/dashboard/marketplace/website"
+                        onClick={onClose}
+                        className={cn(
+                          'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                          pathname === '/dashboard/marketplace/website'
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        )}
+                      >
+                        <Globe className={cn(
+                          'h-5 w-5 transition-colors',
+                          pathname === '/dashboard/marketplace/website' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                        )} />
+                        <span>Website</span>
+                      </Link>
+                      {hasEtsy && (
                         <Link
                           href="/dashboard/marketplace/etsy"
                           onClick={onClose}
@@ -196,6 +198,21 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                         >
                           <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-100 text-xs font-bold text-orange-600">E</span>
                           <span>Etsy</span>
+                        </Link>
+                      )}
+                      {hasEbay && (
+                        <Link
+                          href="/dashboard/marketplace/ebay"
+                          onClick={onClose}
+                          className={cn(
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                            pathname === '/dashboard/marketplace/ebay'
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          )}
+                        >
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-xs font-bold text-blue-600">e</span>
+                          <span>eBay</span>
                         </Link>
                       )}
                     </div>

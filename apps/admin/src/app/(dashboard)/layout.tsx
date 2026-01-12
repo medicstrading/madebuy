@@ -1,33 +1,44 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { getCurrentTenant } from '@/lib/session'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { RegionalProvider } from '@/components/providers/RegionalProvider'
 import { marketplace } from '@madebuy/db'
 
-export const dynamic = 'force-dynamic'
+// Allow Next.js to cache this layout for 60 seconds (replaces force-dynamic)
+export const revalidate = 60
+
+// Cache marketplace connections - they rarely change (5 minute cache)
+const getCachedMarketplaceConnections = unstable_cache(
+  async (tenantId: string) => {
+    const [ebayConnection, etsyConnection] = await Promise.all([
+      marketplace.getConnectionByMarketplace(tenantId, 'ebay').catch(() => null),
+      marketplace.getConnectionByMarketplace(tenantId, 'etsy').catch(() => null),
+    ])
+
+    return {
+      ebay: ebayConnection?.status === 'connected' && ebayConnection?.enabled === true,
+      etsy: etsyConnection?.status === 'connected' && etsyConnection?.enabled === true,
+    }
+  },
+  ['marketplace-connections'],
+  { revalidate: 300, tags: ['marketplace'] } // 5 minute cache
+)
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Single call - getCurrentTenant already checks auth
+  // getCurrentTenant is now request-cached - safe to call multiple times
   const tenant = await getCurrentTenant()
 
   if (!tenant) {
     redirect('/login')
   }
 
-  // Fetch marketplace connections to determine sidebar visibility
-  const [ebayConnection, etsyConnection] = await Promise.all([
-    marketplace.getConnectionByMarketplace(tenant.id, 'ebay').catch(() => null),
-    marketplace.getConnectionByMarketplace(tenant.id, 'etsy').catch(() => null),
-  ])
-
-  const marketplaceConnections = {
-    ebay: ebayConnection?.status === 'connected' && ebayConnection?.enabled === true,
-    etsy: etsyConnection?.status === 'connected' && etsyConnection?.enabled === true,
-  }
+  // Use cached marketplace connections (5 minute cache)
+  const marketplaceConnections = await getCachedMarketplaceConnections(tenant.id)
 
   // Serialize to plain objects for client components (avoid MongoDB ObjectId/Date hydration issues)
   const serializedTenant = {

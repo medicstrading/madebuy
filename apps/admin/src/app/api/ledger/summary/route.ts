@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { unstable_cache } from 'next/cache'
 import { getCurrentTenant } from '@/lib/session'
 import { transactions, pieces, getDatabase } from '@madebuy/db'
 import type { Order } from '@madebuy/shared'
@@ -102,17 +103,10 @@ async function calculateProfitability(
 }
 
 /**
- * GET /api/ledger/summary
- * Get financial summary for dashboard widgets
+ * Cached ledger summary fetcher - expensive operation, cache for 60 seconds
  */
-export async function GET() {
-  try {
-    const tenant = await getCurrentTenant()
-
-    if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+const getCachedLedgerSummary = unstable_cache(
+  async (tenantId: string) => {
     const now = new Date()
 
     // Today's date range
@@ -130,15 +124,38 @@ export async function GET() {
     // Year to date
     const yearStart = new Date(now.getFullYear(), 0, 1)
 
-    // Fetch today's transactions
-    const todayTransactions = await transactions.listTransactions(tenant.id, {
-      filters: {
-        startDate: todayStart,
-        endDate: todayEnd,
-        type: 'sale',
-        status: 'completed',
-      },
-    })
+    // Fetch all data in parallel where possible
+    const [
+      todayTransactions,
+      thisMonthSummary,
+      lastMonthSummary,
+      balance,
+      ytdTransactions,
+      thisMonthOrders,
+      lastMonthOrders,
+    ] = await Promise.all([
+      transactions.listTransactions(tenantId, {
+        filters: {
+          startDate: todayStart,
+          endDate: todayEnd,
+          type: 'sale',
+          status: 'completed',
+        },
+      }),
+      transactions.getTransactionSummary(tenantId, thisMonthStart, thisMonthEnd),
+      transactions.getTransactionSummary(tenantId, lastMonthStart, lastMonthEnd),
+      transactions.getTenantBalance(tenantId),
+      transactions.listTransactions(tenantId, {
+        filters: {
+          startDate: yearStart,
+          endDate: now,
+          status: 'completed',
+        },
+        limit: 10000,
+      }),
+      getPaidOrdersInRange(tenantId, thisMonthStart, thisMonthEnd),
+      getPaidOrdersInRange(tenantId, lastMonthStart, lastMonthEnd),
+    ])
 
     const todaySales = {
       gross: todayTransactions.reduce((sum, tx) => sum + tx.grossAmount, 0),
@@ -146,58 +163,22 @@ export async function GET() {
       count: todayTransactions.length,
     }
 
-    // Fetch this month's summary
-    const thisMonthSummary = await transactions.getTransactionSummary(
-      tenant.id,
-      thisMonthStart,
-      thisMonthEnd
-    )
-
-    // Fetch last month's summary
-    const lastMonthSummary = await transactions.getTransactionSummary(
-      tenant.id,
-      lastMonthStart,
-      lastMonthEnd
-    )
-
     // Calculate month-over-month change
-    const lastMonthNet = lastMonthSummary.sales.net || 1 // Avoid division by zero
+    const lastMonthNet = lastMonthSummary.sales.net || 1
     const monthChange = lastMonthSummary.sales.net > 0
       ? Math.round(((thisMonthSummary.sales.net - lastMonthSummary.sales.net) / lastMonthNet) * 100)
       : 0
 
-    // Fetch pending balance
-    const balance = await transactions.getTenantBalance(tenant.id)
-
-    // Calculate YTD fees
-    const ytdTransactions = await transactions.listTransactions(tenant.id, {
-      filters: {
-        startDate: yearStart,
-        endDate: now,
-        status: 'completed',
-      },
-      limit: 10000, // Get all for the year
-    })
-
     const feesYTD = ytdTransactions.reduce((sum, tx) => sum + (tx.stripeFee || 0), 0)
 
-    // Calculate profitability metrics (compares this month vs last month)
-    const [thisMonthOrders, lastMonthOrders] = await Promise.all([
-      getPaidOrdersInRange(tenant.id, thisMonthStart, thisMonthEnd),
-      getPaidOrdersInRange(tenant.id, lastMonthStart, lastMonthEnd),
-    ])
-    const profitability = await calculateProfitability(
-      tenant.id,
-      thisMonthOrders,
-      lastMonthOrders
-    )
+    const profitability = await calculateProfitability(tenantId, thisMonthOrders, lastMonthOrders)
 
-    return NextResponse.json({
+    return {
       todaySales,
       pendingPayout: {
         amount: balance.pendingBalance,
-        inTransit: 0, // Would need Stripe API to get actual in-transit
-        nextDate: null, // Would need Stripe API for payout schedule
+        inTransit: 0,
+        nextDate: null,
       },
       thisMonth: {
         gross: thisMonthSummary.sales.gross,
@@ -214,7 +195,26 @@ export async function GET() {
       monthChange,
       feesYTD,
       profitability,
-    })
+    }
+  },
+  ['ledger-summary'],
+  { revalidate: 60, tags: ['ledger'] } // 60 second cache
+)
+
+/**
+ * GET /api/ledger/summary
+ * Get financial summary for dashboard widgets
+ */
+export async function GET() {
+  try {
+    const tenant = await getCurrentTenant()
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const summary = await getCachedLedgerSummary(tenant.id)
+    return NextResponse.json(summary)
   } catch (error) {
     console.error('Error fetching ledger summary:', error)
     return NextResponse.json(
