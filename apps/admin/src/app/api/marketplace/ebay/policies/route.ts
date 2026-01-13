@@ -34,11 +34,47 @@ export async function GET() {
       fetch(getEbayApiUrl('/sell/account/v1/location'), { headers }),
     ])
 
-    // Parse responses
-    const fulfillmentData = fulfillmentRes.ok ? await fulfillmentRes.json() : { fulfillmentPolicies: [] }
-    const paymentData = paymentRes.ok ? await paymentRes.json() : { paymentPolicies: [] }
-    const returnData = returnRes.ok ? await returnRes.json() : { returnPolicies: [] }
-    const locationData = locationRes.ok ? await locationRes.json() : { locations: [] }
+    // Log response statuses for debugging
+    console.log('[eBay Policies] Response statuses:', {
+      fulfillment: fulfillmentRes.status,
+      payment: paymentRes.status,
+      return: returnRes.status,
+      location: locationRes.status,
+    })
+
+    // Parse responses - log errors if any
+    let fulfillmentData = { fulfillmentPolicies: [] }
+    let paymentData = { paymentPolicies: [] }
+    let returnData = { returnPolicies: [] }
+    let locationData = { locations: [] }
+
+    if (fulfillmentRes.ok) {
+      fulfillmentData = await fulfillmentRes.json()
+    } else {
+      const err = await fulfillmentRes.text()
+      console.error('[eBay Policies] Fulfillment error:', err)
+    }
+
+    if (paymentRes.ok) {
+      paymentData = await paymentRes.json()
+    } else {
+      const err = await paymentRes.text()
+      console.error('[eBay Policies] Payment error:', err)
+    }
+
+    if (returnRes.ok) {
+      returnData = await returnRes.json()
+    } else {
+      const err = await returnRes.text()
+      console.error('[eBay Policies] Return error:', err)
+    }
+
+    if (locationRes.ok) {
+      locationData = await locationRes.json()
+    } else {
+      const err = await locationRes.text()
+      console.error('[eBay Policies] Location error:', err)
+    }
 
     // Format response
     const policies = {

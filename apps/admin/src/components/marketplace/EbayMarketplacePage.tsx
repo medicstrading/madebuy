@@ -894,15 +894,19 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
     setPoliciesError(null)
     try {
       const res = await fetch('/api/marketplace/ebay/policies')
+      const data = await res.json()
+      console.log('[Settings] Policy fetch response:', data)
       if (res.ok) {
-        const data = await res.json()
         setPolicies(data)
+        if (data.errors && data.errors.length > 0) {
+          setPoliciesError(`Some APIs failed: ${data.errors.join(', ')}`)
+        }
       } else {
-        const data = await res.json()
-        setPoliciesError(data.error || 'Failed to fetch policies')
+        setPoliciesError(data.error || `Failed to fetch policies (${res.status})`)
       }
-    } catch (err) {
-      setPoliciesError('Failed to fetch policies from eBay')
+    } catch (err: any) {
+      console.error('[Settings] Policy fetch error:', err)
+      setPoliciesError(`Failed to fetch: ${err.message}`)
     } finally {
       setFetchingPolicies(false)
     }
