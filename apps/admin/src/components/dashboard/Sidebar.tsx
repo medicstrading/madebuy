@@ -30,6 +30,7 @@ import {
   Store,
   Receipt,
   Globe,
+  Rocket,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -61,6 +62,7 @@ const navigationGroups = [
     label: 'Overview',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { name: 'Quick Launch', href: '/dashboard/wizard', icon: Rocket },
       { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     ]
   },

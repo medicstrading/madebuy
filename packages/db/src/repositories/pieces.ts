@@ -13,6 +13,33 @@ function generateSlug(name: string): string {
     .replace(/\s+/g, '-')
 }
 
+async function generateUniqueSlug(tenantId: string, name: string): Promise<string> {
+  const db = await getDatabase()
+  const baseSlug = generateSlug(name)
+
+  // Check if base slug exists
+  const existing = await db.collection('pieces').findOne({ tenantId, slug: baseSlug })
+  if (!existing) {
+    return baseSlug
+  }
+
+  // Find all slugs that start with this base slug
+  const similarSlugs = await db.collection('pieces')
+    .find({ tenantId, slug: { $regex: `^${baseSlug}(-\\d+)?$` } })
+    .project({ slug: 1 })
+    .toArray()
+
+  // Extract numbers from existing slugs
+  const numbers = similarSlugs.map(doc => {
+    const match = (doc.slug as string).match(new RegExp(`^${baseSlug}-(\\d+)$`))
+    return match ? parseInt(match[1], 10) : 1
+  })
+
+  // Generate next number
+  const nextNum = numbers.length > 0 ? Math.max(...numbers) + 1 : 2
+  return `${baseSlug}-${nextNum}`
+}
+
 export async function createPiece(
   tenantId: string,
   data: CreatePieceInput,
@@ -35,11 +62,14 @@ export async function createPiece(
     profitMargin = calculateProfitMargin(data.price, calculatedCOGS) ?? undefined
   }
 
+  // Generate unique slug to avoid duplicates
+  const slug = await generateUniqueSlug(tenantId, data.name)
+
   const piece: Piece = {
     id: nanoid(),
     tenantId,
     name: data.name,
-    slug: generateSlug(data.name),
+    slug,
     description: data.description,
     // Generic materials (new field)
     materials: data.materials || [],

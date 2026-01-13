@@ -16,11 +16,13 @@ export default async function WizardPage() {
     redirect('/login')
   }
 
-  // Fetch existing media for the tenant
-  const existingMedia = await media.listMedia(tenant.id, { limit: 100 })
+  // Fetch existing media for the tenant - serialize to plain objects
+  const existingMediaRaw = await media.listMedia(tenant.id, { limit: 100 })
+  const existingMedia = JSON.parse(JSON.stringify(existingMediaRaw))
 
-  // Get full tenant with all fields
-  const fullTenant = await tenants.getTenantById(tenant.id)
+  // Get full tenant with all fields - serialize to plain object
+  const fullTenantRaw = await tenants.getTenantById(tenant.id)
+  const fullTenant = JSON.parse(JSON.stringify(fullTenantRaw))
 
   // Determine connected social platforms from socialConnections array
   const connectedSocialPlatforms: SocialPlatform[] = []

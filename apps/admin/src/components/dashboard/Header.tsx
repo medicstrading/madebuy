@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut } from 'next-auth/react'
-import { LogOut, ExternalLink, Search, Bell, Menu, Rocket } from 'lucide-react'
+import { LogOut, ExternalLink, Search, Bell, Menu } from 'lucide-react'
 import Link from 'next/link'
 
 interface HeaderProps {
@@ -50,15 +50,6 @@ export function Header({ user, tenant, onMenuClick }: HeaderProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Quick Launch Button */}
-        <Link
-          href="/dashboard/wizard"
-          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-3 sm:px-4 py-2 text-sm font-medium text-white hover:from-purple-700 hover:to-blue-700 transition-all shadow-sm hover:shadow-md"
-        >
-          <Rocket className="h-4 w-4" />
-          <span className="hidden sm:inline">Quick Launch</span>
-        </Link>
-
         {/* Notification Bell */}
         <button className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
           <Bell className="h-5 w-5" />
