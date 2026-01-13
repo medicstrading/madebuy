@@ -27,11 +27,12 @@ export async function GET() {
     }
 
     // Fetch all policies in parallel
+    // Note: Policies are under /sell/account/v1, but locations are under /sell/inventory/v1
     const [fulfillmentRes, paymentRes, returnRes, locationRes] = await Promise.all([
       fetch(getEbayApiUrl('/sell/account/v1/fulfillment_policy?marketplace_id=EBAY_AU'), { headers }),
       fetch(getEbayApiUrl('/sell/account/v1/payment_policy?marketplace_id=EBAY_AU'), { headers }),
       fetch(getEbayApiUrl('/sell/account/v1/return_policy?marketplace_id=EBAY_AU'), { headers }),
-      fetch(getEbayApiUrl('/sell/account/v1/location'), { headers }),
+      fetch(getEbayApiUrl('/sell/inventory/v1/location'), { headers }),
     ])
 
     // Log response statuses for debugging
@@ -99,17 +100,20 @@ export async function GET() {
       locations: (locationData.locations || []).map((l: any) => ({
         key: l.merchantLocationKey,
         name: l.name,
-        address: l.location?.address,
+        address: l.address, // address is at root level in Inventory API response
         status: l.merchantLocationStatus,
       })),
     }
 
-    // Check for errors
+    // Check for errors (but don't count empty locations as an error)
     const errors: string[] = []
     if (!fulfillmentRes.ok) errors.push(`Fulfillment: ${fulfillmentRes.status}`)
     if (!paymentRes.ok) errors.push(`Payment: ${paymentRes.status}`)
     if (!returnRes.ok) errors.push(`Return: ${returnRes.status}`)
-    if (!locationRes.ok) errors.push(`Location: ${locationRes.status}`)
+    // Location 200 with empty array is valid (no locations created yet)
+    if (!locationRes.ok && locationRes.status !== 404) {
+      errors.push(`Location: ${locationRes.status}`)
+    }
 
     return NextResponse.json({
       policies,
