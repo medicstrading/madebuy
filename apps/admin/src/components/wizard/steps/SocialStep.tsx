@@ -63,8 +63,8 @@ export function SocialStep({
   const [isScheduled, setIsScheduled] = useState(initialData.scheduleTime !== null)
 
   // Check feature access
-  const hasSocialAccess = ['maker', 'pro', 'business'].includes(currentPlan)
-  const hasAiCaptions = ['pro', 'business'].includes(currentPlan)
+  const hasSocialAccess = ['maker', 'professional', 'studio', 'pro', 'business'].includes(currentPlan)
+  const hasAiCaptions = ['professional', 'studio', 'pro', 'business'].includes(currentPlan)
 
   // Filter to only social platforms (exclude blog)
   const socialPlatforms = connectedPlatforms.filter(p => p !== 'website-blog')

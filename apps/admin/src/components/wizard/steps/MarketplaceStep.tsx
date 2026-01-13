@@ -37,7 +37,7 @@ export function MarketplaceStep({
   const storefrontUrl = `${webBaseUrl}/${tenantSlug}`
 
   // Check if user has marketplace feature access
-  const hasMarketplaceAccess = ['maker', 'pro', 'business'].includes(currentPlan)
+  const hasMarketplaceAccess = ['maker', 'professional', 'studio', 'pro', 'business'].includes(currentPlan)
 
   const handleToggle = (platform: 'storefront' | 'etsy' | 'ebay') => {
     if (platform === 'storefront') return // Can't disable storefront

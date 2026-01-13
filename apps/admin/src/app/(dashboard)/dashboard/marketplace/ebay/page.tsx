@@ -1,7 +1,7 @@
 import { requireTenant } from '@/lib/session'
 import { marketplace } from '@madebuy/db'
-import { redirect } from 'next/navigation'
 import { MarketplaceListingsPage } from '@/components/marketplace/MarketplaceListingsPage'
+import { MarketplaceConnectPrompt } from '@/components/marketplace/MarketplaceConnectPrompt'
 
 export const metadata = {
   title: 'eBay Listings - MadeBuy Admin',
@@ -12,8 +12,23 @@ export default async function EbayListingsPage() {
 
   // Check if eBay is connected
   const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
-  if (!connection || connection.status !== 'connected') {
-    redirect('/dashboard/connections?tab=marketplaces')
+  const isConnected = connection && connection.status === 'connected'
+
+  if (!isConnected) {
+    return (
+      <MarketplaceConnectPrompt
+        platform="ebay"
+        platformName="eBay"
+        platformColor="blue"
+        description="Connect your eBay seller account to sync inventory, manage listings, and import your existing products."
+        features={[
+          'Import existing eBay listings to your inventory',
+          'Sync stock levels automatically',
+          'Manage listings from one dashboard',
+          'Track eBay sales alongside other channels',
+        ]}
+      />
+    )
   }
 
   return (

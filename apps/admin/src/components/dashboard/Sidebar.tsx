@@ -136,43 +136,55 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         {navigationGroups.map((group, groupIndex) => (
           <div key={group.label}>
-            {/* Insert Marketplace before Settings group - only if Etsy or eBay connected */}
-            {group.label === 'Settings' && (hasEtsy || hasEbay) && (
+            {/* Insert Marketplace before Settings group - always show */}
+            {group.label === 'Settings' && (
               <div className="mt-6">
                 <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
                   Marketplaces
                 </h3>
                 <div className="space-y-1">
-                  {hasEtsy && (
-                    <Link
-                      href="/dashboard/marketplace/etsy"
-                      onClick={onClose}
-                      className={cn(
-                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                        pathname === '/dashboard/marketplace/etsy'
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      )}
-                    >
-                      <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-100 text-xs font-bold text-orange-600">E</span>
-                      <span>Etsy</span>
-                    </Link>
-                  )}
-                  {hasEbay && (
-                    <Link
-                      href="/dashboard/marketplace/ebay"
-                      onClick={onClose}
-                      className={cn(
-                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                        pathname === '/dashboard/marketplace/ebay'
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      )}
-                    >
-                      <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-xs font-bold text-blue-600">e</span>
-                      <span>eBay</span>
-                    </Link>
-                  )}
+                  <Link
+                    href="/dashboard/marketplace/etsy"
+                    onClick={onClose}
+                    className={cn(
+                      'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                      pathname === '/dashboard/marketplace/etsy'
+                        ? 'bg-blue-50 text-blue-600'
+                        : hasEtsy
+                          ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                    )}
+                  >
+                    <span className={cn(
+                      'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
+                      hasEtsy ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-400'
+                    )}>E</span>
+                    <span className="flex-1">Etsy</span>
+                    {!hasEtsy && (
+                      <span className="text-xs text-gray-400">Connect</span>
+                    )}
+                  </Link>
+                  <Link
+                    href="/dashboard/marketplace/ebay"
+                    onClick={onClose}
+                    className={cn(
+                      'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                      pathname === '/dashboard/marketplace/ebay'
+                        ? 'bg-blue-50 text-blue-600'
+                        : hasEbay
+                          ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                    )}
+                  >
+                    <span className={cn(
+                      'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
+                      hasEbay ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+                    )}>e</span>
+                    <span className="flex-1">eBay</span>
+                    {!hasEbay && (
+                      <span className="text-xs text-gray-400">Connect</span>
+                    )}
+                  </Link>
                 </div>
               </div>
             )}

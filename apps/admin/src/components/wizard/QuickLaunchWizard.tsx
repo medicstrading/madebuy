@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Tenant, MediaItem, SocialPlatform, Piece } from '@madebuy/shared'
 import { WizardProgress } from './WizardProgress'
@@ -44,7 +44,7 @@ export function QuickLaunchWizard({
   // Determine locked steps based on plan
   const currentPlan = tenant.plan || 'free'
   const lockedSteps: WizardStep[] = []
-  if (!['maker', 'pro', 'business'].includes(currentPlan)) {
+  if (!['maker', 'professional', 'studio', 'pro', 'business'].includes(currentPlan)) {
     // Free users can still see but some features are gated within steps
   }
 
@@ -53,10 +53,26 @@ export function QuickLaunchWizard({
     checkForDraft()
   }, [])
 
-  // Auto-save draft when state changes
+  // Debounce timer for auto-save
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Auto-save draft when state changes (debounced)
   useEffect(() => {
     if (state.pieceId && state.currentStep !== 'complete') {
-      saveDraft()
+      // Clear any pending save
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+      }
+      // Debounce save by 1 second
+      saveTimerRef.current = setTimeout(() => {
+        saveDraft(state)
+      }, 1000)
+    }
+
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+      }
     }
   }, [state])
 
@@ -75,12 +91,12 @@ export function QuickLaunchWizard({
     }
   }
 
-  const saveDraft = async () => {
+  const saveDraft = async (stateToSave: WizardState) => {
     try {
       await fetch('/api/wizard/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state }),
+        body: JSON.stringify({ state: stateToSave }),
       })
     } catch {
       // Silent fail for draft saving
@@ -148,13 +164,17 @@ export function QuickLaunchWizard({
 
   // Step handlers
   const handleItemSave = async (data: Partial<Piece>, pieceId: string) => {
+    // Combine all state updates into one to avoid race conditions
     setState(prev => ({
       ...prev,
       piece: data,
       pieceId,
       loading: false,
+      completedSteps: prev.completedSteps.includes('item')
+        ? prev.completedSteps
+        : [...prev.completedSteps, 'item'],
+      currentStep: 'media' as WizardStep,
     }))
-    nextStep()
   }
 
   const handleItemSkip = () => {
@@ -194,12 +214,25 @@ export function QuickLaunchWizard({
       }
     }
 
-    setState(prev => ({ ...prev, loading: false }))
-    nextStep()
+    // Combine state update with step transition
+    setState(prev => ({
+      ...prev,
+      loading: false,
+      completedSteps: prev.completedSteps.includes('media')
+        ? prev.completedSteps
+        : [...prev.completedSteps, 'media'],
+      currentStep: 'marketplace' as WizardStep,
+    }))
   }
 
   const handleMediaSkip = () => {
-    nextStep()
+    setState(prev => ({
+      ...prev,
+      completedSteps: prev.completedSteps.includes('media')
+        ? prev.completedSteps
+        : [...prev.completedSteps, 'media'],
+      currentStep: 'marketplace' as WizardStep,
+    }))
   }
 
   const handleMarketplaceSave = async (selection: { storefront: boolean; etsy: boolean; ebay: boolean }) => {
@@ -246,8 +279,15 @@ export function QuickLaunchWizard({
       }
     }
 
-    setState(prev => ({ ...prev, loading: false }))
-    nextStep()
+    // Combine state update with step transition
+    setState(prev => ({
+      ...prev,
+      loading: false,
+      completedSteps: prev.completedSteps.includes('marketplace')
+        ? prev.completedSteps
+        : [...prev.completedSteps, 'marketplace'],
+      currentStep: 'social' as WizardStep,
+    }))
   }
 
   const handleSocialSave = async (data: {
@@ -296,14 +336,27 @@ export function QuickLaunchWizard({
     // Delete draft on completion
     await deleteDraft()
 
-    setState(prev => ({ ...prev, loading: false }))
-    nextStep()
+    // Combine state update with step transition
+    setState(prev => ({
+      ...prev,
+      loading: false,
+      completedSteps: prev.completedSteps.includes('social')
+        ? prev.completedSteps
+        : [...prev.completedSteps, 'social'],
+      currentStep: 'complete' as WizardStep,
+    }))
   }
 
   const handleSocialSkip = async () => {
     // Delete draft on completion
     await deleteDraft()
-    nextStep()
+    setState(prev => ({
+      ...prev,
+      completedSteps: prev.completedSteps.includes('social')
+        ? prev.completedSteps
+        : [...prev.completedSteps, 'social'],
+      currentStep: 'complete' as WizardStep,
+    }))
   }
 
   const handleAddAnother = () => {

@@ -51,6 +51,23 @@ export function MediaStep({
     e.preventDefault()
     setIsDragging(false)
 
+    // Check if this is a library item drag (not a file upload)
+    const mediaId = e.dataTransfer.getData('application/x-media-id')
+    if (mediaId) {
+      // It's a library item - just select it
+      if (!selectedIds.includes(mediaId)) {
+        setSelectedIds(prev => {
+          const newIds = [...prev, mediaId]
+          if (!primaryId) {
+            setPrimaryId(mediaId)
+          }
+          return newIds
+        })
+      }
+      return
+    }
+
+    // Otherwise, check for actual file drops
     const files = Array.from(e.dataTransfer.files).filter(
       f => f.type.startsWith('image/')
     )
@@ -58,7 +75,7 @@ export function MediaStep({
     if (files.length > 0) {
       uploadFiles(files)
     }
-  }, [])
+  }, [selectedIds, primaryId])
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -306,14 +323,19 @@ export function MediaStep({
                   <button
                     key={media.id}
                     type="button"
+                    draggable
                     onClick={() => toggleMedia(media.id)}
-                    className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 hover:border-purple-400 transition-colors"
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/x-media-id', media.id)
+                      e.dataTransfer.effectAllowed = 'copy'
+                    }}
+                    className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 hover:border-purple-400 transition-colors cursor-grab active:cursor-grabbing"
                   >
                     <Image
                       src={media.variants.thumb?.url || media.variants.original.url}
                       alt=""
                       fill
-                      className="object-cover"
+                      className="object-cover pointer-events-none"
                     />
                   </button>
                 ))}
