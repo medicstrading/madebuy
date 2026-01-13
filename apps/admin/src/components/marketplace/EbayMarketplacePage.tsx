@@ -651,9 +651,13 @@ function ListItemsTab({
   }, [inventory, listedPieceIds, search])
 
   const handleListItem = async (pieceId: string) => {
+    console.log('[ListItemsTab] handleListItem called with pieceId:', pieceId)
     setListingItem(pieceId)
     try {
       await onListItem(pieceId, {})
+      console.log('[ListItemsTab] onListItem completed successfully')
+    } catch (err) {
+      console.error('[ListItemsTab] onListItem failed:', err)
     } finally {
       setListingItem(null)
     }
@@ -1000,22 +1004,29 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
 
   // List item
   async function handleListItem(pieceId: string, options: { price?: number; quantity?: number }) {
+    console.log('[EbayMarketplacePage] handleListItem called with:', { pieceId, options })
     setListing(pieceId)
     try {
+      console.log('[EbayMarketplacePage] Making POST request to /api/marketplace/ebay/listings')
       const res = await fetch('/api/marketplace/ebay/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pieceId, ...options }),
       })
+      console.log('[EbayMarketplacePage] Response status:', res.status)
       if (res.ok) {
+        const data = await res.json()
+        console.log('[EbayMarketplacePage] Success response:', data)
         await fetchListings()
         setMessage({ type: 'success', text: 'Item listed on eBay!' })
         setActiveTab('listings')
       } else {
         const data = await res.json()
+        console.error('[EbayMarketplacePage] Error response:', data)
         throw new Error(data.error || 'Failed to list item')
       }
     } catch (err: any) {
+      console.error('[EbayMarketplacePage] Exception:', err)
       setMessage({ type: 'error', text: err.message })
     } finally {
       setListing(null)
