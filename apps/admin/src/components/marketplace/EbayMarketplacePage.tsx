@@ -103,7 +103,7 @@ interface SerializedInventoryItem {
   name: string
   price: number
   quantity: number
-  images: string[]
+  thumbnailUrl: string | null
   status: string
 }
 
@@ -627,6 +627,23 @@ function ListItemsTab({
   const [search, setSearch] = useState('')
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
   const [listingItem, setListingItem] = useState<string | null>(null)
+  const [configReady, setConfigReady] = useState<boolean | null>(null)
+
+  // Check if config is ready for listing
+  useEffect(() => {
+    async function checkConfig() {
+      try {
+        const res = await fetch('/api/marketplace/ebay/config')
+        if (res.ok) {
+          const data = await res.json()
+          setConfigReady(data.readyToList)
+        }
+      } catch (err) {
+        console.error('Failed to check config:', err)
+      }
+    }
+    checkConfig()
+  }, [])
 
   // Filter out already-listed items
   const listedPieceIds = useMemo(() => {
@@ -672,6 +689,20 @@ function ListItemsTab({
 
   return (
     <div className="space-y-4">
+      {/* Setup Warning */}
+      {configReady === false && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-amber-900">Setup Required</p>
+            <p className="text-sm text-amber-700 mt-1">
+              You need to configure eBay Business Policies before you can list items.
+              Go to the <strong>Settings</strong> tab to see what's missing.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -684,7 +715,7 @@ function ListItemsTab({
           {selectedItems.size > 0 && (
             <button
               onClick={handleBulkList}
-              disabled={!!listingItem}
+              disabled={!!listingItem || configReady === false}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
               <Upload className="h-4 w-4" />
@@ -784,7 +815,7 @@ function ListItemsTab({
                   {/* List button */}
                   <button
                     onClick={() => handleListItem(item.id)}
-                    disabled={isListing}
+                    disabled={isListing || configReady === false}
                     className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                   >
                     {isListing ? (
@@ -813,13 +844,147 @@ function ListItemsTab({
 // Settings Tab
 // =============================================================================
 
+interface EbayConfig {
+  connected: boolean
+  readyToList: boolean
+  policiesReady: boolean
+  locationReady: boolean
+  environment: string
+  policies: {
+    fulfillment: { configured: boolean }
+    payment: { configured: boolean }
+    return: { configured: boolean }
+  }
+  merchantLocation: { configured: boolean }
+}
+
 function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }) {
+  const [config, setConfig] = useState<EbayConfig | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const res = await fetch('/api/marketplace/ebay/config')
+        if (res.ok) {
+          setConfig(await res.json())
+        }
+      } catch (err) {
+        console.error('Failed to fetch config:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchConfig()
+  }, [])
+
+  const ConfigItem = ({ label, configured }: { label: string; configured: boolean }) => (
+    <div className="flex items-center justify-between py-2">
+      <span className="text-sm text-gray-700">{label}</span>
+      {configured ? (
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600">
+          <CheckCircle className="h-4 w-4" />
+          Configured
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600">
+          <AlertTriangle className="h-4 w-4" />
+          Not Set
+        </span>
+      )}
+    </div>
+  )
+
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">eBay Settings</h3>
         <p className="text-sm text-gray-500">Configure your eBay integration preferences</p>
       </div>
+
+      {/* Configuration Status */}
+      <div className={cn(
+        'rounded-xl border p-6',
+        config?.readyToList
+          ? 'border-emerald-200 bg-emerald-50'
+          : 'border-amber-200 bg-amber-50'
+      )}>
+        <div className="flex items-start gap-3">
+          {config?.readyToList ? (
+            <CheckCircle className="h-6 w-6 text-emerald-600 flex-shrink-0" />
+          ) : (
+            <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h4 className={cn(
+              'font-medium',
+              config?.readyToList ? 'text-emerald-900' : 'text-amber-900'
+            )}>
+              {config?.readyToList ? 'Ready to List' : 'Setup Required'}
+            </h4>
+            <p className={cn(
+              'text-sm mt-1',
+              config?.readyToList ? 'text-emerald-700' : 'text-amber-700'
+            )}>
+              {config?.readyToList
+                ? 'Your eBay account is fully configured and ready to create listings.'
+                : 'Complete the setup below before you can list items on eBay.'}
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="mt-4 flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          </div>
+        ) : config && !config.readyToList && (
+          <div className="mt-4 pt-4 border-t border-amber-200">
+            <p className="text-sm font-medium text-amber-900 mb-2">Missing Configuration:</p>
+            <div className="space-y-1">
+              <ConfigItem label="Fulfillment Policy" configured={config.policies.fulfillment.configured} />
+              <ConfigItem label="Payment Policy" configured={config.policies.payment.configured} />
+              <ConfigItem label="Return Policy" configured={config.policies.return.configured} />
+              <ConfigItem label="Merchant Location" configured={config.merchantLocation.configured} />
+            </div>
+            <div className="mt-4 p-3 rounded-lg bg-white border border-amber-200">
+              <p className="text-sm text-amber-800">
+                <strong>How to set up:</strong> Go to{' '}
+                <a
+                  href="https://www.ebay.com.au/sh/settings/business-policies"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline"
+                >
+                  eBay Seller Hub → Business Policies
+                </a>
+                {' '}to create your policies, then add the policy IDs to your environment variables.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Environment Info */}
+      {config && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h4 className="font-medium text-gray-900 mb-4">Environment</h4>
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+              config.environment === 'production'
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-amber-100 text-amber-800'
+            )}>
+              {config.environment === 'production' ? 'Production' : 'Sandbox'}
+            </span>
+            <span className="text-sm text-gray-500">
+              {config.environment === 'production'
+                ? 'Connected to live eBay marketplace'
+                : 'Connected to eBay sandbox for testing'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Listing Defaults */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -834,17 +999,6 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Listing Duration</label>
-            <select className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Good 'Til Cancelled</option>
-              <option>30 Days</option>
-              <option>7 Days</option>
-              <option>5 Days</option>
-              <option>3 Days</option>
-              <option>1 Day</option>
-            </select>
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Item Condition</label>
             <select className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option>New</option>
@@ -853,25 +1007,6 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
               <option>Pre-owned</option>
             </select>
           </div>
-        </div>
-      </div>
-
-      {/* Sync Settings */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h4 className="font-medium text-gray-900 mb-4">Sync Settings</h4>
-        <div className="space-y-4">
-          <label className="flex items-center gap-3">
-            <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            <span className="text-sm text-gray-700">Auto-sync inventory quantities</span>
-          </label>
-          <label className="flex items-center gap-3">
-            <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            <span className="text-sm text-gray-700">Auto-sync prices when changed</span>
-          </label>
-          <label className="flex items-center gap-3">
-            <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            <span className="text-sm text-gray-700">End listings when out of stock</span>
-          </label>
         </div>
       </div>
 
@@ -919,7 +1054,7 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
       price: item.price,
       stock: item.quantity,
       status: item.status,
-      thumbnailUrl: item.images[0] || undefined,
+      thumbnailUrl: item.thumbnailUrl || undefined,
     }))
   )
   const [listings, setListings] = useState<ListingWithPiece[]>([])

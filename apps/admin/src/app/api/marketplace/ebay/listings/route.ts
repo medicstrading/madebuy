@@ -199,6 +199,24 @@ export async function GET(request: NextRequest) {
 }
 
 /**
+ * Check if required eBay configuration is present
+ */
+function checkEbayConfig(): { ok: boolean; missing: string[] } {
+  const required = [
+    { key: 'EBAY_FULFILLMENT_POLICY_ID', name: 'Fulfillment Policy' },
+    { key: 'EBAY_PAYMENT_POLICY_ID', name: 'Payment Policy' },
+    { key: 'EBAY_RETURN_POLICY_ID', name: 'Return Policy' },
+    { key: 'EBAY_MERCHANT_LOCATION_KEY', name: 'Merchant Location' },
+  ]
+
+  const missing = required
+    .filter(r => !process.env[r.key])
+    .map(r => r.name)
+
+  return { ok: missing.length === 0, missing }
+}
+
+/**
  * POST /api/marketplace/ebay/listings
  *
  * Create a new eBay listing from a MadeBuy piece
@@ -214,6 +232,20 @@ export async function POST(request: NextRequest) {
     const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
+    }
+
+    // Check required eBay configuration
+    const configCheck = checkEbayConfig()
+    if (!configCheck.ok) {
+      console.error('[eBay Listings] Missing configuration:', configCheck.missing)
+      return NextResponse.json(
+        {
+          error: 'eBay listing configuration incomplete',
+          details: `Missing: ${configCheck.missing.join(', ')}. Please set up Business Policies in eBay Seller Hub.`,
+          missing: configCheck.missing,
+        },
+        { status: 400 }
+      )
     }
 
     // Parse and validate request body

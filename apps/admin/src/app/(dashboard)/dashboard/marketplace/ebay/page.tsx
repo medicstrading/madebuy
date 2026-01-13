@@ -1,5 +1,5 @@
 import { requireTenant } from '@/lib/session'
-import { marketplace, pieces } from '@madebuy/db'
+import { marketplace, pieces, media } from '@madebuy/db'
 import { EbayMarketplacePage } from '@/components/marketplace/EbayMarketplacePage'
 import { MarketplaceConnectPrompt } from '@/components/marketplace/MarketplaceConnectPrompt'
 
@@ -34,6 +34,26 @@ export default async function EbayListingsPage() {
   // Fetch inventory items available for listing
   const inventoryItems = await pieces.listPieces(tenant.id, { limit: 100 })
 
+  // Collect all media IDs to fetch in one batch
+  const allMediaIds = inventoryItems
+    .flatMap(item => item.mediaIds || [])
+    .filter((id, index, arr) => arr.indexOf(id) === index) // dedupe
+
+  // Fetch all media in one batch
+  const mediaItems = allMediaIds.length > 0
+    ? await media.getMediaByIds(tenant.id, allMediaIds)
+    : []
+
+  // Create a map of mediaId -> thumbnail URL
+  const mediaUrlMap = new Map<string, string>()
+  for (const m of mediaItems) {
+    // Use thumb variant if available, otherwise large or original
+    const url = m.variants?.thumb?.url || m.variants?.large?.url || m.variants?.original?.url
+    if (url) {
+      mediaUrlMap.set(m.id, url)
+    }
+  }
+
   // Serialize connection for client component
   const serializedConnection = connection ? {
     id: connection.id || '',
@@ -44,15 +64,21 @@ export default async function EbayListingsPage() {
     tokenExpiresAt: connection.tokenExpiresAt?.toISOString() || null,
   } : null
 
-  // Serialize inventory items for client component
-  const serializedInventory = inventoryItems.map(item => ({
-    id: item.id || '',
-    name: item.name || '',
-    price: item.price || 0,
-    quantity: item.stock || 0,
-    images: item.mediaIds || [],
-    status: item.status || 'draft',
-  }))
+  // Serialize inventory items with actual thumbnail URLs
+  const serializedInventory = inventoryItems.map(item => {
+    // Get thumbnail URL from first media ID
+    const primaryMediaId = item.primaryMediaId || item.mediaIds?.[0]
+    const thumbnailUrl = primaryMediaId ? mediaUrlMap.get(primaryMediaId) : undefined
+
+    return {
+      id: item.id || '',
+      name: item.name || '',
+      price: item.price || 0,
+      quantity: item.stock || 0,
+      thumbnailUrl: thumbnailUrl || null,
+      status: item.status || 'draft',
+    }
+  })
 
   return (
     <EbayMarketplacePage
