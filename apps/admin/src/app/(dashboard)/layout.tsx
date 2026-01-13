@@ -17,8 +17,8 @@ const getCachedMarketplaceConnections = unstable_cache(
     ])
 
     return {
-      ebay: ebayConnection?.status === 'connected' && ebayConnection?.enabled === true,
-      etsy: etsyConnection?.status === 'connected' && etsyConnection?.enabled === true,
+      ebay: ebayConnection?.status === 'connected',
+      etsy: etsyConnection?.status === 'connected',
     }
   },
   ['marketplace-connections'],
