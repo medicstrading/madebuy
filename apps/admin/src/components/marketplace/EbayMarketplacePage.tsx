@@ -897,7 +897,14 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
       const data = await res.json()
       console.log('[Settings] Policy fetch response:', data)
       if (res.ok) {
-        setPolicies(data)
+        // Flatten the response structure for the component
+        setPolicies({
+          fulfillment: data.policies?.fulfillment || [],
+          payment: data.policies?.payment || [],
+          return: data.policies?.return || [],
+          locations: data.policies?.locations || [],
+          envVars: data.envVars || {},
+        })
         if (data.errors && data.errors.length > 0) {
           setPoliciesError(`Some APIs failed: ${data.errors.join(', ')}`)
         }
