@@ -9,9 +9,10 @@ export const dynamic = 'force-dynamic'
  * Late.dev handles token exchange on their side - we just receive confirmation
  * and redirect the user to the appropriate page.
  *
- * Query params:
- * - code: OAuth authorization code (on success)
- * - state: Contains platform info (e.g., "instagram", "tiktok")
+ * Query params from Late.dev:
+ * - connected: Platform name (e.g., "instagram", "facebook")
+ * - profileId: Late.dev profile ID for the connected account
+ * - username: Social media username
  * - error: OAuth error code (on failure)
  * - error_description: Human-readable error message
  */
@@ -20,8 +21,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams
-    const code = searchParams.get('code')
-    const state = searchParams.get('state') // Contains platform info
+
+    // Late.dev success params
+    const connected = searchParams.get('connected')
+    const profileId = searchParams.get('profileId')
+    const username = searchParams.get('username')
+
+    // Error params
     const error = searchParams.get('error')
     const errorDescription = searchParams.get('error_description')
 
@@ -37,22 +43,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Handle success - Late.dev has already exchanged the code for tokens
-    if (code) {
-      // The state parameter contains the platform that was connected
-      const platform = state || 'unknown'
-      console.log(`Late OAuth success for platform: ${platform}`)
+    // Handle Late.dev success callback
+    if (connected) {
+      console.log(`Late OAuth success: ${connected} connected`, { profileId, username })
 
       return NextResponse.redirect(
         new URL(
-          `${baseRedirectPath}?success=${encodeURIComponent(platform)}`,
+          `${baseRedirectPath}?success=${encodeURIComponent(connected)}&username=${encodeURIComponent(username || '')}`,
           request.url
         )
       )
     }
 
-    // No code or error - unexpected callback state
-    console.error('Late callback received with no code or error')
+    // No recognized params - unexpected callback state
+    console.error('Late callback received with unrecognized params:', Object.fromEntries(searchParams))
     return NextResponse.redirect(
       new URL(
         `${baseRedirectPath}?error=${encodeURIComponent('Invalid callback state')}`,
