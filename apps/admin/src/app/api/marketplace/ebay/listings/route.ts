@@ -308,7 +308,6 @@ export async function POST(request: NextRequest) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
-          'Content-Language': 'en-AU',
         },
         body: JSON.stringify(inventoryPayload),
       }
@@ -337,7 +336,6 @@ export async function POST(request: NextRequest) {
       headers: {
         Authorization: `Bearer ${connection.accessToken}`,
         'Content-Type': 'application/json',
-        'Content-Language': 'en-AU',
       },
       body: JSON.stringify(offerPayload),
     })
