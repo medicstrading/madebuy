@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { marketplace } from '@madebuy/db'
 import { getEbayApiUrl } from '@/lib/marketplace/ebay'
@@ -124,5 +124,78 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching eBay policies:', error)
     return NextResponse.json({ error: 'Failed to fetch policies' }, { status: 500 })
+  }
+}
+
+/**
+ * POST /api/marketplace/ebay/policies
+ *
+ * Create a merchant location for eBay listings
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const tenant = await getCurrentTenant()
+    if (!tenant) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get eBay connection
+    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    if (!connection || connection.status !== 'connected') {
+      return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
+    }
+
+    const body = await request.json()
+    const { locationKey, name, addressLine1, city, stateOrProvince, postalCode } = body
+
+    if (!locationKey || !name || !addressLine1 || !city || !postalCode) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Create merchant location
+    const locationPayload = {
+      location: {
+        address: {
+          addressLine1,
+          city,
+          stateOrProvince: stateOrProvince || '',
+          postalCode,
+          country: 'AU',
+        },
+      },
+      locationTypes: ['WAREHOUSE'],
+      name,
+      merchantLocationStatus: 'ENABLED',
+    }
+
+    const res = await fetch(
+      getEbayApiUrl(`/sell/inventory/v1/location/${encodeURIComponent(locationKey)}`),
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${connection.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(locationPayload),
+      }
+    )
+
+    if (res.ok || res.status === 204) {
+      return NextResponse.json({
+        success: true,
+        locationKey,
+        message: 'Merchant location created successfully',
+      })
+    } else {
+      const errorText = await res.text()
+      console.error('[eBay Location] Create error:', errorText)
+      return NextResponse.json(
+        { error: `Failed to create location: ${res.status}`, details: errorText },
+        { status: res.status }
+      )
+    }
+  } catch (error) {
+    console.error('Error creating eBay location:', error)
+    return NextResponse.json({ error: 'Failed to create location' }, { status: 500 })
   }
 }

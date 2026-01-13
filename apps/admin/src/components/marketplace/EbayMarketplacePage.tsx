@@ -872,6 +872,15 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
   const [policies, setPolicies] = useState<EbayPolicies | null>(null)
   const [fetchingPolicies, setFetchingPolicies] = useState(false)
   const [policiesError, setPoliciesError] = useState<string | null>(null)
+  const [creatingLocation, setCreatingLocation] = useState(false)
+  const [locationForm, setLocationForm] = useState({
+    locationKey: 'default',
+    name: 'Main Location',
+    addressLine1: '',
+    city: '',
+    stateOrProvince: '',
+    postalCode: '',
+  })
 
   useEffect(() => {
     async function fetchConfig() {
@@ -916,6 +925,29 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
       setPoliciesError(`Failed to fetch: ${err.message}`)
     } finally {
       setFetchingPolicies(false)
+    }
+  }
+
+  const createLocation = async () => {
+    setCreatingLocation(true)
+    setPoliciesError(null)
+    try {
+      const res = await fetch('/api/marketplace/ebay/policies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(locationForm),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        // Refresh policies to show new location
+        await fetchPolicies()
+      } else {
+        setPoliciesError(data.error || 'Failed to create location')
+      }
+    } catch (err: any) {
+      setPoliciesError(`Failed to create location: ${err.message}`)
+    } finally {
+      setCreatingLocation(false)
     }
   }
 
@@ -1098,11 +1130,93 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
             )}
 
             {policies.locations.length === 0 && (
-              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-sm text-amber-800">
-                  <strong>No merchant location found.</strong> You need to create one in eBay.
-                  Go to My eBay → Account → Addresses, or we can create one via the API.
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-sm font-medium text-amber-900 mb-3">
+                  No merchant location found. Create one below:
                 </p>
+                <div className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">Location Key</label>
+                      <input
+                        type="text"
+                        value={locationForm.locationKey}
+                        onChange={(e) => setLocationForm({ ...locationForm, locationKey: e.target.value })}
+                        className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
+                        placeholder="default"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">Location Name</label>
+                      <input
+                        type="text"
+                        value={locationForm.name}
+                        onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
+                        className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
+                        placeholder="Main Location"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-amber-800 mb-1">Street Address</label>
+                    <input
+                      type="text"
+                      value={locationForm.addressLine1}
+                      onChange={(e) => setLocationForm({ ...locationForm, addressLine1: e.target.value })}
+                      className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
+                      placeholder="123 Main St"
+                    />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={locationForm.city}
+                        onChange={(e) => setLocationForm({ ...locationForm, city: e.target.value })}
+                        className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
+                        placeholder="Sydney"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">State</label>
+                      <input
+                        type="text"
+                        value={locationForm.stateOrProvince}
+                        onChange={(e) => setLocationForm({ ...locationForm, stateOrProvince: e.target.value })}
+                        className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
+                        placeholder="NSW"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">Postcode</label>
+                      <input
+                        type="text"
+                        value={locationForm.postalCode}
+                        onChange={(e) => setLocationForm({ ...locationForm, postalCode: e.target.value })}
+                        className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
+                        placeholder="2000"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={createLocation}
+                    disabled={creatingLocation || !locationForm.addressLine1 || !locationForm.city || !locationForm.postalCode}
+                    className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                  >
+                    {creatingLocation ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        Create Location
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
           </div>
