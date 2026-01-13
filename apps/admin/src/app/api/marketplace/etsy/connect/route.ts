@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     const nonce = nanoid(32)
 
     // Get return URL from query params
-    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard/settings/marketplace'
+    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
 
     // Store OAuth state with code verifier securely in database
     // SECURITY: Code verifier is stored in DB, NOT in URL state parameter

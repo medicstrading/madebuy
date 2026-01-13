@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
       .slice(0, 32)
 
     // Get return URL from query params
-    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard/settings/marketplace'
+    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
 
     // Store OAuth state for verification
     await marketplace.saveOAuthState({

@@ -50,14 +50,14 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('eBay OAuth error:', error, errorDescription)
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent(errorDescription || error)}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent(errorDescription || error)}`
       )
     }
 
     // Validate required params
     if (!code || !state) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent('Missing authorization code or state')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Missing authorization code or state')}`
       )
     }
 
@@ -65,21 +65,21 @@ export async function GET(request: NextRequest) {
     const oauthState = await marketplace.verifyOAuthState(state)
     if (!oauthState) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent('Invalid or expired OAuth state. Please try again.')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Invalid or expired OAuth state. Please try again.')}`
       )
     }
 
     // Validate that the OAuth state is for eBay
     if (oauthState.marketplace !== 'ebay') {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent('OAuth state mismatch')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('OAuth state mismatch')}`
       )
     }
 
     // Check credentials
     if (!EBAY_CLIENT_ID || !EBAY_CLIENT_SECRET || !EBAY_REDIRECT_URI) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent('eBay integration not configured')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('eBay integration not configured')}`
       )
     }
 
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
       const errorData = await tokenResponse.text()
       console.error('eBay token exchange failed:', errorData)
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent('Failed to connect to eBay. Please try again.')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Failed to connect to eBay. Please try again.')}`
       )
     }
 
@@ -166,15 +166,15 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Redirect back to settings with success
-    const returnUrl = oauthState.returnUrl || '/dashboard/settings/marketplace'
+    // Redirect back to marketplace with success
+    const returnUrl = oauthState.returnUrl || '/dashboard/marketplace'
     return NextResponse.redirect(
       `${APP_URL}${returnUrl}?success=ebay`
     )
   } catch (error) {
     console.error('eBay OAuth callback error:', error)
     return NextResponse.redirect(
-      `${APP_URL}/dashboard/settings/marketplace?error=${encodeURIComponent('An unexpected error occurred')}`
+      `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('An unexpected error occurred')}`
     )
   }
 }
