@@ -858,9 +858,20 @@ interface EbayConfig {
   merchantLocation: { configured: boolean }
 }
 
+interface EbayPolicies {
+  fulfillment: { id: string; name: string }[]
+  payment: { id: string; name: string }[]
+  return: { id: string; name: string }[]
+  locations: { key: string; name: string }[]
+  envVars: Record<string, string>
+}
+
 function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }) {
   const [config, setConfig] = useState<EbayConfig | null>(null)
   const [loading, setLoading] = useState(true)
+  const [policies, setPolicies] = useState<EbayPolicies | null>(null)
+  const [fetchingPolicies, setFetchingPolicies] = useState(false)
+  const [policiesError, setPoliciesError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchConfig() {
@@ -877,6 +888,25 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
     }
     fetchConfig()
   }, [])
+
+  const fetchPolicies = async () => {
+    setFetchingPolicies(true)
+    setPoliciesError(null)
+    try {
+      const res = await fetch('/api/marketplace/ebay/policies')
+      if (res.ok) {
+        const data = await res.json()
+        setPolicies(data)
+      } else {
+        const data = await res.json()
+        setPoliciesError(data.error || 'Failed to fetch policies')
+      }
+    } catch (err) {
+      setPoliciesError('Failed to fetch policies from eBay')
+    } finally {
+      setFetchingPolicies(false)
+    }
+  }
 
   const ConfigItem = ({ label, configured }: { label: string; configured: boolean }) => (
     <div className="flex items-center justify-between py-2">
@@ -948,18 +978,122 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
             </div>
             <div className="mt-4 p-3 rounded-lg bg-white border border-amber-200">
               <p className="text-sm text-amber-800">
-                <strong>How to set up:</strong> Go to{' '}
-                <a
-                  href="https://www.ebay.com.au/sh/settings/business-policies"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:no-underline"
-                >
-                  eBay Seller Hub → Business Policies
-                </a>
-                {' '}to create your policies, then add the policy IDs to your environment variables.
+                <strong>How to set up:</strong> Create your policies in eBay Seller Hub, then click the button below to fetch your policy IDs.
               </p>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Fetch Policy IDs */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h4 className="font-medium text-gray-900">Policy IDs</h4>
+            <p className="text-sm text-gray-500">Fetch your eBay business policy IDs automatically</p>
+          </div>
+          <button
+            onClick={fetchPolicies}
+            disabled={fetchingPolicies}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {fetchingPolicies ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Fetching...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Fetch from eBay
+              </>
+            )}
+          </button>
+        </div>
+
+        {policiesError && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
+            <p className="text-sm text-red-700">{policiesError}</p>
+          </div>
+        )}
+
+        {policies && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-3">Add these to your Railway environment variables:</p>
+              <div className="font-mono text-xs space-y-1 bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto">
+                <div>EBAY_FULFILLMENT_POLICY_ID={policies.envVars.EBAY_FULFILLMENT_POLICY_ID}</div>
+                <div>EBAY_PAYMENT_POLICY_ID={policies.envVars.EBAY_PAYMENT_POLICY_ID}</div>
+                <div>EBAY_RETURN_POLICY_ID={policies.envVars.EBAY_RETURN_POLICY_ID}</div>
+                <div>EBAY_MERCHANT_LOCATION_KEY={policies.envVars.EBAY_MERCHANT_LOCATION_KEY}</div>
+              </div>
+            </div>
+
+            {(policies.fulfillment.length > 0 || policies.payment.length > 0 || policies.return.length > 0) && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {policies.fulfillment.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Shipping Policies</p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {policies.fulfillment.map(p => (
+                        <li key={p.id} className="flex justify-between">
+                          <span>{p.name}</span>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.id}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {policies.payment.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Payment Policies</p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {policies.payment.map(p => (
+                        <li key={p.id} className="flex justify-between">
+                          <span>{p.name}</span>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.id}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {policies.return.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Return Policies</p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {policies.return.map(p => (
+                        <li key={p.id} className="flex justify-between">
+                          <span>{p.name}</span>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.id}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {policies.locations.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Locations</p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {policies.locations.map(l => (
+                        <li key={l.key} className="flex justify-between">
+                          <span>{l.name}</span>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{l.key}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {policies.locations.length === 0 && (
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>No merchant location found.</strong> You need to create one in eBay.
+                  Go to My eBay → Account → Addresses, or we can create one via the API.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
