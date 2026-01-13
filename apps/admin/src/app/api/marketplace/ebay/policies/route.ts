@@ -152,26 +152,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Create merchant location
+    // Create merchant location - eBay uses PUT (not POST) with flat structure
     const locationPayload = {
-      location: {
-        address: {
-          addressLine1,
-          city,
-          stateOrProvince: stateOrProvince || '',
-          postalCode,
-          country: 'AU',
-        },
-      },
-      locationTypes: ['WAREHOUSE'],
       name,
       merchantLocationStatus: 'ENABLED',
+      locationTypes: ['WAREHOUSE'],
+      address: {
+        addressLine1,
+        city,
+        stateOrProvince: stateOrProvince || undefined,
+        postalCode,
+        country: 'AU',
+      },
     }
+
+    console.log('[eBay Location] Creating location:', locationKey, locationPayload)
 
     const res = await fetch(
       getEbayApiUrl(`/sell/inventory/v1/location/${encodeURIComponent(locationKey)}`),
       {
-        method: 'POST',
+        method: 'PUT', // eBay Inventory API uses PUT for create/update
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
