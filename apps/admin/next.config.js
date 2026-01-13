@@ -81,7 +81,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.r2.cloudflarestorage.com https://*.r2.dev https://*.cloudflare.com https://*.stripe.com https://images.unsplash.com https://storage.googleapis.com",
-              "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com https://*.stripe.com https://getlate.dev wss://*",
+              "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.stripe.com https://*.stripe.com https://getlate.dev https://auth.ebay.com https://api.ebay.com https://auth.sandbox.ebay.com https://api.sandbox.ebay.com wss://*",
               "media-src 'self' blob: https:",
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
               "object-src 'none'",
