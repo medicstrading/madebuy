@@ -43,23 +43,11 @@ export function MarketplaceConnectPrompt({
 
   const [error, setError] = useState<string | null>(null)
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
     setIsConnecting(true)
     setError(null)
-    try {
-      const response = await fetch(`/api/marketplace/${platform}/connect`)
-      const data = await response.json()
-      if (data.authUrl) {
-        window.location.href = data.authUrl
-      } else {
-        setError(data.error || 'Failed to get authorization URL')
-        setIsConnecting(false)
-      }
-    } catch (err) {
-      console.error('Failed to initiate connection:', err)
-      setError('Connection failed. Please try again.')
-      setIsConnecting(false)
-    }
+    // Navigate directly - let the server handle the redirect to eBay
+    window.location.href = `/api/marketplace/${platform}/connect`
   }
 
   return (
