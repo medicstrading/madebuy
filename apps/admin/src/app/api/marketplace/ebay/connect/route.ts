@@ -11,12 +11,21 @@ import crypto from 'crypto'
  * Docs: https://developer.ebay.com/api-docs/static/oauth-authorization-code-grant.html
  */
 
-const EBAY_AUTH_URL = process.env.EBAY_ENVIRONMENT === 'production'
-  ? 'https://auth.ebay.com/oauth2/authorize'
-  : 'https://auth.sandbox.ebay.com/oauth2/authorize'
+// Helper functions to get config at runtime (not module load time)
+// This ensures env vars are read fresh on each request
+function getEbayAuthUrl() {
+  return process.env.EBAY_ENVIRONMENT === 'production'
+    ? 'https://auth.ebay.com/oauth2/authorize'
+    : 'https://auth.sandbox.ebay.com/oauth2/authorize'
+}
 
-const EBAY_CLIENT_ID = process.env.EBAY_CLIENT_ID
-const EBAY_REDIRECT_URI = process.env.EBAY_REDIRECT_URI
+function getEbayClientId() {
+  return process.env.EBAY_CLIENT_ID
+}
+
+function getEbayRedirectUri() {
+  return process.env.EBAY_REDIRECT_URI
+}
 
 // eBay scopes needed for selling
 const EBAY_SCOPES = [
@@ -41,8 +50,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get config at runtime
+    const ebayClientId = getEbayClientId()
+    const ebayRedirectUri = getEbayRedirectUri()
+    const ebayAuthUrl = getEbayAuthUrl()
+
+    // Debug logging
+    console.log('[eBay OAuth] Environment:', process.env.EBAY_ENVIRONMENT)
+    console.log('[eBay OAuth] Auth URL:', ebayAuthUrl)
+    console.log('[eBay OAuth] Client ID:', ebayClientId?.substring(0, 20) + '...')
+    console.log('[eBay OAuth] Redirect URI:', ebayRedirectUri)
+
     // Check if eBay credentials are configured
-    if (!EBAY_CLIENT_ID || !EBAY_REDIRECT_URI) {
+    if (!ebayClientId || !ebayRedirectUri) {
       return NextResponse.json(
         { error: 'eBay integration not configured' },
         { status: 500 }
@@ -82,10 +102,10 @@ export async function GET(request: NextRequest) {
     })
 
     // Build eBay authorization URL
-    const authUrl = new URL(EBAY_AUTH_URL)
-    authUrl.searchParams.set('client_id', EBAY_CLIENT_ID)
+    const authUrl = new URL(ebayAuthUrl)
+    authUrl.searchParams.set('client_id', ebayClientId)
     authUrl.searchParams.set('response_type', 'code')
-    authUrl.searchParams.set('redirect_uri', EBAY_REDIRECT_URI)
+    authUrl.searchParams.set('redirect_uri', ebayRedirectUri)
     authUrl.searchParams.set('scope', EBAY_SCOPES)
     authUrl.searchParams.set('state', state)
 

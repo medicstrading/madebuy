@@ -3,15 +3,23 @@ import { marketplace } from '@madebuy/db'
 
 /**
  * eBay OAuth Token Endpoint Configuration
+ * Helper functions to get config at runtime (not module load time)
  */
-const EBAY_TOKEN_URL = process.env.EBAY_ENVIRONMENT === 'production'
-  ? 'https://api.ebay.com/identity/v1/oauth2/token'
-  : 'https://api.sandbox.ebay.com/identity/v1/oauth2/token'
+function getEbayTokenUrl() {
+  return process.env.EBAY_ENVIRONMENT === 'production'
+    ? 'https://api.ebay.com/identity/v1/oauth2/token'
+    : 'https://api.sandbox.ebay.com/identity/v1/oauth2/token'
+}
 
-const EBAY_CLIENT_ID = process.env.EBAY_CLIENT_ID
-const EBAY_CLIENT_SECRET = process.env.EBAY_CLIENT_SECRET
-const EBAY_REDIRECT_URI = process.env.EBAY_REDIRECT_URI
-const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3300'
+function getEbayUserInfoUrl() {
+  return process.env.EBAY_ENVIRONMENT === 'production'
+    ? 'https://apiz.ebay.com/commerce/identity/v1/user/'
+    : 'https://apiz.sandbox.ebay.com/commerce/identity/v1/user/'
+}
+
+function getAppUrl() {
+  return process.env.NEXTAUTH_URL || 'http://localhost:3300'
+}
 
 /**
  * GET /api/marketplace/ebay/callback
@@ -20,6 +28,17 @@ const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3300'
  * eBay redirects here after user authorizes the app.
  */
 export async function GET(request: NextRequest) {
+  // Get config at runtime
+  const APP_URL = getAppUrl()
+  const EBAY_TOKEN_URL = getEbayTokenUrl()
+  const EBAY_CLIENT_ID = process.env.EBAY_CLIENT_ID
+  const EBAY_CLIENT_SECRET = process.env.EBAY_CLIENT_SECRET
+  const EBAY_REDIRECT_URI = process.env.EBAY_REDIRECT_URI
+
+  // Debug logging
+  console.log('[eBay Callback] Environment:', process.env.EBAY_ENVIRONMENT)
+  console.log('[eBay Callback] Token URL:', EBAY_TOKEN_URL)
+
   try {
     const searchParams = request.nextUrl.searchParams
     const code = searchParams.get('code')
@@ -100,9 +119,7 @@ export async function GET(request: NextRequest) {
     let shopName: string | undefined
 
     try {
-      const userInfoUrl = process.env.EBAY_ENVIRONMENT === 'production'
-        ? 'https://apiz.ebay.com/commerce/identity/v1/user/'
-        : 'https://apiz.sandbox.ebay.com/commerce/identity/v1/user/'
+      const userInfoUrl = getEbayUserInfoUrl()
 
       const userResponse = await fetch(userInfoUrl, {
         headers: {
