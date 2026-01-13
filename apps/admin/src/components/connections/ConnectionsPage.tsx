@@ -325,21 +325,16 @@ function MarketplaceCard({
   connection,
   isLoading,
   isDisconnecting,
-  isToggling,
   onDisconnect,
-  onToggleEnabled,
 }: {
   platform: (typeof marketplacePlatforms)[0]
   connection: MarketplaceConnectionData | null
   isLoading: boolean
   isDisconnecting: boolean
-  isToggling: boolean
   onDisconnect: () => void
-  onToggleEnabled: (enabled: boolean) => void
 }) {
   const features = MARKETPLACE_FEATURES[platform.id]
   const isConnected = connection?.connected
-  const isEnabled = connection?.enabled ?? false
 
   const formatLastSync = (dateStr?: string) => {
     if (!dateStr) return null
@@ -426,30 +421,8 @@ function MarketplaceCard({
         </div>
       )}
 
-      {/* Enable toggle + Actions */}
+      {/* Actions */}
       <div className="px-5 py-4 space-y-3">
-        {isConnected && (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-900">Show in sidebar</p>
-              <p className="text-xs text-gray-500">Enable to manage listings</p>
-            </div>
-            <button
-              onClick={() => onToggleEnabled(!isEnabled)}
-              disabled={isToggling}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 ${
-                isEnabled ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                  isEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        )}
-
         {isConnected ? (
           <button
             onClick={onDisconnect}
@@ -923,7 +896,6 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   const [etsyConnection, setEtsyConnection] = useState<MarketplaceConnectionData | null>(null)
   const [marketplaceLoading, setMarketplaceLoading] = useState({ ebay: true, etsy: true })
   const [disconnectingPlatform, setDisconnectingPlatform] = useState<MarketplacePlatform | null>(null)
-  const [togglingPlatform, setTogglingPlatform] = useState<MarketplacePlatform | null>(null)
 
   // Stripe state
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
@@ -1133,36 +1105,6 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
       setMessage({ type: 'error', text: error.message || 'Failed to disconnect' })
     } finally {
       setDisconnectingPlatform(null)
-    }
-  }
-
-  // Toggle marketplace enabled
-  async function handleToggleEnabled(platform: MarketplacePlatform, enabled: boolean) {
-    setTogglingPlatform(platform)
-    try {
-      const res = await fetch(`/api/marketplace/${platform}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled }),
-      })
-      if (res.ok) {
-        if (platform === 'ebay') {
-          setEbayConnection((prev) => (prev ? { ...prev, enabled } : null))
-        } else {
-          setEtsyConnection((prev) => (prev ? { ...prev, enabled } : null))
-        }
-        setMessage({
-          type: 'success',
-          text: `${MARKETPLACE_LABELS[platform]} ${enabled ? 'enabled' : 'disabled'} in sidebar`,
-        })
-      } else {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to update')
-      }
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to update' })
-    } finally {
-      setTogglingPlatform(null)
     }
   }
 
@@ -1387,9 +1329,7 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
                   connection={platform.id === 'ebay' ? ebayConnection : etsyConnection}
                   isLoading={marketplaceLoading[platform.id]}
                   isDisconnecting={disconnectingPlatform === platform.id}
-                  isToggling={togglingPlatform === platform.id}
                   onDisconnect={() => handleMarketplaceDisconnect(platform.id)}
-                  onToggleEnabled={(enabled) => handleToggleEnabled(platform.id, enabled)}
                 />
               ))}
             </div>
