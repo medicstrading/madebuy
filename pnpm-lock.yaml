@@ -105,6 +105,9 @@ importers:
       next-auth:
         specifier: ^4.24.5
         version: 4.24.13(next@14.2.35)(react-dom@18.3.1)(react@18.3.1)
+      openai:
+        specifier: ^4.28.0
+        version: 4.104.0(zod@3.25.76)
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -384,7 +387,7 @@ importers:
         version: link:../shared
       openai:
         specifier: ^4.20.0
-        version: 4.104.0
+        version: 4.104.0(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^20
@@ -6775,7 +6778,7 @@ packages:
       wrappy: 1.0.2
     dev: false
 
-  /openai@4.104.0:
+  /openai@4.104.0(zod@3.25.76):
     resolution: {integrity: sha512-p99EFNsA/yX6UhVO93f5kJsDRLAg+CTA2RBqdHK4RtK8u5IJw32Hyb2dTGKbnnFmnuoBv5r7Z2CURI9sGZpSuA==}
     hasBin: true
     peerDependencies:
@@ -6794,6 +6797,7 @@ packages:
       form-data-encoder: 1.7.2
       formdata-node: 4.4.1
       node-fetch: 2.7.0
+      zod: 3.25.76
     transitivePeerDependencies:
       - encoding
     dev: false
