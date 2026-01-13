@@ -1,10 +1,10 @@
 import { requireTenant } from '@/lib/session'
-import { marketplace } from '@madebuy/db'
-import { MarketplaceListingsPage } from '@/components/marketplace/MarketplaceListingsPage'
+import { marketplace, pieces } from '@madebuy/db'
+import { EbayMarketplacePage } from '@/components/marketplace/EbayMarketplacePage'
 import { MarketplaceConnectPrompt } from '@/components/marketplace/MarketplaceConnectPrompt'
 
 export const metadata = {
-  title: 'eBay Listings - MadeBuy Admin',
+  title: 'eBay Marketplace - MadeBuy Admin',
 }
 
 export default async function EbayListingsPage() {
@@ -31,11 +31,33 @@ export default async function EbayListingsPage() {
     )
   }
 
+  // Fetch inventory items available for listing
+  const inventoryItems = await pieces.listPieces(tenant.id, { limit: 100 })
+
+  // Serialize connection for client component
+  const serializedConnection = connection ? {
+    id: connection.id || '',
+    status: connection.status,
+    accountId: connection.sellerId || '',
+    accountName: connection.shopName || '',
+    lastSync: connection.lastSyncAt?.toISOString() || null,
+    tokenExpiresAt: connection.tokenExpiresAt?.toISOString() || null,
+  } : null
+
+  // Serialize inventory items for client component
+  const serializedInventory = inventoryItems.map(item => ({
+    id: item.id || '',
+    name: item.name || '',
+    price: item.price || 0,
+    quantity: item.stock || 0,
+    images: item.mediaIds || [],
+    status: item.status || 'draft',
+  }))
+
   return (
-    <MarketplaceListingsPage
-      platform="ebay"
-      platformName="eBay"
-      platformColor="bg-blue-600"
+    <EbayMarketplacePage
+      connection={serializedConnection}
+      inventoryItems={serializedInventory}
     />
   )
 }
