@@ -1,5 +1,6 @@
 import { requireTenant } from '@/lib/tenant'
 import { reviews } from '@madebuy/db'
+import type { ProductReviewStats } from '@madebuy/shared'
 import { getPieceBySlug, populatePieceWithMedia } from '@/lib/pieces'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
@@ -44,7 +45,14 @@ export default async function PieceDetailPage({
 
   // Populate piece with media and fetch review stats (reviews fail gracefully)
   const piece = await populatePieceWithMedia(rawPiece)
-  let reviewStats = { averageRating: 0, totalReviews: 0, ratingDistribution: {} }
+  let reviewStats: ProductReviewStats = {
+    pieceId: rawPiece.id,
+    averageRating: 0,
+    totalReviews: 0,
+    ratingBreakdown: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+    verifiedPurchaseCount: 0,
+    withPhotosCount: 0,
+  }
   let initialReviews: Awaited<ReturnType<typeof reviews.listApprovedReviews>> = []
   try {
     ;[reviewStats, initialReviews] = await Promise.all([

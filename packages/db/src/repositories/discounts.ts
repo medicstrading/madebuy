@@ -9,6 +9,11 @@ import type {
   DiscountStats,
 } from '@madebuy/shared'
 
+/** Escape special regex characters to prevent ReDoS attacks */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 // ============ CRUD Operations ============
 
 export async function createDiscountCode(
@@ -148,9 +153,10 @@ export async function listDiscountCodes(
   }
 
   if (search) {
+    const escapedSearch = escapeRegex(search)
     query.$or = [
-      { code: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
+      { code: { $regex: escapedSearch, $options: 'i' } },
+      { description: { $regex: escapedSearch, $options: 'i' } },
     ]
   }
 

@@ -64,7 +64,7 @@ export function createEbayClient(
   // Add axios interceptor to ensure correct language headers on every request
   // This fixes error 25709 "Invalid value for header Accept-Language"
   // The interceptor runs after config is applied, ensuring headers are correct
-  client.req.instance.interceptors.request.use((request) => {
+  client.req.instance.interceptors.request.use((request: { headers: Record<string, string> }) => {
     // Force correct hyphenated format for Australian English
     request.headers['Accept-Language'] = 'en-AU'
     request.headers['Content-Language'] = 'en-AU'

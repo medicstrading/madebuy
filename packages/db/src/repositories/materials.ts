@@ -2,6 +2,11 @@ import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
 import type { Material, MaterialUsage, CreateMaterialInput } from '@madebuy/shared'
 
+/** Escape special regex characters to prevent ReDoS attacks */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export async function createMaterial(tenantId: string, data: CreateMaterialInput): Promise<Material> {
   const db = await getDatabase()
 
@@ -76,12 +81,12 @@ export async function listMaterials(
   }
 
   if (filters?.supplier) {
-    query.supplier = { $regex: filters.supplier, $options: 'i' }
+    query.supplier = { $regex: escapeRegex(filters.supplier), $options: 'i' }
   }
 
   // Text search on name, supplier, and tags
   if (filters?.search) {
-    const searchRegex = { $regex: filters.search, $options: 'i' }
+    const searchRegex = { $regex: escapeRegex(filters.search), $options: 'i' }
     query.$or = [
       { name: searchRegex },
       { supplier: searchRegex },

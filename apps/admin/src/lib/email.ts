@@ -873,7 +873,7 @@ export async function sendPasswordResetEmail(data: SendPasswordResetEmailParams)
     // In development mode without Resend, log to console
     console.log('[EMAIL] Password reset email (not sent - no Resend API key):')
     console.log(`  To: ${data.to}`)
-    console.log(`  Reset URL: ${process.env.NEXTAUTH_URL}/reset-password?token=${data.resetToken}`)
+    console.log(`  Reset URL: ${process.env.NEXTAUTH_URL}/reset-password?token=[REDACTED]`)
     return {
       success: true, // Return success in dev mode for testing
     }

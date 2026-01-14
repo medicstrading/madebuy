@@ -12,6 +12,7 @@ export type AuditEventType =
   | 'auth.logout'
   | 'auth.token.refresh'
   | 'auth.session.expired'
+  | 'auth.password.reset'
   // Customer authentication
   | 'customer.login.success'
   | 'customer.login.failed'

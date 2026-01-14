@@ -33,6 +33,7 @@ const SECTION_ICONS: Record<PageSectionType, React.ComponentType<{ className?: s
   'contact': Mail,
   'custom-order': Target,
   'spacer': Layout,
+  'reviews': MessageSquare,
 }
 
 const SECTION_LABELS: Record<PageSectionType, string> = {
@@ -53,6 +54,7 @@ const SECTION_LABELS: Record<PageSectionType, string> = {
   'contact': 'Contact',
   'custom-order': 'Custom Order CTA',
   'spacer': 'Spacer',
+  'reviews': 'Reviews',
 }
 
 export function PageContentEditor({ page, onSectionChange, tenantSlug }: PageContentEditorProps) {

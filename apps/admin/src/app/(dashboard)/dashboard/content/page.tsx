@@ -31,7 +31,7 @@ export default async function ContentPage() {
   }
 
   // Check if social accounts are connected
-  const hasSocialConnections = tenant.socialConnections && tenant.socialConnections.length > 0
+  const hasSocialConnections = !!(tenant.socialConnections && tenant.socialConnections.length > 0)
 
   return (
     <ContentPageClient

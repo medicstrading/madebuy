@@ -23,7 +23,7 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
   }
 
   const moveToCart = async (piece: PieceWithMedia) => {
-    addItem(piece as any, 1)
+    addItem(piece as any, { quantity: 1 })
     await removeFromWishlist(piece.id)
   }
 

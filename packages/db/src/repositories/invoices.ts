@@ -7,6 +7,11 @@ import type {
   InvoiceFilters,
 } from '@madebuy/shared'
 
+/** Escape special regex characters to prevent ReDoS attacks */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 // Database record type
 interface InvoiceDbRecord extends InvoiceRecord {
   _id?: unknown
@@ -69,7 +74,7 @@ export async function listInvoices(
   }
 
   if (filters?.supplier) {
-    query.supplier = { $regex: filters.supplier, $options: 'i' }
+    query.supplier = { $regex: escapeRegex(filters.supplier), $options: 'i' }
   }
 
   if (filters?.dateFrom || filters?.dateTo) {
@@ -158,7 +163,7 @@ export async function getInvoicesBySupplier(
   const results = await db.collection('invoices')
     .find({
       tenantId,
-      supplier: { $regex: supplier, $options: 'i' }
+      supplier: { $regex: escapeRegex(supplier), $options: 'i' }
     })
     .sort({ uploadedAt: -1 })
     .toArray()

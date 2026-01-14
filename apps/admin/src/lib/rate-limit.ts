@@ -171,6 +171,12 @@ export const rateLimiters = {
     interval: 60 * 1000, // 1 minute
     uniqueTokenPerInterval: 300,
   }),
+
+  // Cron routes - 5 per minute per IP (should only be called by cron scheduler)
+  cron: new RateLimiter({
+    interval: 60 * 1000, // 1 minute
+    uniqueTokenPerInterval: 5,
+  }),
 }
 
 /**

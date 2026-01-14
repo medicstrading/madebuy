@@ -102,20 +102,25 @@ export function createMockProduct(overrides: Partial<Piece> = {}): Piece {
  */
 export function createMockMedia(overrides: Partial<MediaItem> = {}): MediaItem {
   const id = overrides.id || `media-${Date.now()}`
+  const r2Key = `tenant-1/${id}.jpg`
+  const url = `https://cdn.example.com/products/${id}.jpg`
   return {
     id,
     tenantId: overrides.tenantId || 'tenant-1',
-    filename: overrides.filename || 'product-image.jpg',
+    originalFilename: overrides.originalFilename || 'product-image.jpg',
     mimeType: overrides.mimeType || 'image/jpeg',
-    size: overrides.size ?? 204800, // 200KB
+    sizeBytes: overrides.sizeBytes ?? 204800, // 200KB
     type: overrides.type || 'image',
-    r2Key: overrides.r2Key || `tenant-1/${id}.jpg`,
-    url: overrides.url || `https://cdn.example.com/products/${id}.jpg`,
-    variants: {
-      thumbnail: `https://cdn.example.com/products/${id}-thumb.jpg`,
-      medium: `https://cdn.example.com/products/${id}-medium.jpg`,
-      large: `https://cdn.example.com/products/${id}-large.jpg`,
+    variants: overrides.variants || {
+      original: { r2Key, url, width: 1920, height: 1080 },
+      large: { r2Key: `${r2Key}-large`, url: `${url.replace('.jpg', '-large.jpg')}`, width: 1200, height: 675 },
+      thumb: { r2Key: `${r2Key}-thumb`, url: `${url.replace('.jpg', '-thumb.jpg')}`, width: 300, height: 169 },
     },
+    platformOptimized: overrides.platformOptimized || [],
+    tags: overrides.tags || [],
+    isFavorite: overrides.isFavorite ?? false,
+    publishedTo: overrides.publishedTo || [],
+    source: overrides.source || 'upload',
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -169,7 +174,7 @@ export function createMockDiscount(overrides: Partial<DiscountCode> = {}): Disco
     value: overrides.value ?? 10, // 10% or $10
     minOrderAmount: overrides.minOrderAmount,
     maxDiscountAmount: overrides.maxDiscountAmount,
-    usageLimit: overrides.usageLimit,
+    maxUses: overrides.maxUses,
     usageCount: overrides.usageCount ?? 0,
     expiresAt: overrides.expiresAt,
     isActive: overrides.isActive ?? true,
@@ -187,20 +192,25 @@ export function createMockCustomer(overrides: Partial<Customer> = {}): Customer 
     id: overrides.id || 'customer-1',
     tenantId: overrides.tenantId || 'tenant-1',
     email: overrides.email || 'customer@example.com',
-    firstName: overrides.firstName || 'John',
-    lastName: overrides.lastName || 'Doe',
+    name: overrides.name || 'John Doe',
     phone: overrides.phone || '0412345678',
     addresses: overrides.addresses || [
       {
+        id: 'addr-1',
         line1: '123 Main Street',
         line2: 'Apt 4',
         city: 'Sydney',
         state: 'NSW',
-        postalCode: '2000',
+        postcode: '2000',
         country: 'AU',
         isDefault: true,
       },
     ],
+    totalOrders: overrides.totalOrders ?? 0,
+    totalSpent: overrides.totalSpent ?? 0,
+    averageOrderValue: overrides.averageOrderValue ?? 0,
+    tags: overrides.tags || [],
+    emailSubscribed: overrides.emailSubscribed ?? true,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

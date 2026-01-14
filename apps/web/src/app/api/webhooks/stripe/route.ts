@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { orders, pieces, tenants, stockReservations, transactions, downloads } from '@madebuy/db'
-import type { CreateOrderInput, Plan } from '@madebuy/shared'
+import type { CreateOrderInput, Plan, PersonalizationValue } from '@madebuy/shared'
 import { calculateStripeFee, getFeaturesForPlan } from '@madebuy/shared'
 import { sendOrderConfirmation, sendPaymentFailedEmail, sendLowStockAlertEmail, sendDownloadEmail } from '@/lib/email'
 
@@ -103,7 +103,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
 
   // Parse items from metadata (with error handling)
   const itemsJson = session.metadata?.items
-  let items: Array<{ pieceId: string; variantId?: string; price: number; quantity: number; personalization?: unknown[]; personalizationTotal?: number }> = []
+  let items: Array<{ pieceId: string; variantId?: string; price: number; quantity: number; personalization?: PersonalizationValue[]; personalizationTotal?: number }> = []
   if (itemsJson) {
     try {
       items = JSON.parse(itemsJson)

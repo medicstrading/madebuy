@@ -21,17 +21,7 @@ function verifyUnsubscribeToken(email: string, token: string, secret: string): b
   }
 }
 
-/**
- * Generate unsubscribe token for an email
- * Export for use in email sending
- */
-export function generateUnsubscribeToken(email: string, secret: string): string {
-  return crypto
-    .createHmac('sha256', secret)
-    .update(email.toLowerCase())
-    .digest('hex')
-    .slice(0, 32)
-}
+// generateUnsubscribeToken moved to @/lib/unsubscribe.ts for route compatibility
 
 /**
  * POST /api/unsubscribe

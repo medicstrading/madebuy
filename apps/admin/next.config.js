@@ -89,7 +89,9 @@ const nextConfig = {
               "form-action 'self'",
               "frame-ancestors 'self'",
               // Only upgrade to HTTPS in production
-              ...(isProd ? ["upgrade-insecure-requests"] : [])
+              ...(isProd ? ["upgrade-insecure-requests"] : []),
+              // CSP violation reporting
+              "report-uri /api/csp-report"
             ].filter(Boolean).join('; '),
           },
         ],

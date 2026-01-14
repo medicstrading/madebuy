@@ -54,6 +54,7 @@ const SECTION_CONFIG: Record<PageSectionType, {
   'custom-order': { name: 'Custom Orders', description: 'Commission requests', icon: Sparkles, color: 'bg-violet-100 text-violet-600' },
   'newsletter': { name: 'Newsletter', description: 'Email signup', icon: Mail, color: 'bg-rose-100 text-rose-600' },
   'spacer': { name: 'Spacer', description: 'Visual spacing', icon: Type, color: 'bg-gray-100 text-gray-600' },
+  'reviews': { name: 'Reviews', description: 'Customer reviews', icon: MessageSquare, color: 'bg-yellow-100 text-yellow-600' },
 }
 
 const SECTION_CATEGORIES = [

@@ -249,7 +249,7 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2 group">
-                <span className="text-gray-900">{formatCurrency(piece.price)}</span>
+                <span className="text-gray-900">{formatCurrency(piece.price ?? 0)}</span>
                 <button
                   onClick={() => setEditing('price')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"

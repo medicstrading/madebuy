@@ -64,8 +64,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Allow cron routes - they validate CRON_SECRET internally
+  // Cron routes: rate limit to prevent abuse, then let through (they validate CRON_SECRET internally)
   if (CRON_ROUTES.some((route) => pathname.startsWith(route))) {
+    const rateLimitResponse = await rateLimit(request, rateLimiters.cron)
+    if (rateLimitResponse) return rateLimitResponse
     return NextResponse.next()
   }
 

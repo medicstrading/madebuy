@@ -57,7 +57,7 @@ function ReviewStars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'm
  */
 export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
   const [reviews, setReviews] = useState<ReviewWithProduct[]>([])
-  const [stats, setStats] = useState<RecentReviewsResponse['stats']>(null)
+  const [stats, setStats] = useState<RecentReviewsResponse['stats']>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

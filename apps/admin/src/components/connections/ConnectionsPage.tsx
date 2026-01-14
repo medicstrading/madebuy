@@ -79,14 +79,16 @@ interface StripeConnectStatus {
   }
 }
 
+interface XeroMappings {
+  productSales: string
+  shippingIncome: string
+  platformFees: string
+  paymentFees: string
+  bankAccount: string
+}
+
 interface XeroConnectionStatus {
-  mappings: {
-    productSales: string
-    shippingIncome: string
-    platformFees: string
-    paymentFees: string
-    bankAccount: string
-  }
+  mappings: XeroMappings
   lastSyncAt: string | null
   status: 'connected' | 'needs_reauth' | 'error' | 'disconnected'
 }
@@ -688,14 +690,8 @@ function XeroCard({
   isLoading: boolean
   isSyncing: boolean
   isSaving: boolean
-  mappings: {
-    productSales: string
-    shippingIncome: string
-    platformFees: string
-    paymentFees: string
-    bankAccount: string
-  }
-  onMappingsChange: (mappings: typeof mappings) => void
+  mappings: XeroMappings
+  onMappingsChange: (mappings: XeroMappings) => void
   onConnect: () => void
   onDisconnect: () => void
   onSync: () => void

@@ -97,13 +97,14 @@ export function createMockMaterial(overrides: Partial<Material> = {}): Material 
     id,
     tenantId: overrides.tenantId || 'tenant-1',
     name: overrides.name || `Test Material ${Date.now()}`,
-    description: overrides.description || 'Test material description',
-    category: overrides.category || 'General',
-    unit: overrides.unit || 'pcs',
-    quantity: overrides.quantity ?? 100,
+    category: overrides.category || 'other',
+    unit: overrides.unit || 'piece',
+    quantityInStock: overrides.quantityInStock ?? 100,
     costPerUnit: overrides.costPerUnit ?? 500, // $5.00 in cents
     currency: overrides.currency || 'AUD',
-    lowStockThreshold: overrides.lowStockThreshold ?? 10,
+    reorderPoint: overrides.reorderPoint ?? 10,
+    isLowStock: overrides.isLowStock ?? false,
+    tags: overrides.tags || [],
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -163,19 +164,24 @@ export function createMockCustomer(overrides: Partial<Customer> = {}): Customer 
     id,
     tenantId: overrides.tenantId || 'tenant-1',
     email,
-    firstName: overrides.firstName || 'Test',
-    lastName: overrides.lastName || 'Customer',
+    name: overrides.name || 'Test Customer',
     phone: overrides.phone || '0412345678',
     addresses: overrides.addresses || [
       {
+        id: 'addr-1',
         line1: '123 Test St',
         city: 'Sydney',
         state: 'NSW',
-        postalCode: '2000',
+        postcode: '2000',
         country: 'AU',
         isDefault: true,
       },
     ],
+    totalOrders: overrides.totalOrders ?? 0,
+    totalSpent: overrides.totalSpent ?? 0,
+    averageOrderValue: overrides.averageOrderValue ?? 0,
+    tags: overrides.tags || [],
+    emailSubscribed: overrides.emailSubscribed ?? true,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -187,15 +193,25 @@ export function createMockCustomer(overrides: Partial<Customer> = {}): Customer 
  */
 export function createMockMedia(overrides: Partial<MediaItem> = {}): MediaItem {
   const id = overrides.id || `media-${Date.now()}`
+  const r2Key = `tenant-1/${id}.jpg`
+  const url = `https://cdn.example.com/${id}.jpg`
   return {
     id,
     tenantId: overrides.tenantId || 'tenant-1',
-    filename: overrides.filename || 'test-image.jpg',
+    originalFilename: overrides.originalFilename || 'test-image.jpg',
     mimeType: overrides.mimeType || 'image/jpeg',
-    size: overrides.size ?? 102400, // 100KB
+    sizeBytes: overrides.sizeBytes ?? 102400, // 100KB
     type: overrides.type || 'image',
-    r2Key: overrides.r2Key || `tenant-1/${id}.jpg`,
-    url: overrides.url || `https://cdn.example.com/${id}.jpg`,
+    variants: overrides.variants || {
+      original: { r2Key, url, width: 1920, height: 1080 },
+      large: { r2Key: `${r2Key}-large`, url: `${url}-large`, width: 1200, height: 675 },
+      thumb: { r2Key: `${r2Key}-thumb`, url: `${url}-thumb`, width: 300, height: 169 },
+    },
+    platformOptimized: overrides.platformOptimized || [],
+    tags: overrides.tags || [],
+    isFavorite: overrides.isFavorite ?? false,
+    publishedTo: overrides.publishedTo || [],
+    source: overrides.source || 'upload',
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
