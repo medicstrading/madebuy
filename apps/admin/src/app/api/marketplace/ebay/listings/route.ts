@@ -272,6 +272,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
+    // Validate required fields for eBay listing
+    const validationErrors: string[] = []
+
+    // Check for images - eBay requires at least 1 image
+    if (!piece.mediaIds || piece.mediaIds.length === 0) {
+      validationErrors.push('At least one image is required for eBay listings')
+    }
+
+    // Check for description - eBay needs a proper description
+    if (!piece.description || piece.description.trim().length < 10) {
+      validationErrors.push('A description (at least 10 characters) is required for eBay listings')
+    }
+
+    // Check for price
+    if (!piece.price || piece.price <= 0) {
+      validationErrors.push('A valid price is required for eBay listings')
+    }
+
+    if (validationErrors.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Piece is missing required data for eBay',
+          details: validationErrors,
+          missingFields: {
+            images: !piece.mediaIds || piece.mediaIds.length === 0,
+            description: !piece.description || piece.description.trim().length < 10,
+            price: !piece.price || piece.price <= 0,
+          },
+        },
+        { status: 400 }
+      )
+    }
+
     // Check if listing already exists
     const existingListing = await marketplace.getListingByPiece(tenant.id, pieceId, 'ebay')
     if (existingListing && existingListing.status !== 'ended') {

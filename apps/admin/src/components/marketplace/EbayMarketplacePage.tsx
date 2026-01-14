@@ -612,6 +612,20 @@ function ListingsTab({
 // List Items Tab
 // =============================================================================
 
+// Common eBay categories for handmade/craft items (Australia)
+const EBAY_CATEGORIES = [
+  { id: '281', name: 'Collectibles (General)' },
+  { id: '14339', name: 'Crafts' },
+  { id: '73823', name: 'Handcrafted & Finished Pieces' },
+  { id: '160668', name: 'Home Décor' },
+  { id: '45220', name: 'Art - Paintings' },
+  { id: '553', name: 'Art - Prints' },
+  { id: '36034', name: 'Jewelry & Watches' },
+  { id: '11700', name: 'Clothing, Shoes & Accessories' },
+  { id: '26395', name: 'Health & Beauty' },
+  { id: '1249', name: 'Toys & Hobbies' },
+]
+
 function ListItemsTab({
   existingListings,
   onListItem,
@@ -619,7 +633,7 @@ function ListItemsTab({
   initialInventory,
 }: {
   existingListings: ListingWithPiece[]
-  onListItem: (pieceId: string, options: { price?: number; quantity?: number }) => Promise<void>
+  onListItem: (pieceId: string, options: { price?: number; quantity?: number; categoryId?: string }) => Promise<void>
   listing: string | null
   initialInventory: InventoryPiece[]
 }) {
@@ -628,6 +642,7 @@ function ListItemsTab({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
   const [listingItem, setListingItem] = useState<string | null>(null)
   const [configReady, setConfigReady] = useState<boolean | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState(EBAY_CATEGORIES[0].id)
 
   // Check if config is ready for listing
   useEffect(() => {
@@ -668,10 +683,10 @@ function ListItemsTab({
   }, [inventory, listedPieceIds, search])
 
   const handleListItem = async (pieceId: string) => {
-    console.log('[ListItemsTab] handleListItem called with pieceId:', pieceId)
+    console.log('[ListItemsTab] handleListItem called with pieceId:', pieceId, 'category:', selectedCategory)
     setListingItem(pieceId)
     try {
-      await onListItem(pieceId, {})
+      await onListItem(pieceId, { categoryId: selectedCategory })
       console.log('[ListItemsTab] onListItem completed successfully')
     } catch (err) {
       console.error('[ListItemsTab] onListItem failed:', err)
@@ -725,16 +740,35 @@ function ListItemsTab({
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search available items..."
-          className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Search and Category */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search available items..."
+            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="ebay-category" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            eBay Category:
+          </label>
+          <select
+            id="ebay-category"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {EBAY_CATEGORIES.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Items grid */}
@@ -754,86 +788,149 @@ function ListItemsTab({
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {availableItems.map((item) => {
-            const isSelected = selectedItems.has(item.id)
-            const isListing = listingItem === item.id || listing === item.id
-
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  'group relative overflow-hidden rounded-xl border bg-white transition-all',
-                  isSelected
-                    ? 'border-blue-500 ring-2 ring-blue-200'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                )}
-              >
-                {/* Selection checkbox */}
-                <div className="absolute left-3 top-3 z-10">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={isSelected}
+                    checked={selectedItems.size === availableItems.length && availableItems.length > 0}
                     onChange={() => {
-                      const newSelection = new Set(selectedItems)
-                      if (isSelected) {
-                        newSelection.delete(item.id)
+                      if (selectedItems.size === availableItems.length) {
+                        setSelectedItems(new Set())
                       } else {
-                        newSelection.add(item.id)
+                        setSelectedItems(new Set(availableItems.map(i => i.id)))
                       }
-                      setSelectedItems(newSelection)
                     }}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Item
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Price
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Stock
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {availableItems.map((item) => {
+                const isSelected = selectedItems.has(item.id)
+                const isListing = listingItem === item.id || listing === item.id
+                const hasImage = !!item.thumbnailUrl
+                const hasDescription = item.description && item.description.length >= 10
+                const isReady = hasImage && hasDescription && item.price > 0
 
-                {/* Image */}
-                <div className="aspect-square overflow-hidden bg-gray-100">
-                  {item.thumbnailUrl ? (
-                    <Image
-                      src={item.thumbnailUrl}
-                      alt={item.name}
-                      width={300}
-                      height={300}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Package className="h-12 w-12 text-gray-300" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Details */}
-                <div className="p-4">
-                  <h4 className="font-medium text-gray-900 line-clamp-1">{item.name}</h4>
-                  <div className="mt-2 flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">{formatCurrency(item.price)}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.stock}</p>
-                  </div>
-
-                  {/* List button */}
-                  <button
-                    onClick={() => handleListItem(item.id)}
-                    disabled={isListing || configReady === false}
-                    className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {isListing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Listing...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4" />
-                        List on eBay
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )
-          })}
+                return (
+                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {
+                          const newSelection = new Set(selectedItems)
+                          if (isSelected) {
+                            newSelection.delete(item.id)
+                          } else {
+                            newSelection.add(item.id)
+                          }
+                          setSelectedItems(newSelection)
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                          {item.thumbnailUrl ? (
+                            <Image
+                              src={item.thumbnailUrl}
+                              alt={item.name}
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <Package className="h-5 w-5 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-gray-900 max-w-[200px]">
+                            {item.name}
+                          </p>
+                          {item.sku && (
+                            <p className="truncate text-xs text-gray-500">
+                              SKU: {item.sku}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(item.price)}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm text-gray-600">{item.stock}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isReady ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          <CheckCircle className="h-3 w-3" />
+                          Ready
+                        </span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {!hasImage && (
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                              No image
+                            </span>
+                          )}
+                          {!hasDescription && (
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                              No desc
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleListItem(item.id)}
+                        disabled={isListing || configReady === false}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {isListing ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Listing...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-3 w-3" />
+                            List
+                          </>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
@@ -1397,7 +1494,7 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
   }
 
   // List item
-  async function handleListItem(pieceId: string, options: { price?: number; quantity?: number }) {
+  async function handleListItem(pieceId: string, options: { price?: number; quantity?: number; categoryId?: string }) {
     console.log('[EbayMarketplacePage] handleListItem called with:', { pieceId, options })
     setListing(pieceId)
     try {
@@ -1417,6 +1514,10 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
       } else {
         const data = await res.json()
         console.error('[EbayMarketplacePage] Error response:', data)
+        // Show detailed error message for missing fields
+        if (data.details && Array.isArray(data.details)) {
+          throw new Error(`${data.error}: ${data.details.join(', ')}`)
+        }
         throw new Error(data.error || 'Failed to list item')
       }
     } catch (err: any) {
