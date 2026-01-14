@@ -11,7 +11,11 @@ import eBayApi from 'ebay-api'
  * Create an eBay API client with proper configuration
  * Uses the ebay-api package which handles headers correctly
  */
-export function createEbayClient(accessToken: string): eBayApi {
+export function createEbayClient(
+  accessToken: string,
+  refreshToken?: string,
+  expiresIn?: number
+): eBayApi {
   const isProduction = process.env.EBAY_ENVIRONMENT === 'production'
 
   const client = new eBayApi({
@@ -22,12 +26,15 @@ export function createEbayClient(accessToken: string): eBayApi {
     marketplaceId: eBayApi.MarketplaceId.EBAY_AU,
     acceptLanguage: eBayApi.Locale.en_AU,
     contentLanguage: eBayApi.Locale.en_AU,
+    autoRefreshToken: !!refreshToken, // Only auto-refresh if we have a refresh token
   })
 
-  // Set the user's OAuth token
+  // Set the user's OAuth token with refresh token if available
   client.OAuth2.setCredentials({
     access_token: accessToken,
+    refresh_token: refreshToken,
     token_type: 'User Access Token',
+    expires_in: expiresIn || 7200, // Default 2 hours if not specified
   })
 
   return client

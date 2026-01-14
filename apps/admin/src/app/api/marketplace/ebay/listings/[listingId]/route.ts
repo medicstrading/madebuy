@@ -189,7 +189,10 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     }
 
     // Create eBay API client
-    const ebay = createEbayClient(connection.accessToken!)
+    const ebay = createEbayClient(
+      connection.accessToken!,
+      connection.refreshToken || undefined
+    )
 
     // Step 1: Update Inventory Item using ebay-api package
     try {
@@ -318,7 +321,10 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     const sku = listing.marketplaceData?.ebayInventoryItemSku
 
     // Create eBay API client
-    const ebay = createEbayClient(connection.accessToken!)
+    const ebay = createEbayClient(
+      connection.accessToken!,
+      connection.refreshToken || undefined
+    )
 
     // Step 1: Withdraw the offer (unpublish the listing)
     if (offerId) {

@@ -291,7 +291,10 @@ export async function POST(request: NextRequest) {
     const sku = generateSku(tenant.id, pieceId)
 
     // Create eBay API client (handles headers correctly)
-    const ebay = createEbayClient(connection.accessToken!)
+    const ebay = createEbayClient(
+      connection.accessToken!,
+      connection.refreshToken || undefined
+    )
     console.log('[eBay] Using ebay-api package for listing creation')
 
     // Build inventory item payload

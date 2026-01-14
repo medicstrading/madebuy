@@ -222,7 +222,10 @@ async function syncSingleEbayListing(
     }
 
     // Create eBay API client
-    const ebay = createEbayClient(connection.accessToken!)
+    const ebay = createEbayClient(
+      connection.accessToken!,
+      connection.refreshToken || undefined
+    )
 
     // Update inventory item (quantity)
     if (quantityChanged) {
