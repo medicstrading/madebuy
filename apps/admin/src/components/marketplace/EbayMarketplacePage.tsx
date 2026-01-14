@@ -851,7 +851,10 @@ function ListItemsTab({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                        <Link
+                          href={`/dashboard/inventory/${item.id}`}
+                          className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 hover:ring-2 hover:ring-blue-300 transition-all"
+                        >
                           {item.thumbnailUrl ? (
                             <Image
                               src={item.thumbnailUrl}
@@ -865,11 +868,14 @@ function ListItemsTab({
                               <Package className="h-5 w-5 text-gray-400" />
                             </div>
                           )}
-                        </div>
+                        </Link>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-gray-900 max-w-[200px]">
+                          <Link
+                            href={`/dashboard/inventory/${item.id}`}
+                            className="truncate text-sm font-medium text-gray-900 max-w-[200px] hover:text-blue-600 hover:underline"
+                          >
                             {item.name}
-                          </p>
+                          </Link>
                           {item.sku && (
                             <p className="truncate text-xs text-gray-500">
                               SKU: {item.sku}
@@ -893,38 +899,59 @@ function ListItemsTab({
                           Ready
                         </span>
                       ) : (
-                        <div className="flex flex-wrap gap-1">
+                        <Link
+                          href={`/dashboard/inventory/${item.id}`}
+                          className="flex flex-wrap gap-1 group"
+                          title="Click to edit and fix"
+                        >
                           {!hasImage && (
-                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700 group-hover:bg-amber-200 transition-colors">
                               No image
                             </span>
                           )}
                           {!hasDescription && (
-                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700 group-hover:bg-amber-200 transition-colors">
                               No desc
                             </span>
                           )}
-                        </div>
+                          {item.price <= 0 && (
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700 group-hover:bg-amber-200 transition-colors">
+                              No price
+                            </span>
+                          )}
+                        </Link>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleListItem(item.id)}
-                        disabled={isListing || configReady === false}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        {isListing ? (
-                          <>
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            Listing...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-3 w-3" />
-                            List
-                          </>
+                      <div className="flex items-center justify-end gap-2">
+                        {!isReady && (
+                          <Link
+                            href={`/dashboard/inventory/${item.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                            Edit
+                          </Link>
                         )}
-                      </button>
+                        <button
+                          onClick={() => handleListItem(item.id)}
+                          disabled={isListing || configReady === false || !isReady}
+                          title={!isReady ? 'Fix missing fields before listing' : undefined}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isListing ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Listing...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-3 w-3" />
+                              List
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
