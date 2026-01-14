@@ -313,6 +313,8 @@ export async function POST(request: NextRequest) {
         inventoryPayload
       )
       console.log('[eBay] Inventory item created successfully')
+      // Small delay to allow eBay to propagate the inventory item
+      await new Promise(resolve => setTimeout(resolve, 2000))
     } catch (inventoryError: any) {
       // Log full error for debugging
       console.error('eBay Inventory API error:', {
@@ -343,12 +345,17 @@ export async function POST(request: NextRequest) {
     )
 
     let offerResult
+    console.log('[eBay] Creating offer with payload:', JSON.stringify(offerPayload, null, 2))
     try {
       offerResult = await ebay.sell.inventory.createOffer(offerPayload)
       console.log('[eBay] Offer created successfully:', offerResult.offerId)
     } catch (offerError: any) {
-      console.error('eBay Offer API error:', offerError?.message || offerError)
-      const errorDetails = offerError?.meta?.res?.data || offerError?.message
+      console.error('eBay Offer API error:', {
+        message: offerError?.message,
+        meta: offerError?.meta,
+        response: offerError?.response?.data,
+      })
+      const errorDetails = offerError?.meta?.res?.data || offerError?.response?.data || offerError?.message
       return NextResponse.json(
         {
           error: 'Failed to create eBay offer. Please try again.',
