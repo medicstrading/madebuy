@@ -36,6 +36,8 @@ export * from './wishlist'
 export * from './dispute'
 export * from './captionStyle'
 export * from './import'
+export * from './productionRun'
+export * from './reconciliation'
 
 // Re-export commonly used types for convenience
 export type {
@@ -358,6 +360,29 @@ export {
   HASHTAG_LABELS,
   CTA_LABELS,
 } from './captionStyle'
+
+export type {
+  ProductionRun,
+  ProductionMaterialConsumption,
+  CreateProductionRunInput,
+  ProductionRunFilters,
+  ProductionRunListOptions,
+  ProductionSummary,
+} from './productionRun'
+
+export type {
+  InventoryReconciliation,
+  ReconciliationStatus,
+  ReconciliationItem,
+  ReconciliationReason,
+  CreateReconciliationInput,
+  AddReconciliationItemInput,
+  UpdateReconciliationItemInput,
+  ReconciliationFilters,
+  ReconciliationListOptions,
+} from './reconciliation'
+
+export { RECONCILIATION_REASON_LABELS } from './reconciliation'
 
 export * from './marketplace'
 

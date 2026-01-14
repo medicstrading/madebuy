@@ -261,9 +261,55 @@ export async function calculateBatchCOGS(
 }
 
 /**
- * Update material stock from invoice
- * Used when confirming invoice scan results
+ * Adjust material stock by a delta amount
+ * Positive = add stock, Negative = remove stock
+ * Used by production runs and reconciliation
  */
+export async function adjustStock(
+  tenantId: string,
+  materialId: string,
+  adjustment: number,
+  reason: 'production' | 'production_reversal' | 'reconciliation' | 'manual' | 'restock'
+): Promise<Material> {
+  const db = await getDatabase()
+
+  // Get current material
+  const material = await getMaterial(tenantId, materialId)
+  if (!material) {
+    throw new Error(`Material ${materialId} not found`)
+  }
+
+  const newQuantity = material.quantityInStock + adjustment
+  if (newQuantity < 0) {
+    throw new Error(`Cannot reduce stock below 0. Current: ${material.quantityInStock}, adjustment: ${adjustment}`)
+  }
+
+  const isLowStock = newQuantity <= material.reorderPoint
+
+  const updateData: Record<string, unknown> = {
+    quantityInStock: newQuantity,
+    isLowStock,
+    updatedAt: new Date(),
+  }
+
+  // Update lastRestocked if adding stock
+  if (adjustment > 0 && (reason === 'restock' || reason === 'reconciliation')) {
+    updateData.lastRestocked = new Date()
+  }
+
+  await db.collection('materials').updateOne(
+    { tenantId, id: materialId },
+    { $set: updateData }
+  )
+
+  return {
+    ...material,
+    quantityInStock: newQuantity,
+    isLowStock,
+    updatedAt: new Date(),
+  }
+}
+
 export async function restockMaterialFromInvoice(
   tenantId: string,
   materialId: string,

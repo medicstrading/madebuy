@@ -48,6 +48,8 @@ export * as captionStyles from './repositories/captionStyles'
 export * as marketplace from './repositories/marketplace'
 export * as imports from './repositories/imports'
 export * as passwordResets from './repositories/passwordResets'
+export * as productionRuns from './repositories/productionRuns'
+export * as reconciliations from './repositories/reconciliations'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

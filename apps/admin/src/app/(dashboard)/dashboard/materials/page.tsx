@@ -4,6 +4,7 @@ import { formatCurrency, formatDate, formatNumber } from '@/lib/utils'
 import { Plus, AlertTriangle, BarChart3, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { DeleteMaterialButton } from '@/components/materials/DeleteMaterialButton'
+import { StockCountButton } from '@/components/reconciliation/StockCountButton'
 
 export default async function MaterialsPage() {
   const tenant = await requireTenant()
@@ -19,6 +20,7 @@ export default async function MaterialsPage() {
           <p className="mt-2 text-gray-600">Track your supplies and calculate costs</p>
         </div>
         <div className="flex items-center gap-3">
+          <StockCountButton materials={allMaterials} />
           <Link
             href="/dashboard/materials/report"
             className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"

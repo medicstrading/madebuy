@@ -1,22 +1,30 @@
 import { requireTenant } from '@/lib/session'
-import { pieces } from '@madebuy/db'
+import { pieces, materials, productionRuns } from '@madebuy/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Package } from 'lucide-react'
 import { PersonalizationConfigEditor } from '@/components/inventory/PersonalizationConfigEditor'
 import { PieceDetailsEditor } from '@/components/inventory/PieceDetailsEditor'
+import { ProductionSection } from '@/components/production/ProductionSection'
 
 interface PieceDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function PieceDetailPage({ params }: PieceDetailPageProps) {
   const tenant = await requireTenant()
-  const piece = await pieces.getPiece(tenant.id, params.id)
+  const { id } = await params
+  const piece = await pieces.getPiece(tenant.id, id)
 
   if (!piece) {
     notFound()
   }
+
+  // Fetch materials and production history for production section
+  const [materialsResult, runs] = await Promise.all([
+    materials.listMaterials(tenant.id, {}, { limit: 500 }),
+    productionRuns.getProductionRunsForPiece(tenant.id, id, 10),
+  ])
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -44,6 +52,13 @@ export default async function PieceDetailPage({ params }: PieceDetailPageProps) 
 
           <PieceDetailsEditor piece={piece} />
         </div>
+
+        {/* Production Section */}
+        <ProductionSection
+          piece={piece}
+          materials={materialsResult.materials}
+          productionRuns={runs}
+        />
 
         {/* Personalization Config */}
         <div className="rounded-lg bg-white shadow p-6">
