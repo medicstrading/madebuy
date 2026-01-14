@@ -85,9 +85,10 @@ export async function middleware(request: NextRequest) {
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
     secureCookie: process.env.NODE_ENV === 'production',
+    // NextAuth v4 uses 'next-auth.session-token' (NOT 'authjs.session-token' which is Auth.js v5)
     cookieName: process.env.NODE_ENV === 'production'
-      ? '__Secure-authjs.session-token'
-      : 'authjs.session-token',
+      ? '__Secure-next-auth.session-token'
+      : 'next-auth.session-token',
   })
 
   // If authenticated with valid token, skip rate limiting entirely
