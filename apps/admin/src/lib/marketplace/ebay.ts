@@ -34,6 +34,8 @@ export function createEbayClient(
     hasAccessToken: !!accessToken,
     hasRefreshToken: !!refreshToken,
     accessTokenPreview: accessToken?.substring(0, 20) + '...',
+    marketplace: 'EBAY_AU',
+    contentLanguage: 'en_AU',
   })
 
   const client = new eBayApi({
@@ -42,6 +44,11 @@ export function createEbayClient(
     sandbox: !isProduction,
     siteId: eBayApi.SiteId.EBAY_AU,
     marketplaceId: eBayApi.MarketplaceId.EBAY_AU,
+    // CRITICAL: Content-Language must match marketplace for Inventory API
+    // Without this, inventory items are created for US marketplace and
+    // createOffer fails with "SKU not found for marketplace EBAY_AU"
+    contentLanguage: eBayApi.Locale.en_AU,
+    acceptLanguage: eBayApi.Locale.en_AU,
     scope: EBAY_API_SCOPES, // Explicit scopes required for Inventory API
     autoRefreshToken: false,
   })
