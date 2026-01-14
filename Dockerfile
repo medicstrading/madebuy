@@ -1,6 +1,14 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Build-time args for NEXT_PUBLIC_* env vars (must be available during build)
+ARG NEXT_PUBLIC_WEB_URL=https://madebuy.online
+ARG NEXT_PUBLIC_ADMIN_URL=https://admin.madebuy.online
+
+# Set as env vars so Next.js bakes them into the client bundle
+ENV NEXT_PUBLIC_WEB_URL=$NEXT_PUBLIC_WEB_URL
+ENV NEXT_PUBLIC_ADMIN_URL=$NEXT_PUBLIC_ADMIN_URL
+
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
