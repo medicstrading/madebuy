@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -10,27 +10,25 @@ import {
   Layers,
   ShoppingCart,
   Share2,
-  FileText,
-  Mail,
   Plug,
   Settings,
   Paintbrush,
   ChevronRight,
   ChevronDown,
   Tag,
-  Newspaper,
-  FolderOpen,
-  Calendar,
   X,
   Users,
-  BookOpen,
   Star,
   BarChart3,
   Gift,
-  Store,
   Receipt,
-  Globe,
   Rocket,
+  Truck,
+  MapPin,
+  Percent,
+  Bell,
+  Sparkles,
+  Upload,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -52,10 +50,23 @@ interface SidebarProps {
 
 const planLabels: Record<string, string> = {
   starter: 'Starter Plan',
+  free: 'Starter Plan',
   maker: 'Maker Plan',
   professional: 'Professional Plan',
   studio: 'Studio Plan',
 }
+
+// Settings sub-items
+const settingsSubItems = [
+  { name: 'General', href: '/dashboard/settings', icon: Settings, description: 'Maker type & categories' },
+  { name: 'Regional', href: '/dashboard/settings/regional', icon: MapPin, description: 'Currency & locale' },
+  { name: 'Shipping', href: '/dashboard/settings/shipping', icon: Truck, description: 'Sendle integration' },
+  { name: 'Billing', href: '/dashboard/settings/billing', icon: Receipt, description: 'Plans & invoices' },
+  { name: 'Tax / GST', href: '/dashboard/settings/tax', icon: Percent, description: 'Tax settings' },
+  { name: 'Notifications', href: '/dashboard/settings/notifications', icon: Bell, description: 'Email preferences' },
+  { name: 'AI Captions', href: '/dashboard/settings/caption-style', icon: Sparkles, description: 'Caption style' },
+  { name: 'Import', href: '/dashboard/settings/import', icon: Upload, description: 'Bulk CSV import' },
+]
 
 const navigationGroups = [
   {
@@ -92,22 +103,22 @@ const navigationGroups = [
       { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
     ]
   },
-  {
-    label: 'Settings',
-    items: [
-      { name: 'Connections', href: '/dashboard/connections', icon: Plug },
-      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-    ]
-  }
 ]
 
 export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: SidebarProps) {
   const pathname = usePathname()
-  const [marketplaceExpanded, setMarketplaceExpanded] = useState(
-    pathname?.startsWith('/dashboard/marketplace') || false
-  )
 
-  // Marketplace section is always visible - Website is always available, eBay/Etsy are conditional
+  // Settings expansion state - auto-expand if on a settings page
+  const isOnSettingsPage = pathname?.startsWith('/dashboard/settings')
+  const [settingsExpanded, setSettingsExpanded] = useState(isOnSettingsPage || false)
+
+  // Update expansion when pathname changes
+  useEffect(() => {
+    if (isOnSettingsPage) {
+      setSettingsExpanded(true)
+    }
+  }, [isOnSettingsPage])
+
   const hasEbay = marketplaceConnections?.ebay
   const hasEtsy = marketplaceConnections?.etsy
 
@@ -121,7 +132,6 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
           </div>
           <span className="text-xl font-semibold text-gray-900">MadeBuy</span>
         </Link>
-        {/* Mobile close button */}
         {onClose && (
           <button
             onClick={onClose}
@@ -135,96 +145,175 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         {navigationGroups.map((group, groupIndex) => (
-          <div key={group.label}>
-            {/* Insert Marketplace before Settings group - always show */}
-            {group.label === 'Settings' && (
-              <div className="mt-6">
-                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  Marketplaces
-                </h3>
-                <div className="space-y-1">
+          <div key={group.label} className={cn(groupIndex > 0 && 'mt-6')}>
+            <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {group.label}
+            </h3>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+                const Icon = item.icon
+
+                return (
                   <Link
-                    href="/dashboard/marketplace/etsy"
+                    key={item.name}
+                    href={item.href}
                     onClick={onClose}
                     className={cn(
                       'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                      pathname === '/dashboard/marketplace/etsy'
+                      isActive
                         ? 'bg-blue-50 text-blue-600'
-                        : hasEtsy
-                          ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     )}
                   >
-                    <span className={cn(
-                      'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
-                      hasEtsy ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-400'
-                    )}>E</span>
-                    <span className="flex-1">Etsy</span>
-                    {!hasEtsy && (
-                      <span className="text-xs text-gray-400">Connect</span>
+                    <Icon className={cn(
+                      'h-5 w-5 transition-colors',
+                      isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                    )} />
+                    <span className="flex-1">{item.name}</span>
+                    {isActive && (
+                      <ChevronRight className="h-4 w-4 text-blue-400" />
                     )}
                   </Link>
-                  <Link
-                    href="/dashboard/marketplace/ebay"
-                    onClick={onClose}
-                    className={cn(
-                      'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                      pathname === '/dashboard/marketplace/ebay'
-                        ? 'bg-blue-50 text-blue-600'
-                        : hasEbay
-                          ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
-                    )}
-                  >
-                    <span className={cn(
-                      'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
-                      hasEbay ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-                    )}>e</span>
-                    <span className="flex-1">eBay</span>
-                    {!hasEbay && (
-                      <span className="text-xs text-gray-400">Connect</span>
-                    )}
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            <div className={cn(groupIndex > 0 && 'mt-6')}>
-              <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                {group.label}
-              </h3>
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
-                  const Icon = item.icon
-
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={onClose}
-                      className={cn(
-                        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                        isActive
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      )}
-                    >
-                      <Icon className={cn(
-                        'h-5 w-5 transition-colors',
-                        isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                      )} />
-                      <span className="flex-1">{item.name}</span>
-                      {isActive && (
-                        <ChevronRight className="h-4 w-4 text-blue-400" />
-                      )}
-                    </Link>
-                  )
-                })}
-              </div>
+                )
+              })}
             </div>
           </div>
         ))}
+
+        {/* Marketplaces Section */}
+        <div className="mt-6">
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Marketplaces
+          </h3>
+          <div className="space-y-1">
+            <Link
+              href="/dashboard/marketplace/etsy"
+              onClick={onClose}
+              className={cn(
+                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                pathname === '/dashboard/marketplace/etsy'
+                  ? 'bg-blue-50 text-blue-600'
+                  : hasEtsy
+                    ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              )}
+            >
+              <span className={cn(
+                'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
+                hasEtsy ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-400'
+              )}>E</span>
+              <span className="flex-1">Etsy</span>
+              {!hasEtsy && (
+                <span className="text-xs text-gray-400">Connect</span>
+              )}
+            </Link>
+            <Link
+              href="/dashboard/marketplace/ebay"
+              onClick={onClose}
+              className={cn(
+                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                pathname === '/dashboard/marketplace/ebay'
+                  ? 'bg-blue-50 text-blue-600'
+                  : hasEbay
+                    ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              )}
+            >
+              <span className={cn(
+                'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
+                hasEbay ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+              )}>e</span>
+              <span className="flex-1">eBay</span>
+              {!hasEbay && (
+                <span className="text-xs text-gray-400">Connect</span>
+              )}
+            </Link>
+          </div>
+        </div>
+
+        {/* Settings Section - Expandable */}
+        <div className="mt-6">
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Settings
+          </h3>
+          <div className="space-y-1">
+            {/* Connections */}
+            <Link
+              href="/dashboard/connections"
+              onClick={onClose}
+              className={cn(
+                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                pathname === '/dashboard/connections'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              )}
+            >
+              <Plug className={cn(
+                'h-5 w-5 transition-colors',
+                pathname === '/dashboard/connections' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+              )} />
+              <span className="flex-1">Connections</span>
+            </Link>
+
+            {/* Settings - Expandable */}
+            <div>
+              <button
+                onClick={() => setSettingsExpanded(!settingsExpanded)}
+                className={cn(
+                  'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                  isOnSettingsPage
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                )}
+              >
+                <Settings className={cn(
+                  'h-5 w-5 transition-colors',
+                  isOnSettingsPage ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                )} />
+                <span className="flex-1 text-left">Settings</span>
+                <ChevronDown className={cn(
+                  'h-4 w-4 transition-transform duration-200',
+                  settingsExpanded ? 'rotate-180' : '',
+                  isOnSettingsPage ? 'text-blue-400' : 'text-gray-400'
+                )} />
+              </button>
+
+              {/* Settings Sub-items */}
+              <div className={cn(
+                'overflow-hidden transition-all duration-200 ease-in-out',
+                settingsExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+              )}>
+                <div className="mt-1 ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3">
+                  {settingsSubItems.map((item) => {
+                    const isActive = pathname === item.href
+                    const Icon = item.icon
+
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          'group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-all duration-150',
+                          isActive
+                            ? 'bg-blue-50 text-blue-600 font-medium'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                        )}
+                      >
+                        <Icon className={cn(
+                          'h-4 w-4 transition-colors flex-shrink-0',
+                          isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                        )} />
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </nav>
 
       {/* User card at bottom */}
@@ -240,7 +329,7 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
               {tenant?.businessName || 'My Store'}
             </p>
             <p className="text-xs text-gray-500">
-              {planLabels[tenant?.plan || 'free'] || 'Free Plan'}
+              {planLabels[tenant?.plan || 'free'] || 'Starter Plan'}
             </p>
           </div>
         </div>
@@ -248,10 +337,9 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
     </>
   )
 
-  // Desktop sidebar
   return (
     <>
-      {/* Desktop sidebar - always visible on lg+ */}
+      {/* Desktop sidebar */}
       <div className="hidden lg:flex h-full w-[260px] flex-col bg-white border-r border-gray-200">
         {sidebarContent}
       </div>
@@ -259,12 +347,10 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
       {/* Mobile sidebar - overlay */}
       {isOpen && (
         <>
-          {/* Backdrop */}
           <div
             className="lg:hidden fixed inset-0 z-40 bg-black/50"
             onClick={onClose}
           />
-          {/* Sidebar */}
           <div className="lg:hidden fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-white shadow-xl">
             {sidebarContent}
           </div>

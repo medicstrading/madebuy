@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Check, CreditCard, Sparkles, Zap, Crown, ExternalLink, Loader2 } from 'lucide-react'
+import { Check, CreditCard, Sparkles, Zap, Crown, ExternalLink, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 
 const PLANS = [
   {
@@ -19,7 +18,9 @@ const PLANS = [
       '10 orders/month',
     ],
     icon: Sparkles,
-    color: 'gray',
+    gradient: 'from-gray-100 to-slate-100',
+    iconBg: 'bg-gray-100',
+    iconColor: 'text-gray-500',
   },
   {
     id: 'maker',
@@ -36,7 +37,9 @@ const PLANS = [
       '20 AI captions/month',
     ],
     icon: Zap,
-    color: 'blue',
+    gradient: 'from-blue-50 to-indigo-50',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600',
     popular: true,
   },
   {
@@ -55,7 +58,9 @@ const PLANS = [
       'Priority support',
     ],
     icon: Crown,
-    color: 'purple',
+    gradient: 'from-purple-50 to-violet-50',
+    iconBg: 'bg-purple-100',
+    iconColor: 'text-purple-600',
   },
   {
     id: 'studio',
@@ -67,13 +72,15 @@ const PLANS = [
       'Unlimited products',
       '30 images per product',
       '10 GB storage',
-      'Unlimited social platforms',
+      'Unlimited platforms',
       'Unlimited AI captions',
       'API access',
       '3 team members',
     ],
     icon: Crown,
-    color: 'amber',
+    gradient: 'from-amber-50 to-orange-50',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600',
   },
 ]
 
@@ -86,7 +93,6 @@ export default function BillingPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
-    // Check for success/cancel params
     if (searchParams?.get('success') === 'true') {
       setMessage({ type: 'success', text: 'Subscription updated successfully!' })
     } else if (searchParams?.get('canceled') === 'true') {
@@ -129,7 +135,6 @@ export default function BillingPage() {
         throw new Error(data.error || 'Failed to create checkout session')
       }
 
-      // Redirect to Stripe Checkout
       window.location.href = data.url
     } catch (err) {
       setMessage({
@@ -155,7 +160,6 @@ export default function BillingPage() {
         throw new Error(data.error || 'Failed to open billing portal')
       }
 
-      // Redirect to Stripe Portal
       window.location.href = data.url
     } catch (err) {
       setMessage({
@@ -168,73 +172,75 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
   }
 
+  const currentPlanData = PLANS.find(p => p.id === currentPlan)
+
   return (
-    <div>
-      <div className="mb-6">
-        <Link
-          href="/dashboard/settings"
-          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Settings
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Billing & Plans</h1>
-        <p className="mt-2 text-gray-600">Manage your subscription and billing settings</p>
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Billing & Plans</h1>
+        <p className="mt-1 text-gray-500">Manage your subscription and billing settings</p>
       </div>
 
       {/* Message Banner */}
       {message && (
         <div
-          className={`mb-6 rounded-lg p-4 ${
+          className={`mb-6 rounded-xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
             message.type === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-800'
-              : 'bg-red-50 border border-red-200 text-red-800'
+              ? 'bg-emerald-50 border border-emerald-200'
+              : 'bg-red-50 border border-red-200'
           }`}
         >
-          {message.text}
+          {message.type === 'success' ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+          ) : (
+            <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+          )}
+          <p className={message.type === 'success' ? 'text-emerald-800' : 'text-red-800'}>
+            {message.text}
+          </p>
         </div>
       )}
 
-      {/* Current Plan */}
-      <div className="mb-8 rounded-lg bg-blue-50 border border-blue-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Current Plan</h2>
-            <p className="text-gray-600">
-              You are currently on the{' '}
-              <span className="font-semibold capitalize">
-                {PLANS.find(p => p.id === currentPlan)?.name || currentPlan}
-              </span> plan
-            </p>
-          </div>
+      {/* Current Plan Card */}
+      <div className="mb-8 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            {hasSubscription && (
-              <button
-                onClick={handleManageSubscription}
-                disabled={upgrading === 'portal'}
-                className="flex items-center gap-2 rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50"
-              >
-                {upgrading === 'portal' ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
-                Manage Subscription
-              </button>
-            )}
-            <CreditCard className="h-8 w-8 text-blue-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+              <CreditCard className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-blue-600 font-medium">Current Plan</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {currentPlanData?.name || 'Starter'}
+              </p>
+            </div>
           </div>
+          {hasSubscription && (
+            <button
+              onClick={handleManageSubscription}
+              disabled={upgrading === 'portal'}
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50 transition-colors"
+            >
+              {upgrading === 'portal' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="h-4 w-4" />
+              )}
+              Manage Subscription
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Plans Grid */}
-      <div className="grid gap-6 lg:grid-cols-4">
+      {/* Plans Grid - Responsive */}
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((plan) => {
           const Icon = plan.icon
           const isCurrentPlan = plan.id === currentPlan
@@ -243,17 +249,18 @@ export default function BillingPage() {
           return (
             <div
               key={plan.id}
-              className={`relative rounded-lg border-2 bg-white p-6 shadow-sm transition-all ${
+              className={`relative rounded-2xl border-2 bg-gradient-to-br ${plan.gradient} p-5 transition-all duration-200 ${
                 isCurrentPlan
-                  ? 'border-blue-600 ring-2 ring-blue-600 ring-offset-2'
-                  : plan.popular
-                  ? 'border-purple-300'
-                  : 'border-gray-200'
+                  ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg'
+                  : plan.popular && !isCurrentPlan
+                  ? 'border-purple-300 hover:border-purple-400 hover:shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
               }`}
             >
+              {/* Badge */}
               {plan.popular && !isCurrentPlan && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
                     Most Popular
                   </span>
                 </div>
@@ -261,39 +268,43 @@ export default function BillingPage() {
 
               {isCurrentPlan && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
                     Current Plan
                   </span>
                 </div>
               )}
 
+              {/* Plan Header */}
               <div className="mb-4 flex items-center gap-3">
-                <div className={`rounded-lg p-2 bg-${plan.color}-100`}>
-                  <Icon className={`h-5 w-5 text-${plan.color}-600`} />
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${plan.iconBg}`}>
+                  <Icon className={`h-5 w-5 ${plan.iconColor}`} />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
               </div>
 
-              <div className="mb-4">
+              {/* Price */}
+              <div className="mb-3">
                 <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
-                <span className="text-gray-600">/month</span>
+                <span className="text-gray-500 text-sm">/month</span>
               </div>
 
-              <p className="mb-6 text-sm text-gray-600">{plan.description}</p>
+              <p className="mb-5 text-sm text-gray-600">{plan.description}</p>
 
-              <ul className="mb-6 space-y-2">
+              {/* Features */}
+              <ul className="mb-5 space-y-2.5">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-gray-700">
-                    <Check className="h-4 w-4 text-green-600" />
-                    {feature}
+                  <li key={feature} className="flex items-start gap-2 text-sm text-gray-700">
+                    <Check className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* Action Button */}
               {isCurrentPlan ? (
                 <button
                   disabled
-                  className="w-full rounded-lg bg-gray-100 py-2 text-sm font-medium text-gray-500 cursor-not-allowed"
+                  className="w-full rounded-xl bg-gray-100 py-2.5 text-sm font-medium text-gray-400 cursor-not-allowed"
                 >
                   Current Plan
                 </button>
@@ -301,7 +312,11 @@ export default function BillingPage() {
                 <button
                   onClick={() => handleUpgrade(plan.id)}
                   disabled={upgrading !== null}
-                  className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className={`w-full rounded-xl py-2.5 text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    plan.popular
+                      ? 'bg-purple-600 hover:bg-purple-700'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 >
                   {upgrading === plan.id ? (
                     <>
@@ -315,9 +330,9 @@ export default function BillingPage() {
               ) : (
                 <button
                   disabled
-                  className="w-full rounded-lg bg-gray-100 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
+                  className="w-full rounded-xl bg-gray-100 py-2.5 text-sm font-medium text-gray-400 cursor-not-allowed"
                 >
-                  Included in your plan
+                  Included
                 </button>
               )}
             </div>
@@ -325,11 +340,11 @@ export default function BillingPage() {
         })}
       </div>
 
-      {/* Help Text */}
-      <div className="mt-8 rounded-lg bg-gray-50 p-6 text-center">
+      {/* Help Section */}
+      <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5 text-center">
         <p className="text-sm text-gray-600">
           Need help choosing a plan?{' '}
-          <a href="mailto:support@madebuy.com.au" className="text-blue-600 hover:underline">
+          <a href="mailto:support@madebuy.com.au" className="text-blue-600 hover:underline font-medium">
             Contact our team
           </a>{' '}
           for personalized recommendations.
