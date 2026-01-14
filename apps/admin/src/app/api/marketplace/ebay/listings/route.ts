@@ -314,8 +314,16 @@ export async function POST(request: NextRequest) {
       )
       console.log('[eBay] Inventory item created successfully')
     } catch (inventoryError: any) {
-      console.error('eBay Inventory API error:', inventoryError?.message || inventoryError)
-      const errorDetails = inventoryError?.meta?.res?.data || inventoryError?.message
+      // Log full error for debugging
+      console.error('eBay Inventory API error:', {
+        message: inventoryError?.message,
+        name: inventoryError?.name,
+        meta: inventoryError?.meta,
+        response: inventoryError?.response,
+        status: inventoryError?.status,
+        fullError: JSON.stringify(inventoryError, Object.getOwnPropertyNames(inventoryError), 2),
+      })
+      const errorDetails = inventoryError?.meta?.res?.data || inventoryError?.response?.data || inventoryError?.message
       return NextResponse.json(
         {
           error: 'Failed to create eBay inventory item. Please try again.',

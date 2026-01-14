@@ -18,23 +18,29 @@ export function createEbayClient(
 ): eBayApi {
   const isProduction = process.env.EBAY_ENVIRONMENT === 'production'
 
+  console.log('[eBay Client] Creating client:', {
+    isProduction,
+    hasAccessToken: !!accessToken,
+    hasRefreshToken: !!refreshToken,
+    accessTokenPreview: accessToken?.substring(0, 20) + '...',
+  })
+
   const client = new eBayApi({
     appId: process.env.EBAY_CLIENT_ID!,
     certId: process.env.EBAY_CLIENT_SECRET!,
     sandbox: !isProduction,
     siteId: eBayApi.SiteId.EBAY_AU,
     marketplaceId: eBayApi.MarketplaceId.EBAY_AU,
-    acceptLanguage: eBayApi.Locale.en_AU,
-    contentLanguage: eBayApi.Locale.en_AU,
-    autoRefreshToken: !!refreshToken, // Only auto-refresh if we have a refresh token
+    // Don't set language headers - let eBay default based on marketplace
+    autoRefreshToken: false, // Disable auto-refresh to avoid issues
   })
 
-  // Set the user's OAuth token with refresh token if available
+  // Set the user's OAuth token
   client.OAuth2.setCredentials({
     access_token: accessToken,
     refresh_token: refreshToken,
     token_type: 'User Access Token',
-    expires_in: expiresIn || 7200, // Default 2 hours if not specified
+    expires_in: expiresIn || 7200,
   })
 
   return client
