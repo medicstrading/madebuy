@@ -175,8 +175,15 @@ function AccountStatusCard({
     <div className="rounded-xl border border-gray-200 bg-white p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-            <span className="text-xl font-bold text-blue-600">e</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-gray-200">
+            <svg viewBox="0 0 24 24" className="h-7 w-7">
+              <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+                <tspan fill="#E53238">e</tspan>
+                <tspan fill="#0064D2">b</tspan>
+                <tspan fill="#F5AF02">a</tspan>
+                <tspan fill="#86B817">y</tspan>
+              </text>
+            </svg>
           </div>
           <div>
             <div className="flex items-center gap-2">

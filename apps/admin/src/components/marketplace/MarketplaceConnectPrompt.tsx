@@ -55,10 +55,21 @@ export function MarketplaceConnectPrompt({
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl ${colors.icon} mb-4`}>
-            <span className="text-2xl font-bold">
-              {platform === 'ebay' ? 'e' : 'E'}
-            </span>
+          <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-200 mb-4`}>
+            {platform === 'ebay' ? (
+              <svg viewBox="0 0 24 24" className="h-10 w-10">
+                <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+                  <tspan fill="#E53238">e</tspan>
+                  <tspan fill="#0064D2">b</tspan>
+                  <tspan fill="#F5AF02">a</tspan>
+                  <tspan fill="#86B817">y</tspan>
+                </text>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-10 w-10" fill="#F56400">
+                <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z"/>
+              </svg>
+            )}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Connect to {platformName}

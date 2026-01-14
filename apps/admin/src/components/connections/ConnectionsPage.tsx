@@ -356,15 +356,22 @@ function MarketplaceCard({
   // Platform icons (inline SVG for eBay/Etsy brand marks)
   const PlatformIcon = () => {
     if (platform.id === 'ebay') {
+      // eBay colorful logo
       return (
-        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
-          <path d="M5.939 12.012c0-2.079 1.107-3.544 2.693-3.544 1.585 0 2.694 1.465 2.694 3.544 0 2.078-1.109 3.543-2.694 3.543-1.586 0-2.693-1.465-2.693-3.543m7.674 0c0-3.466-2.279-5.936-4.981-5.936-2.704 0-4.98 2.47-4.98 5.936 0 3.465 2.276 5.935 4.98 5.935 2.702 0 4.981-2.47 4.981-5.935" />
+        <svg viewBox="0 0 24 24" className="h-6 w-6">
+          <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+            <tspan fill="#E53238">e</tspan>
+            <tspan fill="#0064D2">b</tspan>
+            <tspan fill="#F5AF02">a</tspan>
+            <tspan fill="#86B817">y</tspan>
+          </text>
         </svg>
       )
     }
+    // Etsy logo
     return (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
-        <path d="M12 24C5.373 24 0 18.627 0 12S5.373 0 12 0s12 5.373 12 12-5.373 12-12 12zm0-22C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" />
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="#F56400">
+        <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z"/>
       </svg>
     )
   }

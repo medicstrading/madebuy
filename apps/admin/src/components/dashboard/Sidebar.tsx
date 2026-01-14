@@ -200,9 +200,13 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
               )}
             >
               <span className={cn(
-                'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
-                hasEtsy ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-400'
-              )}>E</span>
+                'flex h-5 w-5 items-center justify-center rounded',
+                hasEtsy ? 'bg-orange-100' : 'bg-gray-100'
+              )}>
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill={hasEtsy ? '#F56400' : '#9CA3AF'}>
+                  <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z"/>
+                </svg>
+              </span>
               <span className="flex-1">Etsy</span>
               {!hasEtsy && (
                 <span className="text-xs text-gray-400">Connect</span>
@@ -221,9 +225,18 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
               )}
             >
               <span className={cn(
-                'flex h-5 w-5 items-center justify-center rounded text-xs font-bold',
-                hasEbay ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-              )}>e</span>
+                'flex h-5 w-5 items-center justify-center rounded',
+                hasEbay ? 'bg-blue-50' : 'bg-gray-100'
+              )}>
+                <svg viewBox="0 0 24 24" className="h-4 w-4">
+                  <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+                    <tspan fill={hasEbay ? '#E53238' : '#9CA3AF'}>e</tspan>
+                    <tspan fill={hasEbay ? '#0064D2' : '#9CA3AF'}>b</tspan>
+                    <tspan fill={hasEbay ? '#F5AF02' : '#9CA3AF'}>a</tspan>
+                    <tspan fill={hasEbay ? '#86B817' : '#9CA3AF'}>y</tspan>
+                  </text>
+                </svg>
+              </span>
               <span className="flex-1">eBay</span>
               {!hasEbay && (
                 <span className="text-xs text-gray-400">Connect</span>
