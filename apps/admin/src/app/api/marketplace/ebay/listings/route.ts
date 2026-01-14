@@ -164,9 +164,13 @@ export async function GET(request: NextRequest) {
     const pieceId = searchParams.get('pieceId')
 
     // Get listings from database
+    // Default to showing active/pending/error listings, exclude ended unless specifically requested
+    const effectiveStatus = status
+      ? (status as MarketplaceListing['status'])
+      : ['active', 'pending', 'error'] as MarketplaceListing['status'][]
     const listings = await marketplace.listListings(tenant.id, {
       marketplace: 'ebay',
-      status: status as MarketplaceListing['status'] | undefined,
+      status: effectiveStatus,
       pieceId: pieceId || undefined,
     })
 
