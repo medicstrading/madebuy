@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
 import { ProductAddToCart } from '@/components/product/ProductAddToCart'
 import { ProductViewTracker } from '@/components/analytics/ProductViewTracker'
-import { ReviewStars, ReviewsList } from '@/components/reviews'
+import { ReviewStars, ReviewsList, ProductReviewSubmit } from '@/components/reviews'
 
 export async function generateMetadata({
   params
@@ -215,6 +215,17 @@ export default async function PieceDetailPage({
         {/* Customer Reviews Section */}
         <section className="mt-16 border-t border-gray-200 pt-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Customer Reviews</h2>
+
+          {/* Review Submission Form */}
+          <div className="mb-10 max-w-lg">
+            <ProductReviewSubmit
+              tenantId={tenant.id}
+              pieceId={piece.id}
+              pieceName={piece.name}
+            />
+          </div>
+
+          {/* Existing Reviews */}
           <ReviewsList
             tenantId={tenant.id}
             pieceId={piece.id}

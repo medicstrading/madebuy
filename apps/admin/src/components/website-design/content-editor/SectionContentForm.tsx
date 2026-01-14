@@ -800,6 +800,88 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
         </div>
       )
 
+    case 'reviews':
+      return (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <input
+              type="text"
+              value={settings.title || ''}
+              onChange={(e) => updateSettings({ title: e.target.value })}
+              placeholder="Customer Reviews"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle (optional)</label>
+            <input
+              type="text"
+              value={settings.subtitle || ''}
+              onChange={(e) => updateSettings({ subtitle: e.target.value })}
+              placeholder="See what our customers are saying"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
+            <select
+              value={settings.reviewsLayout || 'grid'}
+              onChange={(e) => updateSettings({ reviewsLayout: e.target.value as 'grid' | 'list' })}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+            >
+              <option value="grid">Grid (3 columns)</option>
+              <option value="list">List (single column)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Number of Reviews: {settings.reviewsLimit || 6}
+            </label>
+            <input
+              type="range"
+              min="3"
+              max="12"
+              step="1"
+              value={settings.reviewsLimit || 6}
+              onChange={(e) => updateSettings({ reviewsLimit: parseInt(e.target.value) })}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>3</span>
+              <span>12</span>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.reviewsShowRatingBreakdown ?? true}
+              onChange={(e) => updateSettings({ reviewsShowRatingBreakdown: e.target.checked })}
+              className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="text-sm text-gray-700">Show rating breakdown summary</span>
+          </label>
+
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              Reviews are pulled from your approved product reviews. Customers can submit reviews from product pages after verifying their purchase.
+            </p>
+          </div>
+
+          <button
+            onClick={markComplete}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            Mark as Complete
+          </button>
+        </div>
+      )
+
     default:
       return (
         <div className="py-8 text-center text-gray-500">

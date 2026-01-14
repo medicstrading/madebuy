@@ -388,3 +388,125 @@ export async function getReviewsForModeration(
 
   return reviews as unknown as Review[]
 }
+
+/**
+ * Review with associated product metadata
+ */
+export interface ReviewWithPiece extends Review {
+  piece?: {
+    name: string
+    slug: string
+    thumbnail?: string
+  }
+}
+
+/**
+ * List recent approved reviews across all products for a tenant.
+ * Includes piece metadata (name, slug, thumbnail) with each review.
+ */
+export async function listRecentApprovedReviews(
+  tenantId: string,
+  limit: number = 6
+): Promise<ReviewWithPiece[]> {
+  const db = await getDatabase()
+
+  const pipeline = [
+    {
+      $match: {
+        tenantId,
+        status: 'approved',
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: 'pieces',
+        let: { pieceId: '$pieceId' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$id', '$$pieceId'] },
+            },
+          },
+          {
+            $project: {
+              name: 1,
+              slug: 1,
+              thumbnail: { $arrayElemAt: ['$images', 0] },
+            },
+          },
+        ],
+        as: 'pieceData',
+      },
+    },
+    {
+      $addFields: {
+        piece: { $arrayElemAt: ['$pieceData', 0] },
+      },
+    },
+    {
+      $project: {
+        pieceData: 0,
+      },
+    },
+  ]
+
+  const results = await db.collection('reviews').aggregate(pipeline).toArray()
+  return results as unknown as ReviewWithPiece[]
+}
+
+/**
+ * Get aggregated review stats for a tenant (across all products)
+ */
+export async function getTenantReviewStats(tenantId: string): Promise<{
+  averageRating: number
+  totalReviews: number
+  ratingBreakdown: Record<string, number>
+}> {
+  const db = await getDatabase()
+
+  const pipeline = [
+    {
+      $match: {
+        tenantId,
+        status: 'approved',
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 },
+        rating1: { $sum: { $cond: [{ $eq: ['$rating', 1] }, 1, 0] } },
+        rating2: { $sum: { $cond: [{ $eq: ['$rating', 2] }, 1, 0] } },
+        rating3: { $sum: { $cond: [{ $eq: ['$rating', 3] }, 1, 0] } },
+        rating4: { $sum: { $cond: [{ $eq: ['$rating', 4] }, 1, 0] } },
+        rating5: { $sum: { $cond: [{ $eq: ['$rating', 5] }, 1, 0] } },
+      },
+    },
+  ]
+
+  const result = await db.collection('reviews').aggregate(pipeline).toArray()
+
+  if (result.length === 0) {
+    return {
+      averageRating: 0,
+      totalReviews: 0,
+      ratingBreakdown: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+    }
+  }
+
+  const stats = result[0]
+  return {
+    averageRating: Math.round((stats.averageRating || 0) * 10) / 10,
+    totalReviews: stats.totalReviews || 0,
+    ratingBreakdown: {
+      '1': stats.rating1 || 0,
+      '2': stats.rating2 || 0,
+      '3': stats.rating3 || 0,
+      '4': stats.rating4 || 0,
+      '5': stats.rating5 || 0,
+    },
+  }
+}

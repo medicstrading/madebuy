@@ -21,6 +21,7 @@ import { ContactSection } from './ContactSection'
 import { CustomOrderCTA } from './CustomOrderCTA'
 import { NewsletterSignup } from './NewsletterSignup'
 import { Spacer } from './Spacer'
+import { ReviewsSection } from './ReviewsSection'
 
 // Section component props interface
 export interface SectionProps {
@@ -51,6 +52,7 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   'custom-order': CustomOrderCTA,
   'newsletter': NewsletterSignup,
   'spacer': Spacer,
+  'reviews': ReviewsSection,
 }
 
 // Padding size map

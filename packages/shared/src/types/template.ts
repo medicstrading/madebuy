@@ -97,6 +97,7 @@ export type PageSectionType =
   | 'custom-order'     // Custom order CTA
   | 'newsletter'       // Email signup
   | 'spacer'           // Visual spacing
+  | 'reviews'          // Customer reviews aggregated
 
 export interface PageSection {
   id: string
@@ -214,6 +215,11 @@ export interface PageSectionSettings {
 
   // Spacer settings
   spacerHeight?: 'small' | 'medium' | 'large'
+
+  // Reviews section settings
+  reviewsShowRatingBreakdown?: boolean
+  reviewsLimit?: number  // default 6
+  reviewsLayout?: 'grid' | 'list'
 }
 
 // ============================================
@@ -699,6 +705,7 @@ export const SECTION_TYPE_LABELS: Record<PageSectionType, string> = {
   'custom-order': 'Custom Order CTA',
   'newsletter': 'Newsletter Signup',
   'spacer': 'Spacer',
+  'reviews': 'Customer Reviews',
 }
 
 /**

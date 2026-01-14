@@ -469,6 +469,9 @@ interface ReviewRequestEmailData {
 
 /**
  * Build review request email HTML
+ * @deprecated Email-based review requests removed in favor of website design module.
+ * Reviews are now submitted directly on product pages after email verification.
+ * Keeping for reference.
  */
 function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
   const { order, tenant, reviewUrl } = data
@@ -549,6 +552,9 @@ function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
 
 /**
  * Send review request email
+ * @deprecated Email-based review requests removed in favor of website design module.
+ * Reviews are now submitted directly on product pages after email verification.
+ * Keeping for reference.
  */
 export async function sendReviewRequestEmail(data: ReviewRequestEmailData): Promise<{
   success: boolean

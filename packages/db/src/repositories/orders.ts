@@ -373,6 +373,8 @@ export async function bulkUpdateOrderStatus(
 /**
  * Get orders that are ready for review request emails
  * (delivered at least 7 days ago, review request not yet sent)
+ * @deprecated Part of email review request system - being removed.
+ * Reviews are now submitted via website design module.
  */
 export async function getOrdersForReviewRequest(
   tenantId: string,
@@ -402,6 +404,7 @@ export async function getOrdersForReviewRequest(
 
 /**
  * Mark review request as sent for an order
+ * @deprecated Part of email review request system - being removed
  */
 export async function markReviewRequestSent(
   tenantId: string,
@@ -418,4 +421,31 @@ export async function markReviewRequestSent(
       },
     }
   )
+}
+
+/**
+ * Find a delivered order where the customer purchased a specific product.
+ * Used for verifying purchase before allowing review submission.
+ *
+ * @param tenantId - Tenant ID
+ * @param email - Customer email
+ * @param pieceId - Product ID to check for
+ * @returns Order if found, null otherwise
+ */
+export async function findDeliveredOrderWithProduct(
+  tenantId: string,
+  email: string,
+  pieceId: string
+): Promise<Order | null> {
+  const db = await getDatabase()
+
+  // Find any delivered order from this customer that contains the product
+  const order = await db.collection('orders').findOne({
+    tenantId,
+    customerEmail: email.toLowerCase(),
+    status: 'delivered',
+    'items.pieceId': pieceId,
+  })
+
+  return order as Order | null
 }
