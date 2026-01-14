@@ -11,6 +11,17 @@ import eBayApi from 'ebay-api'
  * Create an eBay API client with proper configuration
  * Uses the ebay-api package which handles headers correctly
  */
+// OAuth scopes required for Inventory API operations
+const EBAY_API_SCOPES = [
+  'https://api.ebay.com/oauth/api_scope',
+  'https://api.ebay.com/oauth/api_scope/sell.inventory',
+  'https://api.ebay.com/oauth/api_scope/sell.inventory.readonly',
+  'https://api.ebay.com/oauth/api_scope/sell.account',
+  'https://api.ebay.com/oauth/api_scope/sell.account.readonly',
+  'https://api.ebay.com/oauth/api_scope/sell.fulfillment',
+  'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
+]
+
 export function createEbayClient(
   accessToken: string,
   refreshToken?: string,
@@ -31,8 +42,8 @@ export function createEbayClient(
     sandbox: !isProduction,
     siteId: eBayApi.SiteId.EBAY_AU,
     marketplaceId: eBayApi.MarketplaceId.EBAY_AU,
-    // Don't set language headers - let eBay default based on marketplace
-    autoRefreshToken: false, // Disable auto-refresh to avoid issues
+    scope: EBAY_API_SCOPES, // Explicit scopes required for Inventory API
+    autoRefreshToken: false,
   })
 
   // Set the user's OAuth token
