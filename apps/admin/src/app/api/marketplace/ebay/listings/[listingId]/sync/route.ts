@@ -124,6 +124,8 @@ export async function POST(request: NextRequest, context: RouteParams) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
+          'Content-Language': 'en_AU',
+          'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
         },
         body: JSON.stringify(inventoryPayload),
       }
@@ -154,6 +156,8 @@ export async function POST(request: NextRequest, context: RouteParams) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
+          'Content-Language': 'en_AU',
+          'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
         },
         body: JSON.stringify({
           pricingSummary: {

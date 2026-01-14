@@ -130,6 +130,8 @@ async function importEbayOrders(
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
+          'Content-Language': 'en_AU',
+          'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
         },
       }
     )

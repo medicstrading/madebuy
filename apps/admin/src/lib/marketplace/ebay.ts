@@ -15,10 +15,12 @@ export function getEbayApiUrl(path: string): string {
 
 /**
  * Common headers for eBay API requests
- * Note: Content-Language and Accept-Language cause errors with eBay API
- * eBay defaults to correct locale based on marketplace ID
+ * Note: Content-Language uses underscore format (en_AU not en-AU)
  */
-export const EBAY_HEADERS = {} as const
+export const EBAY_HEADERS = {
+  'Content-Language': 'en_AU',
+  'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
+} as const
 
 /**
  * Get eBay domain based on environment (for building URLs)

@@ -307,6 +307,8 @@ export async function POST(request: NextRequest) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
+          'Content-Language': 'en_AU', // underscore format required
+          'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
         },
         body: JSON.stringify(inventoryPayload),
       }
@@ -335,6 +337,8 @@ export async function POST(request: NextRequest) {
       headers: {
         Authorization: `Bearer ${connection.accessToken}`,
         'Content-Type': 'application/json',
+        'Content-Language': 'en_AU',
+        'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
       },
       body: JSON.stringify(offerPayload),
     })
@@ -359,6 +363,8 @@ export async function POST(request: NextRequest) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
+          'Content-Language': 'en_AU',
+          'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
         },
       }
     )
