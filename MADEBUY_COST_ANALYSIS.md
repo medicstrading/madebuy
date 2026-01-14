@@ -21,7 +21,7 @@ MadeBuy's infrastructure is designed for cost efficiency with a pay-as-you-grow 
 
 ## 1. Infrastructure Costs
 
-### 1.1 Hosting (Vultr VPS)
+### 1.1 Hosting (Railway)
 
 Current setup on NUC for development. Production deployment options:
 
@@ -34,7 +34,7 @@ Current setup on NUC for development. Production deployment options:
 
 **Recommendation:** Start with $6/mo Cloud Compute, upgrade to $28/mo Optimized when traffic warrants.
 
-**Additional Vultr Costs:**
+**Additional Railway Costs:**
 - Automatic backups: +20% of VPS cost (~$1.20-$5.60/mo)
 - Snapshots: Free
 - Bandwidth overage: $0.01/GB (unlikely to hit with 1-3TB included)
@@ -43,12 +43,12 @@ Current setup on NUC for development. Production deployment options:
 
 | Option | Storage | Monthly Cost | Notes |
 |--------|---------|--------------|-------|
-| **Self-hosted (Vultr)** | Unlimited | $0 (included in VPS) | Manual backups, no HA |
+| **Self-hosted (Railway)** | Unlimited | $0 (included in VPS) | Manual backups, no HA |
 | **Atlas Free (M0)** | 512MB | **$0** | Shared, good for dev |
 | **Atlas Flex** | 5GB | **~$10-20** | Dev/test |
 | **Atlas Dedicated (M10)** | 10GB | **$57 AUD** | Production, HA, backups |
 
-**Recommendation:** Self-host on Vultr VPS initially ($0 extra). Move to Atlas M10 ($57/mo) when you need managed backups and high availability.
+**Recommendation:** Self-host on Railway initially ($0 extra). Move to Atlas M10 ($57/mo) when you need managed backups and high availability.
 
 ### 1.3 CDN & DNS (Cloudflare)
 
@@ -214,7 +214,7 @@ If MadeBuy processes payments on behalf of sellers:
 
 | Category | Service | Cost |
 |----------|---------|------|
-| Hosting | Vultr Cloud Compute | $6 |
+| Hosting | Railway Cloud Compute | $6 |
 | Database | Self-hosted MongoDB | $0 |
 | CDN/DNS | Cloudflare Free | $0 |
 | Storage | R2 (free tier) | $0 |
@@ -227,7 +227,7 @@ If MadeBuy processes payments on behalf of sellers:
 
 | Category | Service | Cost |
 |----------|---------|------|
-| Hosting | Vultr Optimized | $28 |
+| Hosting | Railway Optimized | $28 |
 | Database | Self-hosted | $0 |
 | CDN/DNS | Cloudflare Free | $0 |
 | Storage | R2 | $2 |
@@ -240,7 +240,7 @@ If MadeBuy processes payments on behalf of sellers:
 
 | Category | Service | Cost |
 |----------|---------|------|
-| Hosting | Vultr High Perf | $48 |
+| Hosting | Railway High Perf | $48 |
 | Database | MongoDB Atlas M10 | $57 |
 | CDN/DNS | Cloudflare Free | $0 |
 | Storage | R2 | $6 |
@@ -436,7 +436,7 @@ If you include social publishing in Pro+ tiers:
 |------|------------|--------|------------|
 | Late.dev price increase | Medium | High | Annual prepay, negotiate |
 | R2 pricing change | Low | Low | Minimal current cost |
-| Vultr price increase | Low | Medium | Easy to migrate VPS |
+| Railway price increase | Low | Medium | Easy to migrate VPS |
 | Stripe fee increase | Medium | Low | Passed to revenue |
 
 ### 7.2 Revenue Risks
@@ -461,7 +461,7 @@ If you include social publishing in Pro+ tiers:
 ### 8.2 Infrastructure
 
 1. **Stay on NUC for development**
-2. **Deploy to Vultr $6 plan initially**
+2. **Deploy to Railway $6 plan initially**
 3. **Use self-hosted MongoDB** (save $57/mo vs Atlas)
 4. **Cloudflare Free** (no need for Pro)
 5. **R2 for all storage** ($0 egress is key)
@@ -498,8 +498,8 @@ If you include social publishing in Pro+ tiers:
 ## Sources
 
 ### Hosting & Infrastructure
-- [Vultr Pricing](https://www.vultr.com/pricing/)
-- [Vultr Cloud Compute](https://www.vultr.com/products/cloud-compute/)
+- [Railway Pricing](https://www.vultr.com/pricing/)
+- [Railway Cloud Compute](https://www.vultr.com/products/cloud-compute/)
 
 ### Storage
 - [Cloudflare R2 Pricing](https://developers.cloudflare.com/r2/pricing/)

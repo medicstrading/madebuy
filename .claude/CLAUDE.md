@@ -7,7 +7,7 @@
 - **Stack:** Next.js 14, TypeScript, MongoDB, Tailwind CSS, Turborepo monorepo
 - **Structure:** apps/admin, apps/web, packages/shared
 - **Ports:** admin=3300, marketplace=3301
-- **Deploy:** Vultr VPS with Docker Compose
+- **Deploy:** Railway (NOT Vultr/Coolify - those are deleted)
 - **Git account:** medicstrading
 
 ## Core Rules

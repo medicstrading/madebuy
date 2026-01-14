@@ -2,14 +2,14 @@
 
 **Date**: January 6, 2026
 **Project**: MadeBuy Marketplace
-**Current Deployment**: Vultr VPS with Docker/PM2
+**Current Deployment**: Railway with Docker/PM2
 **Status**: Pre-production / Development
 
 ---
 
 ## Executive Summary
 
-MadeBuy is a Next.js 14 marketplace application deployed on a single Vultr VPS using PM2 process management. While functional for development, the current architecture has **significant gaps** in security hardening, scalability, disaster recovery, and production readiness.
+MadeBuy is a Next.js 14 marketplace application deployed on a single Railway using PM2 process management. While functional for development, the current architecture has **significant gaps** in security hardening, scalability, disaster recovery, and production readiness.
 
 **Critical Issues Identified**:
 1. No Docker Compose configuration found (despite documentation references)
@@ -32,7 +32,7 @@ MadeBuy is a Next.js 14 marketplace application deployed on a single Vultr VPS u
 
 **Current Setup**:
 ```
-├── Vultr VPS (Sydney)
+├── Railway (Sydney)
 │   ├── Node.js 20
 │   ├── PM2 Process Manager
 │   │   ├── madebuy-admin (port 3301)
@@ -407,7 +407,7 @@ Benefits: Global low latency, infinite scale
 **Estimated Monthly Costs** (based on typical setup):
 ```
 Infrastructure:
-- Vultr VPS (8GB RAM, Sydney)       $40/mo
+- Railway (8GB RAM, Sydney)       $40/mo
 - MongoDB Atlas M10 (estimated)     $60/mo  ❓ (not confirmed)
 - Cloudflare Free                    $0/mo
 - Cloudflare R2 Storage             ~$5/mo  (10GB storage, 1M requests)
@@ -487,7 +487,7 @@ TOTAL ESTIMATED:                   ~$135/mo
 5. **VPS → Managed Platform Comparison**
    ```
    Current VPS Setup:
-   - Vultr VPS 8GB:           $40/mo
+   - Railway 8GB:           $40/mo
    - Manual maintenance:      ~5 hrs/mo (valued at $50-100/hr)
    - No auto-scaling:         Wasted capacity during off-peak
    Total Cost:                $40/mo + opportunity cost
@@ -580,7 +580,7 @@ TOTAL ESTIMATED:                   ~$135/mo
    ```
    Once traffic is stable:
    - MongoDB Atlas: 1-year commitment = 20% discount
-   - Vultr VPS: 12-month prepay = 15% discount
+   - Railway: 12-month prepay = 15% discount
    - Cloudflare: Annual billing = 17% discount
 
    Potential savings: $20-30/mo after 6 months of stable usage
@@ -632,7 +632,7 @@ Focus should be on feature velocity and user growth, not over-optimizing $10/mo 
 **Uptime Dependencies**:
 ```
 Single Point of Failure:
-├── Vultr VPS (Sydney)
+├── Railway (Sydney)
 │   ├── Hardware failure → Total outage
 │   ├── Network issue → Total outage
 │   └── PM2 crash → Manual restart required
@@ -1387,7 +1387,7 @@ Total:              ~$135/mo
 **Optimized (Week 4)**:
 ```
 Infrastructure:
-- Vultr VPS 8GB:              $40/mo
+- Railway 8GB:              $40/mo
 - MongoDB Atlas M2:            $9/mo  (↓ $51/mo if currently M10)
 - Cloudflare Pro:             $20/mo  (new)
 - Upstash Redis Free:          $0/mo

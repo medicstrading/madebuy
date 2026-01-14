@@ -52,7 +52,7 @@ flowchart TB
     end
 
     subgraph Host["Hosting"]
-        Vultr["Vultr VPS<br/>8GB / Sydney<br/>Docker Compose"]
+        Railway["Railway<br/>8GB / Sydney<br/>Docker Compose"]
     end
 
     %% Connections
@@ -76,6 +76,6 @@ flowchart TB
     SocialSvc --> LateAPI
     EmailSvc --> Resend
     
-    Apps --> Vultr
-    MongoDB --> Vultr
+    Apps --> Railway
+    MongoDB --> Railway
 ```

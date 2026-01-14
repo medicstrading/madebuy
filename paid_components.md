@@ -214,7 +214,7 @@ Since MadeBuy only needs subscription billing (not marketplace splits), simpler/
 | Current | Alternative | Savings | Trade-off |
 |---------|-------------|---------|-----------|
 | **Stripe** | **GoCardless** | **~$2,400/yr at 1000 users** | Direct debit only |
-| Railway | Coolify on VPS | ~$20-50/mo | Self-managed |
+| Railway | Railway on VPS | ~$20-50/mo | Self-managed |
 | MongoDB Atlas | Self-hosted | ~$50-80/mo | You handle backups |
 | GPT-4o-mini | Local LLaMA | Negligible | Already dirt cheap |
 

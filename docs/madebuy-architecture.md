@@ -92,7 +92,7 @@ flowchart TB
     end
 
     subgraph Infrastructure["Infrastructure"]
-        Vultr["Vultr VPS<br/>Sydney Region"]
+        Railway["Railway<br/>Sydney Region"]
         CDN["Cloudflare CDN"]
     end
 
@@ -151,7 +151,7 @@ flowchart TB
     DomainSetup --> Cloudflare
 
     %% Infrastructure
-    API --> Vultr
+    API --> Railway
     Storefront --> CDN
     R2 --> CDN
 ```
