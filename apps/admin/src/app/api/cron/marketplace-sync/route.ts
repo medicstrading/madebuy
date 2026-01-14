@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
-import { marketplace, pieces, media, tenants } from '@madebuy/db'
+import { marketplace, pieces, tenants } from '@madebuy/db'
 import type { MarketplaceConnection, MarketplaceListing } from '@madebuy/shared'
-import { getEbayApiUrl } from '@/lib/marketplace/ebay'
+import { createEbayClient } from '@/lib/marketplace/ebay'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -221,6 +221,9 @@ async function syncSingleEbayListing(
       }
     }
 
+    // Create eBay API client
+    const ebay = createEbayClient(connection.accessToken!)
+
     // Update inventory item (quantity)
     if (quantityChanged) {
       const inventoryPayload = {
@@ -231,32 +234,20 @@ async function syncSingleEbayListing(
         },
       }
 
-      const inventoryResponse = await fetch(
-        getEbayApiUrl(`/sell/inventory/v1/inventory_item/${encodeURIComponent(sku)}`),
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${connection.accessToken}`,
-            'Content-Type': 'application/json',
-            'Content-Language': 'en_AU',
-            'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
-          },
-          body: JSON.stringify(inventoryPayload),
-        }
-      )
-
-      if (!inventoryResponse.ok) {
-        const errorData = await inventoryResponse.json().catch(() => ({}))
+      try {
+        await ebay.sell.inventory.createOrReplaceInventoryItem(sku, inventoryPayload)
+        console.log(`[CRON] Inventory updated for listing ${listing.id}`)
+      } catch (inventoryError: any) {
         console.error(
           `[CRON] eBay inventory update failed for ${listing.id}:`,
-          errorData
+          inventoryError?.message || inventoryError
         )
 
         await marketplace.updateListingStatus(
           tenantId,
           listing.id,
           'error',
-          `Inventory sync failed: ${JSON.stringify(errorData)}`
+          `Inventory sync failed: ${inventoryError?.message || 'Unknown error'}`
         )
 
         return {
@@ -280,29 +271,20 @@ async function syncSingleEbayListing(
         },
       }
 
-      const offerResponse = await fetch(
-        getEbayApiUrl(`/sell/inventory/v1/offer/${offerId}`),
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${connection.accessToken}`,
-            'Content-Type': 'application/json',
-            'Content-Language': 'en_AU',
-            'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
-          },
-          body: JSON.stringify(offerPayload),
-        }
-      )
-
-      if (!offerResponse.ok) {
-        const errorData = await offerResponse.json().catch(() => ({}))
-        console.error(`[CRON] eBay offer update failed for ${listing.id}:`, errorData)
+      try {
+        await ebay.sell.inventory.updateOffer(offerId, offerPayload)
+        console.log(`[CRON] Offer price updated for listing ${listing.id}`)
+      } catch (offerError: any) {
+        console.error(
+          `[CRON] eBay offer update failed for ${listing.id}:`,
+          offerError?.message || offerError
+        )
 
         await marketplace.updateListingStatus(
           tenantId,
           listing.id,
           'error',
-          `Price sync failed: ${JSON.stringify(errorData)}`
+          `Price sync failed: ${offerError?.message || 'Unknown error'}`
         )
 
         return {

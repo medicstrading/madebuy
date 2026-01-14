@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { marketplace, pieces, media } from '@madebuy/db'
 import {
+  createEbayClient,
   getEbayApiUrl,
   type EbayInventoryItem,
   type EbayPackageWeightAndSize,
@@ -187,34 +188,26 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
       inventoryPayload.packageWeightAndSize = packageWeightAndSize
     }
 
-    const inventoryResponse = await fetch(
-      getEbayApiUrl(`/sell/inventory/v1/inventory_item/${encodeURIComponent(sku)}`),
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${connection.accessToken}`,
-          'Content-Type': 'application/json',
-          'Content-Language': 'en_AU',
-          'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
-        },
-        body: JSON.stringify(inventoryPayload),
-      }
-    )
+    // Create eBay API client
+    const ebay = createEbayClient(connection.accessToken!)
 
-    if (!inventoryResponse.ok) {
-      const errorData = await inventoryResponse.json().catch(() => ({}))
-      console.error('eBay Inventory API error:', errorData)
+    // Step 1: Update Inventory Item using ebay-api package
+    try {
+      await ebay.sell.inventory.createOrReplaceInventoryItem(sku, inventoryPayload)
+      console.log('[eBay] Inventory item updated successfully')
+    } catch (inventoryError: any) {
+      console.error('eBay Inventory API error:', inventoryError?.message || inventoryError)
 
       await marketplace.updateListingStatus(
         tenant.id,
         listingId,
         'error',
-        `Inventory update failed: ${JSON.stringify(errorData)}`
+        `Inventory update failed: ${inventoryError?.message || 'Unknown error'}`
       )
 
       return NextResponse.json(
         { error: 'Failed to update eBay inventory. Please try again.' },
-        { status: inventoryResponse.status }
+        { status: 400 }
       )
     }
 
@@ -233,30 +226,19 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
       offerPayload.categoryId = categoryId
     }
 
-    const offerResponse = await fetch(
-      getEbayApiUrl(`/sell/inventory/v1/offer/${offerId}`),
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${connection.accessToken}`,
-          'Content-Type': 'application/json',
-          'Content-Language': 'en_AU',
-          'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
-        },
-        body: JSON.stringify(offerPayload),
-      }
-    )
-
-    if (!offerResponse.ok) {
-      const errorData = await offerResponse.json().catch(() => ({}))
-      console.error('eBay Offer API error:', errorData)
+    // Update offer using ebay-api package
+    try {
+      await ebay.sell.inventory.updateOffer(offerId, offerPayload)
+      console.log('[eBay] Offer updated successfully')
+    } catch (offerError: any) {
+      console.error('eBay Offer API error:', offerError?.message || offerError)
 
       // Inventory was updated, but offer failed - still mark as synced with warning
       await marketplace.updateListingStatus(
         tenant.id,
         listingId,
         'error',
-        `Offer update failed: ${JSON.stringify(errorData)}`
+        `Offer update failed: ${offerError?.message || 'Unknown error'}`
       )
 
       return NextResponse.json(
@@ -335,57 +317,43 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     const offerId = listing.marketplaceData?.ebayOfferId
     const sku = listing.marketplaceData?.ebayInventoryItemSku
 
+    // Create eBay API client
+    const ebay = createEbayClient(connection.accessToken!)
+
     // Step 1: Withdraw the offer (unpublish the listing)
     if (offerId) {
-      const withdrawResponse = await fetch(
-        getEbayApiUrl(`/sell/inventory/v1/offer/${offerId}/withdraw`),
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${connection.accessToken}`,
-            'Content-Type': 'application/json',
-          },
+      try {
+        await ebay.sell.inventory.withdrawOffer(offerId)
+        console.log('[eBay] Offer withdrawn successfully')
+      } catch (withdrawError: any) {
+        // 404 means already withdrawn/doesn't exist
+        if (withdrawError?.meta?.res?.status !== 404) {
+          console.error('eBay Withdraw API error:', withdrawError?.message || withdrawError)
+          // Don't fail entirely, still try to clean up
+          console.warn('Failed to withdraw offer, continuing with cleanup')
         }
-      )
-
-      if (!withdrawResponse.ok && withdrawResponse.status !== 404) {
-        const errorData = await withdrawResponse.json().catch(() => ({}))
-        console.error('eBay Withdraw API error:', errorData)
-
-        // Don't fail entirely, still try to clean up
-        console.warn('Failed to withdraw offer, continuing with cleanup')
       }
 
       // Step 2: Delete the offer
-      const deleteOfferResponse = await fetch(
-        getEbayApiUrl(`/sell/inventory/v1/offer/${offerId}`),
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${connection.accessToken}`,
-          },
+      try {
+        await ebay.sell.inventory.deleteOffer(offerId)
+        console.log('[eBay] Offer deleted successfully')
+      } catch (deleteOfferError: any) {
+        if (deleteOfferError?.meta?.res?.status !== 404) {
+          console.warn('Failed to delete offer:', deleteOfferError?.message)
         }
-      )
-
-      if (!deleteOfferResponse.ok && deleteOfferResponse.status !== 404) {
-        console.warn('Failed to delete offer:', await deleteOfferResponse.text())
       }
     }
 
     // Step 3: Delete the inventory item
     if (sku) {
-      const deleteInventoryResponse = await fetch(
-        getEbayApiUrl(`/sell/inventory/v1/inventory_item/${encodeURIComponent(sku)}`),
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${connection.accessToken}`,
-          },
+      try {
+        await ebay.sell.inventory.deleteInventoryItem(sku)
+        console.log('[eBay] Inventory item deleted successfully')
+      } catch (deleteInventoryError: any) {
+        if (deleteInventoryError?.meta?.res?.status !== 404) {
+          console.warn('Failed to delete inventory item:', deleteInventoryError?.message)
         }
-      )
-
-      if (!deleteInventoryResponse.ok && deleteInventoryResponse.status !== 404) {
-        console.warn('Failed to delete inventory item:', await deleteInventoryResponse.text())
       }
     }
 

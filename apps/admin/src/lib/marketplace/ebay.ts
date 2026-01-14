@@ -1,6 +1,37 @@
 /**
  * Shared eBay marketplace utilities
  */
+import eBayApi from 'ebay-api'
+
+// ============================================================================
+// eBay API Client (using ebay-api package)
+// ============================================================================
+
+/**
+ * Create an eBay API client with proper configuration
+ * Uses the ebay-api package which handles headers correctly
+ */
+export function createEbayClient(accessToken: string): eBayApi {
+  const isProduction = process.env.EBAY_ENVIRONMENT === 'production'
+
+  const client = new eBayApi({
+    appId: process.env.EBAY_CLIENT_ID!,
+    certId: process.env.EBAY_CLIENT_SECRET!,
+    sandbox: !isProduction,
+    siteId: eBayApi.SiteId.EBAY_AU,
+    marketplaceId: eBayApi.MarketplaceId.EBAY_AU,
+    acceptLanguage: eBayApi.Locale.en_AU,
+    contentLanguage: eBayApi.Locale.en_AU,
+  })
+
+  // Set the user's OAuth token
+  client.OAuth2.setCredentials({
+    access_token: accessToken,
+    token_type: 'User Access Token',
+  })
+
+  return client
+}
 
 /**
  * Get eBay API base URL based on environment

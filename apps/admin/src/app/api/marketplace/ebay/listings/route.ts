@@ -4,10 +4,9 @@ import { getCurrentTenant } from '@/lib/session'
 import { marketplace, pieces, media } from '@madebuy/db'
 import type { MarketplaceListing } from '@madebuy/shared'
 import {
-  getEbayApiUrl,
+  createEbayClient,
   getEbayDomain,
   type EbayInventoryItem,
-  type EbayOffer,
 } from '@/lib/marketplace/ebay'
 
 /**
@@ -112,7 +111,7 @@ async function buildInventoryItemPayload(
 }
 
 /**
- * Build eBay Offer payload
+ * Build eBay Offer payload for ebay-api package
  */
 function buildOfferPayload(
   sku: string,
@@ -120,7 +119,7 @@ function buildOfferPayload(
   currency: string,
   categoryId: string,
   marketplaceId: string = 'EBAY_AU'
-): EbayOffer {
+) {
   return {
     sku,
     marketplaceId,
@@ -291,6 +290,10 @@ export async function POST(request: NextRequest) {
     // Generate SKU
     const sku = generateSku(tenant.id, pieceId)
 
+    // Create eBay API client (handles headers correctly)
+    const ebay = createEbayClient(connection.accessToken!)
+    console.log('[eBay] Using ebay-api package for listing creation')
+
     // Build inventory item payload
     const inventoryPayload = await buildInventoryItemPayload(
       tenant.id,
@@ -299,31 +302,27 @@ export async function POST(request: NextRequest) {
       quantity
     )
 
-    // Step 1: Create/Update Inventory Item
-    const inventoryResponse = await fetch(
-      getEbayApiUrl(`/sell/inventory/v1/inventory_item/${encodeURIComponent(sku)}`),
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${connection.accessToken}`,
-          'Content-Type': 'application/json',
-          'Content-Language': 'en_AU', // underscore format required
-          'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
-        },
-        body: JSON.stringify(inventoryPayload),
-      }
-    )
-
-    if (!inventoryResponse.ok) {
-      const errorData = await inventoryResponse.json().catch(() => ({}))
-      console.error('eBay Inventory API error:', errorData)
+    // Step 1: Create/Update Inventory Item using ebay-api package
+    let inventoryResult
+    try {
+      inventoryResult = await ebay.sell.inventory.createOrReplaceInventoryItem(
+        sku,
+        inventoryPayload
+      )
+      console.log('[eBay] Inventory item created successfully')
+    } catch (inventoryError: any) {
+      console.error('eBay Inventory API error:', inventoryError?.message || inventoryError)
+      const errorDetails = inventoryError?.meta?.res?.data || inventoryError?.message
       return NextResponse.json(
-        { error: 'Failed to create eBay inventory item. Please try again.' },
-        { status: inventoryResponse.status }
+        {
+          error: 'Failed to create eBay inventory item. Please try again.',
+          details: errorDetails,
+        },
+        { status: 400 }
       )
     }
 
-    // Step 2: Create Offer
+    // Step 2: Create Offer using ebay-api package
     const offerPayload = buildOfferPayload(
       sku,
       listingPrice,
@@ -332,46 +331,31 @@ export async function POST(request: NextRequest) {
       marketplaceId
     )
 
-    const offerResponse = await fetch(getEbayApiUrl('/sell/inventory/v1/offer'), {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${connection.accessToken}`,
-        'Content-Type': 'application/json',
-        'Content-Language': 'en_AU',
-        'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
-      },
-      body: JSON.stringify(offerPayload),
-    })
-
-    if (!offerResponse.ok) {
-      const errorData = await offerResponse.json().catch(() => ({}))
-      console.error('eBay Offer API error:', errorData)
+    let offerResult
+    try {
+      offerResult = await ebay.sell.inventory.createOffer(offerPayload)
+      console.log('[eBay] Offer created successfully:', offerResult.offerId)
+    } catch (offerError: any) {
+      console.error('eBay Offer API error:', offerError?.message || offerError)
+      const errorDetails = offerError?.meta?.res?.data || offerError?.message
       return NextResponse.json(
-        { error: 'Failed to create eBay offer. Please try again.' },
-        { status: offerResponse.status }
+        {
+          error: 'Failed to create eBay offer. Please try again.',
+          details: errorDetails,
+        },
+        { status: 400 }
       )
     }
 
-    const offerData = await offerResponse.json()
-    const offerId = offerData.offerId
+    const offerId = offerResult.offerId
 
-    // Step 3: Publish Offer
-    const publishResponse = await fetch(
-      getEbayApiUrl(`/sell/inventory/v1/offer/${offerId}/publish`),
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${connection.accessToken}`,
-          'Content-Type': 'application/json',
-          'Content-Language': 'en_AU',
-          'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
-        },
-      }
-    )
-
-    if (!publishResponse.ok) {
-      const errorData = await publishResponse.json().catch(() => ({}))
-      console.error('eBay Publish API error:', errorData)
+    // Step 3: Publish Offer using ebay-api package
+    let publishResult
+    try {
+      publishResult = await ebay.sell.inventory.publishOffer(offerId)
+      console.log('[eBay] Offer published successfully:', publishResult.listingId)
+    } catch (publishError: any) {
+      console.error('eBay Publish API error:', publishError?.message || publishError)
 
       // Still save the listing as pending since offer was created
       const listing = await marketplace.createListing(tenant.id, {
@@ -386,18 +370,19 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      const errorDetails = publishError?.meta?.res?.data || publishError?.message
       return NextResponse.json(
         {
           success: false,
           error: 'Offer created but failed to publish. Please try again.',
+          details: errorDetails,
           listing,
         },
         { status: 207 }
       )
     }
 
-    const publishData = await publishResponse.json()
-    const listingId = publishData.listingId
+    const listingId = publishResult.listingId
 
     // Build eBay listing URL
     const externalUrl = `https://${getEbayDomain()}/itm/${listingId}`
