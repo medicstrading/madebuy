@@ -6,7 +6,6 @@ import type { MarketplaceListing } from '@madebuy/shared'
 import {
   getEbayApiUrl,
   getEbayDomain,
-  EBAY_HEADERS,
   type EbayInventoryItem,
   type EbayOffer,
 } from '@/lib/marketplace/ebay'

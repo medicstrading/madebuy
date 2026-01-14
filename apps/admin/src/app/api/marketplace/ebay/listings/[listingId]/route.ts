@@ -3,7 +3,6 @@ import { getCurrentTenant } from '@/lib/session'
 import { marketplace, pieces, media } from '@madebuy/db'
 import {
   getEbayApiUrl,
-  EBAY_HEADERS,
   type EbayInventoryItem,
   type EbayPackageWeightAndSize,
 } from '@/lib/marketplace/ebay'
@@ -195,7 +194,6 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
-          'Content-Language': 'en-AU',
         },
         body: JSON.stringify(inventoryPayload),
       }
@@ -240,7 +238,6 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
-          'Content-Language': 'en-AU',
         },
         body: JSON.stringify(offerPayload),
       }

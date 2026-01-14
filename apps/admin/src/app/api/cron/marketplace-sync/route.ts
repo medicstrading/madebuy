@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
 import { marketplace, pieces, media, tenants } from '@madebuy/db'
 import type { MarketplaceConnection, MarketplaceListing } from '@madebuy/shared'
-import { getEbayApiUrl, EBAY_HEADERS } from '@/lib/marketplace/ebay'
+import { getEbayApiUrl } from '@/lib/marketplace/ebay'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -238,7 +238,6 @@ async function syncSingleEbayListing(
           headers: {
             Authorization: `Bearer ${connection.accessToken}`,
             'Content-Type': 'application/json',
-            'Content-Language': 'en-AU',
           },
           body: JSON.stringify(inventoryPayload),
         }
@@ -286,7 +285,6 @@ async function syncSingleEbayListing(
           headers: {
             Authorization: `Bearer ${connection.accessToken}`,
             'Content-Type': 'application/json',
-            'Content-Language': 'en-AU',
           },
           body: JSON.stringify(offerPayload),
         }

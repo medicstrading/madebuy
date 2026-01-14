@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
 import { marketplace, tenants, pieces } from '@madebuy/db'
 import type { MarketplaceConnection, CreateMarketplaceOrderInput } from '@madebuy/shared'
-import { getEbayApiUrl, getEbayDomain, EBAY_HEADERS, type EbayOrder } from '@/lib/marketplace/ebay'
+import { getEbayApiUrl, getEbayDomain, type EbayOrder } from '@/lib/marketplace/ebay'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -130,7 +130,6 @@ async function importEbayOrders(
         headers: {
           Authorization: `Bearer ${connection.accessToken}`,
           'Content-Type': 'application/json',
-          'Accept-Language': 'en-AU',
         },
       }
     )
