@@ -1,0 +1,28 @@
+name: Monthly Usage Reset
+
+on:
+  schedule:
+    # Run at midnight UTC on the 1st of each month
+    - cron: '0 0 1 * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  reset-usage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger usage reset
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://madebuyadmin-production.up.railway.app/api/cron/reset-usage)
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "Failed to reset usage"
+            exit 1
+          fi
