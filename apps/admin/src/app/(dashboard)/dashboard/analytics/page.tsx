@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { BarChart3, Calendar, TrendingUp, Package, RefreshCw } from 'lucide-react'
+import { BarChart3, Calendar, TrendingUp, Package, RefreshCw, Globe } from 'lucide-react'
 import { FunnelChart } from '@/components/analytics/FunnelChart'
+import { TrafficSourceChart, type SourceStats } from '@/components/analytics/TrafficSourceChart'
 
 interface FunnelData {
   viewProduct: number
@@ -31,10 +32,17 @@ interface AnalyticsData {
   }
 }
 
+interface SourceData {
+  sources: SourceStats[]
+  totalViews: number
+  uniqueVisitors: number
+}
+
 type DatePreset = '7d' | '30d' | '90d' | 'custom'
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
+  const [sourceData, setSourceData] = useState<SourceData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [datePreset, setDatePreset] = useState<DatePreset>('30d')
@@ -73,11 +81,22 @@ export default function AnalyticsPage() {
         endDate: datePreset === 'custom' ? new Date(customEnd).toISOString() : endDate.toISOString(),
       })
 
-      const res = await fetch(`/api/analytics/funnel?${params}`)
-      if (!res.ok) throw new Error('Failed to fetch analytics')
+      // Fetch funnel and source data in parallel
+      const [funnelRes, sourceRes] = await Promise.all([
+        fetch(`/api/analytics/funnel?${params}`),
+        fetch(`/api/analytics/sources?${params}`),
+      ])
 
-      const json = await res.json()
-      setData(json)
+      if (!funnelRes.ok) throw new Error('Failed to fetch analytics')
+
+      const funnelJson = await funnelRes.json()
+      setData(funnelJson)
+
+      // Source data is optional - don't fail if it errors
+      if (sourceRes.ok) {
+        const sourceJson = await sourceRes.json()
+        setSourceData(sourceJson)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -166,14 +185,28 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {/* Funnel Chart */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <BarChart3 className="h-5 w-5 text-gray-600" />
-          <h2 className="text-base font-semibold text-gray-900">Conversion Funnel</h2>
+      {/* Two Column Layout for Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Funnel Chart */}
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <BarChart3 className="h-5 w-5 text-gray-600" />
+            <h2 className="text-base font-semibold text-gray-900">Conversion Funnel</h2>
+          </div>
+          <div className="p-6">
+            <FunnelChart data={data?.funnel || null} isLoading={isLoading} />
+          </div>
         </div>
-        <div className="p-6">
-          <FunnelChart data={data?.funnel || null} isLoading={isLoading} />
+
+        {/* Traffic Sources */}
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <Globe className="h-5 w-5 text-gray-600" />
+            <h2 className="text-base font-semibold text-gray-900">Traffic Sources</h2>
+          </div>
+          <div className="p-6">
+            <TrafficSourceChart data={sourceData?.sources || null} isLoading={isLoading} />
+          </div>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Package } from 'lucide-react'
 import { PersonalizationConfigEditor } from '@/components/inventory/PersonalizationConfigEditor'
 import { PieceDetailsEditor } from '@/components/inventory/PieceDetailsEditor'
+import { DigitalProductSection } from '@/components/inventory/DigitalProductSection'
 import { ProductionSection } from '@/components/production/ProductionSection'
 
 interface PieceDetailPageProps {
@@ -52,6 +53,12 @@ export default async function PieceDetailPage({ params }: PieceDetailPageProps) 
 
           <PieceDetailsEditor piece={piece} />
         </div>
+
+        {/* Digital Product */}
+        <DigitalProductSection
+          pieceId={piece.id}
+          digital={piece.digital}
+        />
 
         {/* Production Section */}
         <ProductionSection
