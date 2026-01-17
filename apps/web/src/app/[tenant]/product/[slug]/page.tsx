@@ -3,6 +3,9 @@ import { reviews } from '@madebuy/db'
 import type { ProductReviewStats } from '@madebuy/shared'
 import { getPieceBySlug, populatePieceWithMedia } from '@/lib/pieces'
 import { notFound } from 'next/navigation'
+
+// ISR: Revalidate product pages every 5 minutes
+export const revalidate = 300
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
@@ -66,10 +69,96 @@ export default async function PieceDetailPage({
 
   const inStock = piece.stock === undefined || piece.stock > 0
 
+  // Build URLs for structured data
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
+  const productUrl = `${siteUrl}/${params.tenant}/product/${params.slug}`
+  const tenantUrl = `${siteUrl}/${params.tenant}`
+
+  // Product structured data for Google Shopping / rich results
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": productUrl,
+    name: piece.name,
+    description: piece.description || `${piece.name} from ${tenant.businessName}`,
+    image: piece.primaryImage
+      ? [piece.primaryImage.variants.large?.url || piece.primaryImage.variants.original.url]
+      : [],
+    sku: piece.id,
+    brand: {
+      "@type": "Brand",
+      name: tenant.businessName
+    },
+    manufacturer: {
+      "@type": "Organization",
+      name: tenant.businessName
+    },
+    material: piece.materials?.join(', ') || undefined,
+    category: piece.category || 'Handmade',
+    offers: {
+      "@type": "Offer",
+      price: piece.price,
+      priceCurrency: piece.currency || 'AUD',
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: productUrl,
+      seller: {
+        "@type": "Organization",
+        name: tenant.businessName,
+        url: tenantUrl
+      },
+      itemCondition: "https://schema.org/NewCondition",
+      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    },
+    ...(reviewStats.totalReviews > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: reviewStats.averageRating.toFixed(1),
+        reviewCount: reviewStats.totalReviews
+      }
+    })
+  }
+
+  // Breadcrumb structured data
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteUrl
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: tenant.businessName,
+        item: tenantUrl
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: piece.name,
+        item: productUrl
+      }
+    ]
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Analytics Tracking */}
-      <ProductViewTracker tenantId={tenant.id} productId={piece.id} />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <div className="min-h-screen bg-gray-50">
+        {/* Analytics Tracking */}
+        <ProductViewTracker tenantId={tenant.id} productId={piece.id} />
 
       {/* Header */}
       <header className="bg-white shadow-sm">
@@ -242,7 +331,8 @@ export default async function PieceDetailPage({
           />
         </section>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 

@@ -55,8 +55,53 @@ const EbayIcon = () => (
 export default function LandingPage() {
   const [isYearly, setIsYearly] = useState(false)
 
+  const siteUrl = 'https://madebuy.com.au'
+
+  // Organization schema for MadeBuy marketplace
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    name: "MadeBuy",
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+    description: "Australian handmade marketplace connecting makers with buyers. Zero transaction fees, beautiful storefronts.",
+    sameAs: [
+      "https://instagram.com/madebuy",
+      "https://facebook.com/madebuy",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "hello@madebuy.com.au",
+      contactType: "customer service",
+      availableLanguage: "English"
+    }
+  }
+
+  // WebSite schema with search action
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    url: siteUrl,
+    name: "MadeBuy - Handmade Marketplace",
+    description: "Discover unique handmade products from talented Australian makers.",
+    publisher: {
+      "@id": `${siteUrl}/#organization`
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-[#FFFBF7] font-outfit overflow-x-hidden">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <div className="min-h-screen bg-[#FFFBF7] font-outfit overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FFFBF7]/90 backdrop-blur-md border-b border-amber-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1014,6 +1059,7 @@ export default function LandingPage() {
           animation: float 5s ease-in-out infinite 2.5s;
         }
       `}</style>
-    </div>
+      </div>
+    </>
   )
 }

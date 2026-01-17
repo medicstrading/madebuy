@@ -1,8 +1,8 @@
 import { requireTenant } from '@/lib/tenant'
 import { pieces, media, collections, blog } from '@madebuy/db'
 
-// Force dynamic rendering - this route requires database access
-export const dynamic = 'force-dynamic'
+// ISR: Revalidate tenant storefronts every 2 minutes
+export const revalidate = 120
 import { populatePiecesWithMedia } from '@/lib/pieces'
 import { LAYOUT_TO_TEMPLATE_MAP, getDefaultPages } from '@madebuy/shared'
 import type { PageSection, WebsiteTemplate, WebsitePage } from '@madebuy/shared'
@@ -69,8 +69,48 @@ export default async function ShopHomePage({ params }: { params: { tenant: strin
     .filter(p => p.enabled && p.showInNavigation)
     .sort((a, b) => a.navigationOrder - b.navigationOrder)
 
+  // Build URLs for structured data
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
+  const tenantUrl = `${siteUrl}/${params.tenant}`
+
+  // Organization/LocalBusiness schema for this seller
+  const socialLinks = [
+    tenant.instagram,
+    tenant.facebook,
+    tenant.tiktok,
+    tenant.pinterest,
+  ].filter(Boolean)
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": `${tenantUrl}/#organization`,
+    name: tenant.businessName,
+    url: tenantUrl,
+    logo: logoUrl || undefined,
+    description: tenant.description || `Handmade products from ${tenant.businessName}`,
+    email: tenant.email || undefined,
+    priceRange: "$$",
+    currenciesAccepted: "AUD",
+    ...(tenant.location && {
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: tenant.location,
+        addressCountry: "AU"
+      }
+    }),
+    ...(socialLinks.length > 0 && {
+      sameAs: socialLinks
+    })
+  }
+
   return (
-    <div className="min-h-screen bg-white tenant-theme">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <div className="min-h-screen bg-white tenant-theme">
       {/* Header */}
       <Header
         tenant={tenant}
@@ -99,6 +139,7 @@ export default async function ShopHomePage({ params }: { params: { tenant: strin
         footerConfig={tenant.websiteDesign?.footer}
         pages={navPages}
       />
-    </div>
+      </div>
+    </>
   )
 }
