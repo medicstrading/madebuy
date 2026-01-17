@@ -35,6 +35,15 @@ interface BulkUploadModalProps {
   pieces: Piece[]
 }
 
+// Move formatFileSize outside component - it's a pure function
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
+}
+
 export function BulkUploadModal({
   isOpen,
   onClose,
@@ -48,30 +57,19 @@ export function BulkUploadModal({
   const [errorCount, setErrorCount] = useState(0)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
-  }
-
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const newFiles: UploadFile[] = acceptedFiles.map((file) => ({
-        file,
-        id: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
-        previewUrl: URL.createObjectURL(file),
-        fileName: file.name,
-        fileSize: formatFileSize(file.size),
-        isVideo: file.type.startsWith('video/'),
-        status: 'pending' as const,
-        progress: 0,
-      }))
-      setFiles((prev) => [...prev, ...newFiles])
-    },
-    [formatFileSize],
-  )
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const newFiles: UploadFile[] = acceptedFiles.map((file) => ({
+      file,
+      id: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      previewUrl: URL.createObjectURL(file),
+      fileName: file.name,
+      fileSize: formatFileSize(file.size),
+      isVideo: file.type.startsWith('video/'),
+      status: 'pending' as const,
+      progress: 0,
+    }))
+    setFiles((prev) => [...prev, ...newFiles])
+  }, [])
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
@@ -101,27 +99,6 @@ export function BulkUploadModal({
       closeButtonRef.current?.focus()
     }
   }, [isOpen])
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isUploading) {
-        onClose()
-      }
-      if (e.ctrlKey && e.key === 'a') {
-        e.preventDefault()
-        setSelectedFileIds(files.map((f) => f.id))
-      }
-      if (e.key === 'Enter' && !isUploading && files.length > 0) {
-        handleUploadAll()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, isUploading, files, handleUploadAll, onClose])
 
   // Assign piece to file
   const handleFileAssign = (fileId: string, pieceId: string) => {
@@ -172,27 +149,34 @@ export function BulkUploadModal({
     setSelectedFileIds([])
   }
 
-  const updateFileStatus = (
-    fileId: string,
-    status: UploadFile['status'],
-    progress: number,
-    error?: string,
-  ) => {
-    setFiles((prev) =>
-      prev.map((f) =>
-        f.id === fileId ? { ...f, status, progress, error } : f,
-      ),
-    )
-  }
+  const updateFileStatus = useCallback(
+    (
+      fileId: string,
+      status: UploadFile['status'],
+      progress: number,
+      error?: string,
+    ) => {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId ? { ...f, status, progress, error } : f,
+        ),
+      )
+    },
+    [],
+  )
 
-  // Upload all files
-  const handleUploadAll = async () => {
+  // Upload all files - defined with useCallback BEFORE the useEffect that uses it
+  const handleUploadAll = useCallback(async () => {
     setIsUploading(true)
     setSuccessCount(0)
     setErrorCount(0)
 
-    const queue = [...files.filter((f) => f.status !== 'success')]
+    // Get files that need uploading
+    const filesToUpload = files.filter((f) => f.status !== 'success')
+    const queue = [...filesToUpload]
     const concurrent = 3
+    let localSuccessCount = 0
+    let localErrorCount = 0
 
     const uploadNext = async () => {
       while (queue.length > 0) {
@@ -219,10 +203,12 @@ export function BulkUploadModal({
           }
 
           updateFileStatus(file.id, 'success', 100)
-          setSuccessCount((prev) => prev + 1)
+          localSuccessCount++
+          setSuccessCount(localSuccessCount)
         } catch (error: any) {
           updateFileStatus(file.id, 'error', 0, error.message)
-          setErrorCount((prev) => prev + 1)
+          localErrorCount++
+          setErrorCount(localErrorCount)
         }
       }
     }
@@ -230,14 +216,9 @@ export function BulkUploadModal({
     await Promise.all(Array.from({ length: concurrent }, () => uploadNext()))
 
     setIsUploading(false)
+  }, [files, updateFileStatus])
 
-    // Auto-close if all succeeded
-    if (errorCount === 0) {
-      setTimeout(() => handleClose(), 1500)
-    }
-  }
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     files.forEach((f) => URL.revokeObjectURL(f.previewUrl))
     setFiles([])
     setSelectedFileIds([])
@@ -245,7 +226,38 @@ export function BulkUploadModal({
     setErrorCount(0)
     router.refresh()
     onClose()
-  }
+  }, [files, router, onClose])
+
+  // Keyboard shortcuts - AFTER handleUploadAll and handleClose are defined
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isUploading) {
+        handleClose()
+      }
+      if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault()
+        setSelectedFileIds(files.map((f) => f.id))
+      }
+      if (e.key === 'Enter' && !isUploading && files.length > 0) {
+        handleUploadAll()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, isUploading, files, handleUploadAll, handleClose])
+
+  // Auto-close on success
+  useEffect(() => {
+    const allFilesSuccess =
+      files.length > 0 && files.every((f) => f.status === 'success')
+    if (allFilesSuccess && !isUploading) {
+      const timer = setTimeout(() => handleClose(), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [files, isUploading, handleClose])
 
   const toggleFileSelection = (fileId: string) => {
     setSelectedFileIds((prev) =>
