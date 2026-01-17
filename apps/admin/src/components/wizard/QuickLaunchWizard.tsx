@@ -51,16 +51,42 @@ export function QuickLaunchWizard({
     // Free users can still see but some features are gated within steps
   }
 
-  // Check for existing draft on mount
-  useEffect(() => {
-    checkForDraft()
-  }, [checkForDraft])
-
   // Debounce timer for auto-save
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Check for existing draft on mount
+  useEffect(() => {
+    const checkForDraft = async () => {
+      try {
+        const response = await fetch('/api/wizard/draft')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.draft) {
+            setDraft(data.draft)
+            setShowDraftModal(true)
+          }
+        }
+      } catch {
+        // No draft or error - continue fresh
+      }
+    }
+    checkForDraft()
+  }, [])
+
   // Auto-save draft when state changes (debounced)
   useEffect(() => {
+    const saveDraft = async (stateToSave: WizardState) => {
+      try {
+        await fetch('/api/wizard/draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: stateToSave }),
+        })
+      } catch {
+        // Silent fail for draft saving
+      }
+    }
+
     if (state.pieceId && state.currentStep !== 'complete') {
       // Clear any pending save
       if (saveTimerRef.current) {
@@ -77,34 +103,7 @@ export function QuickLaunchWizard({
         clearTimeout(saveTimerRef.current)
       }
     }
-  }, [state, saveDraft])
-
-  const checkForDraft = async () => {
-    try {
-      const response = await fetch('/api/wizard/draft')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.draft) {
-          setDraft(data.draft)
-          setShowDraftModal(true)
-        }
-      }
-    } catch {
-      // No draft or error - continue fresh
-    }
-  }
-
-  const saveDraft = async (stateToSave: WizardState) => {
-    try {
-      await fetch('/api/wizard/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: stateToSave }),
-      })
-    } catch {
-      // Silent fail for draft saving
-    }
-  }
+  }, [state])
 
   const deleteDraft = async () => {
     try {
