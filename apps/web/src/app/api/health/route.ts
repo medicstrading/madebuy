@@ -1,6 +1,9 @@
 import { getDatabase } from '@madebuy/db'
 import { NextResponse } from 'next/server'
 
+// Opt out of static generation - needs database access at runtime
+export const dynamic = 'force-dynamic'
+
 /**
  * Health check endpoint for load balancer and monitoring
  * Returns 200 if app is healthy, 503 if unhealthy

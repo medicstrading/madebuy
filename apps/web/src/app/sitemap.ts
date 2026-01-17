@@ -1,6 +1,9 @@
 import { pieces, tenants } from '@madebuy/db'
 import type { MetadataRoute } from 'next'
 
+// Opt out of static generation - needs database access at runtime
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
 
