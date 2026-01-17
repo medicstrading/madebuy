@@ -143,3 +143,4 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
+// Railway rebuild trigger - 2026-01-17T03:14:14+00:00
