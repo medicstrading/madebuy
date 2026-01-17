@@ -1,20 +1,20 @@
+import type {
+  CreateReviewInput,
+  ProductReviewStats,
+  Review,
+  ReviewListOptions,
+  ReviewModerationInput,
+  UpdateReviewInput,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type {
-  Review,
-  CreateReviewInput,
-  UpdateReviewInput,
-  ReviewListOptions,
-  ProductReviewStats,
-  ReviewModerationInput,
-} from '@madebuy/shared'
 
 /**
  * Create a new review
  */
 export async function createReview(
   tenantId: string,
-  data: CreateReviewInput
+  data: CreateReviewInput,
 ): Promise<Review> {
   const db = await getDatabase()
 
@@ -47,10 +47,12 @@ export async function createReview(
  */
 export async function getReview(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Review | null> {
   const db = await getDatabase()
-  return (await db.collection('reviews').findOne({ tenantId, id })) as Review | null
+  return (await db
+    .collection('reviews')
+    .findOne({ tenantId, id })) as Review | null
 }
 
 /**
@@ -59,7 +61,7 @@ export async function getReview(
 export async function hasReviewedOrder(
   tenantId: string,
   orderId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
   const existing = await db.collection('reviews').findOne({
@@ -75,7 +77,7 @@ export async function hasReviewedOrder(
  */
 export async function listReviews(
   tenantId: string,
-  options?: ReviewListOptions
+  options?: ReviewListOptions,
 ): Promise<Review[]> {
   const db = await getDatabase()
 
@@ -126,7 +128,7 @@ export async function listReviews(
 export async function listApprovedReviews(
   tenantId: string,
   pieceId: string,
-  options?: { limit?: number; offset?: number }
+  options?: { limit?: number; offset?: number },
 ): Promise<Review[]> {
   const db = await getDatabase()
 
@@ -156,7 +158,7 @@ export async function listApprovedReviews(
 export async function updateReview(
   tenantId: string,
   id: string,
-  data: UpdateReviewInput
+  data: UpdateReviewInput,
 ): Promise<Review | null> {
   const db = await getDatabase()
 
@@ -191,7 +193,7 @@ export async function updateReview(
 export async function moderateReview(
   tenantId: string,
   id: string,
-  moderation: ReviewModerationInput
+  moderation: ReviewModerationInput,
 ): Promise<Review | null> {
   const db = await getDatabase()
 
@@ -221,7 +223,10 @@ export async function moderateReview(
 /**
  * Delete a review
  */
-export async function deleteReview(tenantId: string, id: string): Promise<void> {
+export async function deleteReview(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
   const review = await getReview(tenantId, id)
 
@@ -238,7 +243,7 @@ export async function deleteReview(tenantId: string, id: string): Promise<void> 
  */
 export async function markReviewHelpful(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('reviews').updateOne(
@@ -246,21 +251,24 @@ export async function markReviewHelpful(
     {
       $inc: { helpfulCount: 1 },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }
 
 /**
  * Report a review
  */
-export async function reportReview(tenantId: string, id: string): Promise<void> {
+export async function reportReview(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection('reviews').updateOne(
     { tenantId, id },
     {
       $inc: { reportCount: 1 },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }
 
@@ -269,7 +277,7 @@ export async function reportReview(tenantId: string, id: string): Promise<void> 
  */
 export async function getProductReviewStats(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<ProductReviewStats> {
   const db = await getDatabase()
 
@@ -291,7 +299,11 @@ export async function getProductReviewStats(
         },
         withPhotosCount: {
           $sum: {
-            $cond: [{ $gt: [{ $size: { $ifNull: ['$photos', []] } }, 0] }, 1, 0],
+            $cond: [
+              { $gt: [{ $size: { $ifNull: ['$photos', []] } }, 0] },
+              1,
+              0,
+            ],
           },
         },
         rating1: { $sum: { $cond: [{ $eq: ['$rating', 1] }, 1, 0] } },
@@ -339,7 +351,7 @@ export async function getProductReviewStats(
  */
 export async function updateProductReviewStats(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<void> {
   const db = await getDatabase()
   const stats = await getProductReviewStats(tenantId, pieceId)
@@ -352,7 +364,7 @@ export async function updateProductReviewStats(
         reviewCount: stats.totalReviews,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -372,7 +384,7 @@ export async function getPendingReviewCount(tenantId: string): Promise<number> {
  */
 export async function getReviewsForModeration(
   tenantId: string,
-  limit: number = 20
+  limit: number = 20,
 ): Promise<Review[]> {
   const db = await getDatabase()
 
@@ -406,7 +418,7 @@ export interface ReviewWithPiece extends Review {
  */
 export async function listRecentApprovedReviews(
   tenantId: string,
-  limit: number = 6
+  limit: number = 6,
 ): Promise<ReviewWithPiece[]> {
   const db = await getDatabase()
 

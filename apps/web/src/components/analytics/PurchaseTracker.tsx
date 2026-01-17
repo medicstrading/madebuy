@@ -17,7 +17,7 @@ export function PurchaseTracker({ tenantId, orderId }: PurchaseTrackerProps) {
     }
     // Only track once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [orderId, trackPurchase])
 
   return null
 }

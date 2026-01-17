@@ -4,14 +4,16 @@ export const dynamic = 'force-dynamic'
 
 export default function NotFound() {
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
       <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold' }}>404</h1>
       <p style={{ marginTop: '1rem', color: '#4b5563' }}>Page not found</p>
       <a
@@ -22,7 +24,7 @@ export default function NotFound() {
           backgroundColor: '#2563eb',
           color: 'white',
           borderRadius: '0.375rem',
-          textDecoration: 'none'
+          textDecoration: 'none',
         }}
       >
         Go to Dashboard

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { customers } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
     if (minOrders) filters.minOrders = parseInt(minOrders, 10)
     if (acquisitionSource) filters.acquisitionSource = acquisitionSource
 
-    const result = await customers.listCustomers(tenant.id, filters, { page, limit })
+    const result = await customers.listCustomers(tenant.id, filters, {
+      page,
+      limit,
+    })
 
     return NextResponse.json({
       customers: result.customers,
@@ -39,7 +42,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching customers:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -57,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (!email || !name) {
       return NextResponse.json(
         { error: 'Email and name are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -66,7 +72,7 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return NextResponse.json(
         { error: 'A customer with this email already exists' },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
@@ -91,6 +97,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ customer: updated }, { status: 201 })
   } catch (error) {
     console.error('Error creating customer:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

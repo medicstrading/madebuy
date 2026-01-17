@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 /**
  * Page Object for the Settings pages
@@ -49,58 +49,94 @@ export class SettingsPage {
     this.page = page
 
     // Navigation
-    this.profileTab = page.getByRole('tab', { name: /profile|account/i })
+    this.profileTab = page
+      .getByRole('tab', { name: /profile|account/i })
       .or(page.getByRole('link', { name: /profile|account/i }))
-    this.storeTab = page.getByRole('tab', { name: /store|shop/i })
+    this.storeTab = page
+      .getByRole('tab', { name: /store|shop/i })
       .or(page.getByRole('link', { name: /store|shop/i }))
-    this.shippingTab = page.getByRole('tab', { name: /shipping/i })
+    this.shippingTab = page
+      .getByRole('tab', { name: /shipping/i })
       .or(page.getByRole('link', { name: /shipping/i }))
-    this.paymentsTab = page.getByRole('tab', { name: /payment/i })
+    this.paymentsTab = page
+      .getByRole('tab', { name: /payment/i })
       .or(page.getByRole('link', { name: /payment/i }))
-    this.integrationsTab = page.getByRole('tab', { name: /integration/i })
+    this.integrationsTab = page
+      .getByRole('tab', { name: /integration/i })
       .or(page.getByRole('link', { name: /integration/i }))
-    this.billingTab = page.getByRole('tab', { name: /billing|subscription/i })
+    this.billingTab = page
+      .getByRole('tab', { name: /billing|subscription/i })
       .or(page.getByRole('link', { name: /billing|subscription/i }))
 
     // Profile
     this.businessNameInput = page.getByLabel(/business name|company/i)
     this.emailInput = page.getByLabel(/email/i)
     this.phoneInput = page.getByLabel(/phone/i)
-    this.profileSaveButton = page.getByRole('button', { name: /save profile|update profile/i })
+    this.profileSaveButton = page.getByRole('button', {
+      name: /save profile|update profile/i,
+    })
 
     // Store
     this.storeNameInput = page.getByLabel(/store name|shop name/i)
     this.storeDescriptionInput = page.getByLabel(/store description|about/i)
-    this.logoUpload = page.locator('[data-testid="logo-upload"]')
+    this.logoUpload = page
+      .locator('[data-testid="logo-upload"]')
       .or(page.getByText(/logo/i).locator('..').getByRole('button'))
-    this.bannerUpload = page.locator('[data-testid="banner-upload"]')
-      .or(page.getByText(/banner/i).locator('..').getByRole('button'))
-    this.primaryColorPicker = page.locator('[data-testid="color-picker"]')
+    this.bannerUpload = page.locator('[data-testid="banner-upload"]').or(
+      page
+        .getByText(/banner/i)
+        .locator('..')
+        .getByRole('button'),
+    )
+    this.primaryColorPicker = page
+      .locator('[data-testid="color-picker"]')
       .or(page.getByLabel(/primary color/i))
-    this.storeSaveButton = page.getByRole('button', { name: /save store|update store/i })
+    this.storeSaveButton = page.getByRole('button', {
+      name: /save store|update store/i,
+    })
 
     // Shipping
-    this.addShippingRateButton = page.getByRole('button', { name: /add.*rate|new.*rate/i })
-    this.shippingRates = page.locator('[data-testid="shipping-rate"]')
+    this.addShippingRateButton = page.getByRole('button', {
+      name: /add.*rate|new.*rate/i,
+    })
+    this.shippingRates = page
+      .locator('[data-testid="shipping-rate"]')
       .or(page.locator('.shipping-rate'))
-    this.domesticShippingToggle = page.getByLabel(/domestic/i)
-      .or(page.getByText(/domestic/i).locator('..').getByRole('switch'))
-    this.internationalShippingToggle = page.getByLabel(/international/i)
-      .or(page.getByText(/international/i).locator('..').getByRole('switch'))
+    this.domesticShippingToggle = page.getByLabel(/domestic/i).or(
+      page
+        .getByText(/domestic/i)
+        .locator('..')
+        .getByRole('switch'),
+    )
+    this.internationalShippingToggle = page.getByLabel(/international/i).or(
+      page
+        .getByText(/international/i)
+        .locator('..')
+        .getByRole('switch'),
+    )
 
     // Payments
-    this.stripeConnectButton = page.getByRole('button', { name: /connect.*stripe|stripe.*connect/i })
+    this.stripeConnectButton = page
+      .getByRole('button', { name: /connect.*stripe|stripe.*connect/i })
       .or(page.getByRole('link', { name: /connect.*stripe/i }))
-    this.stripeStatus = page.locator('[data-testid="stripe-status"]')
-      .or(page.getByText(/stripe/i).locator('..').getByText(/connected|not connected/i))
-    this.paypalConnectButton = page.getByRole('button', { name: /connect.*paypal/i })
+    this.stripeStatus = page.locator('[data-testid="stripe-status"]').or(
+      page
+        .getByText(/stripe/i)
+        .locator('..')
+        .getByText(/connected|not connected/i),
+    )
+    this.paypalConnectButton = page.getByRole('button', {
+      name: /connect.*paypal/i,
+    })
     this.paypalStatus = page.locator('[data-testid="paypal-status"]')
 
     // General
     this.saveButton = page.getByRole('button', { name: /save/i })
-    this.successMessage = page.getByText(/saved|updated|success/i)
+    this.successMessage = page
+      .getByText(/saved|updated|success/i)
       .or(page.locator('[role="status"]'))
-    this.errorMessage = page.getByText(/error|failed/i)
+    this.errorMessage = page
+      .getByText(/error|failed/i)
       .or(page.locator('[role="alert"]'))
   }
 
@@ -155,14 +191,18 @@ export class SettingsPage {
   /**
    * Update profile information
    */
-  async updateProfile(data: { businessName?: string; email?: string; phone?: string }): Promise<void> {
-    if (data.businessName && await this.businessNameInput.isVisible()) {
+  async updateProfile(data: {
+    businessName?: string
+    email?: string
+    phone?: string
+  }): Promise<void> {
+    if (data.businessName && (await this.businessNameInput.isVisible())) {
       await this.businessNameInput.fill(data.businessName)
     }
-    if (data.email && await this.emailInput.isVisible()) {
+    if (data.email && (await this.emailInput.isVisible())) {
       await this.emailInput.fill(data.email)
     }
-    if (data.phone && await this.phoneInput.isVisible()) {
+    if (data.phone && (await this.phoneInput.isVisible())) {
       await this.phoneInput.fill(data.phone)
     }
 
@@ -173,11 +213,14 @@ export class SettingsPage {
   /**
    * Update store settings
    */
-  async updateStore(data: { name?: string; description?: string }): Promise<void> {
-    if (data.name && await this.storeNameInput.isVisible()) {
+  async updateStore(data: {
+    name?: string
+    description?: string
+  }): Promise<void> {
+    if (data.name && (await this.storeNameInput.isVisible())) {
       await this.storeNameInput.fill(data.name)
     }
-    if (data.description && await this.storeDescriptionInput.isVisible()) {
+    if (data.description && (await this.storeDescriptionInput.isVisible())) {
       await this.storeDescriptionInput.fill(data.description)
     }
 

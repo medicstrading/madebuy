@@ -1,11 +1,15 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
-import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual'
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
+import { useMemo, useRef } from 'react'
 
 interface VirtualizedListProps<T> {
   items: T[]
-  renderItem: (item: T, index: number, virtualItem: VirtualItem) => React.ReactNode
+  renderItem: (
+    item: T,
+    index: number,
+    virtualItem: VirtualItem,
+  ) => React.ReactNode
   estimatedItemSize?: number
   className?: string
   overscan?: number
@@ -73,7 +77,11 @@ export function VirtualizedList<T>({
               transform: `translateY(${virtualItem.start}px)`,
             }}
           >
-            {renderItem(items[virtualItem.index], virtualItem.index, virtualItem)}
+            {renderItem(
+              items[virtualItem.index],
+              virtualItem.index,
+              virtualItem,
+            )}
           </div>
         ))}
       </div>
@@ -170,13 +178,16 @@ export function VirtualizedGrid<T>({
               display: 'grid',
               gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
               gap: `${gap}px`,
-              paddingBottom: virtualRow.index < rows.length - 1 ? `${gap}px` : 0,
+              paddingBottom:
+                virtualRow.index < rows.length - 1 ? `${gap}px` : 0,
             }}
           >
             {rows[virtualRow.index].map((item, colIndex) => {
               const globalIndex = virtualRow.index * columns + colIndex
               return (
-                <div key={getItemKey ? getItemKey(item, globalIndex) : globalIndex}>
+                <div
+                  key={getItemKey ? getItemKey(item, globalIndex) : globalIndex}
+                >
                   {renderItem(item, globalIndex)}
                 </div>
               )
@@ -265,7 +276,10 @@ export function VirtualizedTable<T>({
           <tbody className={`divide-y divide-gray-200 ${bodyClassName}`}>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={100} className="px-6 py-8 text-center text-gray-500">
+                <td
+                  colSpan={100}
+                  className="px-6 py-8 text-center text-gray-500"
+                >
                   No items found
                 </td>
               </tr>
@@ -283,13 +297,26 @@ export function VirtualizedTable<T>({
                   >
                     {/* Render the row content as table cells */}
                     {(() => {
-                      const rowContent = renderRow(items[virtualItem.index], virtualItem.index)
+                      const rowContent = renderRow(
+                        items[virtualItem.index],
+                        virtualItem.index,
+                      )
                       // If renderRow returns a tr element, extract its children
                       // Otherwise, wrap in a single td
-                      if (rowContent && typeof rowContent === 'object' && 'props' in rowContent) {
+                      if (
+                        rowContent &&
+                        typeof rowContent === 'object' &&
+                        'props' in rowContent
+                      ) {
                         const element = rowContent as React.ReactElement
-                        if (element.type === 'tr' || (element.props as { children?: React.ReactNode })?.children) {
-                          return (element.props as { children?: React.ReactNode })?.children
+                        if (
+                          element.type === 'tr' ||
+                          (element.props as { children?: React.ReactNode })
+                            ?.children
+                        ) {
+                          return (
+                            element.props as { children?: React.ReactNode }
+                          )?.children
                         }
                       }
                       return <td colSpan={100}>{rowContent}</td>

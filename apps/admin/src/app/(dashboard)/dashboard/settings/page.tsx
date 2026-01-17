@@ -1,23 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Loader2, Settings, Package, Boxes, RotateCcw } from 'lucide-react'
-import { MakerTypeSelector } from '@/components/settings/MakerTypeSelector'
-import { CategoryManager } from '@/components/settings/CategoryManager'
 import type { Tenant } from '@madebuy/shared'
 import {
   MAKER_CATEGORY_PRESETS,
   MAKER_MATERIAL_PRESETS,
   type MakerType,
 } from '@madebuy/shared'
+import { Boxes, Loader2, Package, RotateCcw, Settings } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { CategoryManager } from '@/components/settings/CategoryManager'
+import { MakerTypeSelector } from '@/components/settings/MakerTypeSelector'
 
 export default function SettingsPage() {
   const router = useRouter()
   const [tenant, setTenant] = useState<Tenant | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>(
+    'idle',
+  )
   const [isRestartingOnboarding, setIsRestartingOnboarding] = useState(false)
 
   // Load tenant data
@@ -31,7 +33,7 @@ export default function SettingsPage() {
         } else {
           setError('Failed to load settings')
         }
-      } catch (err) {
+      } catch (_err) {
         setError('Failed to load settings')
       } finally {
         setIsLoading(false)
@@ -57,61 +59,61 @@ export default function SettingsPage() {
       } else {
         throw new Error('Failed to save')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to save maker type')
       setSaveStatus('idle')
     }
   }
 
   // Add custom category
-  const handleAddCategory = async (category: string, type: 'product' | 'material') => {
+  const handleAddCategory = async (
+    category: string,
+    type: 'product' | 'material',
+  ) => {
     if (!tenant) return
     setSaveStatus('saving')
-    try {
-      const field = type === 'product' ? 'customCategories' : 'customMaterialCategories'
-      const current = tenant[field] || []
-      const updated = [...current, category]
+    const field =
+      type === 'product' ? 'customCategories' : 'customMaterialCategories'
+    const current = tenant[field] || []
+    const updated = [...current, category]
 
-      const response = await fetch('/api/tenant', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: updated }),
-      })
-      if (response.ok) {
-        setTenant((prev) => (prev ? { ...prev, [field]: updated } : prev))
-        setSaveStatus('saved')
-        setTimeout(() => setSaveStatus('idle'), 2000)
-      } else {
-        throw new Error('Failed to save')
-      }
-    } catch (err) {
-      throw err
+    const response = await fetch('/api/tenant', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: updated }),
+    })
+    if (response.ok) {
+      setTenant((prev) => (prev ? { ...prev, [field]: updated } : prev))
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    } else {
+      throw new Error('Failed to save')
     }
   }
 
   // Remove custom category
-  const handleRemoveCategory = async (category: string, type: 'product' | 'material') => {
+  const handleRemoveCategory = async (
+    category: string,
+    type: 'product' | 'material',
+  ) => {
     if (!tenant) return
     setSaveStatus('saving')
-    try {
-      const field = type === 'product' ? 'customCategories' : 'customMaterialCategories'
-      const current = tenant[field] || []
-      const updated = current.filter((c) => c !== category)
+    const field =
+      type === 'product' ? 'customCategories' : 'customMaterialCategories'
+    const current = tenant[field] || []
+    const updated = current.filter((c) => c !== category)
 
-      const response = await fetch('/api/tenant', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: updated }),
-      })
-      if (response.ok) {
-        setTenant((prev) => (prev ? { ...prev, [field]: updated } : prev))
-        setSaveStatus('saved')
-        setTimeout(() => setSaveStatus('idle'), 2000)
-      } else {
-        throw new Error('Failed to save')
-      }
-    } catch (err) {
-      throw err
+    const response = await fetch('/api/tenant', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: updated }),
+    })
+    if (response.ok) {
+      setTenant((prev) => (prev ? { ...prev, [field]: updated } : prev))
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    } else {
+      throw new Error('Failed to save')
     }
   }
 
@@ -176,7 +178,9 @@ export default function SettingsPage() {
               <Settings className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Maker Type</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Maker Type
+              </h2>
               <p className="text-sm text-gray-500">
                 Select your craft type to get relevant category presets
               </p>
@@ -201,7 +205,9 @@ export default function SettingsPage() {
               <Package className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Product Categories</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Product Categories
+              </h2>
               <p className="text-sm text-gray-500">
                 Categories for organizing your inventory items
               </p>
@@ -215,7 +221,9 @@ export default function SettingsPage() {
             presetCategories={presetProductCategories}
             customCategories={tenant.customCategories || []}
             onAddCategory={(cat: string) => handleAddCategory(cat, 'product')}
-            onRemoveCategory={(cat: string) => handleRemoveCategory(cat, 'product')}
+            onRemoveCategory={(cat: string) =>
+              handleRemoveCategory(cat, 'product')
+            }
             disabled={saveStatus === 'saving'}
           />
         </div>
@@ -229,7 +237,9 @@ export default function SettingsPage() {
               <Boxes className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Material Categories</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Material Categories
+              </h2>
               <p className="text-sm text-gray-500">
                 Categories for organizing your raw materials and supplies
               </p>
@@ -243,7 +253,9 @@ export default function SettingsPage() {
             presetCategories={presetMaterialCategories}
             customCategories={tenant.customMaterialCategories || []}
             onAddCategory={(cat: string) => handleAddCategory(cat, 'material')}
-            onRemoveCategory={(cat: string) => handleRemoveCategory(cat, 'material')}
+            onRemoveCategory={(cat: string) =>
+              handleRemoveCategory(cat, 'material')
+            }
             disabled={saveStatus === 'saving'}
           />
         </div>
@@ -257,7 +269,9 @@ export default function SettingsPage() {
               <RotateCcw className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Setup Wizard</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Setup Wizard
+              </h2>
               <p className="text-sm text-gray-500">
                 Run through the initial setup process again
               </p>
@@ -266,10 +280,12 @@ export default function SettingsPage() {
         </div>
         <div className="p-6">
           <p className="text-sm text-gray-600 mb-4">
-            Restart the setup wizard to configure your domain, location settings, and website design.
-            Your existing data won&apos;t be affected.
+            Restart the setup wizard to configure your domain, location
+            settings, and website design. Your existing data won&apos;t be
+            affected.
           </p>
           <button
+            type="button"
             onClick={async () => {
               setIsRestartingOnboarding(true)
               try {
@@ -310,11 +326,13 @@ export default function SettingsPage() {
         <h3 className="mb-2 text-sm font-semibold text-blue-900">Tips</h3>
         <ul className="space-y-1 text-sm text-blue-800">
           <li>
-            • Changing your maker type will update your preset categories, but won&apos;t affect
-            existing products
+            • Changing your maker type will update your preset categories, but
+            won&apos;t affect existing products
           </li>
           <li>• You can add custom categories on top of any preset template</li>
-          <li>• Removing a category won&apos;t delete products using that category</li>
+          <li>
+            • Removing a category won&apos;t delete products using that category
+          </li>
         </ul>
       </div>
     </div>

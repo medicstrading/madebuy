@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { ArrowUpRight, Check, Lock } from 'lucide-react'
 import type { Tenant } from '@madebuy/shared'
+import { ArrowUpRight, Check, Lock } from 'lucide-react'
+import Link from 'next/link'
 import { getWebsiteDesignUpgradeMessage } from '@/lib/website-design'
 
 interface DesignFeatureGateProps {
@@ -10,7 +10,12 @@ interface DesignFeatureGateProps {
   children: React.ReactNode
 }
 
-export function DesignFeatureGate({ tenant, feature, hasAccess, children }: DesignFeatureGateProps) {
+export function DesignFeatureGate({
+  tenant,
+  feature,
+  hasAccess,
+  children,
+}: DesignFeatureGateProps) {
   if (hasAccess) {
     return <>{children}</>
   }
@@ -26,32 +31,32 @@ export function DesignFeatureGate({ tenant, feature, hasAccess, children }: Desi
           'Customizable opacity and height',
         ]
       : feature === 'typography'
-      ? [
-          '5 professional font combinations',
-          'Google Fonts integration',
-          'Optimized for readability',
-          'Heading and body font pairing',
-        ]
-      : feature === 'layout'
-      ? [
-          '4 homepage layout templates',
-          'Classic Store layout',
-          'Minimal Showcase layout',
-          'Featured Focus & Magazine styles',
-        ]
-      : feature === 'sections'
-      ? [
-          '7 flexible content section types',
-          'Drag-to-reorder sections',
-          'Hero, features, testimonials, CTAs',
-          'Gallery, text-image, and FAQ blocks',
-        ]
-      : [
-          'Built-in blog system',
-          'Rich text editor (TipTap)',
-          'SEO optimization',
-          'Draft/publish workflow',
-        ]
+        ? [
+            '5 professional font combinations',
+            'Google Fonts integration',
+            'Optimized for readability',
+            'Heading and body font pairing',
+          ]
+        : feature === 'layout'
+          ? [
+              '4 homepage layout templates',
+              'Classic Store layout',
+              'Minimal Showcase layout',
+              'Featured Focus & Magazine styles',
+            ]
+          : feature === 'sections'
+            ? [
+                '7 flexible content section types',
+                'Drag-to-reorder sections',
+                'Hero, features, testimonials, CTAs',
+                'Gallery, text-image, and FAQ blocks',
+              ]
+            : [
+                'Built-in blog system',
+                'Rich text editor (TipTap)',
+                'SEO optimization',
+                'Draft/publish workflow',
+              ]
 
   return (
     <div className="space-y-6">
@@ -63,16 +68,19 @@ export function DesignFeatureGate({ tenant, feature, hasAccess, children }: Desi
               {feature === 'banner'
                 ? 'Pro Feature'
                 : feature === 'typography'
-                ? 'Pro Feature'
-                : feature === 'layout'
-                ? 'Pro Feature'
-                : 'Business Feature'}
+                  ? 'Pro Feature'
+                  : feature === 'layout'
+                    ? 'Pro Feature'
+                    : 'Business Feature'}
             </span>
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">{message.title}</h2>
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">
+            {message.title}
+          </h2>
           <p className="text-gray-700">{message.description}</p>
           <div className="mt-2 text-sm text-gray-600">
-            Current plan: <span className="font-semibold capitalize">{tenant.plan}</span>
+            Current plan:{' '}
+            <span className="font-semibold capitalize">{tenant.plan}</span>
           </div>
         </div>
 
@@ -96,7 +104,10 @@ export function DesignFeatureGate({ tenant, feature, hasAccess, children }: Desi
             {message.price && <span className="ml-1">- {message.price}</span>}
             <ArrowUpRight className="h-5 w-5" />
           </Link>
-          <Link href="/pricing" className="text-blue-600 hover:text-blue-700 hover:underline">
+          <Link
+            href="/pricing"
+            className="text-blue-600 hover:text-blue-700 hover:underline"
+          >
             Compare Plans
           </Link>
         </div>
@@ -109,7 +120,9 @@ export function DesignFeatureGate({ tenant, feature, hasAccess, children }: Desi
           <div className="rounded-lg bg-white px-6 py-4 shadow-xl">
             <div className="flex items-center gap-2 text-gray-700">
               <Lock className="h-5 w-5" />
-              <span className="font-semibold">Upgrade to unlock this feature</span>
+              <span className="font-semibold">
+                Upgrade to unlock this feature
+              </span>
             </div>
           </div>
         </div>

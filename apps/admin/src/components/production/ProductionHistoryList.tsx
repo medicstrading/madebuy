@@ -1,16 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import type { ProductionRun } from '@madebuy/shared'
 import {
+  Calendar,
   ChevronDown,
   ChevronUp,
   Layers,
   Package,
-  Calendar,
-  Trash2,
   RefreshCw,
+  Trash2,
 } from 'lucide-react'
-import type { ProductionRun } from '@madebuy/shared'
+import { useState } from 'react'
 
 interface ProductionHistoryListProps {
   runs: ProductionRun[]
@@ -28,7 +28,10 @@ export function ProductionHistoryList({
 
   const handleDelete = async (runId: string) => {
     if (!onDelete) return
-    if (!confirm('Delete this production record? Stock changes will be reversed.')) return
+    if (
+      !confirm('Delete this production record? Stock changes will be reversed.')
+    )
+      return
 
     setDeletingId(runId)
     try {
@@ -76,6 +79,7 @@ export function ProductionHistoryList({
             {/* Main Row */}
             <div className="flex items-center justify-between">
               <button
+                type="button"
                 onClick={() => setExpandedId(isExpanded ? null : run.id)}
                 className="flex items-center gap-3 text-left flex-1 hover:bg-gray-50 -ml-2 pl-2 py-1 rounded-lg transition-colors"
               >
@@ -93,7 +97,8 @@ export function ProductionHistoryList({
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-900">
-                    {run.quantityProduced} {run.quantityProduced === 1 ? 'unit' : 'units'} produced
+                    {run.quantityProduced}{' '}
+                    {run.quantityProduced === 1 ? 'unit' : 'units'} produced
                   </div>
                   <div className="text-xs text-gray-500 flex items-center gap-2">
                     <Calendar className="h-3 w-3" />
@@ -111,6 +116,7 @@ export function ProductionHistoryList({
                 </span>
                 {onDelete && (
                   <button
+                    type="button"
                     onClick={() => handleDelete(run.id)}
                     disabled={isDeleting}
                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
@@ -139,7 +145,9 @@ export function ProductionHistoryList({
                   >
                     <div className="flex items-center gap-2">
                       <Package className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-gray-700">{material.materialName}</span>
+                      <span className="text-gray-700">
+                        {material.materialName}
+                      </span>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-gray-600">
@@ -152,7 +160,9 @@ export function ProductionHistoryList({
                   </div>
                 ))}
                 <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-700">Cost per unit</span>
+                  <span className="font-medium text-gray-700">
+                    Cost per unit
+                  </span>
                   <span className="font-semibold text-gray-900">
                     ${(run.costPerUnit / 100).toFixed(2)}
                   </span>

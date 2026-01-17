@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { reviews } from '@madebuy/db'
 import type { ReviewModerationInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -35,12 +35,19 @@ export async function POST(
       sellerResponse: sellerResponse || undefined,
     }
 
-    const updatedReview = await reviews.moderateReview(tenant.id, params.id, moderation)
+    const _updatedReview = await reviews.moderateReview(
+      tenant.id,
+      params.id,
+      moderation,
+    )
 
     // Redirect back to reviews page
     return NextResponse.redirect(new URL('/dashboard/reviews', request.url))
   } catch (error) {
     console.error('Error moderating review:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

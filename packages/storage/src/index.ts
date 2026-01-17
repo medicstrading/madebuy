@@ -3,57 +3,55 @@
  * Storage utilities (R2 and Local) and image/video processing for MadeBuy platform
  */
 
+// Export image variant processing
+export {
+  type OptimizeForPlatformOptions,
+  optimizeForPlatform,
+  PLATFORM_VARIANTS,
+  type ProcessImageOptions,
+  processImageWithVariants,
+  STANDARD_VARIANTS,
+  type VariantSpec,
+} from './image-variants'
+
+// Export Local storage utilities
+export {
+  deleteFromLocal,
+  ensureUploadsDir,
+  getFromLocal,
+  getLocalPublicUrl,
+  type UploadOptions,
+  uploadToLocal,
+} from './local-storage'
+// Export protected image upload (IP protection)
+export {
+  areImagesSimilar,
+  calculateImageHash,
+  compareHashes,
+  type ProtectedUploadOptions,
+  type ProtectedUploadResult,
+  uploadProtectedImage,
+} from './protected-upload'
 // Export R2 utilities
 export {
-  uploadToR2,
   deleteFromR2,
   getFromR2,
   getPublicUrl,
   getSignedUrl,
   putToR2,
   type UploadOptions as R2UploadOptions,
+  uploadToR2,
 } from './r2'
-
-// Export Local storage utilities
-export {
-  uploadToLocal,
-  deleteFromLocal,
-  getFromLocal,
-  getLocalPublicUrl,
-  ensureUploadsDir,
-  type UploadOptions,
-} from './local-storage'
-
-// Export image variant processing
-export {
-  processImageWithVariants,
-  optimizeForPlatform,
-  PLATFORM_VARIANTS,
-  STANDARD_VARIANTS,
-  type ProcessImageOptions,
-  type OptimizeForPlatformOptions,
-  type VariantSpec,
-} from './image-variants'
-
-// Export protected image upload (IP protection)
-export {
-  uploadProtectedImage,
-  calculateImageHash,
-  compareHashes,
-  areImagesSimilar,
-  type ProtectedUploadOptions,
-  type ProtectedUploadResult,
-} from './protected-upload'
 
 // Export video processing utilities
 export {
-  processVideo,
+  type ExtractedMetadata,
   extractVideoMetadata,
   generateThumbnail,
-  validateVideoDuration,
   getOptimalCapturePoints,
+  processVideo,
   THUMBNAIL_SIZES,
   type VideoProcessingOptions,
   type VideoProcessingResult,
-  type ExtractedMetadata,
+  validateVideoDuration,
 } from './video-processing'

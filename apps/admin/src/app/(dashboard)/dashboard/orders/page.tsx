@@ -1,6 +1,6 @@
-import { requireTenant } from '@/lib/session'
 import { orders } from '@madebuy/db'
-import { ShoppingCart, Package, Truck, CheckCircle } from 'lucide-react'
+import { CheckCircle, Package, ShoppingCart, Truck } from 'lucide-react'
+import { requireTenant } from '@/lib/session'
 import { OrdersTable } from './OrdersTable'
 
 export default async function OrdersPage() {
@@ -9,27 +9,51 @@ export default async function OrdersPage() {
   // Fetch stats via aggregation and orders in parallel
   const [stats, allOrders] = await Promise.all([
     orders.getOrderStats(tenant.id),
-    orders.listOrders(tenant.id)
+    orders.listOrders(tenant.id),
   ])
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
-        <p className="mt-2 text-gray-600">Manage customer orders and fulfillment</p>
+        <p className="mt-2 text-gray-600">
+          Manage customer orders and fulfillment
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard title="Pending" value={stats.pending} icon={ShoppingCart} color="yellow" />
-        <StatCard title="Processing" value={stats.processing} icon={Package} color="blue" />
-        <StatCard title="Shipped" value={stats.shipped} icon={Truck} color="purple" />
-        <StatCard title="Delivered" value={stats.delivered} icon={CheckCircle} color="green" />
+        <StatCard
+          title="Pending"
+          value={stats.pending}
+          icon={ShoppingCart}
+          color="yellow"
+        />
+        <StatCard
+          title="Processing"
+          value={stats.processing}
+          icon={Package}
+          color="blue"
+        />
+        <StatCard
+          title="Shipped"
+          value={stats.shipped}
+          icon={Truck}
+          color="purple"
+        />
+        <StatCard
+          title="Delivered"
+          value={stats.delivered}
+          icon={CheckCircle}
+          color="green"
+        />
       </div>
 
       {allOrders.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No orders yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No orders yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
             Orders from your website will appear here.
           </p>
@@ -45,7 +69,7 @@ function StatCard({
   title,
   value,
   icon: Icon,
-  color
+  color,
 }: {
   title: string
   value: number
@@ -73,4 +97,3 @@ function StatCard({
     </div>
   )
 }
-

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { pieces, media } from '@madebuy/db'
+import { media, pieces } from '@madebuy/db'
 import type { ReorderMediaInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * PUT /api/pieces/[id]/media/reorder
@@ -19,7 +19,7 @@ import type { ReorderMediaInput } from '@madebuy/shared'
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -34,7 +34,7 @@ export async function PUT(
     if (!mediaIds || !Array.isArray(mediaIds) || mediaIds.length === 0) {
       return NextResponse.json(
         { error: 'mediaIds array is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -52,8 +52,10 @@ export async function PUT(
     const invalidIds = mediaIds.filter((id) => !pieceMediaIds.has(id))
     if (invalidIds.length > 0) {
       return NextResponse.json(
-        { error: `Media IDs not found for this piece: ${invalidIds.join(', ')}` },
-        { status: 400 }
+        {
+          error: `Media IDs not found for this piece: ${invalidIds.join(', ')}`,
+        },
+        { status: 400 },
       )
     }
 
@@ -62,12 +64,16 @@ export async function PUT(
     if (uniqueIds.size !== mediaIds.length) {
       return NextResponse.json(
         { error: 'Duplicate media IDs provided' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Update display order for all media items
-    const updateResult = await media.updateDisplayOrder(tenant.id, pieceId, mediaIds)
+    const updateResult = await media.updateDisplayOrder(
+      tenant.id,
+      pieceId,
+      mediaIds,
+    )
 
     // Set the first item as primary
     if (mediaIds.length > 0) {
@@ -88,8 +94,10 @@ export async function PUT(
   } catch (error) {
     console.error('Error reordering media:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -100,7 +108,7 @@ export async function PUT(
  */
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   return PUT(request, context)
 }

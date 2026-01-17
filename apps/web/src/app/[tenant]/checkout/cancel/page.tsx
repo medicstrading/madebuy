@@ -1,8 +1,12 @@
-import { requireTenant } from '@/lib/tenant'
-import Link from 'next/link'
 import { XCircle } from 'lucide-react'
+import Link from 'next/link'
+import { requireTenant } from '@/lib/tenant'
 
-export async function generateMetadata({ params }: { params: { tenant: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return {
@@ -10,8 +14,12 @@ export async function generateMetadata({ params }: { params: { tenant: string } 
   }
 }
 
-export default async function CheckoutCancelPage({ params }: { params: { tenant: string } }) {
-  const tenant = await requireTenant(params.tenant)
+export default async function CheckoutCancelPage({
+  params,
+}: {
+  params: { tenant: string }
+}) {
+  const _tenant = await requireTenant(params.tenant)
 
   return (
     <div className="min-h-screen bg-gray-50">

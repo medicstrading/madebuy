@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { marketplace, pieces } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ listingId: string }>
@@ -11,7 +11,7 @@ interface RouteParams {
  *
  * Get details of a specific Etsy listing
  */
-export async function GET(request: NextRequest, context: RouteParams) {
+export async function GET(_request: NextRequest, context: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -26,7 +26,10 @@ export async function GET(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'etsy') {
-      return NextResponse.json({ error: 'Not an Etsy listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an Etsy listing' },
+        { status: 400 },
+      )
     }
 
     const piece = await pieces.getPiece(tenant.id, listing.pieceId)
@@ -47,7 +50,10 @@ export async function GET(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error fetching Etsy listing:', error)
-    return NextResponse.json({ error: 'Failed to fetch listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch listing' },
+      { status: 500 },
+    )
   }
 }
 
@@ -56,7 +62,7 @@ export async function GET(request: NextRequest, context: RouteParams) {
  *
  * Remove an Etsy listing
  */
-export async function DELETE(request: NextRequest, context: RouteParams) {
+export async function DELETE(_request: NextRequest, context: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -71,7 +77,10 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'etsy') {
-      return NextResponse.json({ error: 'Not an Etsy listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an Etsy listing' },
+        { status: 400 },
+      )
     }
 
     // Mark as ended locally (Etsy API integration coming soon)
@@ -83,6 +92,9 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error deleting Etsy listing:', error)
-    return NextResponse.json({ error: 'Failed to delete listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to delete listing' },
+      { status: 500 },
+    )
   }
 }

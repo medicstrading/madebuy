@@ -66,7 +66,10 @@ export type ReconciliationReason =
   | 'waste'
   | 'other'
 
-export const RECONCILIATION_REASON_LABELS: Record<ReconciliationReason, string> = {
+export const RECONCILIATION_REASON_LABELS: Record<
+  ReconciliationReason,
+  string
+> = {
   damaged: 'Damaged',
   lost: 'Lost',
   theft: 'Theft',

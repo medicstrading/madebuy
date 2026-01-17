@@ -7,417 +7,384 @@
  * See: archive/packages/shared/src/types/
  */
 
-// Export active types
-export * from './tenant'
-export * from './piece'
-export * from './product'
-export * from './media'
-export * from './material'
-export * from './invoice'
-export * from './order'
-export * from './publish'
-export * from './enquiry'
+export type {
+  BlogConfig,
+  BlogPost,
+  BlogPublishConfig,
+  CreateBlogPostInput,
+  UpdateBlogPostInput,
+} from './blog'
 export * from './blog'
-export * from './tracking'
-export * from './download'
-export * from './customer'
-export * from './discount'
-export * from './newsletter'
-export * from './collection'
+export type {
+  Bundle,
+  BundleCartItem,
+  BundleListOptions,
+  BundlePiece,
+  BundleStatus,
+  BundleWithPieces,
+  CreateBundleInput,
+  UpdateBundleInput,
+} from './bundle'
 export * from './bundle'
-export * from './keyDates'
-export * from './payment'
-export * from './template'
-export * from './transaction'
-export * from './payout'
-export * from './scanner'
-export * from './review'
-export * from './wishlist'
-export * from './dispute'
+export type {
+  CallToActionStyle,
+  CaptionStyleOptions,
+  CaptionStyleProfile,
+  CaptionTone,
+  CreateCaptionStyleInput,
+  EmojiUsage,
+  ExamplePost,
+  HashtagStyle,
+  LearnedExample,
+  LengthPreference,
+  UpdateCaptionStyleInput,
+} from './captionStyle'
 export * from './captionStyle'
+export {
+  CTA_LABELS,
+  EMOJI_USAGE_LABELS,
+  HASHTAG_LABELS,
+  LENGTH_LABELS,
+  PLATFORM_DEFAULT_STYLES,
+  PLATFORM_GUIDELINES,
+  TONE_LABELS,
+} from './captionStyle'
+export * from './collection'
+export type {
+  CohortData,
+  CreateCustomerInput,
+  Customer,
+  CustomerAddress,
+  CustomerAuthResult,
+  CustomerFilters,
+  CustomerListOptions,
+  CustomerLTV,
+  CustomerSegment,
+  CustomerStats,
+  CustomerWithOrders,
+  RegisterCustomerInput,
+  SegmentRule,
+  UpdateCustomerInput,
+} from './customer'
+export * from './customer'
+export type {
+  CreateDiscountCodeInput,
+  DiscountCode,
+  DiscountListOptions,
+  DiscountStats,
+  DiscountType,
+  DiscountValidationResult,
+  UpdateDiscountCodeInput,
+} from './discount'
+export * from './discount'
+export type {
+  CreateDisputeInput,
+  Dispute,
+  DisputeFilters,
+  DisputeListOptions,
+  DisputeReason,
+  DisputeStats,
+  DisputeStatus,
+  UpdateDisputeInput,
+} from './dispute'
+export * from './dispute'
+export type {
+  CreateDownloadRecordInput,
+  DownloadEvent,
+  DownloadFilters,
+  DownloadRecord,
+  DownloadStats,
+  DownloadValidationResult,
+} from './download'
+export * from './download'
+export type {
+  CreateEnquiryInput,
+  Enquiry,
+  EnquiryStatus,
+} from './enquiry'
+export * from './enquiry'
 export * from './import'
-export * from './productionRun'
-export * from './reconciliation'
-
-// Re-export commonly used types for convenience
 export type {
-  Tenant,
-  SocialConnection,
-  SocialPlatform,
-  TenantFeatures,
-  OnboardingStep,
-  SendleSettings,
-  TenantTaxSettings,
-  BusinessAddress,
-} from './tenant'
-
+  CreateInvoiceInput,
+  InvoiceFilters,
+  InvoiceLineItem,
+  InvoiceRecord,
+  UpdateInvoiceInput,
+} from './invoice'
+export * from './invoice'
+export * from './keyDates'
 export type {
-  Piece,
-  PieceStatus,
-  PieceWithMedia,
-  CreatePieceInput,
-  UpdatePieceInput,
-  PieceFilters,
-  PieceIntegrations,
-  PieceMaterialUsage,
-  VariantOption,
-  ProductVariant,
-  ProductVariation,
-  VariationOption,
-  VariantCombination,
-  PersonalizationFieldType,
-  PersonalizationField,
-  PersonalizationConfig,
-  PersonalizationValue,
-  DigitalFile,
-  DigitalProductConfig,
-  CreateDigitalFileInput,
-  UpdateDigitalFileInput,
-} from './piece'
-
+  CreateMarketplaceConnectionInput,
+  CreateMarketplaceListingInput,
+  CreateMarketplaceOrderInput,
+  EbayConfig,
+  EtsyConfig,
+  InventorySyncResult,
+  ListingSyncResult,
+  MarketplaceConnection,
+  MarketplaceConnectionStatus,
+  MarketplaceListing,
+  MarketplaceListingFilters,
+  MarketplaceListingStatus,
+  MarketplaceOAuthConfig,
+  MarketplaceOAuthState,
+  MarketplaceOrder,
+  MarketplaceOrderFilters,
+  MarketplaceOrderItem,
+  MarketplaceOrderStatus,
+  MarketplacePlatform,
+  MarketplaceTokenResponse,
+  OrderImportResult,
+  UpdateMarketplaceConnectionInput,
+  UpdateMarketplaceListingInput,
+} from './marketplace'
+export * from './marketplace'
+export {
+  MARKETPLACE_FEATURES,
+  MARKETPLACE_LABELS,
+  MARKETPLACE_LISTING_STATUS_LABELS,
+  MARKETPLACE_ORDER_STATUS_LABELS,
+} from './marketplace'
 export type {
+  CreateMaterialInput,
+  Material,
+  MaterialCategory,
+  MaterialFilters,
+  MaterialUnit,
+  MaterialUsage,
+  UpdateMaterialInput,
+} from './material'
+export * from './material'
+export type {
+  CreateMediaInput,
+  MediaFilters,
   MediaItem,
+  MediaListOptions,
   MediaType,
   MediaVariant,
   MediaVariants,
-  CreateMediaInput,
+  ReorderMediaInput,
+  ReorderResult,
   UpdateMediaInput,
   VideoMetadata,
   VideoProcessingStatus,
-  MediaFilters,
-  MediaListOptions,
-  ReorderMediaInput,
-  ReorderResult,
 } from './media'
-
+export * from './media'
 export {
+  IMAGE_EXTENSIONS,
+  MAX_IMAGE_SIZE,
+  MAX_MEDIA_PER_PIECE,
+  MAX_VIDEO_DURATION,
+  MAX_VIDEO_SIZE,
   VALID_IMAGE_TYPES,
   VALID_VIDEO_TYPES,
-  MAX_IMAGE_SIZE,
-  MAX_VIDEO_SIZE,
-  MAX_VIDEO_DURATION,
-  MAX_MEDIA_PER_PIECE,
   VIDEO_EXTENSIONS,
-  IMAGE_EXTENSIONS,
 } from './media'
-
+export * from './newsletter'
 export type {
-  Material,
-  MaterialCategory,
-  MaterialUnit,
-  MaterialUsage,
-  CreateMaterialInput,
-  UpdateMaterialInput,
-  MaterialFilters,
-} from './material'
-
-export type {
-  InvoiceRecord,
-  InvoiceLineItem,
-  CreateInvoiceInput,
-  UpdateInvoiceInput,
-  InvoiceFilters,
-} from './invoice'
-
-export type {
+  CreateOrderInput,
   Order,
   OrderItem,
   OrderStatus,
   PaymentStatus,
-  CreateOrderInput,
 } from './order'
-
+export * from './order'
 export type {
-  PublishRecord,
-  PublishStatus,
-  PlatformResult,
-  AICaptionRequest,
-  AICaptionResponse,
-} from './publish'
-
-export type {
-  Enquiry,
-  EnquiryStatus,
-  CreateEnquiryInput,
-} from './enquiry'
-
-export type {
-  BlogPost,
-  CreateBlogPostInput,
-  UpdateBlogPostInput,
-  BlogConfig,
-  BlogPublishConfig,
-} from './blog'
-
-export type {
-  Product,
-  ProductStatus,
-  ProductAttributes,
-  ProductWithMedia,
-  ProductWithSeller,
-  CartProduct,
-  CreateProductInput,
-  UpdateProductInput,
-  ProductFilters,
-  ProductIntegrations,
-} from './product'
-
-export type {
-  TrafficSource,
-  TrackingEventType,
-  TrackingEvent,
-  DailyAnalytics,
-  SourceStats,
-  SourceAnalyticsSummary,
-  TrackedLinks,
-  AttributionData,
-  UTMParams,
-} from './tracking'
-
-export type {
-  Customer,
-  CustomerAddress,
-  CustomerSegment,
-  SegmentRule,
-  CustomerFilters,
-  CustomerListOptions,
-  CustomerStats,
-  CustomerLTV,
-  CohortData,
-  CustomerWithOrders,
-  CreateCustomerInput,
-  UpdateCustomerInput,
-  RegisterCustomerInput,
-  CustomerAuthResult,
-} from './customer'
-
-export type {
-  DiscountCode,
-  DiscountType,
-  CreateDiscountCodeInput,
-  UpdateDiscountCodeInput,
-  DiscountValidationResult,
-  DiscountListOptions,
-  DiscountStats,
-} from './discount'
-
-export type {
-  DownloadRecord,
-  DownloadEvent,
-  DownloadValidationResult,
-  DownloadFilters,
-  DownloadStats,
-  CreateDownloadRecordInput,
-} from './download'
-
-export type {
-  PaymentProvider,
-  PaymentMethod,
-  StripeConnectStatus,
-  StripeConnectRequirements,
-  PayPalConnectStatus,
-  TenantPaymentConfig,
-  CreateStripeConnectInput,
-  StripeOnboardingResponse,
-  StripeDashboardResponse,
-  CreatePayPalConnectInput,
-  PayPalReferralResponse,
   CheckoutPaymentInfo,
+  CreatePayPalConnectInput,
+  CreateStripeConnectInput,
+  PaymentMethod,
+  PaymentProvider,
   PaymentWebhookEvent,
   PaymentWebhookEventType,
+  PayPalConnectStatus,
+  PayPalReferralResponse,
+  StripeConnectRequirements,
+  StripeConnectStatus,
+  StripeDashboardResponse,
+  StripeOnboardingResponse,
+  TenantPaymentConfig,
 } from './payment'
-
+export * from './payment'
 export type {
-  WebsiteTemplate,
-  TemplateDefinition,
-  PageType,
-  WebsitePage,
-  PageSectionType,
-  PageSection,
-  PageSectionSettings,
-  HeroSlide,
-  FeatureItem,
-  TestimonialItem,
-  FAQItem,
-  HeaderConfig,
-  FooterConfig,
-  NavLink,
-  FooterColumn,
-} from './template'
-
-export {
-  TEMPLATE_DEFINITIONS,
-  STANDARD_PAGE_SLUGS,
-  LAYOUT_TO_TEMPLATE_MAP,
-  getDefaultPages,
-  getDefaultSections,
-  generateSectionId,
-  generatePageId,
-  createCustomPage,
-  validatePageSlug,
-  migrateSectionsToPages,
-} from './template'
-
-export type {
-  Transaction,
-  TransactionType,
-  TransactionStatus,
-  CreateTransactionInput,
-  TransactionFilters,
-  TransactionListOptions,
-  TenantBalance,
-  TransactionSummary,
-  QuarterlyGSTReport,
-} from './transaction'
-
-export {
-  calculateStripeFee,
-  calculateGstFromInclusive,
-  calculateGstFromExclusive,
-  getExclusiveAmount,
-  parseQuarter,
-  getCurrentQuarter,
-} from './transaction'
-
-export type {
-  Payout,
-  PayoutStatus,
   CreatePayoutInput,
+  Payout,
   PayoutFilters,
   PayoutListOptions,
+  PayoutStatus,
   PayoutSummary,
 } from './payout'
-
+export * from './payout'
 export type {
-  ExtractedDesign,
-  DesignImportState,
-  DesignImportStatus,
-  DomainOnboardingState,
-  DomainOnboardingStatus,
-  DnsRecord,
-  NavItem,
-  NavStructure,
-  SectionType,
-  DetectedSection,
-  TemplateRecommendation,
-  PreviewConfig,
-} from './scanner'
-
+  CreateDigitalFileInput,
+  CreatePieceInput,
+  DigitalFile,
+  DigitalProductConfig,
+  PersonalizationConfig,
+  PersonalizationField,
+  PersonalizationFieldType,
+  PersonalizationValue,
+  Piece,
+  PieceFilters,
+  PieceIntegrations,
+  PieceMaterialUsage,
+  PieceStatus,
+  PieceWithMedia,
+  ProductVariant,
+  ProductVariation,
+  UpdateDigitalFileInput,
+  UpdatePieceInput,
+  VariantCombination,
+  VariantOption,
+  VariationOption,
+} from './piece'
+export * from './piece'
 export type {
-  Review,
-  ReviewStatus,
-  ReviewPhoto,
-  CreateReviewInput,
-  UpdateReviewInput,
-  ReviewFilters,
-  ReviewListOptions,
-  ProductReviewStats,
-  ReviewModerationInput,
-} from './review'
-
+  CartProduct,
+  CreateProductInput,
+  Product,
+  ProductAttributes,
+  ProductFilters,
+  ProductIntegrations,
+  ProductStatus,
+  ProductWithMedia,
+  ProductWithSeller,
+  UpdateProductInput,
+} from './product'
+export * from './product'
 export type {
-  Dispute,
-  DisputeStatus,
-  DisputeReason,
-  CreateDisputeInput,
-  UpdateDisputeInput,
-  DisputeFilters,
-  DisputeListOptions,
-  DisputeStats,
-} from './dispute'
-
-export type {
-  Bundle,
-  BundleStatus,
-  BundlePiece,
-  BundleWithPieces,
-  BundleCartItem,
-  CreateBundleInput,
-  UpdateBundleInput,
-  BundleListOptions,
-} from './bundle'
-
-export type {
-  CaptionStyleProfile,
-  CaptionStyleOptions,
-  CaptionTone,
-  EmojiUsage,
-  LengthPreference,
-  HashtagStyle,
-  CallToActionStyle,
-  ExamplePost,
-  LearnedExample,
-  CreateCaptionStyleInput,
-  UpdateCaptionStyleInput,
-} from './captionStyle'
-
-export {
-  PLATFORM_DEFAULT_STYLES,
-  PLATFORM_GUIDELINES,
-  TONE_LABELS,
-  EMOJI_USAGE_LABELS,
-  LENGTH_LABELS,
-  HASHTAG_LABELS,
-  CTA_LABELS,
-} from './captionStyle'
-
-export type {
-  ProductionRun,
-  ProductionMaterialConsumption,
   CreateProductionRunInput,
+  ProductionMaterialConsumption,
+  ProductionRun,
   ProductionRunFilters,
   ProductionRunListOptions,
   ProductionSummary,
 } from './productionRun'
-
+export * from './productionRun'
 export type {
-  InventoryReconciliation,
-  ReconciliationStatus,
-  ReconciliationItem,
-  ReconciliationReason,
-  CreateReconciliationInput,
+  AICaptionRequest,
+  AICaptionResponse,
+  PlatformResult,
+  PublishRecord,
+  PublishStatus,
+} from './publish'
+export * from './publish'
+export type {
   AddReconciliationItemInput,
-  UpdateReconciliationItemInput,
+  CreateReconciliationInput,
+  InventoryReconciliation,
   ReconciliationFilters,
+  ReconciliationItem,
   ReconciliationListOptions,
+  ReconciliationReason,
+  ReconciliationStatus,
+  UpdateReconciliationItemInput,
 } from './reconciliation'
-
+export * from './reconciliation'
 export { RECONCILIATION_REASON_LABELS } from './reconciliation'
-
-export * from './marketplace'
-
 export type {
-  MarketplacePlatform,
-  MarketplaceConnectionStatus,
-  MarketplaceConnection,
-  MarketplaceListingStatus,
-  MarketplaceListing,
-  MarketplaceOrderStatus,
-  MarketplaceOrder,
-  MarketplaceOrderItem,
-  CreateMarketplaceConnectionInput,
-  UpdateMarketplaceConnectionInput,
-  CreateMarketplaceListingInput,
-  UpdateMarketplaceListingInput,
-  CreateMarketplaceOrderInput,
-  MarketplaceListingFilters,
-  MarketplaceOrderFilters,
-  MarketplaceOAuthConfig,
-  MarketplaceOAuthState,
-  MarketplaceTokenResponse,
-  ListingSyncResult,
-  InventorySyncResult,
-  OrderImportResult,
-  EbayConfig,
-  EtsyConfig,
-} from './marketplace'
-
+  CreateReviewInput,
+  ProductReviewStats,
+  Review,
+  ReviewFilters,
+  ReviewListOptions,
+  ReviewModerationInput,
+  ReviewPhoto,
+  ReviewStatus,
+  UpdateReviewInput,
+} from './review'
+export * from './review'
+export type {
+  DesignImportState,
+  DesignImportStatus,
+  DetectedSection,
+  DnsRecord,
+  DomainOnboardingState,
+  DomainOnboardingStatus,
+  ExtractedDesign,
+  NavItem,
+  NavStructure,
+  PreviewConfig,
+  SectionType,
+  TemplateRecommendation,
+} from './scanner'
+export * from './scanner'
+export type {
+  FAQItem,
+  FeatureItem,
+  FooterColumn,
+  FooterConfig,
+  HeaderConfig,
+  HeroSlide,
+  NavLink,
+  PageSection,
+  PageSectionSettings,
+  PageSectionType,
+  PageType,
+  TemplateDefinition,
+  TestimonialItem,
+  WebsitePage,
+  WebsiteTemplate,
+} from './template'
+export * from './template'
 export {
-  MARKETPLACE_LABELS,
-  MARKETPLACE_LISTING_STATUS_LABELS,
-  MARKETPLACE_ORDER_STATUS_LABELS,
-  MARKETPLACE_FEATURES,
-} from './marketplace'
+  createCustomPage,
+  generatePageId,
+  generateSectionId,
+  getDefaultPages,
+  getDefaultSections,
+  LAYOUT_TO_TEMPLATE_MAP,
+  migrateSectionsToPages,
+  STANDARD_PAGE_SLUGS,
+  TEMPLATE_DEFINITIONS,
+  validatePageSlug,
+} from './template'
+// Re-export commonly used types for convenience
+export type {
+  BusinessAddress,
+  OnboardingStep,
+  SendleSettings,
+  SocialConnection,
+  SocialPlatform,
+  Tenant,
+  TenantFeatures,
+  TenantTaxSettings,
+} from './tenant'
+// Export active types
+export * from './tenant'
+export type {
+  AttributionData,
+  DailyAnalytics,
+  SourceAnalyticsSummary,
+  SourceStats,
+  TrackedLinks,
+  TrackingEvent,
+  TrackingEventType,
+  TrafficSource,
+  UTMParams,
+} from './tracking'
+export * from './tracking'
+export type {
+  CreateTransactionInput,
+  QuarterlyGSTReport,
+  TenantBalance,
+  Transaction,
+  TransactionFilters,
+  TransactionListOptions,
+  TransactionStatus,
+  TransactionSummary,
+  TransactionType,
+} from './transaction'
+export * from './transaction'
+export {
+  calculateGstFromExclusive,
+  calculateGstFromInclusive,
+  calculateStripeFee,
+  getCurrentQuarter,
+  getExclusiveAmount,
+  parseQuarter,
+} from './transaction'
+export * from './wishlist'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)

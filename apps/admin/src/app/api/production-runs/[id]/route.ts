@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { productionRuns } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
 
@@ -18,17 +18,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const productionRun = await productionRuns.getProductionRun(tenant.id, id)
 
     if (!productionRun) {
-      return NextResponse.json({ error: 'Production run not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Production run not found' },
+        { status: 404 },
+      )
     }
 
     return NextResponse.json({ productionRun })
   } catch (error) {
     console.error('Error fetching production run:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
 
@@ -48,6 +54,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 404 })
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

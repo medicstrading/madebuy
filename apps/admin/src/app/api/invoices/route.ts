@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { invoices } from '@madebuy/db'
 import type { InvoiceFilters } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/invoices
@@ -44,20 +44,21 @@ export async function GET(request: NextRequest) {
       success: true,
       invoices: invoicesList,
       stats,
-      count: invoicesList.length
+      count: invoicesList.length,
     })
   } catch (error) {
     console.error('Error listing invoices:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to retrieve invoices',
         details: errorMessage,
-        code: 'INVOICES_FETCH_FAILED'
+        code: 'INVOICES_FETCH_FAILED',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

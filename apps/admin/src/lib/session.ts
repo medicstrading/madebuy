@@ -1,8 +1,8 @@
-import { cache } from 'react'
-import { getServerSession } from 'next-auth'
-import { authOptions } from './auth'
 import { tenants } from '@madebuy/db'
 import type { Tenant } from '@madebuy/shared'
+import { getServerSession } from 'next-auth'
+import { cache } from 'react'
+import { authOptions } from './auth'
 
 // Cached per-request - prevents duplicate session lookups within same request
 export const getCurrentUser = cache(async () => {

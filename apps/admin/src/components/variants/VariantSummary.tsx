@@ -1,13 +1,13 @@
 'use client'
 
 import {
-  Package,
   AlertTriangle,
-  XCircle,
-  EyeOff,
-  DollarSign,
-  TrendingUp,
   Boxes,
+  DollarSign,
+  EyeOff,
+  Package,
+  TrendingUp,
+  XCircle,
 } from 'lucide-react'
 import type { VariantSummaryProps } from './types'
 
@@ -31,18 +31,39 @@ export function VariantSummary({ stats, className = '' }: VariantSummaryProps) {
 
   // Calculate percentages for the stock status bar
   const stockBreakdown = [
-    { type: 'in', count: stats.inStock, color: 'bg-green-500', label: 'In Stock' },
-    { type: 'low', count: stats.lowStock, color: 'bg-yellow-500', label: 'Low Stock' },
-    { type: 'out', count: stats.outOfStock, color: 'bg-red-500', label: 'Out of Stock' },
-    { type: 'unavailable', count: stats.unavailable, color: 'bg-gray-300', label: 'Unavailable' },
+    {
+      type: 'in',
+      count: stats.inStock,
+      color: 'bg-green-500',
+      label: 'In Stock',
+    },
+    {
+      type: 'low',
+      count: stats.lowStock,
+      color: 'bg-yellow-500',
+      label: 'Low Stock',
+    },
+    {
+      type: 'out',
+      count: stats.outOfStock,
+      color: 'bg-red-500',
+      label: 'Out of Stock',
+    },
+    {
+      type: 'unavailable',
+      count: stats.unavailable,
+      color: 'bg-gray-300',
+      label: 'Unavailable',
+    },
   ]
 
   const stockedCount = stats.inStock + stats.lowStock + stats.outOfStock
-  const unlimitedCount =
-    stats.totalVariants - stockedCount - stats.unavailable
+  const unlimitedCount = stats.totalVariants - stockedCount - stats.unavailable
 
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white p-4 ${className}`}>
+    <div
+      className={`rounded-lg border border-gray-200 bg-white p-4 ${className}`}
+    >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total variants */}
         <div className="flex items-center gap-3">
@@ -129,12 +150,14 @@ export function VariantSummary({ stats, className = '' }: VariantSummaryProps) {
                       {item.label}: {item.count}
                     </span>
                   </div>
-                )
+                ),
             )}
             {unlimitedCount > 0 && (
               <div className="flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-blue-500" />
-                <span className="text-gray-600">Unlimited: {unlimitedCount}</span>
+                <span className="text-gray-600">
+                  Unlimited: {unlimitedCount}
+                </span>
               </div>
             )}
           </div>
@@ -157,7 +180,9 @@ export function VariantSummary({ stats, className = '' }: VariantSummaryProps) {
           {unlimitedCount > 0 && (
             <div
               className="bg-blue-500 transition-all duration-300"
-              style={{ width: `${(unlimitedCount / stats.totalVariants) * 100}%` }}
+              style={{
+                width: `${(unlimitedCount / stats.totalVariants) * 100}%`,
+              }}
               title={`Unlimited: ${unlimitedCount}`}
             />
           )}

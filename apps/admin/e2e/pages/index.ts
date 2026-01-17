@@ -5,6 +5,6 @@
 
 export { AuthPage } from './auth.page'
 export { DashboardPage } from './dashboard.page'
+export { MaterialsPage } from './materials.page'
 export { PiecesPage } from './pieces.page'
 export { SettingsPage } from './settings.page'
-export { MaterialsPage } from './materials.page'

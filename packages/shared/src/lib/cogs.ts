@@ -5,8 +5,8 @@
  * and suggested pricing based on material usage.
  */
 
-import type { PieceMaterialUsage } from '../types/piece'
 import type { Material } from '../types/material'
+import type { PieceMaterialUsage } from '../types/piece'
 
 /**
  * Material catalog entry for COGS calculation
@@ -14,7 +14,7 @@ import type { Material } from '../types/material'
  */
 export interface MaterialCatalogEntry {
   id: string
-  costPerUnit: number  // Cost in cents per unit
+  costPerUnit: number // Cost in cents per unit
   unit: string
 }
 
@@ -22,10 +22,10 @@ export interface MaterialCatalogEntry {
  * Result of COGS calculation with detailed breakdown
  */
 export interface COGSBreakdown {
-  totalCOGS: number                    // Total cost in cents
-  materialCosts: MaterialCostItem[]    // Individual material costs
-  hasMissingMaterials: boolean         // True if any materials weren't found
-  missingMaterialIds: string[]         // IDs of materials that weren't found
+  totalCOGS: number // Total cost in cents
+  materialCosts: MaterialCostItem[] // Individual material costs
+  hasMissingMaterials: boolean // True if any materials weren't found
+  missingMaterialIds: string[] // IDs of materials that weren't found
 }
 
 /**
@@ -37,7 +37,7 @@ export interface MaterialCostItem {
   quantity: number
   unit: string
   costPerUnit: number
-  totalCost: number  // quantity * costPerUnit
+  totalCost: number // quantity * costPerUnit
 }
 
 /**
@@ -56,7 +56,7 @@ export interface MaterialCostItem {
  */
 export function calculateCOGS(
   materialsUsed: PieceMaterialUsage[] | undefined,
-  materialsCatalog: MaterialCatalogEntry[] | Material[]
+  materialsCatalog: MaterialCatalogEntry[] | Material[],
 ): number {
   if (!materialsUsed || materialsUsed.length === 0) {
     return 0
@@ -64,7 +64,7 @@ export function calculateCOGS(
 
   // Create lookup map for O(1) access
   const catalogMap = new Map<string, MaterialCatalogEntry>(
-    materialsCatalog.map(m => [m.id, m])
+    materialsCatalog.map((m) => [m.id, m]),
   )
 
   return materialsUsed.reduce((total, usage) => {
@@ -73,7 +73,7 @@ export function calculateCOGS(
       // Material not found in catalog - skip (logged in breakdown version)
       return total
     }
-    return total + (material.costPerUnit * usage.quantity)
+    return total + material.costPerUnit * usage.quantity
   }, 0)
 }
 
@@ -86,7 +86,7 @@ export function calculateCOGS(
  */
 export function calculateCOGSWithBreakdown(
   materialsUsed: PieceMaterialUsage[] | undefined,
-  materialsCatalog: (MaterialCatalogEntry & { name?: string })[] | Material[]
+  materialsCatalog: (MaterialCatalogEntry & { name?: string })[] | Material[],
 ): COGSBreakdown {
   if (!materialsUsed || materialsUsed.length === 0) {
     return {
@@ -98,9 +98,7 @@ export function calculateCOGSWithBreakdown(
   }
 
   // Create lookup map for O(1) access
-  const catalogMap = new Map(
-    materialsCatalog.map(m => [m.id, m])
-  )
+  const catalogMap = new Map(materialsCatalog.map((m) => [m.id, m]))
 
   const materialCosts: MaterialCostItem[] = []
   const missingMaterialIds: string[] = []
@@ -148,7 +146,7 @@ export function calculateCOGSWithBreakdown(
  */
 export function calculateProfitMargin(
   price: number | undefined,
-  cogs: number | undefined
+  cogs: number | undefined,
 ): number | null {
   // Need valid positive price to calculate margin
   if (!price || price <= 0) {
@@ -174,7 +172,7 @@ export function calculateProfitMargin(
  */
 export function calculateGrossProfit(
   price: number | undefined,
-  cogs: number | undefined
+  cogs: number | undefined,
 ): number | null {
   if (!price || price <= 0) {
     return null
@@ -198,7 +196,7 @@ export function calculateGrossProfit(
  */
 export function suggestPrice(
   cogs: number | undefined,
-  targetMarginPercent: number
+  targetMarginPercent: number,
 ): number | null {
   if (!cogs || cogs <= 0) {
     return null
@@ -225,7 +223,7 @@ export function suggestPrice(
  * @returns Health status: 'healthy' (>=50%), 'warning' (30-50%), 'low' (0-30%), 'negative' (<0%)
  */
 export function getMarginHealth(
-  margin: number | null
+  margin: number | null,
 ): 'healthy' | 'warning' | 'low' | 'negative' | 'unknown' {
   if (margin === null) {
     return 'unknown'

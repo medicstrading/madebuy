@@ -64,7 +64,12 @@ export interface BundleListOptions {
   status?: BundleStatus | BundleStatus[]
   limit?: number
   offset?: number
-  sortBy?: 'name' | 'bundlePrice' | 'discountPercent' | 'createdAt' | 'updatedAt'
+  sortBy?:
+    | 'name'
+    | 'bundlePrice'
+    | 'discountPercent'
+    | 'createdAt'
+    | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
 }
 
@@ -118,6 +123,9 @@ export interface BundleProductData {
 /**
  * Type guard to check if a product has bundle data
  */
-export function hasBundleData(product: { id: string; _bundleData?: BundleProductData }): product is { id: string; _bundleData: BundleProductData } {
+export function hasBundleData(product: {
+  id: string
+  _bundleData?: BundleProductData
+}): product is { id: string; _bundleData: BundleProductData } {
   return product.id.startsWith('bundle_') && product._bundleData != null
 }

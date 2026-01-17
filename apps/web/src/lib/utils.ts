@@ -1,4 +1,7 @@
-export function formatCurrency(amount: number | undefined, currency: string = 'AUD'): string {
+export function formatCurrency(
+  amount: number | undefined,
+  currency: string = 'AUD',
+): string {
   if (amount === undefined || amount === null) {
     return 'Price not set'
   }

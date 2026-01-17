@@ -1,6 +1,10 @@
 'use client'
 
-type AnalyticsEvent = 'view_product' | 'add_to_cart' | 'start_checkout' | 'complete_purchase'
+type AnalyticsEvent =
+  | 'view_product'
+  | 'add_to_cart'
+  | 'start_checkout'
+  | 'complete_purchase'
 
 interface TrackOptions {
   productId?: string
@@ -27,7 +31,8 @@ export function useAnalytics(tenantId: string) {
   }
 
   return {
-    trackProductView: (productId: string) => track('view_product', { productId }),
+    trackProductView: (productId: string) =>
+      track('view_product', { productId }),
     trackAddToCart: (productId: string) => track('add_to_cart', { productId }),
     trackStartCheckout: () => track('start_checkout'),
     trackPurchase: (orderId: string) => track('complete_purchase', { orderId }),

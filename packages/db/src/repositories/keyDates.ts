@@ -1,21 +1,22 @@
+import type {
+  CreateKeyDateInput,
+  KeyDate,
+  KeyDateListOptions,
+  UpdateKeyDateInput,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type {
-  KeyDate,
-  CreateKeyDateInput,
-  UpdateKeyDateInput,
-  KeyDateListOptions,
-} from '@madebuy/shared'
 
 export async function createKeyDate(
   tenantId: string,
-  input: CreateKeyDateInput
+  input: CreateKeyDateInput,
 ): Promise<KeyDate> {
   const db = await getDatabase()
   const now = new Date()
 
   // Ensure date is a Date object
-  const date = typeof input.date === 'string' ? new Date(input.date) : input.date
+  const date =
+    typeof input.date === 'string' ? new Date(input.date) : input.date
 
   const keyDate: KeyDate = {
     id: nanoid(),
@@ -35,7 +36,7 @@ export async function createKeyDate(
 
 export async function getKeyDateById(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<KeyDate | null> {
   const db = await getDatabase()
   const keyDate = await db.collection('key_dates').findOne({ tenantId, id })
@@ -45,7 +46,7 @@ export async function getKeyDateById(
 export async function updateKeyDate(
   tenantId: string,
   id: string,
-  input: UpdateKeyDateInput
+  input: UpdateKeyDateInput,
 ): Promise<KeyDate | null> {
   const db = await getDatabase()
 
@@ -56,19 +57,25 @@ export async function updateKeyDate(
 
   // Ensure date is a Date object if provided
   if (input.date) {
-    updateData.date = typeof input.date === 'string' ? new Date(input.date) : input.date
+    updateData.date =
+      typeof input.date === 'string' ? new Date(input.date) : input.date
   }
 
-  const result = await db.collection('key_dates').findOneAndUpdate(
-    { tenantId, id },
-    { $set: updateData },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('key_dates')
+    .findOneAndUpdate(
+      { tenantId, id },
+      { $set: updateData },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as KeyDate | null
 }
 
-export async function deleteKeyDate(tenantId: string, id: string): Promise<boolean> {
+export async function deleteKeyDate(
+  tenantId: string,
+  id: string,
+): Promise<boolean> {
   const db = await getDatabase()
   const result = await db.collection('key_dates').deleteOne({ tenantId, id })
   return result.deletedCount === 1
@@ -76,7 +83,7 @@ export async function deleteKeyDate(tenantId: string, id: string): Promise<boole
 
 export async function listKeyDates(
   tenantId: string,
-  options: KeyDateListOptions = {}
+  options: KeyDateListOptions = {},
 ): Promise<KeyDate[]> {
   const db = await getDatabase()
 

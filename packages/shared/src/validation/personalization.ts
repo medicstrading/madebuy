@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import type { PersonalizationField, PersonalizationConfig } from '../types/piece'
+import type {
+  PersonalizationConfig,
+  PersonalizationField,
+} from '../types/piece'
 
 /**
  * Personalization validation schemas
@@ -20,7 +23,10 @@ export const PersonalizationFieldTypeSchema = z.enum([
 // Base field schema (without refinements, for deriving other schemas)
 const PersonalizationFieldBaseSchema = z.object({
   id: z.string().min(1, 'Field ID is required'),
-  name: z.string().min(1, 'Field name is required').max(100, 'Field name too long'),
+  name: z
+    .string()
+    .min(1, 'Field name is required')
+    .max(100, 'Field name too long'),
   type: PersonalizationFieldTypeSchema,
   required: z.boolean(),
   placeholder: z.string().max(200).optional(),
@@ -63,51 +69,71 @@ const PersonalizationFieldBaseSchema = z.object({
 export const PersonalizationFieldSchema = PersonalizationFieldBaseSchema.refine(
   (data) => {
     // If type is select, options must be provided
-    if (data.type === 'select' && (!data.options || data.options.length === 0)) {
+    if (
+      data.type === 'select' &&
+      (!data.options || data.options.length === 0)
+    ) {
       return false
     }
     return true
   },
-  { message: 'Select fields must have at least one option', path: ['options'] }
-).refine(
-  (data) => {
-    // maxLength must be >= minLength
-    if (data.minLength !== undefined && data.maxLength !== undefined) {
-      return data.maxLength >= data.minLength
-    }
-    return true
-  },
-  { message: 'maxLength must be greater than or equal to minLength', path: ['maxLength'] }
-).refine(
-  (data) => {
-    // max must be >= min for number fields
-    if (data.type === 'number' && data.min !== undefined && data.max !== undefined) {
-      return data.max >= data.min
-    }
-    return true
-  },
-  { message: 'max must be greater than or equal to min', path: ['max'] }
+  { message: 'Select fields must have at least one option', path: ['options'] },
 )
+  .refine(
+    (data) => {
+      // maxLength must be >= minLength
+      if (data.minLength !== undefined && data.maxLength !== undefined) {
+        return data.maxLength >= data.minLength
+      }
+      return true
+    },
+    {
+      message: 'maxLength must be greater than or equal to minLength',
+      path: ['maxLength'],
+    },
+  )
+  .refine(
+    (data) => {
+      // max must be >= min for number fields
+      if (
+        data.type === 'number' &&
+        data.min !== undefined &&
+        data.max !== undefined
+      ) {
+        return data.max >= data.min
+      }
+      return true
+    },
+    { message: 'max must be greater than or equal to min', path: ['max'] },
+  )
 
 // Full personalization config schema (for admin)
-export const PersonalizationConfigSchema = z.object({
-  enabled: z.boolean(),
-  fields: z.array(PersonalizationFieldSchema).max(20, 'Maximum 20 fields allowed'),
-  previewEnabled: z.boolean().optional(),
-  processingDays: z.number().int().min(0).max(365).optional(),
-  instructions: z.string().max(1000).optional(),
-}).refine(
-  (data) => {
-    if (data.enabled && data.fields.length === 0) {
-      return false
-    }
-    return true
-  },
-  { message: 'At least one field is required when personalization is enabled', path: ['fields'] }
-)
+export const PersonalizationConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    fields: z
+      .array(PersonalizationFieldSchema)
+      .max(20, 'Maximum 20 fields allowed'),
+    previewEnabled: z.boolean().optional(),
+    processingDays: z.number().int().min(0).max(365).optional(),
+    instructions: z.string().max(1000).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.enabled && data.fields.length === 0) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'At least one field is required when personalization is enabled',
+      path: ['fields'],
+    },
+  )
 
 // Schema for creating/updating field (without id)
-export const CreatePersonalizationFieldSchema = PersonalizationFieldBaseSchema.omit({ id: true })
+export const CreatePersonalizationFieldSchema =
+  PersonalizationFieldBaseSchema.omit({ id: true })
 
 // Personalization value schema (buyer input)
 export const PersonalizationValueSchema = z.object({
@@ -123,9 +149,15 @@ export const PersonalizationValueSchema = z.object({
 export const PersonalizationValuesSchema = z.array(PersonalizationValueSchema)
 
 // Inferred types
-export type PersonalizationFieldInput = z.infer<typeof PersonalizationFieldSchema>
-export type PersonalizationConfigInput = z.infer<typeof PersonalizationConfigSchema>
-export type PersonalizationValueInput = z.infer<typeof PersonalizationValueSchema>
+export type PersonalizationFieldInput = z.infer<
+  typeof PersonalizationFieldSchema
+>
+export type PersonalizationConfigInput = z.infer<
+  typeof PersonalizationConfigSchema
+>
+export type PersonalizationValueInput = z.infer<
+  typeof PersonalizationValueSchema
+>
 
 /**
  * Validate a single personalization value against its field config
@@ -134,7 +166,7 @@ export type PersonalizationValueInput = z.infer<typeof PersonalizationValueSchem
 export function validateFieldValue(
   field: PersonalizationField,
   value: string | number | boolean | null | undefined,
-  fileUrl?: string
+  fileUrl?: string,
 ): string[] {
   const errors: string[] = []
   const fieldName = field.name || field.label || 'Field'
@@ -157,10 +189,14 @@ export function validateFieldValue(
     case 'textarea': {
       const strValue = String(value)
       if (field.minLength !== undefined && strValue.length < field.minLength) {
-        errors.push(`${fieldName} must be at least ${field.minLength} characters`)
+        errors.push(
+          `${fieldName} must be at least ${field.minLength} characters`,
+        )
       }
       if (field.maxLength !== undefined && strValue.length > field.maxLength) {
-        errors.push(`${fieldName} must be at most ${field.maxLength} characters`)
+        errors.push(
+          `${fieldName} must be at most ${field.maxLength} characters`,
+        )
       }
       if (field.pattern) {
         try {
@@ -191,8 +227,9 @@ export function validateFieldValue(
     }
 
     case 'number': {
-      const numValue = typeof value === 'number' ? value : parseFloat(String(value))
-      if (isNaN(numValue)) {
+      const numValue =
+        typeof value === 'number' ? value : parseFloat(String(value))
+      if (Number.isNaN(numValue)) {
         errors.push(`${fieldName} must be a number`)
       } else {
         if (field.min !== undefined && numValue < field.min) {
@@ -213,7 +250,7 @@ export function validateFieldValue(
 
     case 'date': {
       const dateValue = new Date(String(value))
-      if (isNaN(dateValue.getTime())) {
+      if (Number.isNaN(dateValue.getTime())) {
         errors.push(`${fieldName} must be a valid date`)
       } else {
         if (field.minDate) {
@@ -250,7 +287,10 @@ export function validateFieldValue(
  */
 export function validatePersonalizationValues(
   config: PersonalizationConfig,
-  values: Record<string, { value: string | number | boolean; fileUrl?: string }>
+  values: Record<
+    string,
+    { value: string | number | boolean; fileUrl?: string }
+  >,
 ): {
   valid: boolean
   errors: Record<string, string[]>
@@ -270,7 +310,12 @@ export function validatePersonalizationValues(
     }
 
     // Calculate price adjustment if value is provided
-    if (value !== null && value !== undefined && value !== '' && field.priceAdjustment) {
+    if (
+      value !== null &&
+      value !== undefined &&
+      value !== '' &&
+      field.priceAdjustment
+    ) {
       if (field.priceAdjustmentType === 'fixed') {
         totalPriceAdjustment += field.priceAdjustment
       }
@@ -293,14 +338,22 @@ export function validatePersonalizationValues(
  */
 export function calculatePersonalizationTotal(
   config: PersonalizationConfig,
-  values: Record<string, { value: string | number | boolean; fileUrl?: string }>,
-  basePrice: number
+  values: Record<
+    string,
+    { value: string | number | boolean; fileUrl?: string }
+  >,
+  basePrice: number,
 ): number {
   let total = 0
 
   for (const field of config.fields) {
     const input = values[field.id]
-    if (!input || input.value === null || input.value === undefined || input.value === '') {
+    if (
+      !input ||
+      input.value === null ||
+      input.value === undefined ||
+      input.value === ''
+    ) {
       continue
     }
 
@@ -327,6 +380,8 @@ export function safeValidatePersonalizationConfig(data: unknown) {
 /**
  * Validate personalization config (throws on error)
  */
-export function validatePersonalizationConfig(data: unknown): PersonalizationConfigInput {
+export function validatePersonalizationConfig(
+  data: unknown,
+): PersonalizationConfigInput {
   return PersonalizationConfigSchema.parse(data)
 }

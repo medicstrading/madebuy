@@ -1,8 +1,8 @@
 'use client'
 
+import { Download, FileText, Filter, X } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useState, useMemo } from 'react'
-import { Filter, X, Download, FileText } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
 
 const TRANSACTION_TYPES = [
   { value: '', label: 'All Types' },
@@ -17,13 +17,19 @@ export function DateFilter() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [startDate, setStartDate] = useState(searchParams?.get('startDate') || '')
+  const [startDate, setStartDate] = useState(
+    searchParams?.get('startDate') || '',
+  )
   const [endDate, setEndDate] = useState(searchParams?.get('endDate') || '')
   const [txType, setTxType] = useState(searchParams?.get('type') || '')
   const [dateError, setDateError] = useState('')
 
   // Check if date range is invalid (start after end)
-  const isInvalidDateRange = !!(startDate && endDate && new Date(startDate) > new Date(endDate))
+  const isInvalidDateRange = !!(
+    startDate &&
+    endDate &&
+    new Date(startDate) > new Date(endDate)
+  )
 
   const applyFilter = useCallback(() => {
     // Validate date range before applying
@@ -80,13 +86,18 @@ export function DateFilter() {
     for (let i = 0; i < 12; i++) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
       const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      const label = date.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
+      const label = date.toLocaleDateString('en-AU', {
+        month: 'long',
+        year: 'numeric',
+      })
       options.push({ value, label })
     }
     return options
   }, [])
 
-  const [statementMonth, setStatementMonth] = useState(monthOptions[0]?.value || '')
+  const [statementMonth, setStatementMonth] = useState(
+    monthOptions[0]?.value || '',
+  )
 
   const downloadStatement = useCallback(() => {
     if (!statementMonth) return
@@ -107,7 +118,10 @@ export function DateFilter() {
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div>
-        <label htmlFor="txType" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="txType"
+          className="block text-sm font-medium text-gray-700"
+        >
           Type
         </label>
         <select
@@ -125,7 +139,10 @@ export function DateFilter() {
       </div>
 
       <div>
-        <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="startDate"
+          className="block text-sm font-medium text-gray-700"
+        >
           From
         </label>
         <input
@@ -138,7 +155,10 @@ export function DateFilter() {
       </div>
 
       <div>
-        <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="endDate"
+          className="block text-sm font-medium text-gray-700"
+        >
           To
         </label>
         <input
@@ -159,6 +179,7 @@ export function DateFilter() {
       )}
 
       <button
+        type="button"
         onClick={applyFilter}
         disabled={isInvalidDateRange}
         className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -169,6 +190,7 @@ export function DateFilter() {
 
       {hasFilter && (
         <button
+          type="button"
           onClick={clearFilter}
           className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
         >
@@ -180,6 +202,7 @@ export function DateFilter() {
       <div className="ml-auto flex items-end gap-3">
         {/* CSV Export */}
         <button
+          type="button"
           onClick={exportCSV}
           className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         >
@@ -190,7 +213,10 @@ export function DateFilter() {
         {/* Statement Download */}
         <div className="flex items-end gap-2">
           <div>
-            <label htmlFor="statementMonth" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="statementMonth"
+              className="block text-sm font-medium text-gray-700"
+            >
               Statement
             </label>
             <select
@@ -207,6 +233,7 @@ export function DateFilter() {
             </select>
           </div>
           <button
+            type="button"
             onClick={downloadStatement}
             className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
           >

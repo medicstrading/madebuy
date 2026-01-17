@@ -1,16 +1,26 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Pencil, Check, X, Loader2 } from 'lucide-react'
 import type { Piece } from '@madebuy/shared'
-import { useTenantCategories, FALLBACK_PRODUCT_CATEGORIES } from '@/hooks/useTenantCategories'
+import { Check, Loader2, Pencil, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import {
+  FALLBACK_PRODUCT_CATEGORIES,
+  useTenantCategories,
+} from '@/hooks/useTenantCategories'
 
 interface PieceDetailsEditorProps {
   piece: Piece
 }
 
-type EditableField = 'name' | 'category' | 'price' | 'stock' | 'description' | 'status' | null
+type EditableField =
+  | 'name'
+  | 'category'
+  | 'price'
+  | 'stock'
+  | 'description'
+  | 'status'
+  | null
 
 export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
   const router = useRouter()
@@ -27,7 +37,10 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
   const [status, setStatus] = useState(piece.status)
 
   const { productCategories } = useTenantCategories()
-  const categories = productCategories.length > 0 ? productCategories : FALLBACK_PRODUCT_CATEGORIES
+  const categories =
+    productCategories.length > 0
+      ? productCategories
+      : FALLBACK_PRODUCT_CATEGORIES
 
   const saveField = async (field: string, value: any) => {
     setSaving(true)
@@ -93,16 +106,21 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  autoFocus
                 />
                 <button
+                  type="button"
                   onClick={() => saveField('name', name)}
                   disabled={saving || !name.trim()}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
                 </button>
                 <button
+                  type="button"
                   onClick={cancelEdit}
                   disabled={saving}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -114,6 +132,7 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
               <div className="flex items-center gap-2 group">
                 <span className="text-gray-900">{piece.name}</span>
                 <button
+                  type="button"
                   onClick={() => setEditing('name')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -134,21 +153,28 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  autoFocus
                 >
                   {categories.map((cat: string) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                   <option value="Other">Other</option>
                 </select>
                 <button
+                  type="button"
                   onClick={() => saveField('category', category)}
                   disabled={saving}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
                 </button>
                 <button
+                  type="button"
                   onClick={cancelEdit}
                   disabled={saving}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -160,6 +186,7 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
               <div className="flex items-center gap-2 group">
                 <span className="text-gray-900">{piece.category}</span>
                 <button
+                  type="button"
                   onClick={() => setEditing('category')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -180,7 +207,6 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  autoFocus
                 >
                   <option value="draft">Draft</option>
                   <option value="available">Available</option>
@@ -189,13 +215,19 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                   <option value="archived">Archived</option>
                 </select>
                 <button
+                  type="button"
                   onClick={() => saveField('status', status)}
                   disabled={saving}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
                 </button>
                 <button
+                  type="button"
                   onClick={cancelEdit}
                   disabled={saving}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -207,6 +239,7 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
               <div className="flex items-center gap-2 group">
                 <StatusBadge status={piece.status} />
                 <button
+                  type="button"
                   onClick={() => setEditing('status')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -230,16 +263,21 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                   min="0"
                   step="0.01"
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  autoFocus
                 />
                 <button
+                  type="button"
                   onClick={() => saveField('price', price)}
                   disabled={saving}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
                 </button>
                 <button
+                  type="button"
                   onClick={cancelEdit}
                   disabled={saving}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -249,8 +287,11 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2 group">
-                <span className="text-gray-900">{formatCurrency(piece.price ?? 0)}</span>
+                <span className="text-gray-900">
+                  {formatCurrency(piece.price ?? 0)}
+                </span>
                 <button
+                  type="button"
                   onClick={() => setEditing('price')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -270,21 +311,30 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                 <input
                   type="number"
                   value={stock ?? ''}
-                  onChange={(e) => setStock(e.target.value ? parseInt(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    setStock(
+                      e.target.value ? parseInt(e.target.value, 10) : undefined,
+                    )
+                  }
                   min="0"
                   step="1"
                   placeholder="Unlimited"
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  autoFocus
                 />
                 <button
+                  type="button"
                   onClick={() => saveField('stock', stock)}
                   disabled={saving}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
                 </button>
                 <button
+                  type="button"
                   onClick={cancelEdit}
                   disabled={saving}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -294,8 +344,11 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2 group">
-                <span className="text-gray-900">{piece.stock ?? 'Unlimited'}</span>
+                <span className="text-gray-900">
+                  {piece.stock ?? 'Unlimited'}
+                </span>
                 <button
+                  type="button"
                   onClick={() => setEditing('stock')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -317,18 +370,23 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  autoFocus
                 />
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => saveField('description', description)}
                     disabled={saving}
                     className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
                     Save
                   </button>
                   <button
+                    type="button"
                     onClick={cancelEdit}
                     disabled={saving}
                     className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -340,9 +398,12 @@ export function PieceDetailsEditor({ piece }: PieceDetailsEditorProps) {
             ) : (
               <div className="flex items-start gap-2 group">
                 <span className="text-gray-900 whitespace-pre-wrap flex-1">
-                  {piece.description || <span className="text-gray-400 italic">No description</span>}
+                  {piece.description || (
+                    <span className="text-gray-400 italic">No description</span>
+                  )}
                 </span>
                 <button
+                  type="button"
                   onClick={() => setEditing('description')}
                   className="p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                 >
@@ -367,7 +428,9 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${colors[status] || colors.draft}`}>
+    <span
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${colors[status] || colors.draft}`}
+    >
       {status}
     </span>
   )

@@ -3,9 +3,9 @@
  * Covers listing, status updates, and authentication
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NextRequest } from 'next/server'
 import { orders } from '@madebuy/db'
+import { NextRequest } from 'next/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock getCurrentTenant
 const mockGetCurrentTenant = vi.fn()
@@ -31,11 +31,17 @@ describe('Orders API', () => {
     customerEmail: 'customer@example.com',
     customerName: 'John Doe',
     items: [
-      { pieceId: 'piece-1', name: 'Silver Ring', price: 99.99, quantity: 1, category: 'Jewelry' },
+      {
+        pieceId: 'piece-1',
+        name: 'Silver Ring',
+        price: 99.99,
+        quantity: 1,
+        category: 'Jewelry',
+      },
     ],
     subtotal: 99.99,
     shipping: 9.95,
-    tax: 10.00,
+    tax: 10.0,
     discount: 0,
     total: 119.94,
     currency: 'AUD',
@@ -114,7 +120,9 @@ describe('Orders API', () => {
           orderData: {
             customerEmail: 'new@example.com',
             customerName: 'New Customer',
-            items: [{ pieceId: 'piece-1', name: 'Ring', price: 50, quantity: 1 }],
+            items: [
+              { pieceId: 'piece-1', name: 'Ring', price: 50, quantity: 1 },
+            ],
             shippingAddress: {
               line1: '123 Test St',
               city: 'Sydney',
@@ -146,7 +154,9 @@ describe('Orders API', () => {
           orderData: {
             customerEmail: 'new@example.com',
             customerName: 'New Customer',
-            items: [{ pieceId: 'piece-1', name: 'Ring', price: 50, quantity: 1 }],
+            items: [
+              { pieceId: 'piece-1', name: 'Ring', price: 50, quantity: 1 },
+            ],
             shippingAddress: {
               line1: '123 Test St',
               city: 'Sydney',

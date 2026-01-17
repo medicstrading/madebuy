@@ -1,20 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { pieces } from '@madebuy/db'
-import {
-  validatePersonalizationValues,
-  calculatePersonalizationTotal,
-} from '@madebuy/shared'
 import type { PersonalizationConfig } from '@madebuy/shared'
+import {
+  calculatePersonalizationTotal,
+  validatePersonalizationValues,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 // Request body schema
 const ValidateRequestSchema = z.object({
   tenantId: z.string().min(1, 'Tenant ID is required'),
   pieceId: z.string().min(1, 'Piece ID is required'),
-  values: z.record(z.object({
-    value: z.union([z.string(), z.number(), z.boolean()]),
-    fileUrl: z.string().optional(),
-  })),
+  values: z.record(
+    z.object({
+      value: z.union([z.string(), z.number(), z.boolean()]),
+      fileUrl: z.string().optional(),
+    }),
+  ),
 })
 
 /**
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
             message: e.message,
           })),
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (!piece) {
       return NextResponse.json(
         { valid: false, error: 'Piece not found' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -69,7 +71,11 @@ export async function POST(request: NextRequest) {
 
     // Calculate total price adjustment
     const basePrice = piece.price || 0
-    const totalPriceAdjustment = calculatePersonalizationTotal(config, values, basePrice)
+    const totalPriceAdjustment = calculatePersonalizationTotal(
+      config,
+      values,
+      basePrice,
+    )
 
     return NextResponse.json({
       valid: validation.valid,
@@ -82,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { valid: false, error: 'Failed to validate personalization' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,25 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import type { PageType, WebsitePage } from '@madebuy/shared'
 import {
-  Home,
-  ShoppingBag,
-  Info,
-  Mail,
   BookOpen,
-  Image,
-  HelpCircle,
-  FileText,
-  Plus,
-  GripVertical,
+  ChevronRight,
+  Edit3,
+  ExternalLink,
   Eye,
   EyeOff,
+  FileText,
+  GripVertical,
+  HelpCircle,
+  Home,
+  Image,
+  Info,
+  Mail,
+  Plus,
+  ShoppingBag,
   Trash2,
-  Edit3,
-  ChevronRight,
-  ExternalLink,
 } from 'lucide-react'
-import type { WebsitePage, PageType } from '@madebuy/shared'
+import { useState } from 'react'
 
 interface PagesManagerProps {
   pages: WebsitePage[]
@@ -33,7 +33,10 @@ interface PagesManagerProps {
   webBaseUrl: string
 }
 
-const PAGE_ICONS: Record<PageType, React.ComponentType<{ className?: string }>> = {
+const PAGE_ICONS: Record<
+  PageType,
+  React.ComponentType<{ className?: string }>
+> = {
   home: Home,
   shop: ShoppingBag,
   about: Info,
@@ -44,7 +47,7 @@ const PAGE_ICONS: Record<PageType, React.ComponentType<{ className?: string }>> 
   custom: FileText,
 }
 
-const PAGE_TYPE_LABELS: Record<PageType, string> = {
+const _PAGE_TYPE_LABELS: Record<PageType, string> = {
   home: 'Home Page',
   shop: 'Shop',
   about: 'About',
@@ -68,7 +71,9 @@ export function PagesManager({
   const [editingPageId, setEditingPageId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
 
-  const sortedPages = [...pages].sort((a, b) => a.navigationOrder - b.navigationOrder)
+  const sortedPages = [...pages].sort(
+    (a, b) => a.navigationOrder - b.navigationOrder,
+  )
 
   const handleStartEdit = (page: WebsitePage) => {
     setEditingPageId(page.id)
@@ -109,6 +114,7 @@ export function PagesManager({
             </p>
           </div>
           <button
+            type="button"
             onClick={onAddPage}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           >
@@ -133,7 +139,9 @@ export function PagesManager({
                 'group relative flex items-center gap-3 px-4 py-3 cursor-pointer transition-all',
                 isSelected ? 'bg-blue-50' : 'hover:bg-gray-50',
                 !page.enabled && 'opacity-60',
-              ].filter(Boolean).join(' ')}
+              ]
+                .filter(Boolean)
+                .join(' ')}
               onClick={() => !isEditing && onSelectPage(page.id)}
             >
               {/* Drag Handle */}
@@ -145,7 +153,9 @@ export function PagesManager({
               <div
                 className={[
                   'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center',
-                  isSelected ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600',
+                  isSelected
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-600',
                 ].join(' ')}
               >
                 <Icon className="h-5 w-5" />
@@ -161,7 +171,6 @@ export function PagesManager({
                     onBlur={() => handleSaveEdit(page.id)}
                     onKeyDown={(e) => handleKeyDown(e, page.id)}
                     className="w-full px-2 py-1 text-sm font-medium border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    autoFocus
                     onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
@@ -182,7 +191,8 @@ export function PagesManager({
                       )}
                     </div>
                     <div className="text-xs text-gray-500 truncate">
-                      /{tenantSlug}{page.slug ? `/${page.slug}` : ''}
+                      /{tenantSlug}
+                      {page.slug ? `/${page.slug}` : ''}
                     </div>
                   </>
                 )}
@@ -206,6 +216,7 @@ export function PagesManager({
 
                 {/* Edit Title */}
                 <button
+                  type="button"
                   onClick={() => handleStartEdit(page)}
                   className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
                   title="Rename page"
@@ -215,7 +226,10 @@ export function PagesManager({
 
                 {/* Toggle Visibility */}
                 <button
-                  onClick={() => onUpdatePage(page.id, { enabled: !page.enabled })}
+                  type="button"
+                  onClick={() =>
+                    onUpdatePage(page.id, { enabled: !page.enabled })
+                  }
                   className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
                   title={page.enabled ? 'Hide page' : 'Show page'}
                 >
@@ -229,8 +243,13 @@ export function PagesManager({
                 {/* Delete (not for home page) */}
                 {!isHome && (
                   <button
+                    type="button"
                     onClick={() => {
-                      if (confirm(`Delete "${page.title}"? This cannot be undone.`)) {
+                      if (
+                        confirm(
+                          `Delete "${page.title}"? This cannot be undone.`,
+                        )
+                      ) {
                         onDeletePage(page.id)
                       }
                     }}
@@ -243,9 +262,7 @@ export function PagesManager({
               </div>
 
               {/* Selection Indicator */}
-              {isSelected && (
-                <ChevronRight className="h-5 w-5 text-blue-600" />
-              )}
+              {isSelected && <ChevronRight className="h-5 w-5 text-blue-600" />}
             </div>
           )
         })}

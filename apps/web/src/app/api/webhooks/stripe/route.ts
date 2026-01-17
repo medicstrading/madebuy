@@ -1,9 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
-import { orders, pieces, tenants, stockReservations, transactions, downloads } from '@madebuy/db'
-import type { CreateOrderInput, Plan, PersonalizationValue } from '@madebuy/shared'
+import {
+  downloads,
+  orders,
+  pieces,
+  stockReservations,
+  tenants,
+  transactions,
+} from '@madebuy/db'
+import type {
+  CreateOrderInput,
+  PersonalizationValue,
+  Plan,
+} from '@madebuy/shared'
 import { calculateStripeFee, getFeaturesForPlan } from '@madebuy/shared'
-import { sendOrderConfirmation, sendPaymentFailedEmail, sendLowStockAlertEmail, sendDownloadEmail } from '@/lib/email'
+import { type NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import {
+  sendDownloadEmail,
+  sendLowStockAlertEmail,
+  sendOrderConfirmation,
+  sendPaymentFailedEmail,
+} from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -43,25 +59,36 @@ export async function POST(request: NextRequest) {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session, eventId)
+        await handleCheckoutCompleted(
+          event.data.object as Stripe.Checkout.Session,
+          eventId,
+        )
         break
 
       case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent)
+        await handlePaymentIntentFailed(
+          event.data.object as Stripe.PaymentIntent,
+        )
         break
 
       case 'checkout.session.expired':
-        await handleCheckoutExpired(event.data.object as Stripe.Checkout.Session)
+        await handleCheckoutExpired(
+          event.data.object as Stripe.Checkout.Session,
+        )
         break
 
       // Subscription lifecycle events
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
+        await handleSubscriptionUpdated(
+          event.data.object as Stripe.Subscription,
+        )
         break
 
       case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+        await handleSubscriptionDeleted(
+          event.data.object as Stripe.Subscription,
+        )
         break
 
       case 'invoice.payment_failed':
@@ -69,7 +96,7 @@ export async function POST(request: NextRequest) {
         break
 
       default:
-        // Silently ignore unhandled event types
+      // Silently ignore unhandled event types
     }
 
     return NextResponse.json({ received: true })
@@ -77,7 +104,7 @@ export async function POST(request: NextRequest) {
     console.error('Webhook handler error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Webhook handler failed' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -87,7 +114,10 @@ export async function POST(request: NextRequest) {
  * Creates order when payment succeeds, sends confirmation email
  * Includes idempotency check to prevent duplicate orders
  */
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId: string) {
+async function handleCheckoutCompleted(
+  session: Stripe.Checkout.Session,
+  _eventId: string,
+) {
   const tenantId = session.metadata?.tenantId
   if (!tenantId) {
     console.error('No tenantId in checkout session metadata')
@@ -95,15 +125,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   }
 
   // Idempotency check: see if order already exists for this Stripe session
-  const existingOrder = await orders.getOrderByStripeSessionId(tenantId, session.id)
+  const existingOrder = await orders.getOrderByStripeSessionId(
+    tenantId,
+    session.id,
+  )
   if (existingOrder) {
-    console.log(`Order already exists for session ${session.id}, skipping duplicate`)
+    console.log(
+      `Order already exists for session ${session.id}, skipping duplicate`,
+    )
     return
   }
 
   // Parse items from metadata (with error handling)
   const itemsJson = session.metadata?.items
-  let items: Array<{ pieceId: string; variantId?: string; price: number; quantity: number; personalization?: PersonalizationValue[]; personalizationTotal?: number }> = []
+  let items: Array<{
+    pieceId: string
+    variantId?: string
+    price: number
+    quantity: number
+    personalization?: PersonalizationValue[]
+    personalizationTotal?: number
+  }> = []
   if (itemsJson) {
     try {
       items = JSON.parse(itemsJson)
@@ -116,7 +158,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   // Complete stock reservations first (decrements actual stock atomically)
   const reservationSessionId = session.metadata?.reservationSessionId
   if (reservationSessionId) {
-    const completed = await stockReservations.completeReservation(reservationSessionId)
+    const completed =
+      await stockReservations.completeReservation(reservationSessionId)
     if (!completed) {
       console.warn(`No reservations found for session ${reservationSessionId}`)
     }
@@ -174,13 +217,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
 
   // Create order
   const orderData: CreateOrderInput = {
-    customerEmail: session.customer_details?.email || session.customer_email || '',
+    customerEmail:
+      session.customer_details?.email || session.customer_email || '',
     customerName: session.metadata?.customerName || shippingDetails?.name || '',
-    customerPhone: session.metadata?.customerPhone || session.customer_details?.phone || '',
+    customerPhone:
+      session.metadata?.customerPhone || session.customer_details?.phone || '',
     items: orderItems,
     shippingAddress,
     shippingMethod: session.metadata?.shippingMethod || 'standard',
-    shippingType: shippingAddress.country === 'AU' ? 'domestic' : 'international',
+    shippingType:
+      shippingAddress.country === 'AU' ? 'domestic' : 'international',
     customerNotes: session.metadata?.notes || undefined,
   }
 
@@ -216,7 +262,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   console.log(`Transaction recorded for order ${order.id}`)
 
   // Create download records for digital products
-  const downloadLinks: { pieceId: string; pieceName: string; token: string }[] = []
+  const downloadLinks: { pieceId: string; pieceName: string; token: string }[] =
+    []
   for (const item of order.items) {
     const piece = await pieces.getPiece(tenantId, item.pieceId)
     if (piece?.digital?.isDigital && piece.digital.files?.length > 0) {
@@ -235,9 +282,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
           pieceName: piece.name,
           token: downloadRecord.downloadToken,
         })
-        console.log(`Download record created for piece ${piece.name} in order ${order.id}`)
+        console.log(
+          `Download record created for piece ${piece.name} in order ${order.id}`,
+        )
       } catch (downloadError) {
-        console.error(`Failed to create download record for piece ${item.pieceId}:`, downloadError)
+        console.error(
+          `Failed to create download record for piece ${item.pieceId}:`,
+          downloadError,
+        )
         // Don't fail the webhook - continue with other items
       }
     }
@@ -255,7 +307,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
         try {
           const piece = await pieces.getPiece(tenantId, download.pieceId)
           if (piece?.digital?.files) {
-            const downloadRecord = await downloads.getDownloadRecordByToken(download.token)
+            const downloadRecord = await downloads.getDownloadRecordByToken(
+              download.token,
+            )
             if (downloadRecord) {
               await sendDownloadEmail({
                 order,
@@ -264,13 +318,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
                 productName: piece.name,
                 files: piece.digital.files,
                 downloadLimit: piece.digital.downloadLimit,
-                expiryDate: downloadRecord.tokenExpiresAt ? new Date(downloadRecord.tokenExpiresAt) : undefined,
+                expiryDate: downloadRecord.tokenExpiresAt
+                  ? new Date(downloadRecord.tokenExpiresAt)
+                  : undefined,
               })
               console.log(`Download email sent for ${piece.name}`)
             }
           }
         } catch (downloadEmailError) {
-          console.error(`Failed to send download email for ${download.pieceName}:`, downloadEmailError)
+          console.error(
+            `Failed to send download email for ${download.pieceName}:`,
+            downloadEmailError,
+          )
         }
       }
     }
@@ -283,7 +342,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   try {
     const lowStockPieces = await pieces.getLowStockPieces(tenantId)
     if (lowStockPieces.length > 0 && tenant) {
-      const adminBaseUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.madebuy.com.au'
+      const adminBaseUrl =
+        process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.madebuy.com.au'
       await sendLowStockAlertEmail({
         tenant,
         pieces: lowStockPieces,
@@ -317,7 +377,9 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   const reservationSessionId = session.metadata?.reservationSessionId
   if (reservationSessionId) {
     await stockReservations.cancelReservation(reservationSessionId)
-    console.log(`Released stock reservations for expired session ${reservationSessionId}`)
+    console.log(
+      `Released stock reservations for expired session ${reservationSessionId}`,
+    )
   }
 }
 
@@ -380,7 +442,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       break
     default:
       // Unknown status - default to active but log warning
-      console.warn(`Unknown Stripe subscription status: ${subscription.status}, defaulting to active`)
+      console.warn(
+        `Unknown Stripe subscription status: ${subscription.status}, defaulting to active`,
+      )
       subscriptionStatus = 'active'
   }
 
@@ -392,7 +456,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     features,
   })
 
-  console.log(`Subscription updated for tenant ${tenantId}: plan=${plan}, status=${subscriptionStatus}`)
+  console.log(
+    `Subscription updated for tenant ${tenantId}: plan=${plan}, status=${subscriptionStatus}`,
+  )
 }
 
 /**
@@ -416,7 +482,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     features,
   })
 
-  console.log(`Subscription cancelled for tenant ${tenantId}, downgraded to free plan`)
+  console.log(
+    `Subscription cancelled for tenant ${tenantId}, downgraded to free plan`,
+  )
 
   // TODO: Send email notification about subscription cancellation
 }
@@ -427,9 +495,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
  * Stripe automatically retries failed payments (typically 4 attempts over ~3 weeks)
  */
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  const customerId = typeof invoice.customer === 'string'
-    ? invoice.customer
-    : invoice.customer?.id
+  const customerId =
+    typeof invoice.customer === 'string'
+      ? invoice.customer
+      : invoice.customer?.id
 
   if (!customerId) {
     console.error('No customer ID in failed invoice')
@@ -455,7 +524,9 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     nextRetryDate.setDate(nextRetryDate.getDate() + daysUntilRetry)
   }
 
-  console.error(`Invoice payment failed for tenant ${tenant.id}: ${invoice.id} (attempt ${attemptCount}/4)`)
+  console.error(
+    `Invoice payment failed for tenant ${tenant.id}: ${invoice.id} (attempt ${attemptCount}/4)`,
+  )
 
   // Send email notification about failed payment
   try {

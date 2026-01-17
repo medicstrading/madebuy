@@ -1,8 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { disputes, orders, payouts, tenants, transactions } from '@madebuy/db'
+import type {
+  DisputeReason,
+  DisputeStatus,
+  PayoutStatus,
+  StripeConnectStatus,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { tenants, payouts, transactions, disputes, orders } from '@madebuy/db'
-import type { StripeConnectStatus, PayoutStatus, DisputeStatus, DisputeReason } from '@madebuy/shared'
-import { sendPayoutFailedEmail, sendDisputeNotificationEmail } from '@/lib/email'
+import {
+  sendDisputeNotificationEmail,
+  sendPayoutFailedEmail,
+} from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -49,19 +57,31 @@ export async function POST(request: NextRequest) {
         break
 
       case 'payout.created':
-        await handlePayoutCreated(event.data.object as Stripe.Payout, event.account!)
+        await handlePayoutCreated(
+          event.data.object as Stripe.Payout,
+          event.account!,
+        )
         break
 
       case 'payout.paid':
-        await handlePayoutPaid(event.data.object as Stripe.Payout, event.account!)
+        await handlePayoutPaid(
+          event.data.object as Stripe.Payout,
+          event.account!,
+        )
         break
 
       case 'payout.failed':
-        await handlePayoutFailed(event.data.object as Stripe.Payout, event.account!)
+        await handlePayoutFailed(
+          event.data.object as Stripe.Payout,
+          event.account!,
+        )
         break
 
       case 'charge.dispute.created':
-        await handleDisputeCreated(event.data.object as Stripe.Dispute, event.account!)
+        await handleDisputeCreated(
+          event.data.object as Stripe.Dispute,
+          event.account!,
+        )
         break
 
       case 'charge.dispute.updated':
@@ -82,7 +102,7 @@ export async function POST(request: NextRequest) {
     console.error('Connect webhook handler error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Webhook handler failed' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -107,12 +127,14 @@ async function handleAccountUpdated(account: Stripe.Account) {
     onboardingComplete: account.details_submitted ?? false,
     detailsSubmitted: account.details_submitted ?? false,
     businessType: account.business_type as 'individual' | 'company' | undefined,
-    requirements: account.requirements ? {
-      currentlyDue: account.requirements.currently_due ?? [],
-      eventuallyDue: account.requirements.eventually_due ?? [],
-      pastDue: account.requirements.past_due ?? [],
-      disabledReason: account.requirements.disabled_reason ?? undefined,
-    } : undefined,
+    requirements: account.requirements
+      ? {
+          currentlyDue: account.requirements.currently_due ?? [],
+          eventuallyDue: account.requirements.eventually_due ?? [],
+          pastDue: account.requirements.past_due ?? [],
+          disabledReason: account.requirements.disabled_reason ?? undefined,
+        }
+      : undefined,
     createdAt: tenant.paymentConfig?.stripe?.createdAt ?? new Date(),
     updatedAt: new Date(),
   }
@@ -123,11 +145,17 @@ async function handleAccountUpdated(account: Stripe.Account) {
   if (status.chargesEnabled && status.payoutsEnabled) {
     const currentMethods = tenant.paymentConfig?.enabledMethods ?? []
     if (!currentMethods.includes('stripe')) {
-      await tenants.updateEnabledPaymentMethods(tenant.id, [...currentMethods, 'stripe'], 'stripe')
+      await tenants.updateEnabledPaymentMethods(
+        tenant.id,
+        [...currentMethods, 'stripe'],
+        'stripe',
+      )
     }
   }
 
-  console.log(`Updated Stripe Connect status for tenant ${tenant.id}: ${status.status}`)
+  console.log(
+    `Updated Stripe Connect status for tenant ${tenant.id}: ${status.status}`,
+  )
 }
 
 /**
@@ -171,11 +199,15 @@ async function handlePayoutCreated(payout: Stripe.Payout, accountId: string) {
     amount: payout.amount,
     currency: payout.currency.toUpperCase(),
     status: mapStripePayoutStatus(payout.status),
-    arrivalDate: payout.arrival_date ? new Date(payout.arrival_date * 1000) : undefined,
+    arrivalDate: payout.arrival_date
+      ? new Date(payout.arrival_date * 1000)
+      : undefined,
     description: payout.description || undefined,
   })
 
-  console.log(`Created payout record ${payout.id} for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`)
+  console.log(
+    `Created payout record ${payout.id} for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`,
+  )
 }
 
 /**
@@ -209,7 +241,9 @@ async function handlePayoutPaid(payout: Stripe.Payout, accountId: string) {
     completedAt: new Date(),
   })
 
-  console.log(`Payout ${payout.id} completed for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`)
+  console.log(
+    `Payout ${payout.id} completed for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`,
+  )
 }
 
 /**
@@ -229,21 +263,28 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
     failureMessage: payout.failure_message || undefined,
   })
 
-  console.error(`Payout ${payout.id} failed for tenant ${tenant.id}: ${payout.failure_message}`)
+  console.error(
+    `Payout ${payout.id} failed for tenant ${tenant.id}: ${payout.failure_message}`,
+  )
 
   // Extract bank account last 4 digits if available
   let bankAccountLast4: string | null = null
   if (payout.destination) {
     try {
       // The destination is a bank account ID, we can try to get last4 from it
-      const bankAccount = await stripe.accounts.retrieveExternalAccount(
+      const bankAccount = (await stripe.accounts.retrieveExternalAccount(
         accountId,
-        typeof payout.destination === 'string' ? payout.destination : payout.destination.id
-      ) as Stripe.BankAccount
+        typeof payout.destination === 'string'
+          ? payout.destination
+          : payout.destination.id,
+      )) as Stripe.BankAccount
       bankAccountLast4 = bankAccount.last4 || null
     } catch (error) {
       // If we can't retrieve the bank account, continue without last4
-      console.warn('Could not retrieve bank account details for payout notification:', error)
+      console.warn(
+        'Could not retrieve bank account details for payout notification:',
+        error,
+      )
     }
   }
 
@@ -257,7 +298,10 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
     })
   } catch (emailError) {
     // Log but don't throw - we don't want email failures to affect webhook response
-    console.error('Failed to send payout failed notification email:', emailError)
+    console.error(
+      'Failed to send payout failed notification email:',
+      emailError,
+    )
   }
 }
 
@@ -285,8 +329,13 @@ function mapStripePayoutStatus(status: string): PayoutStatus {
  * Handle dispute created
  * Creates dispute record and sends notification to tenant
  */
-async function handleDisputeCreated(dispute: Stripe.Dispute, accountId: string) {
-  console.error(`DISPUTE CREATED: ${dispute.id} - Amount: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`)
+async function handleDisputeCreated(
+  dispute: Stripe.Dispute,
+  accountId: string,
+) {
+  console.error(
+    `DISPUTE CREATED: ${dispute.id} - Amount: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`,
+  )
   console.error(`Reason: ${dispute.reason}`)
 
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
@@ -304,16 +353,18 @@ async function handleDisputeCreated(dispute: Stripe.Dispute, accountId: string) 
 
   // Try to find the associated order via the charge's payment intent
   let orderId: string | undefined
-  const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id
+  const chargeId =
+    typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id
   if (chargeId) {
     try {
       const charge = await stripe.charges.retrieve(chargeId, {
         stripeAccount: accountId,
       })
       if (charge.payment_intent) {
-        const paymentIntentId = typeof charge.payment_intent === 'string'
-          ? charge.payment_intent
-          : charge.payment_intent.id
+        const paymentIntentId =
+          typeof charge.payment_intent === 'string'
+            ? charge.payment_intent
+            : charge.payment_intent.id
         const order = await orders.getOrderByPaymentIntent(paymentIntentId)
         if (order) {
           orderId = order.id
@@ -342,7 +393,9 @@ async function handleDisputeCreated(dispute: Stripe.Dispute, accountId: string) 
     evidenceDueBy,
   })
 
-  console.log(`Created dispute record ${dispute.id} for tenant ${tenant.id}: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`)
+  console.log(
+    `Created dispute record ${dispute.id} for tenant ${tenant.id}: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`,
+  )
 
   // Send notification email to tenant
   try {
@@ -424,11 +477,16 @@ function mapStripeDisputeStatus(status: string): DisputeStatus {
 /**
  * Determine account status from Stripe account object
  */
-function getAccountStatus(account: Stripe.Account): StripeConnectStatus['status'] {
+function getAccountStatus(
+  account: Stripe.Account,
+): StripeConnectStatus['status'] {
   if (account.requirements?.disabled_reason) {
     return 'disabled'
   }
-  if (account.requirements?.currently_due?.length || account.requirements?.past_due?.length) {
+  if (
+    account.requirements?.currently_due?.length ||
+    account.requirements?.past_due?.length
+  ) {
     return 'restricted'
   }
   if (account.charges_enabled && account.payouts_enabled) {

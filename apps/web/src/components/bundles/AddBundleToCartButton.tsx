@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import type {
+  BundleProductData,
+  BundleWithPieces,
+  ProductWithMedia,
+} from '@madebuy/shared'
+import { Check, Package, ShoppingCart } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { MiniCartPreview } from '@/components/cart/MiniCartPreview'
 import { useCart } from '@/contexts/CartContext'
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { MiniCartPreview } from '@/components/cart/MiniCartPreview'
-import type { BundleWithPieces, ProductWithMedia, BundleProductData } from '@madebuy/shared'
-import { ShoppingCart, Check, Package } from 'lucide-react'
 
 // Extended product type for bundles (P2 type safety fix)
 type BundleAsProduct = ProductWithMedia & { _bundleData: BundleProductData }
@@ -90,6 +94,7 @@ export function AddBundleToCartButton({
   return (
     <>
       <button
+        type="button"
         onClick={handleAddBundle}
         disabled={disabled || added || isOutOfStock}
         className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${

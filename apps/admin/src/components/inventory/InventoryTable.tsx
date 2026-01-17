@@ -1,15 +1,22 @@
 'use client'
 
-import { useRef, useMemo, useState, useCallback } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRouter } from 'next/navigation'
-import { AlertTriangle, TrendingUp, TrendingDown, Search, X, Package } from 'lucide-react'
-import Link from 'next/link'
-import { DeletePieceButton } from './DeletePieceButton'
-import { BulkActionsToolbar } from './BulkActionsToolbar'
 import type { Piece } from '@madebuy/shared'
-import { getMarginHealth, calculateProfitMargin } from '@madebuy/shared'
+import { calculateProfitMargin, getMarginHealth } from '@madebuy/shared'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import {
+  AlertTriangle,
+  Package,
+  Search,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { BulkActionsToolbar } from './BulkActionsToolbar'
+import { DeletePieceButton } from './DeletePieceButton'
 
 interface PieceWithCOGS extends Piece {
   cogs: number
@@ -47,10 +54,11 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
     const query = search.trim().toLowerCase()
     if (!query) return pieces
 
-    return pieces.filter(piece =>
-      piece.name.toLowerCase().includes(query) ||
-      (piece.description?.toLowerCase().includes(query)) ||
-      (piece.category?.toLowerCase().includes(query))
+    return pieces.filter(
+      (piece) =>
+        piece.name.toLowerCase().includes(query) ||
+        piece.description?.toLowerCase().includes(query) ||
+        piece.category?.toLowerCase().includes(query),
     )
   }, [pieces, search])
 
@@ -67,16 +75,19 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
   }, [])
 
   // Selection handlers
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(filteredPieces.map(p => p.id)))
-    } else {
-      setSelectedIds(new Set())
-    }
-  }, [filteredPieces])
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedIds(new Set(filteredPieces.map((p) => p.id)))
+      } else {
+        setSelectedIds(new Set())
+      }
+    },
+    [filteredPieces],
+  )
 
   const handleSelectPiece = useCallback((pieceId: string, checked: boolean) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev)
       if (checked) {
         next.add(pieceId)
@@ -99,7 +110,9 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
   const virtualItems = virtualizer.getVirtualItems()
   const shouldVirtualize = filteredPieces.length >= VIRTUALIZATION_THRESHOLD
 
-  const allSelected = filteredPieces.length > 0 && filteredPieces.every(p => selectedIds.has(p.id))
+  const allSelected =
+    filteredPieces.length > 0 &&
+    filteredPieces.every((p) => selectedIds.has(p.id))
   const someSelected = selectedIds.size > 0 && !allSelected
 
   return (
@@ -120,6 +133,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
           />
           {search && (
             <button
+              type="button"
               onClick={handleClearSearch}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
               aria-label="Clear search"
@@ -146,7 +160,14 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
             Showing {filteredPieces.length} of {pieces.length} pieces
             {filteredPieces.length === 0 && (
               <span className="ml-1">
-                - <button onClick={handleClearSearch} className="text-blue-600 hover:underline">Clear search</button>
+                -{' '}
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-blue-600 hover:underline"
+                >
+                  Clear search
+                </button>
               </span>
             )}
           </>
@@ -180,7 +201,10 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredPieces.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={11}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       No pieces found
                     </td>
                   </tr>
@@ -188,7 +212,7 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                   <>
                     {/* Top spacer */}
                     {virtualItems.length > 0 && virtualItems[0].start > 0 && (
-                      <tr style={{ height: virtualItems[0].start }} aria-hidden="true">
+                      <tr style={{ height: virtualItems[0].start }}>
                         <td colSpan={11} />
                       </tr>
                     )}
@@ -209,9 +233,10 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
                     {virtualItems.length > 0 && (
                       <tr
                         style={{
-                          height: virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end || 0),
+                          height:
+                            virtualizer.getTotalSize() -
+                            (virtualItems[virtualItems.length - 1]?.end || 0),
                         }}
-                        aria-hidden="true"
                       >
                         <td colSpan={11} />
                       </tr>
@@ -234,7 +259,10 @@ export function InventoryTable({ pieces }: InventoryTableProps) {
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredPieces.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={11}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     No pieces found
                   </td>
                 </tr>
@@ -262,14 +290,18 @@ interface TableHeaderProps {
   onSelectAll: (checked: boolean) => void
 }
 
-function TableHeader({ allSelected, someSelected, onSelectAll }: TableHeaderProps) {
+function TableHeader({
+  allSelected,
+  someSelected,
+  onSelectAll,
+}: TableHeaderProps) {
   return (
     <tr>
       <th className="w-12 px-3 py-3">
         <input
           type="checkbox"
           checked={allSelected}
-          ref={input => {
+          ref={(input) => {
             if (input) input.indeterminate = someSelected
           }}
           onChange={(e) => onSelectAll(e.target.checked)}
@@ -316,7 +348,12 @@ interface InventoryRowProps {
   style?: React.CSSProperties
 }
 
-function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps) {
+function InventoryRow({
+  piece,
+  isSelected,
+  onSelect,
+  style,
+}: InventoryRowProps) {
   // Calculate margin values
   const cogsCents = piece.calculatedCOGS ?? piece.cogs ?? 0
   const priceCents = piece.price ? piece.price * 100 : 0
@@ -325,19 +362,30 @@ function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps)
   const marginHealth = getMarginHealth(marginPercent)
 
   // Low stock check
-  const hasLowStockThreshold = piece.lowStockThreshold !== undefined && piece.lowStockThreshold !== null
+  const hasLowStockThreshold =
+    piece.lowStockThreshold !== undefined && piece.lowStockThreshold !== null
   const stockValue = piece.stock
   const isOutOfStock = stockValue === 0
-  const isLowStock = hasLowStockThreshold && stockValue !== undefined && stockValue <= piece.lowStockThreshold! && stockValue > 0
+  const isLowStock =
+    hasLowStockThreshold &&
+    stockValue !== undefined &&
+    stockValue <= piece.lowStockThreshold! &&
+    stockValue > 0
 
   return (
     <tr
       className={`hover:bg-gray-50 ${
-        isSelected ? 'bg-blue-50' :
-        isOutOfStock ? 'bg-red-50/30' :
-        isLowStock ? 'bg-amber-50/30' :
-        marginHealth === 'low' ? 'bg-orange-50/50' :
-        marginHealth === 'negative' ? 'bg-red-50/50' : ''
+        isSelected
+          ? 'bg-blue-50'
+          : isOutOfStock
+            ? 'bg-red-50/30'
+            : isLowStock
+              ? 'bg-amber-50/30'
+              : marginHealth === 'low'
+                ? 'bg-orange-50/50'
+                : marginHealth === 'negative'
+                  ? 'bg-red-50/50'
+                  : ''
       }`}
       style={style}
     >
@@ -368,7 +416,9 @@ function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps)
       <td className="whitespace-nowrap px-6 py-4">
         <Link href={`/dashboard/inventory/${piece.id}`} className="block">
           <div className="flex items-center gap-2">
-            <div className="text-sm font-medium text-gray-900 hover:text-blue-600">{piece.name}</div>
+            <div className="text-sm font-medium text-gray-900 hover:text-blue-600">
+              {piece.name}
+            </div>
             {isOutOfStock && (
               <span title="Out of stock">
                 <Package className="h-4 w-4 text-red-500" />
@@ -391,7 +441,9 @@ function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps)
             )}
           </div>
           {piece.description && (
-            <div className="text-sm text-gray-500 truncate max-w-xs">{piece.description}</div>
+            <div className="text-sm text-gray-500 truncate max-w-xs">
+              {piece.description}
+            </div>
           )}
         </Link>
       </td>
@@ -429,7 +481,13 @@ function InventoryRow({ piece, isSelected, onSelect, style }: InventoryRowProps)
   )
 }
 
-function StockBadge({ stock, threshold }: { stock?: number; threshold?: number | null }) {
+function StockBadge({
+  stock,
+  threshold,
+}: {
+  stock?: number
+  threshold?: number | null
+}) {
   // Unlimited stock
   if (stock === undefined || stock === null) {
     return <span className="text-gray-400 text-xs">Unlimited</span>
@@ -446,12 +504,16 @@ function StockBadge({ stock, threshold }: { stock?: number; threshold?: number |
   }
 
   // Check if below threshold
-  const hasThreshold = threshold !== undefined && threshold !== null && threshold > 0
+  const hasThreshold =
+    threshold !== undefined && threshold !== null && threshold > 0
   const isLow = hasThreshold && stock <= threshold
 
   if (isLow) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800" title={`Threshold: ${threshold}`}>
+      <span
+        className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800"
+        title={`Threshold: ${threshold}`}
+      >
         <Package className="h-3 w-3" />
         {stock}
       </span>
@@ -462,7 +524,9 @@ function StockBadge({ stock, threshold }: { stock?: number; threshold?: number |
   return (
     <span className="text-sm text-gray-900">
       {stock}
-      {hasThreshold && <span className="text-gray-400 text-xs ml-1">/{threshold}</span>}
+      {hasThreshold && (
+        <span className="text-gray-400 text-xs ml-1">/{threshold}</span>
+      )}
     </span>
   )
 }
@@ -476,13 +540,21 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.draft}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.draft}`}
+    >
       {status}
     </span>
   )
 }
 
-function MarginBadge({ marginPercent, health }: { marginPercent: number; health: MarginHealth }) {
+function MarginBadge({
+  marginPercent,
+  health,
+}: {
+  marginPercent: number
+  health: MarginHealth
+}) {
   const styles: Record<MarginHealth, string> = {
     healthy: 'bg-green-100 text-green-800',
     warning: 'bg-yellow-100 text-yellow-800',
@@ -500,7 +572,9 @@ function MarginBadge({ marginPercent, health }: { marginPercent: number; health:
   }
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${styles[health]}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${styles[health]}`}
+    >
       {icons[health]}
       {marginPercent.toFixed(1)}%
     </span>

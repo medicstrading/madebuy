@@ -1,13 +1,13 @@
-import type { Page, Route } from '@playwright/test'
 import type {
-  Tenant,
-  Piece,
-  Order,
-  MediaItem,
-  PieceStatus,
   Customer,
   DiscountCode,
+  MediaItem,
+  Order,
+  Piece,
+  PieceStatus,
+  Tenant,
 } from '@madebuy/shared'
+import type { Page, Route } from '@playwright/test'
 
 /**
  * API Mocking Utilities for MadeBuy Web (Storefront) E2E Tests
@@ -77,7 +77,8 @@ export function createMockProduct(overrides: Partial<Piece> = {}): Piece {
     tenantId: overrides.tenantId || 'tenant-1',
     name,
     slug,
-    description: overrides.description || 'Beautiful handmade product crafted with care.',
+    description:
+      overrides.description || 'Beautiful handmade product crafted with care.',
     materials: overrides.materials || ['Sterling Silver', 'Gemstone'],
     techniques: overrides.techniques || ['Handmade', 'Polished'],
     price: overrides.price ?? 4999, // $49.99 in cents
@@ -113,8 +114,18 @@ export function createMockMedia(overrides: Partial<MediaItem> = {}): MediaItem {
     type: overrides.type || 'image',
     variants: overrides.variants || {
       original: { r2Key, url, width: 1920, height: 1080 },
-      large: { r2Key: `${r2Key}-large`, url: `${url.replace('.jpg', '-large.jpg')}`, width: 1200, height: 675 },
-      thumb: { r2Key: `${r2Key}-thumb`, url: `${url.replace('.jpg', '-thumb.jpg')}`, width: 300, height: 169 },
+      large: {
+        r2Key: `${r2Key}-large`,
+        url: `${url.replace('.jpg', '-large.jpg')}`,
+        width: 1200,
+        height: 675,
+      },
+      thumb: {
+        r2Key: `${r2Key}-thumb`,
+        url: `${url.replace('.jpg', '-thumb.jpg')}`,
+        width: 300,
+        height: 169,
+      },
     },
     platformOptimized: overrides.platformOptimized || [],
     tags: overrides.tags || [],
@@ -165,7 +176,9 @@ export function createMockCart(items: MockCartItem[] = []): MockCart {
 /**
  * Generate mock discount code
  */
-export function createMockDiscount(overrides: Partial<DiscountCode> = {}): DiscountCode {
+export function createMockDiscount(
+  overrides: Partial<DiscountCode> = {},
+): DiscountCode {
   return {
     id: overrides.id || 'discount-1',
     tenantId: overrides.tenantId || 'tenant-1',
@@ -187,7 +200,9 @@ export function createMockDiscount(overrides: Partial<DiscountCode> = {}): Disco
 /**
  * Generate mock customer for checkout
  */
-export function createMockCustomer(overrides: Partial<Customer> = {}): Customer {
+export function createMockCustomer(
+  overrides: Partial<Customer> = {},
+): Customer {
   return {
     id: overrides.id || 'customer-1',
     tenantId: overrides.tenantId || 'tenant-1',
@@ -227,7 +242,7 @@ export function createMockCustomer(overrides: Partial<Customer> = {}): Customer 
 export async function mockStorefrontApi(
   page: Page,
   tenantSlug: string,
-  tenant: Tenant
+  tenant: Tenant,
 ): Promise<void> {
   // Mock tenant info endpoint
   await page.route(`**/api/storefront/${tenantSlug}`, async (route: Route) => {
@@ -254,19 +269,22 @@ export async function mockStorefrontApi(
 export async function mockProductsApi(
   page: Page,
   tenantSlug: string,
-  products: Piece[]
+  products: Piece[],
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/products`, async (route: Route) => {
-    if (route.request().method() === 'GET') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ products }),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/products`,
+    async (route: Route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ products }),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -277,19 +295,22 @@ export async function mockProductDetailApi(
   tenantSlug: string,
   productSlug: string,
   product: Piece,
-  media: MediaItem[] = []
+  media: MediaItem[] = [],
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/products/${productSlug}`, async (route: Route) => {
-    if (route.request().method() === 'GET') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ product, media }),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/products/${productSlug}`,
+    async (route: Route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ product, media }),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -298,15 +319,18 @@ export async function mockProductDetailApi(
 export async function mockFeaturedProductsApi(
   page: Page,
   tenantSlug: string,
-  products: Piece[]
+  products: Piece[],
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/products/featured`, async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ products }),
-    })
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/products/featured`,
+    async (route: Route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ products }),
+      })
+    },
+  )
 }
 
 /**
@@ -315,19 +339,22 @@ export async function mockFeaturedProductsApi(
 export async function mockCartValidationApi(
   page: Page,
   tenantSlug: string,
-  validatedCart: MockCart
+  validatedCart: MockCart,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/cart/validate`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(validatedCart),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/cart/validate`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(validatedCart),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -336,28 +363,31 @@ export async function mockCartValidationApi(
 export async function mockDiscountValidationApi(
   page: Page,
   tenantSlug: string,
-  code: string,
-  discount: DiscountCode | null
+  _code: string,
+  discount: DiscountCode | null,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/discounts/validate`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      if (discount) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ discount }),
-        })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/discounts/validate`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        if (discount) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ discount }),
+          })
+        } else {
+          await route.fulfill({
+            status: 404,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Invalid discount code' }),
+          })
+        }
       } else {
-        await route.fulfill({
-          status: 404,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Invalid discount code' }),
-        })
+        await route.continue()
       }
-    } else {
-      await route.continue()
-    }
-  })
+    },
+  )
 }
 
 /**
@@ -367,22 +397,25 @@ export async function mockStripeCheckoutApi(
   page: Page,
   tenantSlug: string,
   sessionId: string = 'cs_test_mock123',
-  sessionUrl: string = 'https://checkout.stripe.com/pay/cs_test_mock123'
+  sessionUrl: string = 'https://checkout.stripe.com/pay/cs_test_mock123',
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/checkout`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          sessionId,
-          url: sessionUrl,
-        }),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/checkout`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            sessionId,
+            url: sessionUrl,
+          }),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -391,19 +424,22 @@ export async function mockStripeCheckoutApi(
 export async function mockOrderCreateApi(
   page: Page,
   tenantSlug: string,
-  order: Order
+  order: Order,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/orders`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ order }),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/orders`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ order }),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -413,15 +449,18 @@ export async function mockOrderStatusApi(
   page: Page,
   tenantSlug: string,
   orderId: string,
-  order: Order
+  order: Order,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/orders/${orderId}`, async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ order }),
-    })
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/orders/${orderId}`,
+    async (route: Route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ order }),
+      })
+    },
+  )
 }
 
 /**
@@ -430,27 +469,33 @@ export async function mockOrderStatusApi(
 export async function mockEnquiryApi(
   page: Page,
   tenantSlug: string,
-  success: boolean = true
+  success: boolean = true,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/enquiries`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      if (success) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true, message: 'Message sent successfully' }),
-        })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/enquiries`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        if (success) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              success: true,
+              message: 'Message sent successfully',
+            }),
+          })
+        } else {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Failed to send message' }),
+          })
+        }
       } else {
-        await route.fulfill({
-          status: 500,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Failed to send message' }),
-        })
+        await route.continue()
       }
-    } else {
-      await route.continue()
-    }
-  })
+    },
+  )
 }
 
 /**
@@ -459,27 +504,30 @@ export async function mockEnquiryApi(
 export async function mockNewsletterApi(
   page: Page,
   tenantSlug: string,
-  success: boolean = true
+  success: boolean = true,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/newsletter`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      if (success) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/newsletter`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        if (success) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true }),
+          })
+        } else {
+          await route.fulfill({
+            status: 400,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Email already subscribed' }),
+          })
+        }
       } else {
-        await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Email already subscribed' }),
-        })
+        await route.continue()
       }
-    } else {
-      await route.continue()
-    }
-  })
+    },
+  )
 }
 
 /**
@@ -488,19 +536,27 @@ export async function mockNewsletterApi(
 export async function mockShippingRatesApi(
   page: Page,
   tenantSlug: string,
-  rates: Array<{ id: string; name: string; price: number; estimatedDays: { min: number; max: number } }>
+  rates: Array<{
+    id: string
+    name: string
+    price: number
+    estimatedDays: { min: number; max: number }
+  }>,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/shipping/rates`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ rates }),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/shipping/rates`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ rates }),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -508,19 +564,22 @@ export async function mockShippingRatesApi(
  */
 export async function mockAnalyticsApi(
   page: Page,
-  tenantSlug: string
+  tenantSlug: string,
 ): Promise<void> {
-  await page.route(`**/api/storefront/${tenantSlug}/analytics/track`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true }),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/analytics/track`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true }),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**
@@ -530,7 +589,7 @@ export async function mockApiError(
   page: Page,
   urlPattern: string | RegExp,
   status: number = 500,
-  errorMessage: string = 'Internal Server Error'
+  errorMessage: string = 'Internal Server Error',
 ): Promise<void> {
   await page.route(urlPattern, async (route: Route) => {
     await route.fulfill({
@@ -557,11 +616,12 @@ export async function setupMockedStorefront(
     products?: Piece[]
     featuredProducts?: Piece[]
     media?: MediaItem[]
-  } = {}
+  } = {},
 ): Promise<void> {
   const tenant = createMockTenant({ slug: tenantSlug, ...options.tenant })
   const products = options.products || []
-  const featuredProducts = options.featuredProducts || products.filter(p => p.isFeatured)
+  const featuredProducts =
+    options.featuredProducts || products.filter((p) => p.isFeatured)
 
   // Mock storefront endpoints
   await mockStorefrontApi(page, tenantSlug, tenant)
@@ -572,19 +632,22 @@ export async function setupMockedStorefront(
   await mockAnalyticsApi(page, tenantSlug)
 
   // Mock cart validation with default calculator
-  await page.route(`**/api/storefront/${tenantSlug}/cart/validate`, async (route: Route) => {
-    if (route.request().method() === 'POST') {
-      const body = route.request().postDataJSON()
-      const cart = createMockCart(body.items || [])
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(cart),
-      })
-    } else {
-      await route.continue()
-    }
-  })
+  await page.route(
+    `**/api/storefront/${tenantSlug}/cart/validate`,
+    async (route: Route) => {
+      if (route.request().method() === 'POST') {
+        const body = route.request().postDataJSON()
+        const cart = createMockCart(body.items || [])
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(cart),
+        })
+      } else {
+        await route.continue()
+      }
+    },
+  )
 }
 
 /**

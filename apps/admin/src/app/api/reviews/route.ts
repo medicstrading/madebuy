@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { reviews } from '@madebuy/db'
 import type { ReviewStatus } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,6 +31,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ reviews: allReviews })
   } catch (error) {
     console.error('Error fetching reviews:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

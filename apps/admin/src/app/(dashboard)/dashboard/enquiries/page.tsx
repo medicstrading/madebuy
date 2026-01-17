@@ -1,7 +1,7 @@
-import { requireTenant } from '@/lib/session'
 import { enquiries } from '@madebuy/db'
-import { formatDate } from '@/lib/utils'
 import { Mail, MessageSquare } from 'lucide-react'
+import { requireTenant } from '@/lib/session'
+import { formatDate } from '@/lib/utils'
 
 export default async function EnquiriesPage() {
   const tenant = await requireTenant()
@@ -9,8 +9,8 @@ export default async function EnquiriesPage() {
 
   const stats = {
     total: allEnquiries.length,
-    new: allEnquiries.filter(e => e.status === 'new').length,
-    replied: allEnquiries.filter(e => e.status === 'replied').length,
+    new: allEnquiries.filter((e) => e.status === 'new').length,
+    replied: allEnquiries.filter((e) => e.status === 'replied').length,
   }
 
   return (
@@ -22,14 +22,26 @@ export default async function EnquiriesPage() {
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatCard title="Total" value={stats.total} icon={Mail} color="blue" />
-        <StatCard title="New" value={stats.new} icon={MessageSquare} color="orange" />
-        <StatCard title="Replied" value={stats.replied} icon={MessageSquare} color="green" />
+        <StatCard
+          title="New"
+          value={stats.new}
+          icon={MessageSquare}
+          color="orange"
+        />
+        <StatCard
+          title="Replied"
+          value={stats.replied}
+          icon={MessageSquare}
+          color="green"
+        />
       </div>
 
       {allEnquiries.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <Mail className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No enquiries yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No enquiries yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
             Customer messages from your website will appear here.
           </p>
@@ -60,7 +72,9 @@ export default async function EnquiriesPage() {
               {allEnquiries.map((enquiry) => (
                 <tr key={enquiry.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{enquiry.name}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {enquiry.name}
+                    </div>
                     <div className="text-xs text-gray-500">{enquiry.email}</div>
                   </td>
                   <td className="px-6 py-4">
@@ -91,7 +105,7 @@ function StatCard({
   title,
   value,
   icon: Icon,
-  color
+  color,
 }: {
   title: string
   value: number
@@ -128,7 +142,9 @@ function EnquiryStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.new}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.new}`}
+    >
       {status}
     </span>
   )

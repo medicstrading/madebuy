@@ -1,6 +1,6 @@
+import { marketplace } from '@madebuy/db'
 import { redirect } from 'next/navigation'
 import { requireTenant } from '@/lib/session'
-import { marketplace } from '@madebuy/db'
 
 export const metadata = {
   title: 'Marketplaces - MadeBuy Admin',
@@ -14,8 +14,14 @@ export default async function MarketplacePage() {
   const tenant = await requireTenant()
 
   // Check which marketplaces are connected
-  const ebayConnection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
-  const etsyConnection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+  const ebayConnection = await marketplace.getConnectionByMarketplace(
+    tenant.id,
+    'ebay',
+  )
+  const etsyConnection = await marketplace.getConnectionByMarketplace(
+    tenant.id,
+    'etsy',
+  )
 
   const ebayConnected = ebayConnection && ebayConnection.status === 'connected'
   const etsyConnected = etsyConnection && etsyConnection.status === 'connected'

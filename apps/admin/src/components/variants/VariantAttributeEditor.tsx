@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useRef, useCallback, KeyboardEvent } from 'react'
 import {
-  Plus,
-  Trash2,
-  GripVertical,
-  X,
-  ChevronDown,
-  Sparkles,
   AlertTriangle,
+  ChevronDown,
+  GripVertical,
+  Plus,
+  Sparkles,
+  Trash2,
+  X,
 } from 'lucide-react'
-import type { VariantAttribute, VariantAttributeEditorProps } from './types'
+import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
 import {
   ATTRIBUTE_PRESETS,
   COMMON_ATTRIBUTE_NAMES,
-  MAX_ATTRIBUTES,
-  MAX_COMBINATIONS_WARNING,
   calculateCombinations,
   generateId,
+  MAX_ATTRIBUTES,
+  MAX_COMBINATIONS_WARNING,
 } from './constants'
+import type { VariantAttribute, VariantAttributeEditorProps } from './types'
 
 export function VariantAttributeEditor({
   attributes,
@@ -29,8 +29,12 @@ export function VariantAttributeEditor({
 }: VariantAttributeEditorProps) {
   const [showPresets, setShowPresets] = useState(false)
   const [editingNameId, setEditingNameId] = useState<string | null>(null)
-  const [newValueInputs, setNewValueInputs] = useState<Record<string, string>>({})
-  const [draggedAttributeId, setDraggedAttributeId] = useState<string | null>(null)
+  const [newValueInputs, setNewValueInputs] = useState<Record<string, string>>(
+    {},
+  )
+  const [draggedAttributeId, setDraggedAttributeId] = useState<string | null>(
+    null,
+  )
   const [draggedValueData, setDraggedValueData] = useState<{
     attributeId: string
     valueIndex: number
@@ -52,7 +56,8 @@ export function VariantAttributeEditor({
     let counter = 1
     const existingNames = new Set(attributes.map((a) => a.name.toLowerCase()))
     while (existingNames.has(name.toLowerCase())) {
-      const suggestion = COMMON_ATTRIBUTE_NAMES[counter] || `Attribute ${counter + 1}`
+      const suggestion =
+        COMMON_ATTRIBUTE_NAMES[counter] || `Attribute ${counter + 1}`
       name = suggestion
       counter++
     }
@@ -72,17 +77,17 @@ export function VariantAttributeEditor({
     (attributeId: string) => {
       onAttributesChange(attributes.filter((a) => a.id !== attributeId))
     },
-    [attributes, onAttributesChange]
+    [attributes, onAttributesChange],
   )
 
   // Update attribute name
   const handleUpdateAttributeName = useCallback(
     (attributeId: string, name: string) => {
       onAttributesChange(
-        attributes.map((a) => (a.id === attributeId ? { ...a, name } : a))
+        attributes.map((a) => (a.id === attributeId ? { ...a, name } : a)),
       )
     },
-    [attributes, onAttributesChange]
+    [attributes, onAttributesChange],
   )
 
   // Add value to attribute
@@ -94,19 +99,23 @@ export function VariantAttributeEditor({
         attributes.map((a) => {
           if (a.id !== attributeId) return a
           // Check for duplicate
-          if (a.values.some((v) => v.value.toLowerCase() === value.trim().toLowerCase())) {
+          if (
+            a.values.some(
+              (v) => v.value.toLowerCase() === value.trim().toLowerCase(),
+            )
+          ) {
             return a
           }
           return {
             ...a,
             values: [...a.values, { id: generateId(), value: value.trim() }],
           }
-        })
+        }),
       )
 
       setNewValueInputs((prev) => ({ ...prev, [attributeId]: '' }))
     },
-    [attributes, onAttributesChange]
+    [attributes, onAttributesChange],
   )
 
   // Remove value from attribute
@@ -116,10 +125,10 @@ export function VariantAttributeEditor({
         attributes.map((a) => {
           if (a.id !== attributeId) return a
           return { ...a, values: a.values.filter((v) => v.id !== valueId) }
-        })
+        }),
       )
     },
-    [attributes, onAttributesChange]
+    [attributes, onAttributesChange],
   )
 
   // Handle value input key press
@@ -131,7 +140,7 @@ export function VariantAttributeEditor({
         handleAddValue(attributeId, value)
       }
     },
-    [handleAddValue, newValueInputs]
+    [handleAddValue, newValueInputs],
   )
 
   // Apply preset
@@ -152,7 +161,7 @@ export function VariantAttributeEditor({
       onAttributesChange([...attributes, ...newAttributes])
       setShowPresets(false)
     },
-    [attributes, maxAttributes, onAttributesChange]
+    [attributes, maxAttributes, onAttributesChange],
   )
 
   // Drag and drop for attributes
@@ -163,7 +172,8 @@ export function VariantAttributeEditor({
   const handleAttributeDragOver = useCallback(
     (e: React.DragEvent, targetAttributeId: string) => {
       e.preventDefault()
-      if (!draggedAttributeId || draggedAttributeId === targetAttributeId) return
+      if (!draggedAttributeId || draggedAttributeId === targetAttributeId)
+        return
 
       const fromIndex = attributes.findIndex((a) => a.id === draggedAttributeId)
       const toIndex = attributes.findIndex((a) => a.id === targetAttributeId)
@@ -175,7 +185,7 @@ export function VariantAttributeEditor({
         onAttributesChange(newAttributes)
       }
     },
-    [attributes, draggedAttributeId, onAttributesChange]
+    [attributes, draggedAttributeId, onAttributesChange],
   )
 
   const handleAttributeDragEnd = useCallback(() => {
@@ -187,7 +197,7 @@ export function VariantAttributeEditor({
     (attributeId: string, valueIndex: number) => {
       setDraggedValueData({ attributeId, valueIndex })
     },
-    []
+    [],
   )
 
   const handleValueDragOver = useCallback(
@@ -205,10 +215,10 @@ export function VariantAttributeEditor({
           newValues.splice(targetIndex, 0, moved)
           setDraggedValueData({ attributeId, valueIndex: targetIndex })
           return { ...a, values: newValues }
-        })
+        }),
       )
     },
-    [attributes, draggedValueData, onAttributesChange]
+    [attributes, draggedValueData, onAttributesChange],
   )
 
   const handleValueDragEnd = useCallback(() => {
@@ -220,10 +230,13 @@ export function VariantAttributeEditor({
       {/* Header with Add and Presets buttons */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-medium text-gray-900">Variant Attributes</h3>
+          <h3 className="text-sm font-medium text-gray-900">
+            Variant Attributes
+          </h3>
           <p className="text-xs text-gray-500 mt-0.5">
             {attributes.length}/{maxAttributes} attributes
-            {currentCombinations > 0 && ` = ${currentCombinations} combinations`}
+            {currentCombinations > 0 &&
+              ` = ${currentCombinations} combinations`}
           </p>
         </div>
 
@@ -231,6 +244,7 @@ export function VariantAttributeEditor({
           {/* Presets dropdown */}
           <div className="relative" ref={presetsRef}>
             <button
+              type="button"
               type="button"
               onClick={() => setShowPresets(!showPresets)}
               disabled={!canAddAttribute}
@@ -246,9 +260,11 @@ export function VariantAttributeEditor({
                 <div className="max-h-72 overflow-y-auto p-2">
                   {ATTRIBUTE_PRESETS.map((preset) => {
                     const wouldExceed =
-                      attributes.length + preset.attributes.length > maxAttributes
+                      attributes.length + preset.attributes.length >
+                      maxAttributes
                     return (
                       <button
+                        type="button"
                         key={preset.id}
                         type="button"
                         onClick={() => handleApplyPreset(preset)}
@@ -258,7 +274,9 @@ export function VariantAttributeEditor({
                         <div className="text-sm font-medium text-gray-900">
                           {preset.name}
                         </div>
-                        <div className="text-xs text-gray-500">{preset.description}</div>
+                        <div className="text-xs text-gray-500">
+                          {preset.description}
+                        </div>
                       </button>
                     )
                   })}
@@ -269,6 +287,7 @@ export function VariantAttributeEditor({
 
           {/* Add attribute button */}
           <button
+            type="button"
             type="button"
             onClick={handleAddAttribute}
             disabled={!canAddAttribute}
@@ -289,8 +308,8 @@ export function VariantAttributeEditor({
               Large number of variants ({currentCombinations})
             </p>
             <p className="text-xs text-yellow-700 mt-0.5">
-              Consider reducing options to improve performance. Maximum recommended is{' '}
-              {maxCombinations}.
+              Consider reducing options to improve performance. Maximum
+              recommended is {maxCombinations}.
             </p>
           </div>
         </div>
@@ -302,12 +321,16 @@ export function VariantAttributeEditor({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
             <Plus className="h-6 w-6 text-gray-400" />
           </div>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No attributes</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No attributes
+          </h3>
           <p className="mt-1 text-xs text-gray-500">
-            Add attributes like Size, Color, or Material to create product variants.
+            Add attributes like Size, Color, or Material to create product
+            variants.
           </p>
           <div className="mt-4 flex items-center justify-center gap-2">
             <button
+              type="button"
               type="button"
               onClick={handleAddAttribute}
               disabled={disabled}
@@ -317,6 +340,7 @@ export function VariantAttributeEditor({
               Add Attribute
             </button>
             <button
+              type="button"
               type="button"
               onClick={() => setShowPresets(true)}
               disabled={disabled}
@@ -329,7 +353,7 @@ export function VariantAttributeEditor({
         </div>
       ) : (
         <div className="space-y-3">
-          {attributes.map((attribute, attrIndex) => (
+          {attributes.map((attribute, _attrIndex) => (
             <div
               key={attribute.id}
               draggable={!disabled}
@@ -346,6 +370,7 @@ export function VariantAttributeEditor({
               <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
                 {/* Drag handle */}
                 <button
+                  type="button"
                   type="button"
                   className="cursor-grab text-gray-400 hover:text-gray-600 active:cursor-grabbing"
                   aria-label="Drag to reorder"
@@ -368,12 +393,12 @@ export function VariantAttributeEditor({
                         setEditingNameId(null)
                       }
                     }}
-                    autoFocus
                     className="flex-1 rounded border border-blue-300 px-2 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
                     list={`attribute-names-${attribute.id}`}
                   />
                 ) : (
                   <button
+                    type="button"
                     type="button"
                     onClick={() => !disabled && setEditingNameId(attribute.id)}
                     className="flex-1 text-left text-sm font-medium text-gray-900 hover:text-blue-600"
@@ -392,6 +417,7 @@ export function VariantAttributeEditor({
 
                 {/* Remove attribute */}
                 <button
+                  type="button"
                   type="button"
                   onClick={() => handleRemoveAttribute(attribute.id)}
                   disabled={disabled}
@@ -427,7 +453,10 @@ export function VariantAttributeEditor({
                       <span className="text-gray-700">{value.value}</span>
                       <button
                         type="button"
-                        onClick={() => handleRemoveValue(attribute.id, value.id)}
+                        type="button"
+                        onClick={() =>
+                          handleRemoveValue(attribute.id, value.id)
+                        }
                         disabled={disabled}
                         className="ml-1 text-gray-400 hover:text-red-600 disabled:opacity-50"
                         aria-label={`Remove ${value.value}`}
@@ -455,10 +484,11 @@ export function VariantAttributeEditor({
                     />
                     <button
                       type="button"
+                      type="button"
                       onClick={() =>
                         handleAddValue(
                           attribute.id,
-                          newValueInputs[attribute.id] || ''
+                          newValueInputs[attribute.id] || '',
                         )
                       }
                       disabled={

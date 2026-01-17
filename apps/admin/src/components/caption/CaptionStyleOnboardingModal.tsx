@@ -1,37 +1,37 @@
 'use client'
 
-import { useState } from 'react'
-import {
-  X,
-  Sparkles,
-  MessageSquare,
-  Settings2,
-  Check,
-  ChevronRight,
-  ChevronLeft,
-  Plus,
-  Trash2,
-  Instagram,
-  Facebook,
-  Youtube,
-} from 'lucide-react'
 import type {
-  SocialPlatform,
+  CallToActionStyle,
   CaptionStyleOptions,
   CaptionTone,
   EmojiUsage,
-  LengthPreference,
   HashtagStyle,
-  CallToActionStyle,
+  LengthPreference,
+  SocialPlatform,
 } from '@madebuy/shared'
 import {
+  CTA_LABELS,
+  EMOJI_USAGE_LABELS,
+  HASHTAG_LABELS,
+  LENGTH_LABELS,
   PLATFORM_DEFAULT_STYLES,
   TONE_LABELS,
-  EMOJI_USAGE_LABELS,
-  LENGTH_LABELS,
-  HASHTAG_LABELS,
-  CTA_LABELS,
 } from '@madebuy/shared'
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Facebook,
+  Instagram,
+  MessageSquare,
+  Plus,
+  Settings2,
+  Sparkles,
+  Trash2,
+  X,
+  Youtube,
+} from 'lucide-react'
+import { useState } from 'react'
 
 interface CaptionStyleOnboardingModalProps {
   isOpen: boolean
@@ -49,7 +49,10 @@ const PLATFORM_NAMES: Record<SocialPlatform, string> = {
   'website-blog': 'Website Blog',
 }
 
-const PLATFORM_ICONS: Record<SocialPlatform, React.ComponentType<{ className?: string }>> = {
+const PLATFORM_ICONS: Record<
+  SocialPlatform,
+  React.ComponentType<{ className?: string }>
+> = {
   instagram: Instagram,
   facebook: Facebook,
   tiktok: () => <span className="text-lg">🎵</span>,
@@ -70,7 +73,9 @@ export function CaptionStyleOnboardingModal({
 }: CaptionStyleOnboardingModalProps) {
   const [step, setStep] = useState<Step>('welcome')
   const [examples, setExamples] = useState<string[]>(['', '', ''])
-  const [style, setStyle] = useState<CaptionStyleOptions>(PLATFORM_DEFAULT_STYLES[platform])
+  const [style, setStyle] = useState<CaptionStyleOptions>(
+    PLATFORM_DEFAULT_STYLES[platform],
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!isOpen) return null
@@ -95,7 +100,7 @@ export function CaptionStyleOnboardingModal({
 
   const handleComplete = async () => {
     setIsSubmitting(true)
-    const validExamples = examples.filter(e => e.trim().length > 0)
+    const validExamples = examples.filter((e) => e.trim().length > 0)
     await onComplete(style, validExamples)
     setIsSubmitting(false)
   }
@@ -121,13 +126,13 @@ export function CaptionStyleOnboardingModal({
   const toggleTone = (tone: CaptionTone) => {
     const current = style.tones
     if (current.includes(tone)) {
-      setStyle({ ...style, tones: current.filter(t => t !== tone) })
+      setStyle({ ...style, tones: current.filter((t) => t !== tone) })
     } else {
       setStyle({ ...style, tones: [...current, tone] })
     }
   }
 
-  const validExampleCount = examples.filter(e => e.trim().length > 0).length
+  const validExampleCount = examples.filter((e) => e.trim().length > 0).length
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -148,6 +153,7 @@ export function CaptionStyleOnboardingModal({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
@@ -159,7 +165,9 @@ export function CaptionStyleOnboardingModal({
         <div className="h-1 bg-gray-100">
           <div
             className="h-full bg-purple-500 transition-all duration-300"
-            style={{ width: `${((currentStepIndex + 1) / STEPS.length) * 100}%` }}
+            style={{
+              width: `${((currentStepIndex + 1) / STEPS.length) * 100}%`,
+            }}
           />
         </div>
 
@@ -175,8 +183,8 @@ export function CaptionStyleOnboardingModal({
                 Teach AI Your {platformName} Style
               </h3>
               <p className="text-gray-600 max-w-md mx-auto mb-6">
-                We&apos;ll learn how you like to write captions so every AI-generated
-                caption matches your unique voice and style.
+                We&apos;ll learn how you like to write captions so every
+                AI-generated caption matches your unique voice and style.
               </p>
               <div className="grid grid-cols-3 gap-4 text-sm max-w-md mx-auto">
                 <div className="p-3 bg-gray-50 rounded-lg">
@@ -218,6 +226,7 @@ export function CaptionStyleOnboardingModal({
                     />
                     {examples.length > 1 && (
                       <button
+                        type="button"
                         onClick={() => removeExample(index)}
                         className="absolute top-2 right-2 p-1 hover:bg-gray-100 rounded"
                       >
@@ -230,6 +239,7 @@ export function CaptionStyleOnboardingModal({
 
               {examples.length < 5 && (
                 <button
+                  type="button"
                   onClick={addExample}
                   className="mt-3 flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700"
                 >
@@ -259,6 +269,7 @@ export function CaptionStyleOnboardingModal({
                 <div className="flex flex-wrap gap-2">
                   {(Object.keys(TONE_LABELS) as CaptionTone[]).map((tone) => (
                     <button
+                      type="button"
                       key={tone}
                       onClick={() => toggleTone(tone)}
                       className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
@@ -279,19 +290,24 @@ export function CaptionStyleOnboardingModal({
                   Emoji Usage
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(EMOJI_USAGE_LABELS) as EmojiUsage[]).map((usage) => (
-                    <button
-                      key={usage}
-                      onClick={() => setStyle({ ...style, emojiUsage: usage })}
-                      className={`px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                        style.emojiUsage === usage
-                          ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {EMOJI_USAGE_LABELS[usage]}
-                    </button>
-                  ))}
+                  {(Object.keys(EMOJI_USAGE_LABELS) as EmojiUsage[]).map(
+                    (usage) => (
+                      <button
+                        type="button"
+                        key={usage}
+                        onClick={() =>
+                          setStyle({ ...style, emojiUsage: usage })
+                        }
+                        className={`px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                          style.emojiUsage === usage
+                            ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {EMOJI_USAGE_LABELS[usage]}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -301,19 +317,24 @@ export function CaptionStyleOnboardingModal({
                   Caption Length
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {(Object.keys(LENGTH_LABELS) as LengthPreference[]).map((length) => (
-                    <button
-                      key={length}
-                      onClick={() => setStyle({ ...style, lengthPreference: length })}
-                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                        style.lengthPreference === length
-                          ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {LENGTH_LABELS[length]}
-                    </button>
-                  ))}
+                  {(Object.keys(LENGTH_LABELS) as LengthPreference[]).map(
+                    (length) => (
+                      <button
+                        type="button"
+                        key={length}
+                        onClick={() =>
+                          setStyle({ ...style, lengthPreference: length })
+                        }
+                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                          style.lengthPreference === length
+                            ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {LENGTH_LABELS[length]}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -325,6 +346,7 @@ export function CaptionStyleOnboardingModal({
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(HASHTAG_LABELS) as HashtagStyle[]).map((hs) => (
                     <button
+                      type="button"
                       key={hs}
                       onClick={() => setStyle({ ...style, hashtagStyle: hs })}
                       className={`px-3 py-2 rounded-lg text-sm text-left transition-colors ${
@@ -346,7 +368,10 @@ export function CaptionStyleOnboardingModal({
                     type="checkbox"
                     checked={style.includeCallToAction}
                     onChange={(e) =>
-                      setStyle({ ...style, includeCallToAction: e.target.checked })
+                      setStyle({
+                        ...style,
+                        includeCallToAction: e.target.checked,
+                      })
                     }
                     className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
@@ -356,19 +381,24 @@ export function CaptionStyleOnboardingModal({
                 </label>
                 {style.includeCallToAction && (
                   <div className="grid grid-cols-3 gap-2 ml-6">
-                    {(Object.keys(CTA_LABELS) as CallToActionStyle[]).map((cta) => (
-                      <button
-                        key={cta}
-                        onClick={() => setStyle({ ...style, callToActionStyle: cta })}
-                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                          style.callToActionStyle === cta
-                            ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {CTA_LABELS[cta]}
-                      </button>
-                    ))}
+                    {(Object.keys(CTA_LABELS) as CallToActionStyle[]).map(
+                      (cta) => (
+                        <button
+                          type="button"
+                          key={cta}
+                          onClick={() =>
+                            setStyle({ ...style, callToActionStyle: cta })
+                          }
+                          className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                            style.callToActionStyle === cta
+                              ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {CTA_LABELS[cta]}
+                        </button>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
@@ -384,18 +414,23 @@ export function CaptionStyleOnboardingModal({
 
               <div className="space-y-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-2">Example Posts</h4>
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    Example Posts
+                  </h4>
                   <p className="text-sm text-gray-600">
                     {validExampleCount} examples provided
                   </p>
                 </div>
 
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-2">Style Settings</h4>
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    Style Settings
+                  </h4>
                   <div className="space-y-1 text-sm text-gray-600">
                     <p>
                       <span className="text-gray-500">Tone:</span>{' '}
-                      {style.tones.map(t => TONE_LABELS[t]).join(', ') || 'None selected'}
+                      {style.tones.map((t) => TONE_LABELS[t]).join(', ') ||
+                        'None selected'}
                     </p>
                     <p>
                       <span className="text-gray-500">Emojis:</span>{' '}
@@ -424,9 +459,12 @@ export function CaptionStyleOnboardingModal({
                   <div className="flex items-start gap-3">
                     <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-purple-900">Auto-Learning Enabled</h4>
+                      <h4 className="font-medium text-purple-900">
+                        Auto-Learning Enabled
+                      </h4>
                       <p className="text-sm text-purple-700">
-                        AI will learn from your successfully published posts to improve over time.
+                        AI will learn from your successfully published posts to
+                        improve over time.
                       </p>
                     </div>
                   </div>
@@ -439,6 +477,7 @@ export function CaptionStyleOnboardingModal({
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
           <button
+            type="button"
             onClick={handleBack}
             disabled={currentStepIndex === 0}
             className="flex items-center gap-1 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -449,6 +488,7 @@ export function CaptionStyleOnboardingModal({
 
           {step === 'review' ? (
             <button
+              type="button"
               onClick={handleComplete}
               disabled={isSubmitting}
               className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
@@ -464,6 +504,7 @@ export function CaptionStyleOnboardingModal({
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleNext}
               className="flex items-center gap-1 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >

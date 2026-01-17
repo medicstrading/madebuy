@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { blog } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/blog/[id] - Get blog post by ID
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -18,7 +18,10 @@ export async function GET(
     const post = await blog.getBlogPost(tenant.id, params.id)
 
     if (!post) {
-      return NextResponse.json({ error: 'Blog post not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Blog post not found' },
+        { status: 404 },
+      )
     }
 
     return NextResponse.json(post)
@@ -33,7 +36,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -56,7 +59,10 @@ export async function PATCH(
     })
 
     if (!post) {
-      return NextResponse.json({ error: 'Blog post not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Blog post not found' },
+        { status: 404 },
+      )
     }
 
     return NextResponse.json(post)
@@ -76,8 +82,8 @@ export async function PATCH(
  * DELETE /api/blog/[id] - Delete blog post
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -88,7 +94,10 @@ export async function DELETE(
     // Check if blog post exists
     const post = await blog.getBlogPost(tenant.id, params.id)
     if (!post) {
-      return NextResponse.json({ error: 'Blog post not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Blog post not found' },
+        { status: 404 },
+      )
     }
 
     await blog.deleteBlogPost(tenant.id, params.id)

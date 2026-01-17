@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface RateLimitEntry {
   count: number
@@ -50,7 +50,7 @@ function getClientId(request: NextRequest): string {
  */
 export function checkRateLimit(
   request: NextRequest,
-  options: RateLimitOptions
+  options: RateLimitOptions,
 ): NextResponse | null {
   const { limit, windowMs, keyPrefix = '' } = options
   const clientId = getClientId(request)
@@ -84,7 +84,7 @@ export function checkRateLimit(
           'X-RateLimit-Remaining': '0',
           'X-RateLimit-Reset': String(Math.ceil(entry.resetAt / 1000)),
         },
-      }
+      },
     )
   }
 

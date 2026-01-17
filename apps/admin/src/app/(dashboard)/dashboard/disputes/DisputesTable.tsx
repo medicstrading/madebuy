@@ -1,7 +1,15 @@
 'use client'
 
-import { ExternalLink, AlertTriangle, Clock, CheckCircle, XCircle, RefreshCw, HelpCircle } from 'lucide-react'
 import type { Dispute } from '@madebuy/shared'
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  HelpCircle,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react'
 
 interface DisputesTableProps {
   disputes: Dispute[]
@@ -65,7 +73,9 @@ export function DisputesTable({ disputes }: DisputesTableProps) {
               </td>
               <td className="whitespace-nowrap px-6 py-4">
                 {dispute.evidenceDueBy ? (
-                  <div className={`text-sm ${isUrgent(dispute.evidenceDueBy) ? 'text-red-600 font-semibold' : 'text-gray-700'}`}>
+                  <div
+                    className={`text-sm ${isUrgent(dispute.evidenceDueBy) ? 'text-red-600 font-semibold' : 'text-gray-700'}`}
+                  >
                     {formatDate(dispute.evidenceDueBy)}
                     {isUrgent(dispute.evidenceDueBy) && (
                       <span className="ml-1 text-xs">(Soon!)</span>
@@ -140,7 +150,9 @@ function DisputeStatusBadge({ status }: { status: Dispute['status'] }) {
   const { label, classes, icon: Icon } = config[status] || config.needs_response
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${classes}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${classes}`}
+    >
       <Icon className="h-3 w-3" />
       {label}
     </span>

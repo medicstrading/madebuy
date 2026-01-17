@@ -2,8 +2,8 @@
  * Publish - Social media publishing records
  */
 
-import type { SocialPlatform } from './tenant'
 import type { BlogPublishConfig } from './blog'
+import type { SocialPlatform } from './tenant'
 
 export interface PublishRecord {
   id: string
@@ -33,12 +33,38 @@ export interface PublishRecord {
   // Blog post reference (if published to blog)
   blogPostId?: string
 
+  // Recurring posts
+  recurrence?: RecurrenceConfig
+
   createdAt: Date
   updatedAt: Date
   publishedAt?: Date
 }
 
-export type PublishStatus = 'draft' | 'scheduled' | 'publishing' | 'published' | 'failed'
+export type PublishStatus =
+  | 'draft'
+  | 'scheduled'
+  | 'publishing'
+  | 'published'
+  | 'failed'
+
+// Recurring posts
+export type RecurrenceIntervalUnit = 'hours' | 'days' | 'weeks'
+
+export interface RecurrenceConfig {
+  enabled: boolean
+  intervalValue: number // 1-30
+  intervalUnit: RecurrenceIntervalUnit
+  totalOccurrences: number // 2-30
+  completedOccurrences: number
+  parentRecordId?: string // If this is a child record
+  childRecordIds?: string[] // Track children from parent
+}
+
+export type RecurrenceInput = Omit<
+  RecurrenceConfig,
+  'completedOccurrences' | 'childRecordIds'
+>
 
 export interface PlatformResult {
   platform: SocialPlatform
@@ -58,6 +84,7 @@ export interface CreatePublishInput {
   blogConfig?: BlogPublishConfig
   platforms: SocialPlatform[]
   scheduledFor?: Date
+  recurrence?: RecurrenceInput
 }
 
 export interface UpdatePublishInput {
@@ -69,6 +96,7 @@ export interface UpdatePublishInput {
   scheduledFor?: Date
   status?: PublishStatus
   blogPostId?: string
+  recurrence?: Partial<RecurrenceConfig>
 }
 
 export interface PublishFilters {

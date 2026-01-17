@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual, createHmac } from 'crypto'
-import { abandonedCarts, tenants, customers } from '@madebuy/db'
+import { createHmac, timingSafeEqual } from 'node:crypto'
+import { abandonedCarts, customers, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { sendAbandonedCartEmail } from '@/lib/email'
 
 /**
@@ -67,10 +67,7 @@ export async function GET(request: NextRequest) {
 
     // If CRON_SECRET is set, require authorization
     if (cronSecret && !verifySecret(authHeader, cronSecret)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[CRON] Starting abandoned cart email check...')
@@ -85,16 +82,20 @@ export async function GET(request: NextRequest) {
     const results: EmailResult[] = []
 
     // Unsubscribe secret for generating tokens
-    const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET || 'default-unsubscribe-secret'
+    const unsubscribeSecret =
+      process.env.UNSUBSCRIBE_SECRET || 'default-unsubscribe-secret'
 
     // Process each tenant's abandoned carts
     for (const tenant of allTenants) {
       try {
         // ===== FIRST EMAIL: After 1 hour =====
-        const cartsForFirstEmail = await abandonedCarts.getCartsForRecoveryEmail(tenant.id, 60) // 1 hour
+        const cartsForFirstEmail =
+          await abandonedCarts.getCartsForRecoveryEmail(tenant.id, 60) // 1 hour
 
         if (cartsForFirstEmail.length > 0) {
-          console.log(`[CRON] Found ${cartsForFirstEmail.length} carts for first email for tenant ${tenant.id}`)
+          console.log(
+            `[CRON] Found ${cartsForFirstEmail.length} carts for first email for tenant ${tenant.id}`,
+          )
 
           for (const cart of cartsForFirstEmail) {
             const emailResult = await processCartEmail(
@@ -102,7 +103,8 @@ export async function GET(request: NextRequest) {
               tenant,
               'first',
               unsubscribeSecret,
-              async () => abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id)
+              async () =>
+                abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id),
             )
             results.push(emailResult)
             totalProcessed++
@@ -113,10 +115,16 @@ export async function GET(request: NextRequest) {
         }
 
         // ===== SECOND EMAIL: After 24 hours =====
-        const cartsForSecondEmail = await abandonedCarts.getCartsForSecondRecoveryEmail(tenant.id, 24 * 60) // 24 hours
+        const cartsForSecondEmail =
+          await abandonedCarts.getCartsForSecondRecoveryEmail(
+            tenant.id,
+            24 * 60,
+          ) // 24 hours
 
         if (cartsForSecondEmail.length > 0) {
-          console.log(`[CRON] Found ${cartsForSecondEmail.length} carts for second email for tenant ${tenant.id}`)
+          console.log(
+            `[CRON] Found ${cartsForSecondEmail.length} carts for second email for tenant ${tenant.id}`,
+          )
 
           for (const cart of cartsForSecondEmail) {
             const emailResult = await processCartEmail(
@@ -124,7 +132,8 @@ export async function GET(request: NextRequest) {
               tenant,
               'second',
               unsubscribeSecret,
-              async () => abandonedCarts.markSecondEmailSent(tenant.id, cart.id)
+              async () =>
+                abandonedCarts.markSecondEmailSent(tenant.id, cart.id),
             )
             results.push(emailResult)
             totalProcessed++
@@ -133,13 +142,14 @@ export async function GET(request: NextRequest) {
             else totalFailed++
           }
         }
-
       } catch (error) {
         console.error(`[CRON] Error processing tenant ${tenant.id}:`, error)
       }
     }
 
-    console.log(`[CRON] Abandoned cart email completed: ${totalSent} sent, ${totalSkipped} skipped, ${totalFailed} failed out of ${totalProcessed} processed`)
+    console.log(
+      `[CRON] Abandoned cart email completed: ${totalSent} sent, ${totalSkipped} skipped, ${totalFailed} failed out of ${totalProcessed} processed`,
+    )
 
     return NextResponse.json({
       success: true,
@@ -149,15 +159,17 @@ export async function GET(request: NextRequest) {
       failed: totalFailed,
       results: results.slice(0, 100), // Limit results in response
     })
-
   } catch (error) {
     console.error('[CRON] Abandoned cart email error:', error)
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to process abandoned carts',
-        success: false
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to process abandoned carts',
+        success: false,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -170,7 +182,7 @@ async function processCartEmail(
   tenant: Awaited<ReturnType<typeof tenants.listTenants>>[0],
   emailType: 'first' | 'second',
   unsubscribeSecret: string,
-  markSentCallback: () => Promise<void>
+  markSentCallback: () => Promise<void>,
 ): Promise<EmailResult> {
   if (!cart.customerEmail) {
     return {
@@ -184,11 +196,16 @@ async function processCartEmail(
 
   try {
     // Check if customer has unsubscribed from emails
-    const customer = await customers.getCustomerByEmail(tenant.id, cart.customerEmail)
+    const customer = await customers.getCustomerByEmail(
+      tenant.id,
+      cart.customerEmail,
+    )
 
     // Skip if customer exists and has unsubscribed
     if (customer && customer.emailSubscribed === false) {
-      console.log(`[CRON] Skipping cart ${cart.id} (${emailType}) - customer ${cart.customerEmail} has unsubscribed`)
+      console.log(
+        `[CRON] Skipping cart ${cart.id} (${emailType}) - customer ${cart.customerEmail} has unsubscribed`,
+      )
       // Mark as sent to prevent future attempts
       await markSentCallback()
       return {
@@ -208,7 +225,10 @@ async function processCartEmail(
     const recoveryUrl = `${baseUrl}/cart?recover=${cart.id}`
 
     // Build unsubscribe URL with token
-    const unsubscribeToken = generateUnsubscribeToken(cart.customerEmail, unsubscribeSecret)
+    const unsubscribeToken = generateUnsubscribeToken(
+      cart.customerEmail,
+      unsubscribeSecret,
+    )
     const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(cart.customerEmail)}&token=${unsubscribeToken}`
 
     // Send the recovery email (same template for both, but could be customized)
@@ -216,7 +236,7 @@ async function processCartEmail(
     const cartData = {
       id: cart.id,
       customerEmail: cart.customerEmail, // Already validated as non-null
-      items: cart.items.map(item => ({
+      items: cart.items.map((item) => ({
         name: item.name,
         price: item.price,
         quantity: item.quantity,
@@ -235,7 +255,9 @@ async function processCartEmail(
     if (emailResult.success) {
       // Mark email as sent
       await markSentCallback()
-      console.log(`[CRON] Sent ${emailType} recovery email for cart ${cart.id} to ${cart.customerEmail}`)
+      console.log(
+        `[CRON] Sent ${emailType} recovery email for cart ${cart.id} to ${cart.customerEmail}`,
+      )
       return {
         cartId: cart.id,
         email: cart.customerEmail,
@@ -243,7 +265,10 @@ async function processCartEmail(
         success: true,
       }
     } else {
-      console.error(`[CRON] Failed to send ${emailType} email for cart ${cart.id}:`, emailResult.error)
+      console.error(
+        `[CRON] Failed to send ${emailType} email for cart ${cart.id}:`,
+        emailResult.error,
+      )
       return {
         cartId: cart.id,
         email: cart.customerEmail,
@@ -253,8 +278,12 @@ async function processCartEmail(
       }
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    console.error(`[CRON] Error processing cart ${cart.id} (${emailType}):`, error)
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
+    console.error(
+      `[CRON] Error processing cart ${cart.id} (${emailType}):`,
+      error,
+    )
     return {
       cartId: cart.id,
       email: cart.customerEmail || 'unknown',

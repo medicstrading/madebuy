@@ -4,6 +4,6 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   return NextResponse.json(
     { success: false, error: 'Cloudflare integration not yet configured' },
-    { status: 503 }
+    { status: 503 },
   )
 }

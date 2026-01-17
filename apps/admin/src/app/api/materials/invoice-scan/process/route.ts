@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { invoices } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { extractTextFromInvoice } from '@/lib/services/invoice-ocr'
 import {
-  parseInvoiceLines,
+  extractInvoiceDate,
   extractSupplier,
   extractTotalAmount,
-  extractInvoiceDate
+  parseInvoiceLines,
 } from '@/lib/services/invoice-parser'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * POST /api/materials/invoice-scan/process
@@ -24,7 +24,10 @@ export async function POST(request: NextRequest) {
     const { invoiceId } = await request.json()
 
     if (!invoiceId) {
-      return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invoice ID required' },
+        { status: 400 },
+      )
     }
 
     // Get invoice record
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
       lineItems,
       supplier,
       totalAmount,
-      invoiceDate
+      invoiceDate,
     })
 
     // Fetch updated invoice
@@ -72,11 +75,12 @@ export async function POST(request: NextRequest) {
       invoice: updated,
       lineItemCount: lineItems.length,
       ocrConfidence: ocrResult.confidence,
-      message: 'Invoice processed successfully'
+      message: 'Invoice processed successfully',
     })
   } catch (error) {
     console.error('Error processing invoice:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     // Update invoice status to error
     const { invoiceId } = await request.json().catch(() => ({}))
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
       try {
         await invoices.updateInvoice(tenant.id, invoiceId, {
           status: 'error',
-          errorMessage
+          errorMessage,
         })
       } catch (updateError) {
         console.error('Error updating invoice status:', updateError)
@@ -96,9 +100,9 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Failed to process invoice with OCR',
         details: errorMessage,
-        code: 'OCR_PROCESSING_FAILED'
+        code: 'OCR_PROCESSING_FAILED',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,7 +1,11 @@
+import type {
+  MediaVariant,
+  MediaVariants,
+  SocialPlatform,
+} from '@madebuy/shared'
 import sharp from 'sharp'
-import { uploadToR2 } from './r2'
 import { uploadToLocal } from './local-storage'
-import type { MediaVariants, MediaVariant, SocialPlatform } from '@madebuy/shared'
+import { uploadToR2 } from './r2'
 
 // Storage backend configuration
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
@@ -98,14 +102,14 @@ export interface ProcessImageOptions {
 }
 
 export async function processImageWithVariants(
-  options: ProcessImageOptions
+  options: ProcessImageOptions,
 ): Promise<MediaVariants> {
   const { tenantId, fileName, imageBuffer, platforms = [] } = options
 
   const variants: Partial<MediaVariants> = {}
 
   // Get image metadata
-  const metadata = await sharp(imageBuffer).metadata()
+  const _metadata = await sharp(imageBuffer).metadata()
 
   // Create standard variants
   for (const spec of STANDARD_VARIANTS) {
@@ -129,7 +133,7 @@ async function createVariant(
   imageBuffer: Buffer,
   spec: VariantSpec,
   tenantId: string,
-  fileName: string
+  fileName: string,
 ): Promise<MediaVariant> {
   let processedImage = sharp(imageBuffer)
 
@@ -174,7 +178,7 @@ export interface OptimizeForPlatformOptions {
 }
 
 export async function optimizeForPlatform(
-  options: OptimizeForPlatformOptions
+  options: OptimizeForPlatformOptions,
 ): Promise<MediaVariant> {
   const { imageBuffer, platform, tenantId, fileName } = options
   const spec = PLATFORM_VARIANTS[platform]

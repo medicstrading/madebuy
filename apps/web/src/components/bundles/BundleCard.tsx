@@ -1,10 +1,10 @@
 'use client'
 
-import { memo } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { ImageIcon, Package, Percent } from 'lucide-react'
 import type { BundleWithPieces } from '@madebuy/shared'
+import { Package, Percent } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { memo } from 'react'
 
 interface BundleCardProps {
   bundle: BundleWithPieces
@@ -50,7 +50,9 @@ export const BundleCard = memo(function BundleCard({
       </div>
 
       {/* Image */}
-      <div className={`relative bg-gradient-to-br from-purple-50 to-blue-50 ${variant === 'compact' ? 'aspect-square' : 'aspect-[4/5]'}`}>
+      <div
+        className={`relative bg-gradient-to-br from-purple-50 to-blue-50 ${variant === 'compact' ? 'aspect-square' : 'aspect-[4/5]'}`}
+      >
         {thumbnailUrl ? (
           <Image
             src={thumbnailUrl}
@@ -67,22 +69,29 @@ export const BundleCard = memo(function BundleCard({
 
       {/* Content */}
       <div className={`${variant === 'compact' ? 'p-3' : 'p-4'}`}>
-        <h3 className={`font-medium text-gray-900 truncate group-hover:text-purple-600 ${variant === 'compact' ? 'text-sm' : ''}`}>
+        <h3
+          className={`font-medium text-gray-900 truncate group-hover:text-purple-600 ${variant === 'compact' ? 'text-sm' : ''}`}
+        >
           {bundle.name}
         </h3>
 
         {/* Product count */}
         <p className="mt-1 text-xs text-gray-500">
-          {bundle.pieceDetails.length} product{bundle.pieceDetails.length !== 1 ? 's' : ''} included
+          {bundle.pieceDetails.length} product
+          {bundle.pieceDetails.length !== 1 ? 's' : ''} included
         </p>
 
         {/* Pricing */}
         <div className="mt-2 flex items-baseline gap-2">
-          <span className={`font-semibold text-gray-900 ${variant === 'compact' ? 'text-sm' : 'text-lg'}`}>
+          <span
+            className={`font-semibold text-gray-900 ${variant === 'compact' ? 'text-sm' : 'text-lg'}`}
+          >
             {formatPrice(bundle.bundlePrice)}
           </span>
           {bundle.originalPrice > bundle.bundlePrice && (
-            <span className={`text-gray-400 line-through ${variant === 'compact' ? 'text-xs' : 'text-sm'}`}>
+            <span
+              className={`text-gray-400 line-through ${variant === 'compact' ? 'text-xs' : 'text-sm'}`}
+            >
               {formatPrice(bundle.originalPrice)}
             </span>
           )}
@@ -121,7 +130,9 @@ export function BundleGrid({
     <div>
       {(title || subtitle) && (
         <div className="text-center mb-8">
-          {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
+          {title && (
+            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          )}
           {subtitle && <p className="mt-1 text-gray-500">{subtitle}</p>}
         </div>
       )}

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * Inventory (Pieces) E2E tests for MadeBuy Admin
@@ -25,20 +25,25 @@ test.describe('Inventory Management', () => {
   test.describe('Product List', () => {
     test('should navigate to inventory page', async ({ page }) => {
       // Navigate to inventory/pieces section
-      await page.getByRole('link', { name: /inventory|pieces|products/i }).click()
+      await page
+        .getByRole('link', { name: /inventory|pieces|products/i })
+        .click()
 
       // Should be on inventory page
       await expect(page).toHaveURL(/\/(inventory|pieces|products)/)
 
       // Page should have expected elements
-      await expect(page.getByRole('heading', { name: /inventory|pieces|products/i })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: /inventory|pieces|products/i }),
+      ).toBeVisible()
     })
 
     test('should display create product button', async ({ page }) => {
       await page.goto('/dashboard/pieces')
 
       // Should have add/create button
-      const createButton = page.getByRole('link', { name: /add|create|new/i })
+      const createButton = page
+        .getByRole('link', { name: /add|create|new/i })
         .or(page.getByRole('button', { name: /add|create|new/i }))
 
       await expect(createButton).toBeVisible()
@@ -66,9 +71,12 @@ test.describe('Inventory Management', () => {
       await page.getByRole('button', { name: /save|create|submit/i }).click()
 
       // Should show validation error or stay on page
-      const hasError = await page.getByText(/required|cannot be empty/i).isVisible()
+      const hasError = await page
+        .getByText(/required|cannot be empty/i)
+        .isVisible()
         .catch(() => false)
-      const stillOnPage = page.url().includes('/new') || page.url().includes('/create')
+      const stillOnPage =
+        page.url().includes('/new') || page.url().includes('/create')
 
       expect(hasError || stillOnPage).toBeTruthy()
     })
@@ -97,10 +105,13 @@ test.describe('Inventory Management', () => {
       // Select status if dropdown exists
       const statusSelect = page.getByLabel(/status/i)
       if (await statusSelect.isVisible()) {
-        await statusSelect.selectOption({ label: 'Available' })
-          .catch(() => statusSelect.click().then(() =>
-            page.getByText('Available').click()
-          ))
+        await statusSelect
+          .selectOption({ label: 'Available' })
+          .catch(() =>
+            statusSelect
+              .click()
+              .then(() => page.getByText('Available').click()),
+          )
           .catch(() => {}) // Ignore if not found
       }
 
@@ -111,7 +122,9 @@ test.describe('Inventory Management', () => {
       await expect(page).not.toHaveURL(/\/new/, { timeout: 10000 })
 
       // Should show success message or be on product page
-      const successVisible = await page.getByText(/created|saved|success/i).isVisible()
+      const successVisible = await page
+        .getByText(/created|saved|success/i)
+        .isVisible()
         .catch(() => false)
       const onProductPage = !page.url().includes('/new')
 
@@ -128,8 +141,11 @@ test.describe('Inventory Management', () => {
 
       // Click on first product in list (edit button or row)
       const editButton = page.getByRole('button', { name: /edit/i }).first()
-      const productRow = page.getByRole('row').nth(1) // First data row
-      const productLink = page.getByRole('link').filter({ hasText: /./i }).first()
+      const _productRow = page.getByRole('row').nth(1) // First data row
+      const productLink = page
+        .getByRole('link')
+        .filter({ hasText: /./i })
+        .first()
 
       if (await editButton.isVisible()) {
         await editButton.click()
@@ -141,7 +157,9 @@ test.describe('Inventory Management', () => {
       }
 
       // Should be on edit page with form
-      await expect(page.getByLabel(/name|title/i)).toBeVisible({ timeout: 10000 })
+      await expect(page.getByLabel(/name|title/i)).toBeVisible({
+        timeout: 10000,
+      })
     })
 
     test('should update product name', async ({ page }) => {
@@ -160,7 +178,9 @@ test.describe('Inventory Management', () => {
         await editLink.click()
       } else {
         // Try clicking on product name to go to edit
-        const firstProduct = page.locator('table tbody tr').first()
+        const firstProduct = page
+          .locator('table tbody tr')
+          .first()
           .or(page.locator('[data-testid="product-item"]').first())
 
         if (await firstProduct.isVisible()) {
@@ -172,7 +192,9 @@ test.describe('Inventory Management', () => {
       }
 
       // Wait for form
-      await expect(page.getByLabel(/name|title/i)).toBeVisible({ timeout: 10000 })
+      await expect(page.getByLabel(/name|title/i)).toBeVisible({
+        timeout: 10000,
+      })
 
       // Update the name
       const nameInput = page.getByLabel(/name|title/i)
@@ -187,7 +209,9 @@ test.describe('Inventory Management', () => {
 
       // Should show success or redirect
       await page.waitForTimeout(2000)
-      const success = await page.getByText(/saved|updated|success/i).isVisible()
+      const success = await page
+        .getByText(/saved|updated|success/i)
+        .isVisible()
         .catch(() => true) // If redirected, consider it success
 
       expect(success).toBeTruthy()
@@ -202,7 +226,9 @@ test.describe('Inventory Management', () => {
       await page.waitForTimeout(1000)
 
       // Find delete button
-      const deleteButton = page.getByRole('button', { name: /delete|remove/i }).first()
+      const deleteButton = page
+        .getByRole('button', { name: /delete|remove/i })
+        .first()
 
       if (!(await deleteButton.isVisible())) {
         test.skip(true, 'No delete button visible')
@@ -213,9 +239,13 @@ test.describe('Inventory Management', () => {
       await deleteButton.click()
 
       // Should show confirmation dialog/modal
-      const confirmVisible = await page.getByText(/are you sure|confirm|delete/i).isVisible()
+      const confirmVisible = await page
+        .getByText(/are you sure|confirm|delete/i)
+        .isVisible()
         .catch(() => false)
-      const dialogVisible = await page.getByRole('dialog').isVisible()
+      const dialogVisible = await page
+        .getByRole('dialog')
+        .isVisible()
         .catch(() => false)
 
       expect(confirmVisible || dialogVisible).toBeTruthy()

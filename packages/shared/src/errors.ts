@@ -15,7 +15,7 @@ export class MadeBuyError extends Error {
     code: string,
     message: string,
     statusCode: number = 500,
-    details?: unknown
+    details?: unknown,
   ) {
     super(message)
     this.name = 'MadeBuyError'
@@ -46,7 +46,9 @@ export class MadeBuyError extends Error {
  */
 export class NotFoundError extends MadeBuyError {
   constructor(resource: string, id?: string) {
-    const message = id ? `${resource} not found: ${id}` : `${resource} not found`
+    const message = id
+      ? `${resource} not found: ${id}`
+      : `${resource} not found`
     super('NOT_FOUND', message, 404, { resource, id })
     this.name = 'NotFoundError'
   }
@@ -81,7 +83,7 @@ export class DuplicateError extends MadeBuyError {
       'DUPLICATE',
       `${resource} with ${field} "${value}" already exists`,
       409,
-      { resource, field, value }
+      { resource, field, value },
     )
     this.name = 'DuplicateError'
   }
@@ -116,7 +118,7 @@ export class RateLimitError extends MadeBuyError {
       'RATE_LIMIT_EXCEEDED',
       'Too many requests. Please try again later.',
       429,
-      retryAfter ? { retryAfter } : undefined
+      retryAfter ? { retryAfter } : undefined,
     )
     this.name = 'RateLimitError'
   }
@@ -131,7 +133,7 @@ export class InsufficientStockError extends MadeBuyError {
       'INSUFFICIENT_STOCK',
       `Insufficient stock for ${productName}. Requested: ${requested}, Available: ${available}`,
       400,
-      { productName, requested, available }
+      { productName, requested, available },
     )
     this.name = 'InsufficientStockError'
   }
@@ -142,12 +144,10 @@ export class InsufficientStockError extends MadeBuyError {
  */
 export class ExternalServiceError extends MadeBuyError {
   constructor(service: string, originalError?: string) {
-    super(
-      'EXTERNAL_SERVICE_ERROR',
-      `External service error: ${service}`,
-      502,
-      { service, originalError }
-    )
+    super('EXTERNAL_SERVICE_ERROR', `External service error: ${service}`, 502, {
+      service,
+      originalError,
+    })
     this.name = 'ExternalServiceError'
   }
 }
@@ -163,7 +163,7 @@ export class SubscriptionLimitError extends MadeBuyError {
         ? `${feature} requires ${requiredPlan} plan or higher`
         : `${feature} limit reached for your current plan`,
       403,
-      { feature, requiredPlan }
+      { feature, requiredPlan },
     )
     this.name = 'SubscriptionLimitError'
   }

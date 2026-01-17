@@ -180,9 +180,7 @@ export interface SocialVideo {
 /**
  * External integrations (archived 2026-01-02)
  */
-export interface ProductIntegrations {
-  // Reserved for future integrations
-}
+export type ProductIntegrations = {}
 
 // === INPUT/UPDATE TYPES ===
 

@@ -1,7 +1,16 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react'
 import type { CartProduct, PersonalizationValue } from '@madebuy/shared'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 export interface CartItem {
   id: string // Unique cart item ID (product ID + personalization hash)
@@ -29,33 +38,42 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 // Generate unique cart item ID based on product + personalization
-function generateCartItemId(productId: string, personalization?: PersonalizationValue[]): string {
+function generateCartItemId(
+  productId: string,
+  personalization?: PersonalizationValue[],
+): string {
   if (!personalization || personalization.length === 0) {
     return productId
   }
   // Create hash from personalization values to distinguish items
   const personalizationKey = personalization
-    .map(p => `${p.fieldId}:${String(p.value)}`)
+    .map((p) => `${p.fieldId}:${String(p.value)}`)
     .sort()
     .join('|')
   return `${productId}-${btoa(personalizationKey).slice(0, 12)}`
 }
 
 // Calculate total price adjustment from personalization
-function calculatePersonalizationTotal(personalization?: PersonalizationValue[]): number {
+function calculatePersonalizationTotal(
+  personalization?: PersonalizationValue[],
+): number {
   if (!personalization || personalization.length === 0) return 0
   return personalization.reduce((sum, p) => sum + (p.priceAdjustment || 0), 0)
 }
 
 // Track cart for abandoned cart detection
-async function trackCartForAbandonment(tenantId: string, items: CartItem[], total: number) {
+async function trackCartForAbandonment(
+  tenantId: string,
+  items: CartItem[],
+  total: number,
+) {
   try {
     await fetch('/api/carts/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tenantId,
-        items: items.map(item => ({
+        items: items.map((item) => ({
           productId: item.product.id,
           cartItemId: item.id,
           name: item.product.name,
@@ -112,8 +130,11 @@ export function CartProvider({
     }
 
     const total = items.reduce(
-      (sum, item) => sum + ((item.product.price || 0) + (item.personalizationTotal || 0)) * item.quantity,
-      0
+      (sum, item) =>
+        sum +
+        ((item.product.price || 0) + (item.personalizationTotal || 0)) *
+          item.quantity,
+      0,
     )
 
     trackingTimeoutRef.current = setTimeout(() => {
@@ -127,47 +148,54 @@ export function CartProvider({
     }
   }, [items, tenantId])
 
-  const addItem = useCallback((product: CartProduct, options?: AddItemOptions) => {
-    const quantity = options?.quantity ?? 1
-    const personalization = options?.personalization
-    const cartItemId = generateCartItemId(product.id, personalization)
-    const personalizationTotal = calculatePersonalizationTotal(personalization)
+  const addItem = useCallback(
+    (product: CartProduct, options?: AddItemOptions) => {
+      const quantity = options?.quantity ?? 1
+      const personalization = options?.personalization
+      const cartItemId = generateCartItemId(product.id, personalization)
+      const personalizationTotal =
+        calculatePersonalizationTotal(personalization)
 
-    setItems(prev => {
-      const existing = prev.find(item => item.id === cartItemId)
+      setItems((prev) => {
+        const existing = prev.find((item) => item.id === cartItemId)
 
-      if (existing) {
-        return prev.map(item =>
-          item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        )
-      }
+        if (existing) {
+          return prev.map((item) =>
+            item.id === cartItemId
+              ? { ...item, quantity: item.quantity + quantity }
+              : item,
+          )
+        }
 
-      return [...prev, {
-        id: cartItemId,
-        product,
-        quantity,
-        personalization,
-        personalizationTotal
-      }]
-    })
-  }, [])
+        return [
+          ...prev,
+          {
+            id: cartItemId,
+            product,
+            quantity,
+            personalization,
+            personalizationTotal,
+          },
+        ]
+      })
+    },
+    [],
+  )
 
   const removeItem = useCallback((cartItemId: string) => {
-    setItems(prev => prev.filter(item => item.id !== cartItemId))
+    setItems((prev) => prev.filter((item) => item.id !== cartItemId))
   }, [])
 
   const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems(prev => prev.filter(item => item.id !== cartItemId))
+      setItems((prev) => prev.filter((item) => item.id !== cartItemId))
       return
     }
 
-    setItems(prev =>
-      prev.map(item =>
-        item.id === cartItemId ? { ...item, quantity } : item
-      )
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === cartItemId ? { ...item, quantity } : item,
+      ),
     )
   }, [])
 
@@ -177,8 +205,11 @@ export function CartProvider({
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
   const totalAmount = items.reduce(
-    (sum, item) => sum + ((item.product.price || 0) + (item.personalizationTotal || 0)) * item.quantity,
-    0
+    (sum, item) =>
+      sum +
+      ((item.product.price || 0) + (item.personalizationTotal || 0)) *
+        item.quantity,
+    0,
   )
 
   const value = useMemo(
@@ -191,14 +222,18 @@ export function CartProvider({
       totalItems,
       totalAmount,
     }),
-    [items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalAmount]
+    [
+      items,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalAmount,
+    ],
   )
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  )
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
 export function useCart() {

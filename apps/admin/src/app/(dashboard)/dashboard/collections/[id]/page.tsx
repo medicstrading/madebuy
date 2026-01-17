@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { CollectionForm } from '@/components/collections/CollectionForm'
 import type { Collection } from '@madebuy/shared'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { CollectionForm } from '@/components/collections/CollectionForm'
 
 export default function EditCollectionPage() {
   const params = useParams()
@@ -40,8 +40,13 @@ export default function EditCollectionPage() {
   if (!collection) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-lg font-medium text-gray-900">Collection not found</h2>
-        <Link href="/dashboard/collections" className="text-blue-600 hover:underline mt-2 inline-block">
+        <h2 className="text-lg font-medium text-gray-900">
+          Collection not found
+        </h2>
+        <Link
+          href="/dashboard/collections"
+          className="text-blue-600 hover:underline mt-2 inline-block"
+        >
           Back to collections
         </Link>
       </div>

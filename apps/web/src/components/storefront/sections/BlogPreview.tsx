@@ -1,11 +1,16 @@
 'use client'
 
-import Link from 'next/link'
+import { Clock, FileText } from 'lucide-react'
 import Image from 'next/image'
-import { FileText, Clock } from 'lucide-react'
+import Link from 'next/link'
 import type { SectionProps } from './SectionRenderer'
 
-export function BlogPreview({ settings, tenant, tenantSlug, blogPosts }: SectionProps) {
+export function BlogPreview({
+  settings,
+  tenant,
+  tenantSlug,
+  blogPosts,
+}: SectionProps) {
   const title = settings.title || 'From the Blog'
   const subtitle = settings.subtitle
   const postLimit = settings.postLimit || 3
@@ -13,7 +18,8 @@ export function BlogPreview({ settings, tenant, tenantSlug, blogPosts }: Section
   const showDate = settings.showDate ?? true
   const layout = settings.layout || 'grid'
 
-  const displayPosts = blogPosts?.filter((p) => p.status === 'published').slice(0, postLimit) || []
+  const displayPosts =
+    blogPosts?.filter((p) => p.status === 'published').slice(0, postLimit) || []
 
   if (displayPosts.length === 0) {
     return (
@@ -39,14 +45,14 @@ export function BlogPreview({ settings, tenant, tenantSlug, blogPosts }: Section
           {title}
         </h2>
         {subtitle && (
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {subtitle}
-          </p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
       {/* Posts grid */}
-      <div className={`grid ${layout === 'featured' ? 'lg:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'} gap-8`}>
+      <div
+        className={`grid ${layout === 'featured' ? 'lg:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'} gap-8`}
+      >
         {displayPosts.map((post, index) => {
           const href = `/${tenantSlug}/blog/${post.slug}`
           const isFeature = layout === 'featured' && index === 0
@@ -59,7 +65,9 @@ export function BlogPreview({ settings, tenant, tenantSlug, blogPosts }: Section
             >
               <article className="h-full bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
                 {/* Cover Image */}
-                <div className={`relative bg-gray-100 ${isFeature ? 'aspect-[16/10]' : 'aspect-[16/9]'}`}>
+                <div
+                  className={`relative bg-gray-100 ${isFeature ? 'aspect-[16/10]' : 'aspect-[16/9]'}`}
+                >
                   {/* Note: coverImageId needs to be resolved to URL by parent component */}
                   {(post as { coverImageUrl?: string }).coverImageUrl ? (
                     <Image
@@ -67,7 +75,11 @@ export function BlogPreview({ settings, tenant, tenantSlug, blogPosts }: Section
                       alt={post.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes={isFeature ? '(max-width: 1024px) 100vw, 50vw' : '(max-width: 768px) 100vw, 33vw'}
+                      sizes={
+                        isFeature
+                          ? '(max-width: 1024px) 100vw, 50vw'
+                          : '(max-width: 768px) 100vw, 33vw'
+                      }
                     />
                   ) : (
                     <div
@@ -87,17 +99,24 @@ export function BlogPreview({ settings, tenant, tenantSlug, blogPosts }: Section
                   {showDate && post.publishedAt && (
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                       <time dateTime={new Date(post.publishedAt).toISOString()}>
-                        {new Date(post.publishedAt).toLocaleDateString('en-AU', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
+                        {new Date(post.publishedAt).toLocaleDateString(
+                          'en-AU',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          },
+                        )}
                       </time>
                       {/* Read time calculated from content if available */}
                       {post.content && (
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200))} min read
+                          {Math.max(
+                            1,
+                            Math.ceil(post.content.split(/\s+/).length / 200),
+                          )}{' '}
+                          min read
                         </span>
                       )}
                     </div>

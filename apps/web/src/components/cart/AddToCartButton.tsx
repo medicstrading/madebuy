@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import type { PieceWithMedia, ProductWithMedia } from '@madebuy/shared'
+import { Check, ShoppingCart } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useCart } from '@/contexts/CartContext'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { MiniCartPreview } from './MiniCartPreview'
-import type { ProductWithMedia, PieceWithMedia } from '@madebuy/shared'
-import { ShoppingCart, Check } from 'lucide-react'
 
 interface AddToCartButtonProps {
   product: ProductWithMedia | PieceWithMedia
@@ -14,7 +14,12 @@ interface AddToCartButtonProps {
   disabled?: boolean
 }
 
-export function AddToCartButton({ product, tenantId, tenant, disabled }: AddToCartButtonProps) {
+export function AddToCartButton({
+  product,
+  tenantId,
+  tenant,
+  disabled,
+}: AddToCartButtonProps) {
   const { addItem, items, totalAmount } = useCart()
   const { trackAddToCart } = useAnalytics(tenantId)
   const [added, setAdded] = useState(false)
@@ -42,6 +47,7 @@ export function AddToCartButton({ product, tenantId, tenant, disabled }: AddToCa
   return (
     <>
       <button
+        type="button"
         onClick={handleAddToCart}
         disabled={disabled || added}
         className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${

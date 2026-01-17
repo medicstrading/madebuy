@@ -1,7 +1,15 @@
+import type {
+  CreatePieceInput,
+  Material,
+  Piece,
+  PieceFilters,
+  PieceMaterialUsage,
+  ProductVariant,
+  UpdatePieceInput,
+} from '@madebuy/shared'
+import { calculateCOGS, calculateProfitMargin } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Piece, CreatePieceInput, UpdatePieceInput, PieceFilters, ProductVariant, PieceMaterialUsage, Material } from '@madebuy/shared'
-import { calculateCOGS, calculateProfitMargin } from '@madebuy/shared'
 
 // Maximum items to return in a single query (prevents memory issues)
 const MAX_QUERY_LIMIT = 500
@@ -13,24 +21,30 @@ function generateSlug(name: string): string {
     .replace(/\s+/g, '-')
 }
 
-async function generateUniqueSlug(tenantId: string, name: string): Promise<string> {
+async function generateUniqueSlug(
+  tenantId: string,
+  name: string,
+): Promise<string> {
   const db = await getDatabase()
   const baseSlug = generateSlug(name)
 
   // Check if base slug exists
-  const existing = await db.collection('pieces').findOne({ tenantId, slug: baseSlug })
+  const existing = await db
+    .collection('pieces')
+    .findOne({ tenantId, slug: baseSlug })
   if (!existing) {
     return baseSlug
   }
 
   // Find all slugs that start with this base slug
-  const similarSlugs = await db.collection('pieces')
+  const similarSlugs = await db
+    .collection('pieces')
     .find({ tenantId, slug: { $regex: `^${baseSlug}(-\\d+)?$` } })
     .project({ slug: 1 })
     .toArray()
 
   // Extract numbers from existing slugs
-  const numbers = similarSlugs.map(doc => {
+  const numbers = similarSlugs.map((doc) => {
     const match = (doc.slug as string).match(new RegExp(`^${baseSlug}-(\\d+)$`))
     return match ? parseInt(match[1], 10) : 1
   })
@@ -43,12 +57,12 @@ async function generateUniqueSlug(tenantId: string, name: string): Promise<strin
 export async function createPiece(
   tenantId: string,
   data: CreatePieceInput,
-  materialsCatalog?: Material[]
+  materialsCatalog?: Material[],
 ): Promise<Piece> {
   const db = await getDatabase()
 
   // Generate IDs for variants if provided
-  const variants: ProductVariant[] | undefined = data.variants?.map(v => ({
+  const variants: ProductVariant[] | undefined = data.variants?.map((v) => ({
     ...v,
     id: nanoid(),
   }))
@@ -59,7 +73,8 @@ export async function createPiece(
 
   if (data.materialsUsed && data.materialsUsed.length > 0 && materialsCatalog) {
     calculatedCOGS = calculateCOGS(data.materialsUsed, materialsCatalog)
-    profitMargin = calculateProfitMargin(data.price, calculatedCOGS) ?? undefined
+    profitMargin =
+      calculateProfitMargin(data.price, calculatedCOGS) ?? undefined
   }
 
   // Generate unique slug to avoid duplicates
@@ -112,14 +127,24 @@ export async function createPiece(
   return piece
 }
 
-export async function getPiece(tenantId: string, id: string): Promise<Piece | null> {
+export async function getPiece(
+  tenantId: string,
+  id: string,
+): Promise<Piece | null> {
   const db = await getDatabase()
-  return await db.collection('pieces').findOne({ tenantId, id }) as unknown as Piece | null
+  return (await db
+    .collection('pieces')
+    .findOne({ tenantId, id })) as unknown as Piece | null
 }
 
-export async function getPieceBySlug(tenantId: string, slug: string): Promise<Piece | null> {
+export async function getPieceBySlug(
+  tenantId: string,
+  slug: string,
+): Promise<Piece | null> {
   const db = await getDatabase()
-  return await db.collection('pieces').findOne({ tenantId, slug }) as unknown as Piece | null
+  return (await db
+    .collection('pieces')
+    .findOne({ tenantId, slug })) as unknown as Piece | null
 }
 
 /**
@@ -127,21 +152,22 @@ export async function getPieceBySlug(tenantId: string, slug: string): Promise<Pi
  */
 export async function getPiecesByIds(
   tenantId: string,
-  pieceIds: string[]
+  pieceIds: string[],
 ): Promise<Map<string, Piece>> {
   if (pieceIds.length === 0) {
     return new Map()
   }
   const db = await getDatabase()
-  const pieceList = await db.collection('pieces')
+  const pieceList = (await db
+    .collection('pieces')
     .find({ tenantId, id: { $in: pieceIds } })
-    .toArray() as unknown as Piece[]
-  return new Map(pieceList.map(p => [p.id, p]))
+    .toArray()) as unknown as Piece[]
+  return new Map(pieceList.map((p) => [p.id, p]))
 }
 
 export async function listPieces(
   tenantId: string,
-  filters?: PieceFilters & { limit?: number; offset?: number }
+  filters?: PieceFilters & { limit?: number; offset?: number },
 ): Promise<Piece[]> {
   const db = await getDatabase()
 
@@ -167,7 +193,8 @@ export async function listPieces(
   const limit = Math.min(filters?.limit || MAX_QUERY_LIMIT, MAX_QUERY_LIMIT)
   const offset = filters?.offset || 0
 
-  const results = await db.collection('pieces')
+  const results = await db
+    .collection('pieces')
     .find(query)
     .sort({ createdAt: -1 })
     .skip(offset)
@@ -184,7 +211,7 @@ export async function listPieces(
 export async function searchPieces(
   tenantId: string,
   query: string,
-  options?: { limit?: number; category?: string }
+  options?: { limit?: number; category?: string },
 ): Promise<Piece[]> {
   const db = await getDatabase()
 
@@ -198,7 +225,7 @@ export async function searchPieces(
     tenantId,
     status: 'available',
     isPublishedToWebsite: true,
-    $text: { $search: searchQuery }
+    $text: { $search: searchQuery },
   }
 
   if (options?.category) {
@@ -207,7 +234,8 @@ export async function searchPieces(
 
   const limit = Math.min(options?.limit || 50, MAX_QUERY_LIMIT)
 
-  const results = await db.collection('pieces')
+  const results = await db
+    .collection('pieces')
     .find(filter, { projection: { score: { $meta: 'textScore' } } })
     .sort({ score: { $meta: 'textScore' } })
     .limit(limit)
@@ -219,7 +247,7 @@ export async function searchPieces(
 export async function updatePiece(
   tenantId: string,
   id: string,
-  updates: UpdatePieceInput
+  updates: UpdatePieceInput,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('pieces').updateOne(
@@ -228,8 +256,8 @@ export async function updatePiece(
       $set: {
         ...updates,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -238,25 +266,33 @@ export async function deletePiece(tenantId: string, id: string): Promise<void> {
   await db.collection('pieces').deleteOne({ tenantId, id })
 }
 
-export async function addMediaToPiece(tenantId: string, pieceId: string, mediaId: string): Promise<void> {
+export async function addMediaToPiece(
+  tenantId: string,
+  pieceId: string,
+  mediaId: string,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection('pieces').updateOne(
     { tenantId, id: pieceId },
     {
       $addToSet: { mediaIds: mediaId },
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
-export async function removeMediaFromPiece(tenantId: string, pieceId: string, mediaId: string): Promise<void> {
+export async function removeMediaFromPiece(
+  tenantId: string,
+  pieceId: string,
+  mediaId: string,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection('pieces').updateOne(
     { tenantId, id: pieceId },
     {
       $pull: { mediaIds: mediaId } as any,
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -265,11 +301,14 @@ export async function countPieces(tenantId: string): Promise<number> {
   return await db.collection('pieces').countDocuments({ tenantId })
 }
 
-export async function findPiecesByEtsyListingId(listingId: string): Promise<Piece[]> {
+export async function findPiecesByEtsyListingId(
+  listingId: string,
+): Promise<Piece[]> {
   const db = await getDatabase()
-  return await db.collection('pieces')
+  return (await db
+    .collection('pieces')
     .find({ 'integrations.etsy.listingId': listingId })
-    .toArray() as unknown as Piece[]
+    .toArray()) as unknown as Piece[]
 }
 
 // Variant-specific functions
@@ -280,11 +319,11 @@ export async function findPiecesByEtsyListingId(listingId: string): Promise<Piec
 export async function getVariant(
   tenantId: string,
   pieceId: string,
-  variantId: string
+  variantId: string,
 ): Promise<ProductVariant | null> {
   const piece = await getPiece(tenantId, pieceId)
   if (!piece?.variants) return null
-  return piece.variants.find(v => v.id === variantId) || null
+  return piece.variants.find((v) => v.id === variantId) || null
 }
 
 /**
@@ -294,7 +333,7 @@ export async function updateVariantStock(
   tenantId: string,
   pieceId: string,
   variantId: string,
-  stockChange: number
+  stockChange: number,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -302,7 +341,7 @@ export async function updateVariantStock(
   const piece = await getPiece(tenantId, pieceId)
   if (!piece?.variants) return false
 
-  const variantIndex = piece.variants.findIndex(v => v.id === variantId)
+  const variantIndex = piece.variants.findIndex((v) => v.id === variantId)
   if (variantIndex === -1) return false
 
   const variant = piece.variants[variantIndex]
@@ -320,8 +359,8 @@ export async function updateVariantStock(
         [`variants.${variantIndex}.stock`]: newStock,
         [`variants.${variantIndex}.isAvailable`]: newStock > 0,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 
   return result.modifiedCount > 0
@@ -334,14 +373,14 @@ export async function updateVariantStock(
 export async function getAvailableStock(
   tenantId: string,
   pieceId: string,
-  variantId?: string
+  variantId?: string,
 ): Promise<number | undefined> {
   const piece = await getPiece(tenantId, pieceId)
   if (!piece) return undefined
 
   // If it's a variant product with a specific variant requested
   if (piece.hasVariants && variantId && piece.variants) {
-    const variant = piece.variants.find(v => v.id === variantId)
+    const variant = piece.variants.find((v) => v.id === variantId)
     return variant?.stock
   }
 
@@ -356,7 +395,7 @@ export async function hasStock(
   tenantId: string,
   pieceId: string,
   quantity: number,
-  variantId?: string
+  variantId?: string,
 ): Promise<boolean> {
   const stock = await getAvailableStock(tenantId, pieceId, variantId)
 
@@ -386,7 +425,7 @@ export interface StockAlert {
  */
 export async function getStockAlerts(
   tenantId: string,
-  lowStockThreshold: number = 5
+  lowStockThreshold: number = 5,
 ): Promise<StockAlert[]> {
   const db = await getDatabase()
 
@@ -403,33 +442,53 @@ export async function getStockAlerts(
         hasVariants: 1,
         variants: {
           $cond: {
-            if: { $and: [{ $eq: ['$hasVariants', true] }, { $isArray: '$variants' }] },
+            if: {
+              $and: [
+                { $eq: ['$hasVariants', true] },
+                { $isArray: '$variants' },
+              ],
+            },
             then: '$variants',
-            else: []
-          }
-        }
-      }
+            else: [],
+          },
+        },
+      },
     },
     // Unwind variants (creates one doc per variant, or keeps original if no variants)
     {
       $facet: {
         // Pieces without variants - check piece-level stock
         pieceLevelAlerts: [
-          { $match: { hasVariants: { $ne: true }, stock: { $exists: true, $lte: lowStockThreshold } } },
+          {
+            $match: {
+              hasVariants: { $ne: true },
+              stock: { $exists: true, $lte: lowStockThreshold },
+            },
+          },
           {
             $project: {
               pieceId: '$id',
               pieceName: '$name',
               stock: 1,
-              alertType: { $cond: { if: { $eq: ['$stock', 0] }, then: 'out_of_stock', else: 'low_stock' } }
-            }
-          }
+              alertType: {
+                $cond: {
+                  if: { $eq: ['$stock', 0] },
+                  then: 'out_of_stock',
+                  else: 'low_stock',
+                },
+              },
+            },
+          },
         ],
         // Pieces with variants - check variant-level stock
         variantLevelAlerts: [
           { $match: { hasVariants: true } },
           { $unwind: '$variants' },
-          { $match: { 'variants.stock': { $exists: true, $lte: lowStockThreshold } } },
+          {
+            $match: {
+              'variants.stock': { $exists: true, $lte: lowStockThreshold },
+            },
+          },
           {
             $project: {
               pieceId: '$id',
@@ -438,17 +497,23 @@ export async function getStockAlerts(
               variantOptions: '$variants.options',
               sku: '$variants.sku',
               stock: '$variants.stock',
-              alertType: { $cond: { if: { $eq: ['$variants.stock', 0] }, then: 'out_of_stock', else: 'low_stock' } }
-            }
-          }
-        ]
-      }
+              alertType: {
+                $cond: {
+                  if: { $eq: ['$variants.stock', 0] },
+                  then: 'out_of_stock',
+                  else: 'low_stock',
+                },
+              },
+            },
+          },
+        ],
+      },
     },
     // Combine both result sets
     {
       $project: {
-        alerts: { $concatArrays: ['$pieceLevelAlerts', '$variantLevelAlerts'] }
-      }
+        alerts: { $concatArrays: ['$pieceLevelAlerts', '$variantLevelAlerts'] },
+      },
     },
     { $unwind: '$alerts' },
     { $replaceRoot: { newRoot: '$alerts' } },
@@ -456,9 +521,9 @@ export async function getStockAlerts(
     {
       $sort: {
         alertType: -1, // 'out_of_stock' > 'low_stock' alphabetically reversed
-        stock: 1
-      }
-    }
+        stock: 1,
+      },
+    },
   ]
 
   const results = await db.collection('pieces').aggregate(pipeline).toArray()
@@ -477,7 +542,7 @@ export async function updatePieceMaterialsUsed(
   tenantId: string,
   pieceId: string,
   materialsUsed: PieceMaterialUsage[],
-  materialsCatalog: Material[]
+  materialsCatalog: Material[],
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -489,7 +554,8 @@ export async function updatePieceMaterialsUsed(
 
   // Calculate new COGS
   const calculatedCOGS = calculateCOGS(materialsUsed, materialsCatalog)
-  const profitMargin = calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
+  const profitMargin =
+    calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
 
   await db.collection('pieces').updateOne(
     { tenantId, id: pieceId },
@@ -500,8 +566,8 @@ export async function updatePieceMaterialsUsed(
         profitMargin,
         cogs: calculatedCOGS, // Keep legacy field in sync
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -512,7 +578,7 @@ export async function updatePieceMaterialsUsed(
 export async function recalculatePieceCOGS(
   tenantId: string,
   pieceId: string,
-  materialsCatalog: Material[]
+  materialsCatalog: Material[],
 ): Promise<{ calculatedCOGS: number; profitMargin: number | undefined }> {
   const db = await getDatabase()
 
@@ -526,7 +592,8 @@ export async function recalculatePieceCOGS(
   }
 
   const calculatedCOGS = calculateCOGS(piece.materialsUsed, materialsCatalog)
-  const profitMargin = calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
+  const profitMargin =
+    calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
 
   await db.collection('pieces').updateOne(
     { tenantId, id: pieceId },
@@ -536,8 +603,8 @@ export async function recalculatePieceCOGS(
         profitMargin,
         cogs: calculatedCOGS, // Keep legacy field in sync
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 
   return { calculatedCOGS, profitMargin }
@@ -550,17 +617,18 @@ export async function recalculatePieceCOGS(
 export async function recalculateCOGSForMaterial(
   tenantId: string,
   materialId: string,
-  materialsCatalog: Material[]
+  materialsCatalog: Material[],
 ): Promise<number> {
   const db = await getDatabase()
 
   // Find all pieces that use this material
-  const piecesUsingMaterial = await db.collection('pieces')
+  const piecesUsingMaterial = (await db
+    .collection('pieces')
     .find({
       tenantId,
-      'materialsUsed.materialId': materialId
+      'materialsUsed.materialId': materialId,
     })
-    .toArray() as unknown as Piece[]
+    .toArray()) as unknown as Piece[]
 
   let updatedCount = 0
 
@@ -568,7 +636,8 @@ export async function recalculateCOGSForMaterial(
     if (!piece.materialsUsed) continue
 
     const calculatedCOGS = calculateCOGS(piece.materialsUsed, materialsCatalog)
-    const profitMargin = calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
+    const profitMargin =
+      calculateProfitMargin(piece.price, calculatedCOGS) ?? undefined
 
     await db.collection('pieces').updateOne(
       { tenantId, id: piece.id },
@@ -578,8 +647,8 @@ export async function recalculateCOGSForMaterial(
           profitMargin,
           cogs: calculatedCOGS,
           updatedAt: new Date(),
-        }
-      }
+        },
+      },
     )
     updatedCount++
   }
@@ -593,18 +662,19 @@ export async function recalculateCOGSForMaterial(
  */
 export async function getLowMarginPieces(
   tenantId: string,
-  marginThreshold: number = 30
+  marginThreshold: number = 30,
 ): Promise<Piece[]> {
   const db = await getDatabase()
 
-  const pieces = await db.collection('pieces')
+  const pieces = (await db
+    .collection('pieces')
     .find({
       tenantId,
       status: 'available',
-      profitMargin: { $exists: true, $lt: marginThreshold, $ne: null }
+      profitMargin: { $exists: true, $lt: marginThreshold, $ne: null },
     })
     .sort({ profitMargin: 1 })
-    .toArray() as unknown as Piece[]
+    .toArray()) as unknown as Piece[]
 
   return pieces
 }
@@ -615,16 +685,17 @@ export async function getLowMarginPieces(
 export async function getPiecesWithoutCOGS(tenantId: string): Promise<Piece[]> {
   const db = await getDatabase()
 
-  const pieces = await db.collection('pieces')
+  const pieces = (await db
+    .collection('pieces')
     .find({
       tenantId,
       $or: [
         { materialsUsed: { $exists: false } },
         { materialsUsed: { $size: 0 } },
-        { materialsUsed: null }
-      ]
+        { materialsUsed: null },
+      ],
     })
-    .toArray() as unknown as Piece[]
+    .toArray()) as unknown as Piece[]
 
   return pieces
 }
@@ -654,7 +725,9 @@ export interface LowStockPiece {
  * @param tenantId - The tenant ID
  * @returns Array of pieces with low stock
  */
-export async function getLowStockPieces(tenantId: string): Promise<LowStockPiece[]> {
+export async function getLowStockPieces(
+  tenantId: string,
+): Promise<LowStockPiece[]> {
   const db = await getDatabase()
 
   // Use aggregation to compare stock against each piece's threshold
@@ -664,20 +737,20 @@ export async function getLowStockPieces(tenantId: string): Promise<LowStockPiece
       $match: {
         tenantId,
         lowStockThreshold: { $exists: true, $ne: null, $gt: 0 },
-        stock: { $exists: true, $ne: null }
-      }
+        stock: { $exists: true, $ne: null },
+      },
     },
     // Add a field to check if stock is at or below threshold
     {
       $addFields: {
-        isLowStock: { $lte: ['$stock', '$lowStockThreshold'] }
-      }
+        isLowStock: { $lte: ['$stock', '$lowStockThreshold'] },
+      },
     },
     // Only include pieces that are actually low on stock
     {
       $match: {
-        isLowStock: true
-      }
+        isLowStock: true,
+      },
     },
     // Project only the fields we need
     {
@@ -690,13 +763,13 @@ export async function getLowStockPieces(tenantId: string): Promise<LowStockPiece
         status: 1,
         category: 1,
         price: 1,
-        currency: 1
-      }
+        currency: 1,
+      },
     },
     // Sort by stock level ascending (most urgent first)
     {
-      $sort: { stock: 1 }
-    }
+      $sort: { stock: 1 },
+    },
   ]
 
   const results = await db.collection('pieces').aggregate(pipeline).toArray()
@@ -710,7 +783,7 @@ export async function getLowStockPieces(tenantId: string): Promise<LowStockPiece
  */
 export async function getPiecesNeedingRestock(
   tenantId: string,
-  options?: { status?: string; includeOutOfStock?: boolean }
+  options?: { status?: string; includeOutOfStock?: boolean },
 ): Promise<LowStockPiece[]> {
   const db = await getDatabase()
 
@@ -722,14 +795,14 @@ export async function getPiecesNeedingRestock(
     {
       lowStockThreshold: { $exists: true, $ne: undefined, $gt: 0 },
       stock: { $exists: true, $ne: undefined },
-      $expr: { $lte: ['$stock', '$lowStockThreshold'] }
-    }
+      $expr: { $lte: ['$stock', '$lowStockThreshold'] },
+    },
   ]
 
   // Optionally include completely out of stock items (stock = 0)
   if (includeOutOfStock) {
     conditions.push({
-      stock: 0
+      stock: 0,
     })
   }
 
@@ -738,8 +811,8 @@ export async function getPiecesNeedingRestock(
       $match: {
         tenantId,
         ...statusFilter,
-        $or: conditions
-      }
+        $or: conditions,
+      },
     },
     {
       $project: {
@@ -751,10 +824,10 @@ export async function getPiecesNeedingRestock(
         status: 1,
         category: 1,
         price: 1,
-        currency: 1
-      }
+        currency: 1,
+      },
     },
-    { $sort: { stock: 1 } }
+    { $sort: { stock: 1 } },
   ]
 
   const results = await db.collection('pieces').aggregate(pipeline).toArray()
@@ -768,14 +841,17 @@ export async function getPiecesNeedingRestock(
  */
 export async function checkLowStock(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<{ isLowStock: boolean; stock: number; threshold: number } | null> {
   const piece = await getPiece(tenantId, pieceId)
 
   if (!piece) return null
 
   // If no threshold set, return null (not tracking)
-  if (piece.lowStockThreshold === undefined || piece.lowStockThreshold === null) {
+  if (
+    piece.lowStockThreshold === undefined ||
+    piece.lowStockThreshold === null
+  ) {
     return null
   }
 
@@ -787,7 +863,7 @@ export async function checkLowStock(
   return {
     isLowStock: piece.stock <= piece.lowStockThreshold,
     stock: piece.stock,
-    threshold: piece.lowStockThreshold
+    threshold: piece.lowStockThreshold,
   }
 }
 
@@ -797,7 +873,7 @@ export async function checkLowStock(
 export async function updateLowStockThreshold(
   tenantId: string,
   pieceId: string,
-  threshold: number | null
+  threshold: number | null,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -806,9 +882,9 @@ export async function updateLowStockThreshold(
     {
       $set: {
         lowStockThreshold: threshold,
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 
@@ -817,7 +893,7 @@ export async function updateLowStockThreshold(
  */
 export async function bulkUpdateLowStockThresholds(
   tenantId: string,
-  updates: Array<{ pieceId: string; threshold: number | null }>
+  updates: Array<{ pieceId: string; threshold: number | null }>,
 ): Promise<number> {
   const db = await getDatabase()
 
@@ -827,10 +903,10 @@ export async function bulkUpdateLowStockThresholds(
       update: {
         $set: {
           lowStockThreshold: threshold,
-          updatedAt: new Date()
-        }
-      }
-    }
+          updatedAt: new Date(),
+        },
+      },
+    },
   }))
 
   const result = await db.collection('pieces').bulkWrite(operations)
@@ -847,15 +923,14 @@ export async function bulkUpdateLowStockThresholds(
 export async function decrementStock(
   tenantId: string,
   pieceId: string,
-  quantity: number = 1
+  quantity: number = 1,
 ): Promise<boolean> {
   const db = await getDatabase()
 
   // First, check if the piece has unlimited stock (null/undefined)
-  const piece = await db.collection('pieces').findOne(
-    { tenantId, id: pieceId },
-    { projection: { stock: 1 } }
-  )
+  const piece = await db
+    .collection('pieces')
+    .findOne({ tenantId, id: pieceId }, { projection: { stock: 1 } })
 
   if (!piece) {
     return false // Piece not found
@@ -881,7 +956,7 @@ export async function decrementStock(
     {
       $inc: { stock: -quantity },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 
   return result.modifiedCount > 0
@@ -893,7 +968,7 @@ export async function decrementStock(
 export async function incrementStock(
   tenantId: string,
   pieceId: string,
-  quantity: number = 1
+  quantity: number = 1,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -902,6 +977,6 @@ export async function incrementStock(
     {
       $inc: { stock: quantity },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }

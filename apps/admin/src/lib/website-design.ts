@@ -2,7 +2,7 @@
  * Website Design utilities and plan enforcement
  */
 
-import type { Tenant, Plan } from '@madebuy/shared'
+import type { Plan, Tenant } from '@madebuy/shared'
 
 /**
  * Website Design feature plan requirements:
@@ -14,7 +14,7 @@ import type { Tenant, Plan } from '@madebuy/shared'
 /**
  * Check if tenant can customize colors (all plans)
  */
-export function canCustomizeColors(tenant: Tenant): boolean {
+export function canCustomizeColors(_tenant: Tenant): boolean {
   return true // All plans
 }
 
@@ -106,7 +106,7 @@ export function getWebsiteDesignAccessLevel(tenant: Tenant): {
  */
 export function getWebsiteDesignUpgradeMessage(
   tenant: Tenant,
-  feature: 'banner' | 'typography' | 'layout' | 'sections' | 'blog'
+  feature: 'banner' | 'typography' | 'layout' | 'sections' | 'blog',
 ): {
   title: string
   description: string
@@ -115,11 +115,16 @@ export function getWebsiteDesignUpgradeMessage(
   price: string
 } {
   // Maker features (banner, typography, layout)
-  if (feature === 'banner' || feature === 'typography' || feature === 'layout') {
+  if (
+    feature === 'banner' ||
+    feature === 'typography' ||
+    feature === 'layout'
+  ) {
     if (tenant.plan === 'free') {
       return {
         title: 'Unlock Advanced Design Customization',
-        description: 'Customize your storefront with hero banners, professional typography, and flexible layouts to match your brand.',
+        description:
+          'Customize your storefront with hero banners, professional typography, and flexible layouts to match your brand.',
         ctaText: 'Upgrade to Maker',
         targetPlan: 'maker',
         price: '$15/month',
@@ -132,7 +137,8 @@ export function getWebsiteDesignUpgradeMessage(
     if (tenant.plan === 'free' || tenant.plan === 'maker') {
       return {
         title: 'Unlock Custom Content & Blog',
-        description: 'Build unique storefronts with flexible content sections and engage customers with an integrated blog.',
+        description:
+          'Build unique storefronts with flexible content sections and engage customers with an integrated blog.',
         ctaText: 'Upgrade to Professional',
         targetPlan: 'professional',
         price: '$29/month',
@@ -143,7 +149,8 @@ export function getWebsiteDesignUpgradeMessage(
   // Already has access
   return {
     title: 'You Have Full Design Access',
-    description: 'Customize your storefront with all available design tools and features.',
+    description:
+      'Customize your storefront with all available design tools and features.',
     ctaText: 'Continue Designing',
     targetPlan: tenant.plan,
     price: '',
@@ -153,15 +160,18 @@ export function getWebsiteDesignUpgradeMessage(
 /**
  * Website design feature limits by plan
  */
-export const WEBSITE_DESIGN_LIMITS: Record<Plan, {
-  colors: boolean
-  banner: boolean
-  typography: boolean
-  layout: boolean
-  customSections: boolean
-  blog: boolean
-  maxSections: number
-}> = {
+export const WEBSITE_DESIGN_LIMITS: Record<
+  Plan,
+  {
+    colors: boolean
+    banner: boolean
+    typography: boolean
+    layout: boolean
+    customSections: boolean
+    blog: boolean
+    maxSections: number
+  }
+> = {
   free: {
     colors: true,
     banner: false,
@@ -211,7 +221,7 @@ export function validateWebsiteDesignUpdate(
     banner?: any
     typography?: string
     layout?: string
-  }
+  },
 ): {
   valid: boolean
   error?: string

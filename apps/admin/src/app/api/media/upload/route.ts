@@ -1,21 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { media, pieces } from '@madebuy/db'
-import { uploadToR2, uploadToLocal, processImageWithVariants } from '@madebuy/storage'
+import {
+  processImageWithVariants,
+  uploadToLocal,
+  uploadToR2,
+} from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
 
 // Magic number (file signature) definitions for security verification
 const MAGIC_NUMBERS: Record<string, number[]> = {
-  'image/jpeg': [0xFF, 0xD8, 0xFF],
-  'image/jpg': [0xFF, 0xD8, 0xFF],
-  'image/png': [0x89, 0x50, 0x4E, 0x47],
+  'image/jpeg': [0xff, 0xd8, 0xff],
+  'image/jpg': [0xff, 0xd8, 0xff],
+  'image/png': [0x89, 0x50, 0x4e, 0x47],
   'image/gif': [0x47, 0x49, 0x46],
   // Note: WebP handled separately in verifyMagicNumber due to RIFF+WEBP check
 }
 
 // Video magic numbers
-const VIDEO_MAGIC_NUMBERS: Record<string, number[][]> = {
+const _VIDEO_MAGIC_NUMBERS: Record<string, number[][]> = {
   'video/mp4': [
     [0x00, 0x00, 0x00], // ftyp box (starts at offset 4)
     [0x66, 0x74, 0x79, 0x70], // 'ftyp' at offset 4
@@ -93,14 +97,27 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       const maxSizeMB = maxSize / (1024 * 1024)
       return NextResponse.json(
-        { error: `File too large. Maximum size is ${maxSizeMB}MB for ${isVideoFile ? 'videos' : 'images'}` },
-        { status: 400 }
+        {
+          error: `File too large. Maximum size is ${maxSizeMB}MB for ${isVideoFile ? 'videos' : 'images'}`,
+        },
+        { status: 400 },
       )
     }
 
     // Validate file type
-    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
-    const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo']
+    const validImageTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ]
+    const validVideoTypes = [
+      'video/mp4',
+      'video/quicktime',
+      'video/webm',
+      'video/x-msvideo',
+    ]
 
     const isImage = validImageTypes.includes(file.type)
     const isVideo = validVideoTypes.includes(file.type)
@@ -118,30 +135,31 @@ export async function POST(request: NextRequest) {
     if (!verifyMagicNumber(buffer, file.type)) {
       return NextResponse.json(
         { error: 'File content does not match declared type' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Generate variants for images (if image)
-    const variants = type === 'image'
-      ? await processImageWithVariants({
-          imageBuffer: buffer,
-          fileName: file.name,
-          tenantId: tenant.id,
-        })
-      : await (async () => {
-          // For videos, just upload the original
-          const uploadFn = USE_LOCAL_STORAGE ? uploadToLocal : uploadToR2
-          const variant = await uploadFn({
+    const variants =
+      type === 'image'
+        ? await processImageWithVariants({
+            imageBuffer: buffer,
+            fileName: file.name,
             tenantId: tenant.id,
-            fileName: `videos/${file.name}`,
-            buffer,
-            contentType: file.type,
           })
-          return {
-            original: variant,
-          }
-        })()
+        : await (async () => {
+            // For videos, just upload the original
+            const uploadFn = USE_LOCAL_STORAGE ? uploadToLocal : uploadToR2
+            const variant = await uploadFn({
+              tenantId: tenant.id,
+              fileName: `videos/${file.name}`,
+              buffer,
+              contentType: file.type,
+            })
+            return {
+              original: variant,
+            }
+          })()
 
     // Create media record in database
     const mediaItem = await media.createMedia(tenant.id, {
@@ -161,12 +179,17 @@ export async function POST(request: NextRequest) {
       await pieces.addMediaToPiece(tenant.id, pieceId, mediaItem.id)
     }
 
-    return NextResponse.json({ media: mediaItem, id: mediaItem.id }, { status: 201 })
+    return NextResponse.json(
+      { media: mediaItem, id: mediaItem.id },
+      { status: 201 },
+    )
   } catch (error) {
     console.error('Error uploading media:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

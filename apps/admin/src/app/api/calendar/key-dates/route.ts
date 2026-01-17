@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { keyDates } from '@madebuy/db'
 import type { CreateKeyDateInput, KeyDateListOptions } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchParams.get('repeat')) {
-      options.repeat = searchParams.get('repeat') as KeyDateListOptions['repeat']
+      options.repeat = searchParams.get(
+        'repeat',
+      ) as KeyDateListOptions['repeat']
     }
 
     if (searchParams.get('limit')) {
@@ -48,7 +50,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ keyDates: result })
   } catch (error) {
     console.error('Error fetching key dates:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (!data.title || !data.date) {
       return NextResponse.json(
         { error: 'Title and date are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -74,6 +79,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ keyDate }, { status: 201 })
   } catch (error) {
     console.error('Error creating key date:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

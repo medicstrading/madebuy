@@ -3,52 +3,50 @@
  * Social media publishing and AI caption generation for MadeBuy platform
  */
 
-// Export Late API client (primary)
-export {
-  LateClient,
-  lateClient,
-  getLateClient,
-  publishToLate,
-  scheduleToLate,
-  type LatePublishRequest,
-  type LatePublishResponse,
-  type LateOAuthUrlRequest,
-  type LateOAuthUrlResponse,
-  type LateOAuthTokenRequest,
-  type LateOAuthTokenResponse,
-  type LateAccount,
-  type LateAccountsResponse,
-  type LatePlatformType,
-  type LatePost,
-  type LatePlatform,
-  type LateMedia,
-  type LatePostResponse,
-  type LateProfile,
-  type LateProfilesResponse,
-  // Internal API types (useful for consumers)
-  type LateAPIError,
-  type LateCreatePostAPIRequest,
-  type LateCreatePostAPIResponse,
-  type LateGetPostAPIResponse,
-  type LateUploadMediaAPIResponse,
-} from './late-client'
-
 // Export AI caption generation
 export {
+  type GenerateCaptionOptions,
   generateCaption,
   generateCaptionVariations,
   suggestHashtags,
-  type GenerateCaptionOptions,
 } from './ai-captions'
-
 // Export Instagram native API (optional fallback)
 export {
   createInstagramMediaContainer,
-  publishInstagramMedia,
-  publishToInstagram,
   getInstagramMediaPermalink,
   type InstagramCredentials,
   type InstagramMediaContainer,
   type InstagramPublishRequest,
   type InstagramPublishResponse,
+  publishInstagramMedia,
+  publishToInstagram,
 } from './instagram'
+// Export Late API client (primary)
+export {
+  getLateClient,
+  type LateAccount,
+  type LateAccountsResponse,
+  // Internal API types (useful for consumers)
+  type LateAPIError,
+  LateClient,
+  type LateCreatePostAPIRequest,
+  type LateCreatePostAPIResponse,
+  type LateGetPostAPIResponse,
+  type LateMedia,
+  type LateOAuthTokenRequest,
+  type LateOAuthTokenResponse,
+  type LateOAuthUrlRequest,
+  type LateOAuthUrlResponse,
+  type LatePlatform,
+  type LatePlatformType,
+  type LatePost,
+  type LatePostResponse,
+  type LateProfile,
+  type LateProfilesResponse,
+  type LatePublishRequest,
+  type LatePublishResponse,
+  type LateUploadMediaAPIResponse,
+  lateClient,
+  publishToLate,
+  scheduleToLate,
+} from './late-client'

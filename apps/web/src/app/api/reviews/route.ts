@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { reviews, orders, tenants } from '@madebuy/db'
+import { orders, reviews, tenants } from '@madebuy/db'
 import type { CreateReviewInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/reviews
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (!tenantId || !pieceId) {
       return NextResponse.json(
         { error: 'tenantId and pieceId are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching reviews:', error)
     return NextResponse.json(
       { error: 'Failed to fetch reviews' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -72,10 +72,17 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!tenantId || !pieceId || !orderId || !customerEmail || !rating || !text) {
+    if (
+      !tenantId ||
+      !pieceId ||
+      !orderId ||
+      !customerEmail ||
+      !rating ||
+      !text
+    ) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -83,7 +90,7 @@ export async function POST(request: NextRequest) {
     if (rating < 1 || rating > 5) {
       return NextResponse.json(
         { error: 'Rating must be between 1 and 5' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -91,7 +98,7 @@ export async function POST(request: NextRequest) {
     if (text.length < 10) {
       return NextResponse.json(
         { error: 'Review text must be at least 10 characters' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -101,8 +108,11 @@ export async function POST(request: NextRequest) {
 
     if (!order) {
       return NextResponse.json(
-        { error: 'Order not found. Please purchase this product before reviewing.' },
-        { status: 403 }
+        {
+          error:
+            'Order not found. Please purchase this product before reviewing.',
+        },
+        { status: 403 },
       )
     }
 
@@ -110,16 +120,19 @@ export async function POST(request: NextRequest) {
     if (order.customerEmail.toLowerCase() !== customerEmail.toLowerCase()) {
       return NextResponse.json(
         { error: 'This order does not belong to your account.' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     // Verify the product was in this order
-    const productInOrder = order.items.some(item => item.pieceId === pieceId)
+    const productInOrder = order.items.some((item) => item.pieceId === pieceId)
     if (!productInOrder) {
       return NextResponse.json(
-        { error: 'This product was not in your order. Verified purchase required.' },
-        { status: 403 }
+        {
+          error:
+            'This product was not in your order. Verified purchase required.',
+        },
+        { status: 403 },
       )
     }
 
@@ -128,16 +141,20 @@ export async function POST(request: NextRequest) {
     if (!validStatuses.includes(order.status)) {
       return NextResponse.json(
         { error: 'You can only review products from completed orders.' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     // Check if customer has already reviewed this product for this order
-    const alreadyReviewed = await reviews.hasReviewedOrder(tenantId, orderId, pieceId)
+    const alreadyReviewed = await reviews.hasReviewedOrder(
+      tenantId,
+      orderId,
+      pieceId,
+    )
     if (alreadyReviewed) {
       return NextResponse.json(
         { error: 'You have already reviewed this product for this order.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -160,7 +177,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating review:', error)
     return NextResponse.json(
       { error: 'Failed to submit review' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

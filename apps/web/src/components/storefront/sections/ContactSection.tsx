@@ -1,7 +1,7 @@
 'use client'
 
+import { Mail, MapPin, Phone, Send } from 'lucide-react'
 import { useState } from 'react'
-import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import type { SectionProps } from './SectionRenderer'
 
 export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
@@ -43,7 +43,7 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
 
       setSubmitted(true)
       setFormData({ name: '', email: '', message: '' })
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to send message. Please try again.')
     } finally {
       setIsSubmitting(false)
@@ -58,11 +58,7 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
           <h2 className="text-3xl md:text-4xl font-serif text-gray-900 mb-4">
             {title}
           </h2>
-          {subtitle && (
-            <p className="text-lg text-gray-600 mb-8">
-              {subtitle}
-            </p>
-          )}
+          {subtitle && <p className="text-lg text-gray-600 mb-8">{subtitle}</p>}
 
           <div className="space-y-6">
             {showEmail && tenant.email && (
@@ -74,7 +70,10 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${tenant.primaryColor}20` }}
                 >
-                  <Mail className="w-5 h-5" style={{ color: tenant.primaryColor }} />
+                  <Mail
+                    className="w-5 h-5"
+                    style={{ color: tenant.primaryColor }}
+                  />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
@@ -92,7 +91,10 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${tenant.primaryColor}20` }}
                 >
-                  <Phone className="w-5 h-5" style={{ color: tenant.primaryColor }} />
+                  <Phone
+                    className="w-5 h-5"
+                    style={{ color: tenant.primaryColor }}
+                  />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Phone</p>
@@ -107,7 +109,10 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${tenant.primaryColor}20` }}
                 >
-                  <MapPin className="w-5 h-5" style={{ color: tenant.primaryColor }} />
+                  <MapPin
+                    className="w-5 h-5"
+                    style={{ color: tenant.primaryColor }}
+                  />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Location</p>
@@ -127,7 +132,10 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                   className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                   style={{ backgroundColor: `${tenant.primaryColor}20` }}
                 >
-                  <Send className="w-8 h-8" style={{ color: tenant.primaryColor }} />
+                  <Send
+                    className="w-8 h-8"
+                    style={{ color: tenant.primaryColor }}
+                  />
                 </div>
                 <h3 className="text-xl font-medium text-gray-900 mb-2">
                   Message Sent!
@@ -139,7 +147,10 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Name
                   </label>
                   <input
@@ -147,14 +158,19 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                     id="name"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     placeholder="Your name"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email
                   </label>
                   <input
@@ -162,14 +178,19 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                     id="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     placeholder="your@email.com"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Message
                   </label>
                   <textarea
@@ -177,15 +198,15 @@ export function ContactSection({ settings, tenant, tenantSlug }: SectionProps) {
                     required
                     rows={4}
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
                     placeholder="How can we help you?"
                   />
                 </div>
 
-                {error && (
-                  <p className="text-red-600 text-sm">{error}</p>
-                )}
+                {error && <p className="text-red-600 text-sm">{error}</p>}
 
                 <button
                   type="submit"

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { marketplace } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { getEbayApiUrl } from '@/lib/marketplace/ebay'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/marketplace/ebay/policies
@@ -16,7 +16,10 @@ export async function GET() {
     }
 
     // Get eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
     }
@@ -28,12 +31,28 @@ export async function GET() {
 
     // Fetch all policies in parallel
     // Note: Policies are under /sell/account/v1, but locations are under /sell/inventory/v1
-    const [fulfillmentRes, paymentRes, returnRes, locationRes] = await Promise.all([
-      fetch(getEbayApiUrl('/sell/account/v1/fulfillment_policy?marketplace_id=EBAY_AU'), { headers }),
-      fetch(getEbayApiUrl('/sell/account/v1/payment_policy?marketplace_id=EBAY_AU'), { headers }),
-      fetch(getEbayApiUrl('/sell/account/v1/return_policy?marketplace_id=EBAY_AU'), { headers }),
-      fetch(getEbayApiUrl('/sell/inventory/v1/location'), { headers }),
-    ])
+    const [fulfillmentRes, paymentRes, returnRes, locationRes] =
+      await Promise.all([
+        fetch(
+          getEbayApiUrl(
+            '/sell/account/v1/fulfillment_policy?marketplace_id=EBAY_AU',
+          ),
+          { headers },
+        ),
+        fetch(
+          getEbayApiUrl(
+            '/sell/account/v1/payment_policy?marketplace_id=EBAY_AU',
+          ),
+          { headers },
+        ),
+        fetch(
+          getEbayApiUrl(
+            '/sell/account/v1/return_policy?marketplace_id=EBAY_AU',
+          ),
+          { headers },
+        ),
+        fetch(getEbayApiUrl('/sell/inventory/v1/location'), { headers }),
+      ])
 
     // Log response statuses for debugging
     console.log('[eBay Policies] Response statuses:', {
@@ -79,12 +98,14 @@ export async function GET() {
 
     // Format response
     const policies = {
-      fulfillment: (fulfillmentData.fulfillmentPolicies || []).map((p: any) => ({
-        id: p.fulfillmentPolicyId,
-        name: p.name,
-        description: p.description,
-        marketplaceId: p.marketplaceId,
-      })),
+      fulfillment: (fulfillmentData.fulfillmentPolicies || []).map(
+        (p: any) => ({
+          id: p.fulfillmentPolicyId,
+          name: p.name,
+          description: p.description,
+          marketplaceId: p.marketplaceId,
+        }),
+      ),
       payment: (paymentData.paymentPolicies || []).map((p: any) => ({
         id: p.paymentPolicyId,
         name: p.name,
@@ -127,7 +148,10 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching eBay policies:', error)
-    return NextResponse.json({ error: 'Failed to fetch policies' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch policies' },
+      { status: 500 },
+    )
   }
 }
 
@@ -144,16 +168,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Get eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
     }
 
     const body = await request.json()
-    const { locationKey, name, addressLine1, city, stateOrProvince, postalCode } = body
+    const {
+      locationKey,
+      name,
+      addressLine1,
+      city,
+      stateOrProvince,
+      postalCode,
+    } = body
 
     if (!locationKey || !name || !addressLine1 || !city || !postalCode) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 },
+      )
     }
 
     // Create merchant location - eBay uses PUT (not POST) with flat structure
@@ -170,10 +207,16 @@ export async function POST(request: NextRequest) {
       },
     }
 
-    console.log('[eBay Location] Creating location:', locationKey, locationPayload)
+    console.log(
+      '[eBay Location] Creating location:',
+      locationKey,
+      locationPayload,
+    )
 
     const res = await fetch(
-      getEbayApiUrl(`/sell/inventory/v1/location/${encodeURIComponent(locationKey)}`),
+      getEbayApiUrl(
+        `/sell/inventory/v1/location/${encodeURIComponent(locationKey)}`,
+      ),
       {
         method: 'PUT', // eBay Inventory API uses PUT for create/update
         headers: {
@@ -181,7 +224,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(locationPayload),
-      }
+      },
     )
 
     if (res.ok || res.status === 204) {
@@ -194,12 +237,18 @@ export async function POST(request: NextRequest) {
       const errorText = await res.text()
       console.error('[eBay Location] Create error:', errorText)
       return NextResponse.json(
-        { error: `Failed to create location: ${res.status}`, details: errorText },
-        { status: res.status }
+        {
+          error: `Failed to create location: ${res.status}`,
+          details: errorText,
+        },
+        { status: res.status },
       )
     }
   } catch (error) {
     console.error('Error creating eBay location:', error)
-    return NextResponse.json({ error: 'Failed to create location' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to create location' },
+      { status: 500 },
+    )
   }
 }

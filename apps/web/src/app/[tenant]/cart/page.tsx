@@ -1,9 +1,13 @@
-import { requireTenant } from '@/lib/tenant'
-import Link from 'next/link'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
+import Link from 'next/link'
 import { CartContent } from '@/components/cart/CartContent'
+import { requireTenant } from '@/lib/tenant'
 
-export async function generateMetadata({ params }: { params: { tenant: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return {
@@ -11,7 +15,11 @@ export async function generateMetadata({ params }: { params: { tenant: string } 
   }
 }
 
-export default async function CartPage({ params }: { params: { tenant: string } }) {
+export default async function CartPage({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return (

@@ -11,11 +11,7 @@ const nextConfig = {
   // Bundle optimization
   experimental: {
     // Optimize package imports to reduce bundle size
-    optimizePackageImports: [
-      '@madebuy/shared',
-      '@madebuy/db',
-      'lucide-react',
-    ],
+    optimizePackageImports: ['@madebuy/shared', '@madebuy/db', 'lucide-react'],
   },
 
   // Security Headers
@@ -30,10 +26,14 @@ const nextConfig = {
             value: 'on',
           },
           // Only enable HSTS in production (breaks HTTP dev servers)
-          ...(isProd ? [{
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          }] : []),
+          ...(isProd
+            ? [
+                {
+                  key: 'Strict-Transport-Security',
+                  value: 'max-age=31536000; includeSubDomains',
+                },
+              ]
+            : []),
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
@@ -73,10 +73,12 @@ const nextConfig = {
               "form-action 'self' https://checkout.stripe.com",
               "frame-ancestors 'self'",
               // Only upgrade to HTTPS in production
-              ...(isProd ? ["upgrade-insecure-requests"] : []),
+              ...(isProd ? ['upgrade-insecure-requests'] : []),
               // CSP violation reporting
-              "report-uri /api/csp-report"
-            ].filter(Boolean).join('; '),
+              'report-uri /api/csp-report',
+            ]
+              .filter(Boolean)
+              .join('; '),
           },
         ],
       },

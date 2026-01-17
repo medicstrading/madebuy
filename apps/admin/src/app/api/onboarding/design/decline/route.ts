@@ -1,6 +1,6 @@
+import { tenants } from '@madebuy/db'
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
-import { tenants } from '@madebuy/db'
 
 /**
  * POST /api/onboarding/design/decline
@@ -11,19 +11,13 @@ export async function POST(): Promise<NextResponse> {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get tenant
     const tenant = await tenants.getTenantById(user.id)
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     // Mark design import as declined
@@ -32,8 +26,10 @@ export async function POST(): Promise<NextResponse> {
         status: tenant.domainOnboarding?.status || 'design_choice',
         ...tenant.domainOnboarding,
         designImport: {
-          sourceUrl: tenant.domainOnboarding?.designImport?.sourceUrl ?? undefined,
-          scannedAt: tenant.domainOnboarding?.designImport?.scannedAt ?? undefined,
+          sourceUrl:
+            tenant.domainOnboarding?.designImport?.sourceUrl ?? undefined,
+          scannedAt:
+            tenant.domainOnboarding?.designImport?.scannedAt ?? undefined,
           extractedDesign: undefined, // Clear extracted design
         },
       },
@@ -48,7 +44,7 @@ export async function POST(): Promise<NextResponse> {
     console.error('Decline design error:', error)
     return NextResponse.json(
       { error: 'Failed to decline design' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

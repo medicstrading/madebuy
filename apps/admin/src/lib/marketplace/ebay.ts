@@ -25,7 +25,7 @@ const EBAY_API_SCOPES = [
 export function createEbayClient(
   accessToken: string,
   refreshToken?: string,
-  expiresIn?: number
+  expiresIn?: number,
 ): eBayApi {
   const isProduction = process.env.EBAY_ENVIRONMENT === 'production'
 
@@ -33,7 +33,7 @@ export function createEbayClient(
     isProduction,
     hasAccessToken: !!accessToken,
     hasRefreshToken: !!refreshToken,
-    accessTokenPreview: accessToken?.substring(0, 20) + '...',
+    accessTokenPreview: `${accessToken?.substring(0, 20)}...`,
     marketplace: 'EBAY_AU',
     contentLanguage: 'en_AU',
   })
@@ -64,12 +64,14 @@ export function createEbayClient(
   // Add axios interceptor to ensure correct language headers on every request
   // This fixes error 25709 "Invalid value for header Accept-Language"
   // The interceptor runs after config is applied, ensuring headers are correct
-  client.req.instance.interceptors.request.use((request: { headers: Record<string, string> }) => {
-    // Force correct hyphenated format for Australian English
-    request.headers['Accept-Language'] = 'en-AU'
-    request.headers['Content-Language'] = 'en-AU'
-    return request
-  })
+  client.req.instance.interceptors.request.use(
+    (request: { headers: Record<string, string> }) => {
+      // Force correct hyphenated format for Australian English
+      request.headers['Accept-Language'] = 'en-AU'
+      request.headers['Content-Language'] = 'en-AU'
+      return request
+    },
+  )
 
   return client
 }
@@ -152,7 +154,13 @@ export interface EbayInventoryItem {
       quantity: number
     }
   }
-  condition: 'NEW' | 'LIKE_NEW' | 'VERY_GOOD' | 'GOOD' | 'ACCEPTABLE' | 'FOR_PARTS_OR_NOT_WORKING'
+  condition:
+    | 'NEW'
+    | 'LIKE_NEW'
+    | 'VERY_GOOD'
+    | 'GOOD'
+    | 'ACCEPTABLE'
+    | 'FOR_PARTS_OR_NOT_WORKING'
   product: EbayProduct
   packageWeightAndSize?: EbayPackageWeightAndSize
 }
@@ -243,7 +251,12 @@ export interface EbayOrder {
   orderId: string
   creationDate: string
   orderFulfillmentStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'FULFILLED'
-  orderPaymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'FULLY_REFUNDED' | 'PARTIALLY_REFUNDED'
+  orderPaymentStatus:
+    | 'PENDING'
+    | 'PAID'
+    | 'FAILED'
+    | 'FULLY_REFUNDED'
+    | 'PARTIALLY_REFUNDED'
   buyer?: {
     username?: string
     buyerRegistrationAddress?: {

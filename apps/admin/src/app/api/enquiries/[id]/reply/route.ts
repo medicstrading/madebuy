@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
-import { getCurrentTenant } from '@/lib/session'
 import { enquiries, tenants } from '@madebuy/db'
 import { escapeHtml } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { Resend } from 'resend'
+import { getCurrentTenant } from '@/lib/session'
 
 let resend: Resend | null = null
 
@@ -15,7 +15,7 @@ function getResendClient() {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -30,21 +30,21 @@ export async function POST(
     if (!subject || !body) {
       return NextResponse.json(
         { error: 'Subject and body are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (typeof subject !== 'string' || typeof body !== 'string') {
       return NextResponse.json(
         { error: 'Subject and body must be strings' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (subject.length > 200 || body.length > 10000) {
       return NextResponse.json(
         { error: 'Subject or body exceeds maximum length' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -61,7 +61,10 @@ export async function POST(
       return NextResponse.json({ error: 'Tenant not found' }, { status: 500 })
     }
 
-    const fromEmail = tenantData.email || process.env.DEFAULT_FROM_EMAIL || 'support@madebuy.com.au'
+    const fromEmail =
+      tenantData.email ||
+      process.env.DEFAULT_FROM_EMAIL ||
+      'support@madebuy.com.au'
     const fromName = tenantData.businessName || 'Support'
 
     // Build the email HTML with XSS protection
@@ -71,7 +74,9 @@ export async function POST(
     const safeOriginalMessage = escapeHtml(enquiry.message)
     const safeBodyHtml = body
       .split('\n')
-      .map((line: string) => `<p style="margin: 10px 0;">${escapeHtml(line)}</p>`)
+      .map(
+        (line: string) => `<p style="margin: 10px 0;">${escapeHtml(line)}</p>`,
+      )
       .join('')
 
     const htmlContent = `
@@ -114,7 +119,7 @@ export async function POST(
     if (!client) {
       return NextResponse.json(
         { error: 'Email service not configured' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -130,7 +135,7 @@ export async function POST(
       console.error('Failed to send reply email:', emailError)
       return NextResponse.json(
         { error: 'Failed to send email' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -139,12 +144,15 @@ export async function POST(
       tenant.id,
       params.id,
       subject,
-      body
+      body,
     )
 
     return NextResponse.json({ enquiry: updatedEnquiry })
   } catch (error) {
     console.error('Error replying to enquiry:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

@@ -5,17 +5,13 @@
  * DELETE /api/pieces/[id]/variants/[variantId] - Delete variant
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { pieces, variants } from '@madebuy/db'
 import type { UpdateVariantInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 // Import error classes from the variants namespace
-const {
-  NotFoundError,
-  DuplicateSkuError,
-  ValidationError,
-} = variants
+const { NotFoundError, DuplicateSkuError, ValidationError } = variants
 
 interface RouteParams {
   params: { id: string; variantId: string }
@@ -37,7 +33,7 @@ function errorResponse(
   message: string,
   code: string,
   status: number,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): NextResponse<ErrorResponse> {
   return NextResponse.json({ error: message, code, details }, { status })
 }
@@ -60,11 +56,7 @@ function handleVariantError(error: unknown): NextResponse<ErrorResponse> {
 
   // Unknown error
   console.error('[variant API] Unexpected error:', error)
-  return errorResponse(
-    'An unexpected error occurred',
-    'INTERNAL_ERROR',
-    500
-  )
+  return errorResponse('An unexpected error occurred', 'INTERNAL_ERROR', 500)
 }
 
 /**
@@ -84,7 +76,11 @@ function isValidUpdateInput(data: unknown): data is UpdateVariantInput {
   }
 
   if (input.stock !== undefined) {
-    if (typeof input.stock !== 'number' || !Number.isInteger(input.stock) || input.stock < 0) {
+    if (
+      typeof input.stock !== 'number' ||
+      !Number.isInteger(input.stock) ||
+      input.stock < 0
+    ) {
       return false
     }
   }
@@ -94,15 +90,23 @@ function isValidUpdateInput(data: unknown): data is UpdateVariantInput {
   }
 
   if (input.compareAtPrice !== undefined && input.compareAtPrice !== null) {
-    if (typeof input.compareAtPrice !== 'number' || input.compareAtPrice < 0) return false
+    if (typeof input.compareAtPrice !== 'number' || input.compareAtPrice < 0)
+      return false
   }
 
   if (input.weight !== undefined && input.weight !== null) {
     if (typeof input.weight !== 'number' || input.weight < 0) return false
   }
 
-  if (input.lowStockThreshold !== undefined && input.lowStockThreshold !== null) {
-    if (typeof input.lowStockThreshold !== 'number' || input.lowStockThreshold < 0) return false
+  if (
+    input.lowStockThreshold !== undefined &&
+    input.lowStockThreshold !== null
+  ) {
+    if (
+      typeof input.lowStockThreshold !== 'number' ||
+      input.lowStockThreshold < 0
+    )
+      return false
   }
 
   if (input.isAvailable !== undefined) {
@@ -121,7 +125,7 @@ function isValidUpdateInput(data: unknown): data is UpdateVariantInput {
  * GET /api/pieces/[id]/variants/[variantId]
  * Get a single variant by ID
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     const tenant = await requireTenant()
     const { id: pieceId, variantId } = params
@@ -181,7 +185,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             isAvailable: 'boolean',
             attributes: 'non-empty object',
           },
-        }
+        },
       )
     }
 
@@ -191,7 +195,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Update variant (throws NotFoundError or DuplicateSkuError if applicable)
-    const updated = await variants.updateVariant(tenant.id, pieceId, variantId, body)
+    const updated = await variants.updateVariant(
+      tenant.id,
+      pieceId,
+      variantId,
+      body,
+    )
 
     return NextResponse.json({
       variant: updated,
@@ -238,7 +247,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: hardDelete ? 'Variant permanently deleted' : 'Variant soft deleted',
+      message: hardDelete
+        ? 'Variant permanently deleted'
+        : 'Variant soft deleted',
       variantId,
     })
   } catch (error) {

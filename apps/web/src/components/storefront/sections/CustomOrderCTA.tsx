@@ -1,10 +1,12 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import type { SectionProps } from './SectionRenderer'
 
 export function CustomOrderCTA({ settings, tenant, tenantSlug }: SectionProps) {
-  const title = settings.customOrderTitle || settings.title || 'Create Something Unique'
-  const description = settings.customOrderDescription || settings.subtitle ||
+  const title =
+    settings.customOrderTitle || settings.title || 'Create Something Unique'
+  const description =
+    settings.customOrderDescription ||
+    settings.subtitle ||
     "Have a vision for something special? Let's bring it to life together. Custom orders are our specialty."
   const buttonText = settings.customOrderButtonText || 'Start Your Commission'
   const email = settings.customOrderEmail || tenant.email
@@ -33,7 +35,11 @@ export function CustomOrderCTA({ settings, tenant, tenantSlug }: SectionProps) {
           </blockquote>
 
           <Link
-            href={email ? `mailto:${email}?subject=Custom Order Inquiry` : `/${tenantSlug}/contact`}
+            href={
+              email
+                ? `mailto:${email}?subject=Custom Order Inquiry`
+                : `/${tenantSlug}/contact`
+            }
             className="inline-flex items-center px-8 py-4 rounded-lg font-medium text-white transition-all duration-200 hover:scale-105"
             style={{ backgroundColor: tenant.primaryColor || '#3b82f6' }}
           >

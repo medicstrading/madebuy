@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { pieces, productionRuns } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { productionRuns, pieces } from '@madebuy/db'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -25,11 +25,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10', 10)
 
-    const runs = await productionRuns.getProductionRunsForPiece(tenant.id, pieceId, limit)
+    const runs = await productionRuns.getProductionRunsForPiece(
+      tenant.id,
+      pieceId,
+      limit,
+    )
 
-    return NextResponse.json({ runs, piece: { id: piece.id, name: piece.name } })
+    return NextResponse.json({
+      runs,
+      piece: { id: piece.id, name: piece.name },
+    })
   } catch (error) {
     console.error('Error fetching production history:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

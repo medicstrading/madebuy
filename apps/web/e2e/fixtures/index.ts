@@ -1,8 +1,8 @@
-import { test as base, expect, Page } from '@playwright/test'
-import { StorefrontPage } from '../pages/storefront.page'
-import { ProductPage } from '../pages/product.page'
+import { test as base, expect, type Page } from '@playwright/test'
 import { CartPage } from '../pages/cart.page'
 import { CheckoutPage } from '../pages/checkout.page'
+import { ProductPage } from '../pages/product.page'
+import { StorefrontPage } from '../pages/storefront.page'
 
 /**
  * Extended Playwright test fixtures for MadeBuy Web (Storefront) E2E tests
@@ -113,19 +113,26 @@ export interface TestCartItem {
  * Helper to add product to cart via localStorage manipulation
  * Useful for setting up cart state before tests
  */
-export async function seedCart(page: Page, tenantSlug: string, items: TestCartItem[]): Promise<void> {
-  await page.evaluate(({ tenant, items }) => {
-    const cartKey = `cart-${tenant}`
-    const cartData = {
-      items: items.map(item => ({
-        productSlug: item.productSlug,
-        quantity: item.quantity,
-        options: item.options || {},
-      })),
-      updatedAt: new Date().toISOString(),
-    }
-    localStorage.setItem(cartKey, JSON.stringify(cartData))
-  }, { tenant: tenantSlug, items })
+export async function seedCart(
+  page: Page,
+  tenantSlug: string,
+  items: TestCartItem[],
+): Promise<void> {
+  await page.evaluate(
+    ({ tenant, items }) => {
+      const cartKey = `cart-${tenant}`
+      const cartData = {
+        items: items.map((item) => ({
+          productSlug: item.productSlug,
+          quantity: item.quantity,
+          options: item.options || {},
+        })),
+        updatedAt: new Date().toISOString(),
+      }
+      localStorage.setItem(cartKey, JSON.stringify(cartData))
+    },
+    { tenant: tenantSlug, items },
+  )
 }
 
 /**
@@ -140,7 +147,10 @@ export async function clearCart(page: Page, tenantSlug: string): Promise<void> {
 /**
  * Helper to get cart from localStorage
  */
-export async function getCart(page: Page, tenantSlug: string): Promise<{ items: TestCartItem[] } | null> {
+export async function getCart(
+  page: Page,
+  tenantSlug: string,
+): Promise<{ items: TestCartItem[] } | null> {
   return page.evaluate((tenant) => {
     const cartData = localStorage.getItem(`cart-${tenant}`)
     return cartData ? JSON.parse(cartData) : null
@@ -159,7 +169,10 @@ export async function waitForPageReady(page: Page): Promise<void> {
 /**
  * Take debug screenshot
  */
-export async function takeDebugScreenshot(page: Page, name: string): Promise<void> {
+export async function takeDebugScreenshot(
+  page: Page,
+  name: string,
+): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   await page.screenshot({
     path: `./test-results/debug-${name}-${timestamp}.png`,

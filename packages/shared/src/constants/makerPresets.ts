@@ -98,16 +98,101 @@ export const MAKER_TYPES: MakerTypeInfo[] = [
  * Product category presets by maker type
  */
 export const MAKER_CATEGORY_PRESETS: Record<MakerType, string[]> = {
-  jewelry: ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Brooches', 'Anklets', 'Hair Accessories'],
-  clothing: ['Dresses', 'Tops', 'Pants', 'Skirts', 'Jackets', 'Coats', 'Accessories', 'Swimwear'],
-  art: ['Paintings', 'Prints', 'Sculptures', 'Photography', 'Mixed Media', 'Digital Art', 'Illustrations'],
-  ceramics: ['Mugs', 'Bowls', 'Plates', 'Vases', 'Figurines', 'Tiles', 'Planters', 'Serving Ware'],
-  woodwork: ['Furniture', 'Home Decor', 'Toys', 'Utensils', 'Carvings', 'Boxes', 'Cutting Boards', 'Frames'],
-  textiles: ['Quilts', 'Blankets', 'Pillows', 'Rugs', 'Wall Hangings', 'Table Linens', 'Bags', 'Clothing'],
-  leather: ['Bags', 'Wallets', 'Belts', 'Journals', 'Accessories', 'Phone Cases', 'Key Holders', 'Watch Straps'],
-  candles: ['Candles', 'Wax Melts', 'Diffusers', 'Room Sprays', 'Incense', 'Reed Diffusers'],
-  soap: ['Bar Soaps', 'Liquid Soaps', 'Bath Bombs', 'Shower Steamers', 'Skincare', 'Body Butter', 'Lip Balm'],
-  food: ['Baked Goods', 'Preserves', 'Confectionery', 'Beverages', 'Sauces', 'Spice Blends', 'Gift Boxes'],
+  jewelry: [
+    'Rings',
+    'Necklaces',
+    'Earrings',
+    'Bracelets',
+    'Pendants',
+    'Brooches',
+    'Anklets',
+    'Hair Accessories',
+  ],
+  clothing: [
+    'Dresses',
+    'Tops',
+    'Pants',
+    'Skirts',
+    'Jackets',
+    'Coats',
+    'Accessories',
+    'Swimwear',
+  ],
+  art: [
+    'Paintings',
+    'Prints',
+    'Sculptures',
+    'Photography',
+    'Mixed Media',
+    'Digital Art',
+    'Illustrations',
+  ],
+  ceramics: [
+    'Mugs',
+    'Bowls',
+    'Plates',
+    'Vases',
+    'Figurines',
+    'Tiles',
+    'Planters',
+    'Serving Ware',
+  ],
+  woodwork: [
+    'Furniture',
+    'Home Decor',
+    'Toys',
+    'Utensils',
+    'Carvings',
+    'Boxes',
+    'Cutting Boards',
+    'Frames',
+  ],
+  textiles: [
+    'Quilts',
+    'Blankets',
+    'Pillows',
+    'Rugs',
+    'Wall Hangings',
+    'Table Linens',
+    'Bags',
+    'Clothing',
+  ],
+  leather: [
+    'Bags',
+    'Wallets',
+    'Belts',
+    'Journals',
+    'Accessories',
+    'Phone Cases',
+    'Key Holders',
+    'Watch Straps',
+  ],
+  candles: [
+    'Candles',
+    'Wax Melts',
+    'Diffusers',
+    'Room Sprays',
+    'Incense',
+    'Reed Diffusers',
+  ],
+  soap: [
+    'Bar Soaps',
+    'Liquid Soaps',
+    'Bath Bombs',
+    'Shower Steamers',
+    'Skincare',
+    'Body Butter',
+    'Lip Balm',
+  ],
+  food: [
+    'Baked Goods',
+    'Preserves',
+    'Confectionery',
+    'Beverages',
+    'Sauces',
+    'Spice Blends',
+    'Gift Boxes',
+  ],
   custom: [],
 }
 
@@ -115,16 +200,120 @@ export const MAKER_CATEGORY_PRESETS: Record<MakerType, string[]> = {
  * Material category presets by maker type
  */
 export const MAKER_MATERIAL_PRESETS: Record<MakerType, string[]> = {
-  jewelry: ['Metal', 'Gemstone', 'Wire', 'Chain', 'Findings', 'Beads', 'Cord', 'Resin', 'Tools', 'Packaging'],
-  clothing: ['Fabric', 'Thread', 'Buttons', 'Zippers', 'Elastic', 'Interfacing', 'Lining', 'Trim', 'Labels', 'Packaging'],
-  art: ['Canvas', 'Paint', 'Brushes', 'Paper', 'Ink', 'Frames', 'Pencils', 'Pastels', 'Mediums', 'Varnish'],
-  ceramics: ['Clay', 'Glaze', 'Slip', 'Kiln Supplies', 'Tools', 'Molds', 'Oxides', 'Underglazes', 'Packaging'],
-  woodwork: ['Lumber', 'Plywood', 'Veneer', 'Stain', 'Finish', 'Hardware', 'Sandpaper', 'Adhesive', 'Tools', 'Packaging'],
-  textiles: ['Fabric', 'Batting', 'Thread', 'Backing', 'Binding', 'Interfacing', 'Stuffing', 'Notions', 'Labels'],
-  leather: ['Leather', 'Thread', 'Hardware', 'Dye', 'Finish', 'Tools', 'Adhesive', 'Edge Paint', 'Lining', 'Packaging'],
-  candles: ['Wax', 'Wicks', 'Fragrance Oil', 'Dye', 'Containers', 'Labels', 'Packaging', 'Tools', 'Warning Labels'],
-  soap: ['Oils', 'Lye', 'Fragrance', 'Colorants', 'Additives', 'Molds', 'Packaging', 'Labels', 'Butters', 'Clays'],
-  food: ['Ingredients', 'Packaging', 'Labels', 'Equipment', 'Containers', 'Decorations', 'Gift Boxes'],
+  jewelry: [
+    'Metal',
+    'Gemstone',
+    'Wire',
+    'Chain',
+    'Findings',
+    'Beads',
+    'Cord',
+    'Resin',
+    'Tools',
+    'Packaging',
+  ],
+  clothing: [
+    'Fabric',
+    'Thread',
+    'Buttons',
+    'Zippers',
+    'Elastic',
+    'Interfacing',
+    'Lining',
+    'Trim',
+    'Labels',
+    'Packaging',
+  ],
+  art: [
+    'Canvas',
+    'Paint',
+    'Brushes',
+    'Paper',
+    'Ink',
+    'Frames',
+    'Pencils',
+    'Pastels',
+    'Mediums',
+    'Varnish',
+  ],
+  ceramics: [
+    'Clay',
+    'Glaze',
+    'Slip',
+    'Kiln Supplies',
+    'Tools',
+    'Molds',
+    'Oxides',
+    'Underglazes',
+    'Packaging',
+  ],
+  woodwork: [
+    'Lumber',
+    'Plywood',
+    'Veneer',
+    'Stain',
+    'Finish',
+    'Hardware',
+    'Sandpaper',
+    'Adhesive',
+    'Tools',
+    'Packaging',
+  ],
+  textiles: [
+    'Fabric',
+    'Batting',
+    'Thread',
+    'Backing',
+    'Binding',
+    'Interfacing',
+    'Stuffing',
+    'Notions',
+    'Labels',
+  ],
+  leather: [
+    'Leather',
+    'Thread',
+    'Hardware',
+    'Dye',
+    'Finish',
+    'Tools',
+    'Adhesive',
+    'Edge Paint',
+    'Lining',
+    'Packaging',
+  ],
+  candles: [
+    'Wax',
+    'Wicks',
+    'Fragrance Oil',
+    'Dye',
+    'Containers',
+    'Labels',
+    'Packaging',
+    'Tools',
+    'Warning Labels',
+  ],
+  soap: [
+    'Oils',
+    'Lye',
+    'Fragrance',
+    'Colorants',
+    'Additives',
+    'Molds',
+    'Packaging',
+    'Labels',
+    'Butters',
+    'Clays',
+  ],
+  food: [
+    'Ingredients',
+    'Packaging',
+    'Labels',
+    'Equipment',
+    'Containers',
+    'Decorations',
+    'Gift Boxes',
+  ],
   custom: [],
 }
 
@@ -133,7 +322,7 @@ export const MAKER_MATERIAL_PRESETS: Record<MakerType, string[]> = {
  */
 export function getTenantCategories(
   makerType: MakerType | undefined,
-  customCategories: string[] = []
+  customCategories: string[] = [],
 ): string[] {
   const presets = makerType ? MAKER_CATEGORY_PRESETS[makerType] : []
   // Combine presets with custom, removing duplicates
@@ -145,7 +334,7 @@ export function getTenantCategories(
  */
 export function getTenantMaterialCategories(
   makerType: MakerType | undefined,
-  customMaterialCategories: string[] = []
+  customMaterialCategories: string[] = [],
 ): string[] {
   const presets = makerType ? MAKER_MATERIAL_PRESETS[makerType] : []
   return [...new Set([...presets, ...customMaterialCategories])]
@@ -154,6 +343,8 @@ export function getTenantMaterialCategories(
 /**
  * Get maker type info by ID
  */
-export function getMakerTypeInfo(makerType: MakerType): MakerTypeInfo | undefined {
+export function getMakerTypeInfo(
+  makerType: MakerType,
+): MakerTypeInfo | undefined {
   return MAKER_TYPES.find((mt) => mt.id === makerType)
 }

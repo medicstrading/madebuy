@@ -1,8 +1,11 @@
+import type { CreateEnquiryInput, Enquiry, EnquiryReply } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Enquiry, CreateEnquiryInput, EnquiryReply } from '@madebuy/shared'
 
-export async function createEnquiry(tenantId: string, data: CreateEnquiryInput): Promise<Enquiry> {
+export async function createEnquiry(
+  tenantId: string,
+  data: CreateEnquiryInput,
+): Promise<Enquiry> {
   const db = await getDatabase()
 
   const enquiry: Enquiry = {
@@ -30,9 +33,14 @@ export async function createEnquiry(tenantId: string, data: CreateEnquiryInput):
   return enquiry
 }
 
-export async function getEnquiry(tenantId: string, id: string): Promise<Enquiry | null> {
+export async function getEnquiry(
+  tenantId: string,
+  id: string,
+): Promise<Enquiry | null> {
   const db = await getDatabase()
-  return await db.collection('enquiries').findOne({ tenantId, id }) as Enquiry | null
+  return (await db
+    .collection('enquiries')
+    .findOne({ tenantId, id })) as Enquiry | null
 }
 
 export async function listEnquiries(
@@ -40,7 +48,7 @@ export async function listEnquiries(
   filters?: {
     status?: Enquiry['status']
     pieceId?: string
-  }
+  },
 ): Promise<Enquiry[]> {
   const db = await getDatabase()
 
@@ -54,7 +62,8 @@ export async function listEnquiries(
     query.pieceId = filters.pieceId
   }
 
-  const results = await db.collection('enquiries')
+  const results = await db
+    .collection('enquiries')
     .find(query)
     .sort({ createdAt: -1 })
     .toArray()
@@ -65,7 +74,7 @@ export async function listEnquiries(
 export async function updateEnquiryStatus(
   tenantId: string,
   id: string,
-  status: Enquiry['status']
+  status: Enquiry['status'],
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('enquiries').updateOne(
@@ -74,15 +83,15 @@ export async function updateEnquiryStatus(
       $set: {
         status,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
 export async function addEnquiryNote(
   tenantId: string,
   id: string,
-  note: string
+  note: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('enquiries').updateOne(
@@ -91,12 +100,15 @@ export async function addEnquiryNote(
       $set: {
         notes: note,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
-export async function deleteEnquiry(tenantId: string, id: string): Promise<void> {
+export async function deleteEnquiry(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection('enquiries').deleteOne({ tenantId, id })
 }
@@ -113,7 +125,7 @@ export async function replyToEnquiry(
   tenantId: string,
   id: string,
   subject: string,
-  body: string
+  body: string,
 ): Promise<Enquiry | null> {
   const db = await getDatabase()
 
@@ -133,7 +145,7 @@ export async function replyToEnquiry(
         updatedAt: new Date(),
       },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Enquiry | null
@@ -145,24 +157,19 @@ export async function replyToEnquiry(
 export async function ensureIndexes(): Promise<void> {
   const db = await getDatabase()
 
-  await db.collection('enquiries').createIndex(
-    { tenantId: 1, createdAt: -1 },
-    { background: true }
-  )
-  await db.collection('enquiries').createIndex(
-    { tenantId: 1, id: 1 },
-    { unique: true, background: true }
-  )
-  await db.collection('enquiries').createIndex(
-    { tenantId: 1, status: 1 },
-    { background: true }
-  )
-  await db.collection('enquiries').createIndex(
-    { tenantId: 1, pieceId: 1 },
-    { background: true }
-  )
-  await db.collection('enquiries').createIndex(
-    { tenantId: 1, trafficSource: 1 },
-    { background: true }
-  )
+  await db
+    .collection('enquiries')
+    .createIndex({ tenantId: 1, createdAt: -1 }, { background: true })
+  await db
+    .collection('enquiries')
+    .createIndex({ tenantId: 1, id: 1 }, { unique: true, background: true })
+  await db
+    .collection('enquiries')
+    .createIndex({ tenantId: 1, status: 1 }, { background: true })
+  await db
+    .collection('enquiries')
+    .createIndex({ tenantId: 1, pieceId: 1 }, { background: true })
+  await db
+    .collection('enquiries')
+    .createIndex({ tenantId: 1, trafficSource: 1 }, { background: true })
 }

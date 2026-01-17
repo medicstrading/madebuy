@@ -1,36 +1,36 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
 import type { Tenant } from '@madebuy/shared'
 import {
   MARKETPLACE_FEATURES,
   MARKETPLACE_LABELS,
-  type MarketplacePlatform,
   type MarketplaceConnectionStatus,
+  type MarketplacePlatform,
 } from '@madebuy/shared'
 import {
-  Instagram,
-  Facebook,
-  Youtube,
-  CheckCircle,
-  Loader2,
   AlertCircle,
+  Building2,
+  CheckCircle,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  ExternalLink,
+  Facebook,
+  Instagram,
+  Link2,
+  Loader2,
   Music,
   Pin,
-  ExternalLink,
-  Unlink,
-  Clock,
   RefreshCw,
+  Settings,
   Share2,
   ShoppingBag,
-  CreditCard,
-  Building2,
+  Unlink,
   User,
-  CheckCircle2,
-  Link2,
-  Settings,
+  Youtube,
 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 
 // =============================================================================
 // Types
@@ -192,9 +192,24 @@ function Tabs({
   paymentsCount: number
 }) {
   const tabs = [
-    { id: 'social' as TabId, label: 'Social', icon: Share2, count: socialCount },
-    { id: 'marketplaces' as TabId, label: 'Marketplaces', icon: ShoppingBag, count: marketplaceCount },
-    { id: 'payments' as TabId, label: 'Payments', icon: CreditCard, count: paymentsCount },
+    {
+      id: 'social' as TabId,
+      label: 'Social',
+      icon: Share2,
+      count: socialCount,
+    },
+    {
+      id: 'marketplaces' as TabId,
+      label: 'Marketplaces',
+      icon: ShoppingBag,
+      count: marketplaceCount,
+    },
+    {
+      id: 'payments' as TabId,
+      label: 'Payments',
+      icon: CreditCard,
+      count: paymentsCount,
+    },
   ]
 
   return (
@@ -205,6 +220,7 @@ function Tabs({
           const isActive = activeTab === tab.id
           return (
             <button
+              type="button"
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`group relative flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors ${
@@ -218,7 +234,9 @@ function Tabs({
               {tab.count > 0 && (
                 <span
                   className={`ml-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-xs font-medium ${
-                    isActive ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                    isActive
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {tab.count}
@@ -256,7 +274,9 @@ function SocialCard({
     <div className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
       {/* Platform header */}
       <div className="flex items-start gap-4 p-5">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${platform.bgColor}`}>
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-xl ${platform.bgColor}`}
+        >
           <Icon className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -265,7 +285,9 @@ function SocialCard({
           </div>
           {isConnected ? (
             <div className="mt-1">
-              <p className="text-sm text-gray-600 truncate">@{account.username}</p>
+              <p className="text-sm text-gray-600 truncate">
+                @{account.username}
+              </p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-green-600">
                 <CheckCircle className="h-3 w-3" />
                 Connected
@@ -288,6 +310,7 @@ function SocialCard({
       <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-3">
         {isConnected ? (
           <button
+            type="button"
             onClick={() => onDisconnect(account.id)}
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:border-red-300 hover:text-red-600"
           >
@@ -296,6 +319,7 @@ function SocialCard({
           </button>
         ) : (
           <button
+            type="button"
             onClick={onConnect}
             disabled={isConnecting}
             className={`flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r ${platform.gradient} px-4 py-2 text-sm font-medium text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50`}
@@ -358,8 +382,14 @@ function MarketplaceCard({
     if (platform.id === 'ebay') {
       // eBay colorful logo
       return (
-        <svg viewBox="0 0 24 24" className="h-6 w-6">
-          <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6">
+          <text
+            x="1"
+            y="17"
+            fontSize="12"
+            fontWeight="bold"
+            fontFamily="Arial, sans-serif"
+          >
             <tspan fill="#E53238">e</tspan>
             <tspan fill="#0064D2">b</tspan>
             <tspan fill="#F5AF02">a</tspan>
@@ -370,8 +400,13 @@ function MarketplaceCard({
     }
     // Etsy logo
     return (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="#F56400">
-        <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z"/>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="h-6 w-6"
+        fill="#F56400"
+      >
+        <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z" />
       </svg>
     )
   }
@@ -407,7 +442,9 @@ function MarketplaceCard({
           ) : isConnected ? (
             <div className="mt-1 space-y-0.5">
               {connection?.shopName && (
-                <p className="text-sm text-gray-600 truncate">{connection.shopName}</p>
+                <p className="text-sm text-gray-600 truncate">
+                  {connection.shopName}
+                </p>
               )}
               {connection?.lastSyncAt && (
                 <p className="flex items-center gap-1 text-xs text-gray-500">
@@ -434,6 +471,7 @@ function MarketplaceCard({
       <div className="px-5 py-4 space-y-3">
         {isConnected ? (
           <button
+            type="button"
             onClick={onDisconnect}
             disabled={isDisconnecting}
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:border-red-300 hover:text-red-600 disabled:opacity-50"
@@ -515,7 +553,9 @@ function StripeConnectCard({
     const style = styles[statusVal as keyof typeof styles] || styles.pending
     const label = labels[statusVal as keyof typeof labels] || 'Unknown'
     return (
-      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${style}`}>
+      <span
+        className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${style}`}
+      >
         {label}
       </span>
     )
@@ -530,7 +570,9 @@ function StripeConnectCard({
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900">Stripe Connect</h3>
-            <p className="text-sm text-gray-500">Receive payments from customers</p>
+            <p className="text-sm text-gray-500">
+              Receive payments from customers
+            </p>
           </div>
           {status?.connected && <StatusBadge statusVal={status.status} />}
         </div>
@@ -550,26 +592,34 @@ function StripeConnectCard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <button
+                type="button"
                 onClick={() => onCreateAccount('individual')}
                 disabled={isCreating}
                 className="flex flex-col items-center gap-3 rounded-lg border-2 border-gray-200 p-6 hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
               >
                 <User className="h-8 w-8 text-gray-600" />
                 <div className="text-center">
-                  <p className="font-semibold text-gray-900">Individual / Sole Trader</p>
+                  <p className="font-semibold text-gray-900">
+                    Individual / Sole Trader
+                  </p>
                   <p className="text-sm text-gray-500">For solo makers</p>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => onCreateAccount('company')}
                 disabled={isCreating}
                 className="flex flex-col items-center gap-3 rounded-lg border-2 border-gray-200 p-6 hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
               >
                 <Building2 className="h-8 w-8 text-gray-600" />
                 <div className="text-center">
-                  <p className="font-semibold text-gray-900">Company / Business</p>
-                  <p className="text-sm text-gray-500">For registered businesses</p>
+                  <p className="font-semibold text-gray-900">
+                    Company / Business
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    For registered businesses
+                  </p>
                 </div>
               </button>
             </div>
@@ -585,6 +635,7 @@ function StripeConnectCard({
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <button
+                type="button"
                 onClick={onRefresh}
                 className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
               >
@@ -625,21 +676,25 @@ function StripeConnectCard({
             </div>
 
             {/* Requirements */}
-            {status.requirements?.currentlyDue && status.requirements.currentlyDue.length > 0 && (
-              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                <p className="font-medium text-yellow-800 mb-2">Action Required</p>
-                <ul className="list-disc list-inside text-sm text-yellow-700 space-y-1">
-                  {status.requirements.currentlyDue.slice(0, 5).map((req) => (
-                    <li key={req}>{formatRequirement(req)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {status.requirements?.currentlyDue &&
+              status.requirements.currentlyDue.length > 0 && (
+                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                  <p className="font-medium text-yellow-800 mb-2">
+                    Action Required
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-yellow-700 space-y-1">
+                    {status.requirements.currentlyDue.slice(0, 5).map((req) => (
+                      <li key={req}>{formatRequirement(req)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3">
               {!status.onboardingComplete && (
                 <button
+                  type="button"
                   onClick={onStartOnboarding}
                   disabled={isRedirecting}
                   className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white font-medium hover:bg-purple-700 disabled:opacity-50"
@@ -655,6 +710,7 @@ function StripeConnectCard({
 
               {status.onboardingComplete && (
                 <button
+                  type="button"
                   onClick={onOpenDashboard}
                   disabled={isRedirecting}
                   className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-white font-medium hover:bg-gray-800 disabled:opacity-50"
@@ -715,7 +771,9 @@ function XeroCard({
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900">Xero</h3>
-            <p className="text-sm text-gray-500">Sync transactions to accounting</p>
+            <p className="text-sm text-gray-500">
+              Sync transactions to accounting
+            </p>
           </div>
           {isConnected && (
             <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
@@ -734,7 +792,8 @@ function XeroCard({
         ) : !isConnected ? (
           <div className="space-y-4">
             <p className="text-gray-600">
-              Connect Xero to automatically sync your sales and expenses for easy bookkeeping.
+              Connect Xero to automatically sync your sales and expenses for
+              easy bookkeeping.
             </p>
             <a
               href="/api/xero/connect"
@@ -751,20 +810,25 @@ function XeroCard({
               <div>
                 {connection.lastSyncAt && (
                   <p className="text-sm text-gray-500">
-                    Last synced: {new Date(connection.lastSyncAt).toLocaleString()}
+                    Last synced:{' '}
+                    {new Date(connection.lastSyncAt).toLocaleString()}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={onSync}
                   disabled={isSyncing}
                   className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`}
+                  />
                   Sync Now
                 </button>
                 <button
+                  type="button"
                   onClick={onDisconnect}
                   className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
                 >
@@ -779,15 +843,24 @@ function XeroCard({
               <div className="space-y-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2">
                   <Settings className="h-4 w-4 text-gray-500" />
-                  <h4 className="font-medium text-gray-900">Account Mappings</h4>
+                  <h4 className="font-medium text-gray-900">
+                    Account Mappings
+                  </h4>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Sales</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Sales
+                    </label>
                     <select
                       value={mappings.productSales}
-                      onChange={(e) => onMappingsChange({ ...mappings, productSales: e.target.value })}
+                      onChange={(e) =>
+                        onMappingsChange({
+                          ...mappings,
+                          productSales: e.target.value,
+                        })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
                     >
                       <option value="">Select account...</option>
@@ -800,10 +873,17 @@ function XeroCard({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Income</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Shipping Income
+                    </label>
                     <select
                       value={mappings.shippingIncome}
-                      onChange={(e) => onMappingsChange({ ...mappings, shippingIncome: e.target.value })}
+                      onChange={(e) =>
+                        onMappingsChange({
+                          ...mappings,
+                          shippingIncome: e.target.value,
+                        })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
                     >
                       <option value="">Select account...</option>
@@ -816,10 +896,17 @@ function XeroCard({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Platform Fees</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Platform Fees
+                    </label>
                     <select
                       value={mappings.platformFees}
-                      onChange={(e) => onMappingsChange({ ...mappings, platformFees: e.target.value })}
+                      onChange={(e) =>
+                        onMappingsChange({
+                          ...mappings,
+                          platformFees: e.target.value,
+                        })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
                     >
                       <option value="">Select account...</option>
@@ -832,10 +919,17 @@ function XeroCard({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Fees</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Payment Fees
+                    </label>
                     <select
                       value={mappings.paymentFees}
-                      onChange={(e) => onMappingsChange({ ...mappings, paymentFees: e.target.value })}
+                      onChange={(e) =>
+                        onMappingsChange({
+                          ...mappings,
+                          paymentFees: e.target.value,
+                        })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
                     >
                       <option value="">Select account...</option>
@@ -848,10 +942,17 @@ function XeroCard({
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bank Account</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bank Account
+                    </label>
                     <select
                       value={mappings.bankAccount}
-                      onChange={(e) => onMappingsChange({ ...mappings, bankAccount: e.target.value })}
+                      onChange={(e) =>
+                        onMappingsChange({
+                          ...mappings,
+                          bankAccount: e.target.value,
+                        })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#13B5EA] focus:border-transparent"
                     >
                       <option value="">Select account...</option>
@@ -865,11 +966,14 @@ function XeroCard({
                 </div>
 
                 <button
+                  type="button"
                   onClick={onSaveMappings}
                   disabled={isSaving}
                   className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
                 >
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : null}
                   Save Mappings
                 </button>
               </div>
@@ -892,23 +996,36 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   // Social state
   const [socialAccounts, setSocialAccounts] = useState<LateAccount[]>([])
   const [socialLoading, setSocialLoading] = useState(true)
-  const [connectingPlatform, setConnectingPlatform] = useState<string | null>(null)
+  const [connectingPlatform, setConnectingPlatform] = useState<string | null>(
+    null,
+  )
 
   // Marketplace state
-  const [ebayConnection, setEbayConnection] = useState<MarketplaceConnectionData | null>(null)
-  const [etsyConnection, setEtsyConnection] = useState<MarketplaceConnectionData | null>(null)
-  const [marketplaceLoading, setMarketplaceLoading] = useState({ ebay: true, etsy: true })
-  const [disconnectingPlatform, setDisconnectingPlatform] = useState<MarketplacePlatform | null>(null)
+  const [ebayConnection, setEbayConnection] =
+    useState<MarketplaceConnectionData | null>(null)
+  const [etsyConnection, setEtsyConnection] =
+    useState<MarketplaceConnectionData | null>(null)
+  const [marketplaceLoading, setMarketplaceLoading] = useState({
+    ebay: true,
+    etsy: true,
+  })
+  const [disconnectingPlatform, setDisconnectingPlatform] =
+    useState<MarketplacePlatform | null>(null)
 
   // Stripe state
-  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(
+    null,
+  )
   const [stripeLoading, setStripeLoading] = useState(true)
   const [stripeCreating, setStripeCreating] = useState(false)
   const [stripeRedirecting, setStripeRedirecting] = useState(false)
 
   // Xero state
-  const [xeroConnection, setXeroConnection] = useState<XeroConnectionStatus | null>(null)
-  const [xeroAccounts, setXeroAccounts] = useState<XeroAccountGroups | null>(null)
+  const [xeroConnection, setXeroConnection] =
+    useState<XeroConnectionStatus | null>(null)
+  const [xeroAccounts, setXeroAccounts] = useState<XeroAccountGroups | null>(
+    null,
+  )
   const [xeroLoading, setXeroLoading] = useState(true)
   const [xeroSyncing, setXeroSyncing] = useState(false)
   const [xeroSaving, setXeroSaving] = useState(false)
@@ -921,7 +1038,10 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   })
 
   // Messages
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
 
   // Handle URL params for OAuth callbacks
   useEffect(() => {
@@ -936,10 +1056,16 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
 
     if (success) {
       if (success === 'ebay' || success === 'etsy') {
-        setMessage({ type: 'success', text: `Successfully connected to ${MARKETPLACE_LABELS[success as MarketplacePlatform]}!` })
+        setMessage({
+          type: 'success',
+          text: `Successfully connected to ${MARKETPLACE_LABELS[success as MarketplacePlatform]}!`,
+        })
         setActiveTab('marketplaces')
       } else {
-        setMessage({ type: 'success', text: 'Successfully connected! Your account should appear below.' })
+        setMessage({
+          type: 'success',
+          text: 'Successfully connected! Your account should appear below.',
+        })
       }
       window.history.replaceState({}, '', window.location.pathname)
     }
@@ -951,7 +1077,10 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
     }
 
     if (onboarding === 'complete') {
-      setMessage({ type: 'success', text: 'Stripe onboarding step completed! We\'re verifying your details.' })
+      setMessage({
+        type: 'success',
+        text: "Stripe onboarding step completed! We're verifying your details.",
+      })
       setActiveTab('payments')
       window.history.replaceState({}, '', window.location.pathname)
     }
@@ -1036,7 +1165,7 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
           setXeroAccounts(await accountsRes.json())
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Not connected
     } finally {
       setXeroLoading(false)
@@ -1049,13 +1178,21 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
     fetchEtsyStatus()
     fetchStripeStatus()
     fetchXeroStatus()
-  }, [fetchSocialConnections, fetchEbayStatus, fetchEtsyStatus, fetchStripeStatus, fetchXeroStatus])
+  }, [
+    fetchSocialConnections,
+    fetchEbayStatus,
+    fetchEtsyStatus,
+    fetchStripeStatus,
+    fetchXeroStatus,
+  ])
 
   // Connect social platform
   async function handleSocialConnect(platform: string) {
     setConnectingPlatform(platform)
     try {
-      const response = await fetch(`/api/social/connect/${platform}`, { method: 'POST' })
+      const response = await fetch(`/api/social/connect/${platform}`, {
+        method: 'POST',
+      })
       const data = await response.json()
       if (response.ok && data.authUrl) {
         window.location.href = data.authUrl
@@ -1069,30 +1206,52 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   }
 
   // Disconnect social platform
-  async function handleSocialDisconnect(accountId: string, platformName: string) {
-    if (!confirm(`Are you sure you want to disconnect from ${platformName}?`)) return
+  async function handleSocialDisconnect(
+    accountId: string,
+    platformName: string,
+  ) {
+    if (!confirm(`Are you sure you want to disconnect from ${platformName}?`))
+      return
     try {
-      const response = await fetch(`/api/late/accounts/${accountId}`, { method: 'DELETE' })
+      const response = await fetch(`/api/late/accounts/${accountId}`, {
+        method: 'DELETE',
+      })
       if (response.ok) {
         await fetchSocialConnections()
-        setMessage({ type: 'success', text: `Disconnected from ${platformName}` })
+        setMessage({
+          type: 'success',
+          text: `Disconnected from ${platformName}`,
+        })
       } else {
         const data = await response.json()
         throw new Error(data.error || 'Failed to disconnect')
       }
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to disconnect' })
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to disconnect',
+      })
     }
   }
 
   // Disconnect marketplace
   async function handleMarketplaceDisconnect(platform: MarketplacePlatform) {
-    if (!confirm(`Are you sure you want to disconnect from ${MARKETPLACE_LABELS[platform]}?`)) return
+    if (
+      !confirm(
+        `Are you sure you want to disconnect from ${MARKETPLACE_LABELS[platform]}?`,
+      )
+    )
+      return
     setDisconnectingPlatform(platform)
     try {
-      const res = await fetch(`/api/marketplace/${platform}`, { method: 'DELETE' })
+      const res = await fetch(`/api/marketplace/${platform}`, {
+        method: 'DELETE',
+      })
       if (res.ok) {
-        setMessage({ type: 'success', text: `Disconnected from ${MARKETPLACE_LABELS[platform]}` })
+        setMessage({
+          type: 'success',
+          text: `Disconnected from ${MARKETPLACE_LABELS[platform]}`,
+        })
         if (platform === 'ebay') {
           setEbayConnection(null)
           fetchEbayStatus()
@@ -1105,14 +1264,19 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
         throw new Error(data.error || 'Failed to disconnect')
       }
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to disconnect' })
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to disconnect',
+      })
     } finally {
       setDisconnectingPlatform(null)
     }
   }
 
   // Stripe handlers
-  async function handleStripeCreateAccount(businessType: 'individual' | 'company') {
+  async function handleStripeCreateAccount(
+    businessType: 'individual' | 'company',
+  ) {
     setStripeCreating(true)
     try {
       const response = await fetch('/api/stripe/connect', {
@@ -1125,9 +1289,12 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
         handleStripeStartOnboarding()
       } else {
         const data = await response.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to create account' })
+        setMessage({
+          type: 'error',
+          text: data.error || 'Failed to create account',
+        })
       }
-    } catch (err) {
+    } catch (_err) {
       setMessage({ type: 'error', text: 'Failed to create account' })
     } finally {
       setStripeCreating(false)
@@ -1137,16 +1304,21 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   async function handleStripeStartOnboarding() {
     setStripeRedirecting(true)
     try {
-      const response = await fetch('/api/stripe/connect/onboarding', { method: 'POST' })
+      const response = await fetch('/api/stripe/connect/onboarding', {
+        method: 'POST',
+      })
       if (response.ok) {
         const data = await response.json()
         window.location.href = data.url
       } else {
         const data = await response.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to start onboarding' })
+        setMessage({
+          type: 'error',
+          text: data.error || 'Failed to start onboarding',
+        })
         setStripeRedirecting(false)
       }
-    } catch (err) {
+    } catch (_err) {
       setMessage({ type: 'error', text: 'Failed to start onboarding' })
       setStripeRedirecting(false)
     }
@@ -1155,15 +1327,20 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
   async function handleStripeOpenDashboard() {
     setStripeRedirecting(true)
     try {
-      const response = await fetch('/api/stripe/connect/dashboard', { method: 'POST' })
+      const response = await fetch('/api/stripe/connect/dashboard', {
+        method: 'POST',
+      })
       if (response.ok) {
         const data = await response.json()
         window.open(data.url, '_blank')
       } else {
         const data = await response.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to open dashboard' })
+        setMessage({
+          type: 'error',
+          text: data.error || 'Failed to open dashboard',
+        })
       }
-    } catch (err) {
+    } catch (_err) {
       setMessage({ type: 'error', text: 'Failed to open dashboard' })
     } finally {
       setStripeRedirecting(false)
@@ -1172,7 +1349,8 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
 
   // Xero handlers
   async function handleXeroDisconnect() {
-    if (!confirm('Disconnect Xero? This will stop syncing transactions.')) return
+    if (!confirm('Disconnect Xero? This will stop syncing transactions.'))
+      return
     await fetch('/api/xero/disconnect', { method: 'POST' })
     setXeroConnection(null)
     setXeroAccounts(null)
@@ -1208,7 +1386,8 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
 
   // Count connected
   const socialConnectedCount = socialAccounts.filter((a) => a.isActive).length
-  const marketplaceConnectedCount = (ebayConnection?.connected ? 1 : 0) + (etsyConnection?.connected ? 1 : 0)
+  const marketplaceConnectedCount =
+    (ebayConnection?.connected ? 1 : 0) + (etsyConnection?.connected ? 1 : 0)
   const paymentsConnectedCount =
     (stripeStatus?.connected ? 1 : 0) +
     (xeroConnection && xeroConnection.status !== 'disconnected' ? 1 : 0)
@@ -1237,10 +1416,12 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Connections</h1>
           <p className="mt-1 text-gray-500">
-            Connect your accounts to publish content, sync inventory, and receive payments
+            Connect your accounts to publish content, sync inventory, and
+            receive payments
           </p>
         </div>
         <button
+          type="button"
           onClick={handleRefresh}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
         >
@@ -1294,22 +1475,30 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
                       account={getAccountByPlatform(platform.id)}
                       isConnecting={connectingPlatform === platform.id}
                       onConnect={() => handleSocialConnect(platform.id)}
-                      onDisconnect={(accountId) => handleSocialDisconnect(accountId, platform.name)}
+                      onDisconnect={(accountId) =>
+                        handleSocialDisconnect(accountId, platform.name)
+                      }
                     />
                   ))}
                 </div>
 
                 {/* Info box */}
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-                  <h3 className="mb-2 text-sm font-semibold text-blue-900">About Social Connections</h3>
+                  <h3 className="mb-2 text-sm font-semibold text-blue-900">
+                    About Social Connections
+                  </h3>
                   <ul className="space-y-1.5 text-sm text-blue-800">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                      <span>Publish products directly to your connected accounts</span>
+                      <span>
+                        Publish products directly to your connected accounts
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                      <span>AI-generated captions tailored to each platform</span>
+                      <span>
+                        AI-generated captions tailored to each platform
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
@@ -1329,7 +1518,9 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
                 <MarketplaceCard
                   key={platform.id}
                   platform={platform}
-                  connection={platform.id === 'ebay' ? ebayConnection : etsyConnection}
+                  connection={
+                    platform.id === 'ebay' ? ebayConnection : etsyConnection
+                  }
                   isLoading={marketplaceLoading[platform.id]}
                   isDisconnecting={disconnectingPlatform === platform.id}
                   onDisconnect={() => handleMarketplaceDisconnect(platform.id)}
@@ -1339,7 +1530,9 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
 
             {/* Info box */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-              <h3 className="mb-2 text-sm font-semibold text-blue-900">About Marketplace Sync</h3>
+              <h3 className="mb-2 text-sm font-semibold text-blue-900">
+                About Marketplace Sync
+              </h3>
               <ul className="space-y-1.5 text-sm text-blue-800">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
@@ -1389,19 +1582,27 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
 
             {/* Info box */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-              <h3 className="mb-2 text-sm font-semibold text-blue-900">About Payment & Accounting</h3>
+              <h3 className="mb-2 text-sm font-semibold text-blue-900">
+                About Payment & Accounting
+              </h3>
               <ul className="space-y-1.5 text-sm text-blue-800">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                  <span>MadeBuy charges 0% platform fees - you keep more earnings</span>
+                  <span>
+                    MadeBuy charges 0% platform fees - you keep more earnings
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                  <span>Stripe processing: 1.7% + $0.30 for Australian cards</span>
+                  <span>
+                    Stripe processing: 1.7% + $0.30 for Australian cards
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                  <span>Automatic transaction sync to Xero for easy bookkeeping</span>
+                  <span>
+                    Automatic transaction sync to Xero for easy bookkeeping
+                  </span>
                 </li>
               </ul>
             </div>

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { BookOpen, Save } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export function BlogSettingsTab() {
   const [loading, setLoading] = useState(true)
@@ -13,7 +13,7 @@ export function BlogSettingsTab() {
 
   useEffect(() => {
     loadSettings()
-  }, [])
+  }, [loadSettings])
 
   const loadSettings = async () => {
     try {
@@ -91,12 +91,16 @@ export function BlogSettingsTab() {
           {/* Enable Toggle */}
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <label className="text-sm font-medium text-gray-900">Enable Blog</label>
+              <label className="text-sm font-medium text-gray-900">
+                Enable Blog
+              </label>
               <p className="text-sm text-gray-600 mt-1">
-                Make the blog accessible on your storefront at /{'{tenant}'}/blog
+                Make the blog accessible on your storefront at /{'{tenant}'}
+                /blog
               </p>
             </div>
             <button
+              type="button"
               onClick={() => setEnabled(!enabled)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 enabled ? 'bg-blue-600' : 'bg-gray-300'
@@ -154,17 +158,21 @@ export function BlogSettingsTab() {
                 <ul className="space-y-2 text-sm text-blue-800">
                   <li className="flex items-start gap-2">
                     <span className="font-semibold">1.</span>
-                    <span>Go to the <strong>Blog</strong> section in the sidebar</span>
+                    <span>
+                      Go to the <strong>Blog</strong> section in the sidebar
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-semibold">2.</span>
-                    <span>Click <strong>New Post</strong> to create a blog post</span>
+                    <span>
+                      Click <strong>New Post</strong> to create a blog post
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-semibold">3.</span>
                     <span>
-                      Or use the <strong>Publish</strong> section to publish to your blog and social
-                      media at the same time
+                      Or use the <strong>Publish</strong> section to publish to
+                      your blog and social media at the same time
                     </span>
                   </li>
                 </ul>
@@ -172,7 +180,9 @@ export function BlogSettingsTab() {
 
               {/* Preview Info */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Blog URL</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                  Blog URL
+                </h3>
                 <p className="text-sm text-gray-600">
                   Your blog will be available at:
                 </p>
@@ -187,6 +197,7 @@ export function BlogSettingsTab() {
         {/* Save Button */}
         <div className="mt-8 flex justify-end">
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"

@@ -1,7 +1,16 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Truck, Download, RefreshCw, ExternalLink, CheckCircle, Eye, X, Printer } from 'lucide-react'
+import {
+  CheckCircle,
+  Download,
+  ExternalLink,
+  Eye,
+  Printer,
+  RefreshCw,
+  Truck,
+  X,
+} from 'lucide-react'
+import { useCallback, useState } from 'react'
 
 interface ShippingActionsProps {
   orderId: string
@@ -56,7 +65,9 @@ export function ShippingActions({
     return (
       <div className="flex items-center gap-2 text-green-600">
         <CheckCircle className="h-5 w-5" />
-        <span className="text-sm font-medium">Digital order - no shipping required</span>
+        <span className="text-sm font-medium">
+          Digital order - no shipping required
+        </span>
       </div>
     )
   }
@@ -77,7 +88,9 @@ export function ShippingActions({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-green-600">
             <CheckCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">Shipping label generated</span>
+            <span className="text-sm font-medium">
+              Shipping label generated
+            </span>
           </div>
 
           {generatedLabel?.emailSent && (
@@ -98,6 +111,7 @@ export function ShippingActions({
             {url && (
               <>
                 <button
+                  type="button"
                   onClick={() => setShowModal(true)}
                   className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
@@ -105,6 +119,7 @@ export function ShippingActions({
                   View Label
                 </button>
                 <button
+                  type="button"
                   onClick={handlePrint}
                   className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
@@ -141,9 +156,12 @@ export function ShippingActions({
             <div className="relative mx-4 h-[90vh] w-full max-w-3xl rounded-lg bg-white shadow-2xl">
               {/* Modal Header */}
               <div className="flex items-center justify-between border-b px-4 py-3">
-                <h3 className="text-lg font-semibold text-gray-900">Shipping Label</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Shipping Label
+                </h3>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={handlePrint}
                     className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
                   >
@@ -159,6 +177,7 @@ export function ShippingActions({
                     Download
                   </a>
                   <button
+                    type="button"
                     onClick={() => setShowModal(false)}
                     className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                   >
@@ -216,6 +235,7 @@ export function ShippingActions({
   return (
     <div className="space-y-3">
       <button
+        type="button"
         onClick={handleGenerateLabel}
         disabled={loading}
         className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"

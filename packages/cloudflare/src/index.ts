@@ -5,49 +5,45 @@
 
 // Client
 export {
-  CloudflareClient,
   CloudflareApiError,
+  CloudflareClient,
   createCloudflareClient,
   createTenantCloudflareClient,
 } from './client'
-
-// Zones API
-export { ZonesApi, createZonesApi } from './zones'
-
-// DNS API
-export { DnsApi, createDnsApi, MADEBUY_DNS_CONFIG } from './dns'
-
+// Custom Hostname Types
+export type {
+  CreateCustomHostnameParams,
+  CustomHostname,
+  CustomHostnameSsl,
+  FallbackOrigin,
+  ValidationRecord,
+} from './custom-hostnames'
 // Custom Hostnames API (Cloudflare for SaaS)
 export {
   CustomHostnamesApi,
   createCustomHostnamesApi,
   mapCloudflareStatus,
 } from './custom-hostnames'
+// DNS API
+export { createDnsApi, DnsApi, MADEBUY_DNS_CONFIG } from './dns'
 
 // Types
 export type {
   CloudflareConfig,
-  CloudflareResponse,
-  CloudflareError,
-  CloudflareZone,
-  CreateZoneParams,
-  DnsRecordType,
   CloudflareDnsRecord,
-  CreateDnsRecordParams,
-  UpdateDnsRecordParams,
+  CloudflareError,
+  CloudflareResponse,
   CloudflareSslSettings,
   CloudflareSslVerification,
+  CloudflareZone,
+  CreateDnsRecordParams,
+  CreateZoneParams,
+  DnsRecordType,
   MadeBuyDnsRequirements,
+  UpdateDnsRecordParams,
 } from './types'
-
-// Custom Hostname Types
-export type {
-  CustomHostname,
-  CustomHostnameSsl,
-  ValidationRecord,
-  CreateCustomHostnameParams,
-  FallbackOrigin,
-} from './custom-hostnames'
+// Zones API
+export { createZonesApi, ZonesApi } from './zones'
 
 /**
  * Convenience function to create a full Cloudflare API client

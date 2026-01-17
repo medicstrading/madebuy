@@ -1,8 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { DollarSign, ArrowUpRight, Clock, TrendingUp, TrendingDown, CreditCard, RefreshCw } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CreditCard,
+  DollarSign,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 interface LedgerSummary {
   todaySales: {
@@ -47,7 +54,7 @@ function formatCurrency(cents: number): string {
   }).format(cents / 100)
 }
 
-function formatCurrencyCompact(cents: number): string {
+function _formatCurrencyCompact(cents: number): string {
   const dollars = cents / 100
   if (dollars >= 1000) {
     return `$${(dollars / 1000).toFixed(1)}k`
@@ -55,7 +62,7 @@ function formatCurrencyCompact(cents: number): string {
   return formatCurrency(cents)
 }
 
-function formatDate(dateString: string | null): string {
+function _formatDate(dateString: string | null): string {
   if (!dateString) return 'Not scheduled'
   return new Intl.DateTimeFormat('en-AU', {
     day: 'numeric',
@@ -118,7 +125,7 @@ export function FinanceWidgets() {
   }
 
   const { profitability } = data
-  const isRevenuePositive = profitability.revenueChange >= 0
+  const _isRevenuePositive = profitability.revenueChange >= 0
   const isProfitPositive = profitability.profitChange >= 0
   const isMarginPositive = profitability.marginChange >= 0
 
@@ -173,7 +180,13 @@ export function FinanceWidgets() {
             value={`${profitability.profitMargin}%`}
             subtitle="Gross margin"
             icon={isMarginPositive ? TrendingUp : TrendingDown}
-            color={profitability.profitMargin >= 50 ? 'emerald' : profitability.profitMargin >= 30 ? 'amber' : 'red'}
+            color={
+              profitability.profitMargin >= 50
+                ? 'emerald'
+                : profitability.profitMargin >= 30
+                  ? 'amber'
+                  : 'red'
+            }
             trend={profitability.marginChange}
             trendLabel="vs last month"
             trendSuffix="%"
@@ -225,11 +238,19 @@ function FinanceCard({
         {trend !== undefined && (
           <div
             className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
-              isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-red-700 bg-red-50'
+              isPositive
+                ? 'text-emerald-700 bg-emerald-50'
+                : 'text-red-700 bg-red-50'
             }`}
           >
-            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-            {isPositive ? '+' : ''}{trend}{trendSuffix}
+            {isPositive ? (
+              <TrendingUp className="h-3 w-3" />
+            ) : (
+              <TrendingDown className="h-3 w-3" />
+            )}
+            {isPositive ? '+' : ''}
+            {trend}
+            {trendSuffix}
           </div>
         )}
         {badge && (
@@ -239,7 +260,9 @@ function FinanceCard({
         )}
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
+        <p className="text-2xl font-bold text-gray-900 tracking-tight">
+          {value}
+        </p>
         <p className="text-sm text-gray-500 mt-1 font-medium">{title}</p>
         <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
         {trendLabel && trend !== undefined && (

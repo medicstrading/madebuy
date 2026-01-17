@@ -1,23 +1,22 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import type { MediaItem, Piece, SocialPlatform, Tenant } from '@madebuy/shared'
 import { useRouter } from 'next/navigation'
-import type { Tenant, MediaItem, SocialPlatform, Piece } from '@madebuy/shared'
-import { WizardProgress } from './WizardProgress'
+import { useEffect, useRef, useState } from 'react'
 import { DraftRecoveryModal } from './DraftRecoveryModal'
-import { ItemStep } from './steps/ItemStep'
-import { MediaStep } from './steps/MediaStep'
-import { MarketplaceStep } from './steps/MarketplaceStep'
-import { SocialStep } from './steps/SocialStep'
 import { CompleteStep } from './steps/CompleteStep'
+import { ItemStep } from './steps/ItemStep'
+import { MarketplaceStep } from './steps/MarketplaceStep'
+import { MediaStep } from './steps/MediaStep'
+import { SocialStep } from './steps/SocialStep'
 import {
+  getInitialWizardState,
+  STEP_ORDER,
+  type WizardDraft,
   type WizardState,
   type WizardStep,
-  type WizardDraft,
-  STEP_ORDER,
-  getInitialWizardState,
-  isStepComplete,
 } from './types'
+import { WizardProgress } from './WizardProgress'
 
 interface QuickLaunchWizardProps {
   tenant: Tenant
@@ -35,7 +34,7 @@ export function QuickLaunchWizard({
   connectedSocialPlatforms,
   connectedMarketplaces,
 }: QuickLaunchWizardProps) {
-  const router = useRouter()
+  const _router = useRouter()
   const [state, setState] = useState<WizardState>(getInitialWizardState())
   const [draft, setDraft] = useState<WizardDraft | null>(null)
   const [showDraftModal, setShowDraftModal] = useState(false)
@@ -44,14 +43,18 @@ export function QuickLaunchWizard({
   // Determine locked steps based on plan
   const currentPlan = tenant.plan || 'free'
   const lockedSteps: WizardStep[] = []
-  if (!['maker', 'professional', 'studio', 'pro', 'business'].includes(currentPlan)) {
+  if (
+    !['maker', 'professional', 'studio', 'pro', 'business'].includes(
+      currentPlan,
+    )
+  ) {
     // Free users can still see but some features are gated within steps
   }
 
   // Check for existing draft on mount
   useEffect(() => {
     checkForDraft()
-  }, [])
+  }, [checkForDraft])
 
   // Debounce timer for auto-save
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -74,7 +77,7 @@ export function QuickLaunchWizard({
         clearTimeout(saveTimerRef.current)
       }
     }
-  }, [state])
+  }, [state, saveDraft])
 
   const checkForDraft = async () => {
     try {
@@ -128,12 +131,12 @@ export function QuickLaunchWizard({
   const goToStep = (step: WizardStep) => {
     // Can only go to completed steps or current step
     if (state.completedSteps.includes(step) || step === state.currentStep) {
-      setState(prev => ({ ...prev, currentStep: step }))
+      setState((prev) => ({ ...prev, currentStep: step }))
     }
   }
 
   const completeStep = (step: WizardStep) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       completedSteps: prev.completedSteps.includes(step)
         ? prev.completedSteps
@@ -141,11 +144,11 @@ export function QuickLaunchWizard({
     }))
   }
 
-  const nextStep = () => {
+  const _nextStep = () => {
     const currentIndex = STEP_ORDER.indexOf(state.currentStep)
     if (currentIndex < STEP_ORDER.length - 1) {
       completeStep(state.currentStep)
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         currentStep: STEP_ORDER[currentIndex + 1],
       }))
@@ -155,7 +158,7 @@ export function QuickLaunchWizard({
   const prevStep = () => {
     const currentIndex = STEP_ORDER.indexOf(state.currentStep)
     if (currentIndex > 0) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         currentStep: STEP_ORDER[currentIndex - 1],
       }))
@@ -165,7 +168,7 @@ export function QuickLaunchWizard({
   // Step handlers
   const handleItemSave = async (data: Partial<Piece>, pieceId: string) => {
     // Combine all state updates into one to avoid race conditions
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       piece: data,
       pieceId,
@@ -182,8 +185,12 @@ export function QuickLaunchWizard({
     // But we could create a minimal draft piece
   }
 
-  const handleMediaSave = async (mediaIds: string[], primaryId: string | null, uploadedIds: string[]) => {
-    setState(prev => ({
+  const handleMediaSave = async (
+    mediaIds: string[],
+    primaryId: string | null,
+    uploadedIds: string[],
+  ) => {
+    setState((prev) => ({
       ...prev,
       mediaIds,
       primaryMediaId: primaryId,
@@ -215,7 +222,7 @@ export function QuickLaunchWizard({
     }
 
     // Combine state update with step transition
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       loading: false,
       completedSteps: prev.completedSteps.includes('media')
@@ -226,7 +233,7 @@ export function QuickLaunchWizard({
   }
 
   const handleMediaSkip = () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       completedSteps: prev.completedSteps.includes('media')
         ? prev.completedSteps
@@ -235,8 +242,12 @@ export function QuickLaunchWizard({
     }))
   }
 
-  const handleMarketplaceSave = async (selection: { storefront: boolean; etsy: boolean; ebay: boolean }) => {
-    setState(prev => ({
+  const handleMarketplaceSave = async (selection: {
+    storefront: boolean
+    etsy: boolean
+    ebay: boolean
+  }) => {
+    setState((prev) => ({
       ...prev,
       marketplaces: selection,
       loading: true,
@@ -280,7 +291,7 @@ export function QuickLaunchWizard({
     }
 
     // Combine state update with step transition
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       loading: false,
       completedSteps: prev.completedSteps.includes('marketplace')
@@ -296,7 +307,7 @@ export function QuickLaunchWizard({
     scheduleTime: Date | null
     selectedMediaIds: string[]
   }) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       social: data,
       loading: true,
@@ -319,7 +330,7 @@ export function QuickLaunchWizard({
 
         if (response.ok) {
           const { publishRecord } = await response.json()
-          setState(prev => ({ ...prev, publishRecordId: publishRecord.id }))
+          setState((prev) => ({ ...prev, publishRecordId: publishRecord.id }))
 
           // Execute immediately if not scheduled
           if (!data.scheduleTime) {
@@ -337,7 +348,7 @@ export function QuickLaunchWizard({
     await deleteDraft()
 
     // Combine state update with step transition
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       loading: false,
       completedSteps: prev.completedSteps.includes('social')
@@ -350,7 +361,7 @@ export function QuickLaunchWizard({
   const handleSocialSkip = async () => {
     // Delete draft on completion
     await deleteDraft()
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       completedSteps: prev.completedSteps.includes('social')
         ? prev.completedSteps
@@ -366,7 +377,7 @@ export function QuickLaunchWizard({
   // Get current step's media items (for steps that need them)
   const getSelectedMediaItems = (): MediaItem[] => {
     return state.mediaIds
-      .map(id => mediaItems.find(m => m.id === id))
+      .map((id) => mediaItems.find((m) => m.id === id))
       .filter((m): m is MediaItem => !!m)
   }
 

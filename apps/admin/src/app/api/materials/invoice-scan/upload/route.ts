@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { uploadToR2 } from '@madebuy/storage'
 import { invoices } from '@madebuy/db'
+import { uploadToR2 } from '@madebuy/storage'
 import { nanoid } from 'nanoid'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * POST /api/materials/invoice-scan/upload
@@ -24,11 +24,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+    const validTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'application/pdf',
+    ]
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
         { error: 'Invalid file type. Please upload JPG, PNG, or PDF' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: 'File too large. Maximum size is 20MB' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -57,8 +62,8 @@ export async function POST(request: NextRequest) {
       contentType: file.type,
       metadata: {
         originalFileName: file.name,
-        type: 'invoice'
-      }
+        type: 'invoice',
+      },
     })
     const fileUrl = result.url
 
@@ -69,24 +74,28 @@ export async function POST(request: NextRequest) {
       currency: 'AUD', // Default, can be updated after OCR
     })
 
-    return NextResponse.json({
-      success: true,
-      invoiceId: invoice.id,
-      invoice,
-      message: 'Invoice uploaded successfully'
-    }, { status: 201 })
+    return NextResponse.json(
+      {
+        success: true,
+        invoiceId: invoice.id,
+        invoice,
+        message: 'Invoice uploaded successfully',
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error('Error uploading invoice:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to upload invoice',
         details: errorMessage,
-        code: 'UPLOAD_FAILED'
+        code: 'UPLOAD_FAILED',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

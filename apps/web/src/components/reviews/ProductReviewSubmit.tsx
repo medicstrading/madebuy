@@ -1,7 +1,7 @@
 'use client'
 
+import { CheckCircle2, Loader2, Mail, Star, XCircle } from 'lucide-react'
 import { useState } from 'react'
-import { Mail, Loader2, CheckCircle2, XCircle, Star } from 'lucide-react'
 import { ReviewForm } from './ReviewForm'
 
 interface ProductReviewSubmitProps {
@@ -100,7 +100,8 @@ export function ProductReviewSubmit({
           Thank you for your review!
         </h3>
         <p className="mt-2 text-gray-600">
-          Your review has been submitted and is pending approval. Once approved, it will appear on this product page.
+          Your review has been submitted and is pending approval. Once approved,
+          it will appear on this product page.
         </p>
       </div>
     )
@@ -155,9 +156,7 @@ export function ProductReviewSubmit({
           <h3 className="mt-4 text-lg font-semibold text-gray-900">
             Purchase Not Found
           </h3>
-          <p className="mt-2 text-gray-600">
-            {state.message}
-          </p>
+          <p className="mt-2 text-gray-600">{state.message}</p>
           <p className="mt-2 text-sm text-gray-500">
             Only customers who have received their order can leave a review.
           </p>

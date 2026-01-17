@@ -29,49 +29,45 @@
  * ```
  */
 
-// Main component
-export { VariantEditor } from './VariantEditor'
-
-// Individual components
-export { VariantAttributeEditor } from './VariantAttributeEditor'
-export { VariantMatrix } from './VariantMatrix'
-export { VariantRow } from './VariantRow'
-export { VariantQuickEdit } from './VariantQuickEdit'
-export { VariantSummary } from './VariantSummary'
-
-// Hook
-export { useVariantEditor } from './useVariantEditor'
-
-// Types
-export type {
-  VariantAttribute,
-  VariantAttributeValue,
-  EditableVariant,
-  VariantEditorState,
-  VariantEditorSnapshot,
-  AttributePreset,
-  BulkEditAction,
-  VariantValidationError,
-  SkuValidationResult,
-  VariantSummaryStats,
-  VariantAttributeEditorProps,
-  VariantMatrixProps,
-  VariantRowProps,
-  VariantQuickEditProps,
-  VariantSummaryProps,
-} from './types'
-
 // Constants and utilities
 export {
-  MAX_ATTRIBUTES,
-  MAX_COMBINATIONS_WARNING,
-  MAX_COMBINATIONS_HARD_LIMIT,
-  LOW_STOCK_DEFAULT_THRESHOLD,
-  VARIANTS_PER_PAGE,
   ATTRIBUTE_PRESETS,
   COMMON_ATTRIBUTE_NAMES,
-  STOCK_STATUS,
+  calculateCombinations,
   generateId,
   generateSku,
-  calculateCombinations,
+  LOW_STOCK_DEFAULT_THRESHOLD,
+  MAX_ATTRIBUTES,
+  MAX_COMBINATIONS_HARD_LIMIT,
+  MAX_COMBINATIONS_WARNING,
+  STOCK_STATUS,
+  VARIANTS_PER_PAGE,
 } from './constants'
+// Types
+export type {
+  AttributePreset,
+  BulkEditAction,
+  EditableVariant,
+  SkuValidationResult,
+  VariantAttribute,
+  VariantAttributeEditorProps,
+  VariantAttributeValue,
+  VariantEditorSnapshot,
+  VariantEditorState,
+  VariantMatrixProps,
+  VariantQuickEditProps,
+  VariantRowProps,
+  VariantSummaryProps,
+  VariantSummaryStats,
+  VariantValidationError,
+} from './types'
+// Hook
+export { useVariantEditor } from './useVariantEditor'
+// Individual components
+export { VariantAttributeEditor } from './VariantAttributeEditor'
+// Main component
+export { VariantEditor } from './VariantEditor'
+export { VariantMatrix } from './VariantMatrix'
+export { VariantQuickEdit } from './VariantQuickEdit'
+export { VariantRow } from './VariantRow'
+export { VariantSummary } from './VariantSummary'

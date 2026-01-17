@@ -8,14 +8,17 @@ interface ProductViewTrackerProps {
   productId: string
 }
 
-export function ProductViewTracker({ tenantId, productId }: ProductViewTrackerProps) {
+export function ProductViewTracker({
+  tenantId,
+  productId,
+}: ProductViewTrackerProps) {
   const { trackProductView } = useAnalytics(tenantId)
 
   useEffect(() => {
     trackProductView(productId)
     // Only track once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [productId, trackProductView])
 
   return null
 }

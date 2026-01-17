@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * Authentication E2E tests for MadeBuy Admin
@@ -12,13 +12,17 @@ test.describe('Authentication', () => {
       await page.goto('/login')
 
       // Verify login form elements are present
-      await expect(page.getByRole('heading', { name: /madebuy/i })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: /madebuy/i }),
+      ).toBeVisible()
       await expect(page.locator('#email')).toBeVisible()
       await expect(page.locator('#password')).toBeVisible()
       await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
     })
 
-    test('should show validation errors for empty form submission', async ({ page }) => {
+    test('should show validation errors for empty form submission', async ({
+      page,
+    }) => {
       await page.goto('/login')
 
       // Submit empty form (HTML5 validation should prevent submission)
@@ -43,11 +47,18 @@ test.describe('Authentication', () => {
       await page.getByRole('button', { name: /sign in/i }).click()
 
       // Wait for button to show loading state then return
-      await expect(page.getByRole('button', { name: /signing in/i })).toBeVisible({ timeout: 5000 }).catch(() => {})
-      await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible({ timeout: 20000 })
+      await expect(page.getByRole('button', { name: /signing in/i }))
+        .toBeVisible({ timeout: 5000 })
+        .catch(() => {})
+      await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible({
+        timeout: 20000,
+      })
 
       // Should show error or still be on login page
-      const hasError = await page.locator('.bg-red-50').isVisible().catch(() => false)
+      const hasError = await page
+        .locator('.bg-red-50')
+        .isVisible()
+        .catch(() => false)
       const onLoginPage = page.url().includes('/login')
 
       expect(hasError || onLoginPage).toBeTruthy()
@@ -71,9 +82,14 @@ test.describe('Authentication', () => {
 
     // Skip these tests - they require valid database credentials
     // TODO: Set up test tenant seed script or use E2E_SKIP_AUTH_TESTS=false
-    test.skip(process.env.E2E_SKIP_AUTH_TESTS !== 'false', 'Auth tests require valid database credentials')
+    test.skip(
+      process.env.E2E_SKIP_AUTH_TESTS !== 'false',
+      'Auth tests require valid database credentials',
+    )
 
-    test('should login successfully with valid credentials', async ({ page }) => {
+    test('should login successfully with valid credentials', async ({
+      page,
+    }) => {
       await page.goto('/login')
 
       // Fill in valid credentials
@@ -96,8 +112,12 @@ test.describe('Authentication', () => {
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
 
       // Click logout (may be in dropdown menu)
-      const logoutButton = page.getByRole('button', { name: /logout|sign out/i })
-      const menuTrigger = page.getByRole('button', { name: /menu|account|profile/i })
+      const logoutButton = page.getByRole('button', {
+        name: /logout|sign out/i,
+      })
+      const menuTrigger = page.getByRole('button', {
+        name: /menu|account|profile/i,
+      })
 
       // Try direct logout button first, then menu
       if (await logoutButton.isVisible()) {

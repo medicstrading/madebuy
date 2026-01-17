@@ -1,8 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Percent, CheckCircle, AlertCircle, Loader2, FileText, ChevronDown, DollarSign } from 'lucide-react'
-import type { TenantTaxSettings, QuarterlyGSTReport } from '@madebuy/shared'
+import type { QuarterlyGSTReport, TenantTaxSettings } from '@madebuy/shared'
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  DollarSign,
+  FileText,
+  Loader2,
+  Percent,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
 
 // Helper to format cents to dollars
@@ -19,7 +27,7 @@ function getQuarterOptions(): { value: string; label: string }[] {
   const now = new Date()
 
   for (let i = 0; i < 8; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - (i * 3), 1)
+    const date = new Date(now.getFullYear(), now.getMonth() - i * 3, 1)
     const year = date.getFullYear()
     const quarter = Math.floor(date.getMonth() / 3) + 1
     const quarterStr = `${year}-Q${quarter}`
@@ -42,12 +50,16 @@ export default function TaxSettingsPage() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
   const [abnError, setAbnError] = useState<string | null>(null)
 
   // Track initial settings to detect unsaved changes
   const initialSettingsRef = useRef<TenantTaxSettings | null>(null)
-  const isDirty = initialSettingsRef.current !== null &&
+  const isDirty =
+    initialSettingsRef.current !== null &&
     JSON.stringify(settings) !== JSON.stringify(initialSettingsRef.current)
 
   // Warn user about unsaved changes when leaving the page
@@ -117,7 +129,7 @@ export default function TaxSettingsPage() {
     if (settings.gstRegistered && !isLoading) {
       fetchGstReport(selectedQuarter)
     }
-  }, [selectedQuarter, settings.gstRegistered, isLoading])
+  }, [selectedQuarter, settings.gstRegistered, isLoading, fetchGstReport])
 
   // Validate ABN format (11 digits)
   const validateABN = (abn: string): boolean => {
@@ -158,15 +170,27 @@ export default function TaxSettingsPage() {
       })
 
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Tax settings saved successfully!' })
+        setMessage({
+          type: 'success',
+          text: 'Tax settings saved successfully!',
+        })
         // Update initial settings reference after successful save
-        initialSettingsRef.current = { ...settings, abn: settings.abn?.replace(/\s/g, '') }
+        initialSettingsRef.current = {
+          ...settings,
+          abn: settings.abn?.replace(/\s/g, ''),
+        }
       } else {
         const data = await res.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to save settings' })
+        setMessage({
+          type: 'error',
+          text: data.error || 'Failed to save settings',
+        })
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to save settings. Please try again.' })
+    } catch (_error) {
+      setMessage({
+        type: 'error',
+        text: 'Failed to save settings. Please try again.',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -177,7 +201,8 @@ export default function TaxSettingsPage() {
     const cleaned = value.replace(/\D/g, '').slice(0, 11)
     if (cleaned.length <= 2) return cleaned
     if (cleaned.length <= 5) return `${cleaned.slice(0, 2)} ${cleaned.slice(2)}`
-    if (cleaned.length <= 8) return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5)}`
+    if (cleaned.length <= 8)
+      return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5)}`
     return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 8)} ${cleaned.slice(8)}`
   }
 
@@ -222,15 +247,22 @@ export default function TaxSettingsPage() {
           <div>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-900">GST Registered</h3>
+                <h3 className="text-sm font-medium text-gray-900">
+                  GST Registered
+                </h3>
                 <p className="text-sm text-gray-500">
-                  Are you registered for Goods and Services Tax (GST) in Australia?
+                  Are you registered for Goods and Services Tax (GST) in
+                  Australia?
                 </p>
               </div>
               <button
                 type="button"
+                type="button"
                 onClick={() =>
-                  setSettings((s) => ({ ...s, gstRegistered: !s.gstRegistered }))
+                  setSettings((s) => ({
+                    ...s,
+                    gstRegistered: !s.gstRegistered,
+                  }))
                 }
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   settings.gstRegistered ? 'bg-blue-600' : 'bg-gray-200'
@@ -263,7 +295,9 @@ export default function TaxSettingsPage() {
                   id="abn"
                   value={formatABN(settings.abn || '')}
                   onChange={(e) => {
-                    const cleaned = e.target.value.replace(/\D/g, '').slice(0, 11)
+                    const cleaned = e.target.value
+                      .replace(/\D/g, '')
+                      .slice(0, 11)
                     setSettings((s) => ({ ...s, abn: cleaned }))
                     if (abnError) validateABN(cleaned)
                   }}
@@ -298,7 +332,10 @@ export default function TaxSettingsPage() {
                     onChange={(e) =>
                       setSettings((s) => ({
                         ...s,
-                        gstRate: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)),
+                        gstRate: Math.max(
+                          0,
+                          Math.min(100, parseInt(e.target.value, 10) || 0),
+                        ),
                       }))
                     }
                     min="0"
@@ -317,10 +354,12 @@ export default function TaxSettingsPage() {
                       Prices Include GST
                     </h3>
                     <p className="text-sm text-gray-500">
-                      Are your product prices GST-inclusive? (Recommended for B2C)
+                      Are your product prices GST-inclusive? (Recommended for
+                      B2C)
                     </p>
                   </div>
                   <button
+                    type="button"
                     type="button"
                     onClick={() =>
                       setSettings((s) => ({
@@ -334,7 +373,9 @@ export default function TaxSettingsPage() {
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        settings.pricesIncludeGst ? 'translate-x-5' : 'translate-x-0'
+                        settings.pricesIncludeGst
+                          ? 'translate-x-5'
+                          : 'translate-x-0'
                       }`}
                     />
                   </button>
@@ -345,11 +386,18 @@ export default function TaxSettingsPage() {
 
           {/* Info Box */}
           <div className="rounded-lg bg-blue-50 p-4">
-            <h4 className="text-sm font-medium text-blue-800">About GST in Australia</h4>
+            <h4 className="text-sm font-medium text-blue-800">
+              About GST in Australia
+            </h4>
             <ul className="mt-2 text-sm text-blue-700 list-disc list-inside space-y-1">
-              <li>GST registration is required if annual turnover exceeds $75,000</li>
+              <li>
+                GST registration is required if annual turnover exceeds $75,000
+              </li>
               <li>GST rate in Australia is 10%</li>
-              <li>If registered, you must display prices inclusive of GST to consumers</li>
+              <li>
+                If registered, you must display prices inclusive of GST to
+                consumers
+              </li>
               <li>You can claim GST credits on business purchases</li>
             </ul>
           </div>
@@ -358,6 +406,7 @@ export default function TaxSettingsPage() {
         {/* Save Button */}
         <div className="mt-6 flex justify-end border-t pt-6">
           <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
             className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
@@ -384,7 +433,8 @@ export default function TaxSettingsPage() {
                 GST / BAS Summary Report
               </h2>
               <p className="mt-1 text-sm text-gray-600">
-                Quarterly GST summary for Business Activity Statement (BAS) reporting
+                Quarterly GST summary for Business Activity Statement (BAS)
+                reporting
               </p>
             </div>
 
@@ -436,7 +486,8 @@ export default function TaxSettingsPage() {
                     {formatCurrency(gstReport.gstCollected)}
                   </p>
                   <p className="mt-1 text-sm text-green-600">
-                    From {gstReport.salesCount} sales ({formatCurrency(gstReport.salesGross)} gross)
+                    From {gstReport.salesCount} sales (
+                    {formatCurrency(gstReport.salesGross)} gross)
                   </p>
                 </div>
 
@@ -450,60 +501,103 @@ export default function TaxSettingsPage() {
                     {formatCurrency(gstReport.gstPaid)}
                   </p>
                   <p className="mt-1 text-sm text-red-600">
-                    From {gstReport.refundsCount} refunds ({formatCurrency(gstReport.refundsTotal)} total)
+                    From {gstReport.refundsCount} refunds (
+                    {formatCurrency(gstReport.refundsTotal)} total)
                   </p>
                 </div>
 
                 {/* Net GST */}
-                <div className={`rounded-lg p-4 ${gstReport.netGst >= 0 ? 'bg-blue-50' : 'bg-amber-50'}`}>
-                  <div className={`flex items-center gap-2 ${gstReport.netGst >= 0 ? 'text-blue-700' : 'text-amber-700'}`}>
+                <div
+                  className={`rounded-lg p-4 ${gstReport.netGst >= 0 ? 'bg-blue-50' : 'bg-amber-50'}`}
+                >
+                  <div
+                    className={`flex items-center gap-2 ${gstReport.netGst >= 0 ? 'text-blue-700' : 'text-amber-700'}`}
+                  >
                     <DollarSign className="h-5 w-5" />
                     <span className="text-sm font-medium">Net GST Payable</span>
                   </div>
-                  <p className={`mt-2 text-2xl font-bold ${gstReport.netGst >= 0 ? 'text-blue-800' : 'text-amber-800'}`}>
+                  <p
+                    className={`mt-2 text-2xl font-bold ${gstReport.netGst >= 0 ? 'text-blue-800' : 'text-amber-800'}`}
+                  >
                     {formatCurrency(Math.abs(gstReport.netGst))}
                   </p>
-                  <p className={`mt-1 text-sm ${gstReport.netGst >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
-                    {gstReport.netGst >= 0 ? 'Amount to remit to ATO' : 'Refund due from ATO'}
+                  <p
+                    className={`mt-1 text-sm ${gstReport.netGst >= 0 ? 'text-blue-600' : 'text-amber-600'}`}
+                  >
+                    {gstReport.netGst >= 0
+                      ? 'Amount to remit to ATO'
+                      : 'Refund due from ATO'}
                   </p>
                 </div>
               </div>
 
               {/* Detailed Breakdown Table */}
               <div className="border-t pt-6">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Detailed Breakdown</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">
+                  Detailed Breakdown
+                </h3>
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead>
                     <tr>
-                      <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Item</th>
-                      <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Amount</th>
+                      <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                        Item
+                      </th>
+                      <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                        Amount
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     <tr>
-                      <td className="py-2 text-sm text-gray-600">Gross Sales (incl. GST)</td>
-                      <td className="py-2 text-sm text-gray-900 text-right font-medium">{formatCurrency(gstReport.salesGross)}</td>
+                      <td className="py-2 text-sm text-gray-600">
+                        Gross Sales (incl. GST)
+                      </td>
+                      <td className="py-2 text-sm text-gray-900 text-right font-medium">
+                        {formatCurrency(gstReport.salesGross)}
+                      </td>
                     </tr>
                     <tr>
-                      <td className="py-2 text-sm text-gray-600">GST Component of Sales</td>
-                      <td className="py-2 text-sm text-green-600 text-right font-medium">+ {formatCurrency(gstReport.gstCollected)}</td>
+                      <td className="py-2 text-sm text-gray-600">
+                        GST Component of Sales
+                      </td>
+                      <td className="py-2 text-sm text-green-600 text-right font-medium">
+                        + {formatCurrency(gstReport.gstCollected)}
+                      </td>
                     </tr>
                     <tr>
-                      <td className="py-2 text-sm text-gray-600">Net Sales (excl. GST)</td>
-                      <td className="py-2 text-sm text-gray-900 text-right font-medium">{formatCurrency(gstReport.salesNet)}</td>
+                      <td className="py-2 text-sm text-gray-600">
+                        Net Sales (excl. GST)
+                      </td>
+                      <td className="py-2 text-sm text-gray-900 text-right font-medium">
+                        {formatCurrency(gstReport.salesNet)}
+                      </td>
                     </tr>
                     <tr className="bg-gray-50">
-                      <td className="py-2 text-sm text-gray-600">Total Refunds</td>
-                      <td className="py-2 text-sm text-gray-900 text-right font-medium">{formatCurrency(gstReport.refundsTotal)}</td>
+                      <td className="py-2 text-sm text-gray-600">
+                        Total Refunds
+                      </td>
+                      <td className="py-2 text-sm text-gray-900 text-right font-medium">
+                        {formatCurrency(gstReport.refundsTotal)}
+                      </td>
                     </tr>
                     <tr className="bg-gray-50">
-                      <td className="py-2 text-sm text-gray-600">GST Component of Refunds</td>
-                      <td className="py-2 text-sm text-red-600 text-right font-medium">- {formatCurrency(gstReport.gstPaid)}</td>
+                      <td className="py-2 text-sm text-gray-600">
+                        GST Component of Refunds
+                      </td>
+                      <td className="py-2 text-sm text-red-600 text-right font-medium">
+                        - {formatCurrency(gstReport.gstPaid)}
+                      </td>
                     </tr>
                     <tr className="border-t-2 border-gray-300">
-                      <td className="py-3 text-sm font-bold text-gray-900">Net GST Payable to ATO</td>
-                      <td className={`py-3 text-sm font-bold text-right ${gstReport.netGst >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
-                        {gstReport.netGst >= 0 ? '' : '('}{formatCurrency(Math.abs(gstReport.netGst))}{gstReport.netGst >= 0 ? '' : ')'}
+                      <td className="py-3 text-sm font-bold text-gray-900">
+                        Net GST Payable to ATO
+                      </td>
+                      <td
+                        className={`py-3 text-sm font-bold text-right ${gstReport.netGst >= 0 ? 'text-blue-600' : 'text-amber-600'}`}
+                      >
+                        {gstReport.netGst >= 0 ? '' : '('}
+                        {formatCurrency(Math.abs(gstReport.netGst))}
+                        {gstReport.netGst >= 0 ? '' : ')'}
                       </td>
                     </tr>
                   </tbody>
@@ -513,7 +607,9 @@ export default function TaxSettingsPage() {
               {/* Report Period Info */}
               <div className="border-t pt-4">
                 <p className="text-xs text-gray-500">
-                  Report Period: {new Date(gstReport.startDate).toLocaleDateString('en-AU')} - {new Date(gstReport.endDate).toLocaleDateString('en-AU')}
+                  Report Period:{' '}
+                  {new Date(gstReport.startDate).toLocaleDateString('en-AU')} -{' '}
+                  {new Date(gstReport.endDate).toLocaleDateString('en-AU')}
                   {' | '}GST Rate: {gstReport.gstRate}%
                 </p>
               </div>

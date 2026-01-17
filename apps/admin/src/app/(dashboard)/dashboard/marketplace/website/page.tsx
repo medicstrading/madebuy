@@ -1,6 +1,6 @@
-import { requireTenant } from '@/lib/session'
-import { pieces, media, collections } from '@madebuy/db'
+import { collections, media, pieces } from '@madebuy/db'
 import { WebsiteListingsClient } from '@/components/marketplace/WebsiteListingsClient'
+import { requireTenant } from '@/lib/session'
 
 export const metadata = {
   title: 'Website Listings - MadeBuy Admin',
@@ -19,7 +19,10 @@ export default async function WebsiteListingsPage() {
 
   // Create media lookup map for thumbnails
   const mediaMap = new Map(
-    allMedia.map(m => [m.id, m.variants.thumb?.url || m.variants.original?.url])
+    allMedia.map((m) => [
+      m.id,
+      m.variants.thumb?.url || m.variants.original?.url,
+    ]),
   )
 
   // Create piece → collections map
@@ -29,12 +32,15 @@ export default async function WebsiteListingsPage() {
       if (!pieceCollectionsMap[pieceId]) {
         pieceCollectionsMap[pieceId] = []
       }
-      pieceCollectionsMap[pieceId].push({ id: collection.id, name: collection.name })
+      pieceCollectionsMap[pieceId].push({
+        id: collection.id,
+        name: collection.name,
+      })
     }
   }
 
   // Add thumbnail URLs to pieces
-  const piecesWithThumbnails = allPieces.map(piece => ({
+  const piecesWithThumbnails = allPieces.map((piece) => ({
     ...piece,
     thumbnailUrl: piece.primaryMediaId
       ? mediaMap.get(piece.primaryMediaId)
@@ -44,7 +50,7 @@ export default async function WebsiteListingsPage() {
   }))
 
   // Serialize collections for client (strip MongoDB-specific fields)
-  const serializedCollections = allCollections.map(c => ({
+  const serializedCollections = allCollections.map((c) => ({
     id: c.id,
     name: c.name,
     slug: c.slug,

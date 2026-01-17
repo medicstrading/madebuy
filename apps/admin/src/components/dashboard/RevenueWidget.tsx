@@ -1,7 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { DollarSign, TrendingUp, TrendingDown, RefreshCw, AlertCircle } from 'lucide-react'
+import {
+  AlertCircle,
+  DollarSign,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface RevenueStats {
   today: number
@@ -48,7 +54,9 @@ export function RevenueWidget() {
       const result = await response.json()
       setData(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load revenue data')
+      setError(
+        err instanceof Error ? err.message : 'Failed to load revenue data',
+      )
     } finally {
       setLoading(false)
     }
@@ -76,6 +84,7 @@ export function RevenueWidget() {
           <h2 className="text-base font-semibold text-gray-900">Revenue</h2>
         </div>
         <button
+          type="button"
           onClick={fetchRevenue}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
           title="Refresh revenue data"
@@ -238,6 +247,7 @@ function RevenueWidgetError({
             {error || 'An unexpected error occurred'}
           </p>
           <button
+            type="button"
             onClick={onRetry}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
           >

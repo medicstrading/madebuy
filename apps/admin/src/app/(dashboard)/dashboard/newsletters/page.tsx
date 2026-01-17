@@ -1,9 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Plus, Newspaper, Trash2, Edit, Send, Settings, CheckCircle } from 'lucide-react'
 import type { Newsletter, NewsletterStats } from '@madebuy/shared'
+import {
+  CheckCircle,
+  Edit,
+  Newspaper,
+  Plus,
+  Send,
+  Settings,
+  Trash2,
+} from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 export default function NewslettersPage() {
   const [newsletters, setNewsletters] = useState<Newsletter[]>([])
@@ -14,7 +22,7 @@ export default function NewslettersPage() {
   useEffect(() => {
     fetchNewsletters()
     fetchStats()
-  }, [])
+  }, [fetchNewsletters, fetchStats])
 
   async function fetchNewsletters() {
     try {
@@ -39,7 +47,12 @@ export default function NewslettersPage() {
   }
 
   async function sendNewsletter(id: string) {
-    if (!confirm('Are you sure you want to send this newsletter? This action cannot be undone.')) return
+    if (
+      !confirm(
+        'Are you sure you want to send this newsletter? This action cannot be undone.',
+      )
+    )
+      return
 
     setSending(id)
     try {
@@ -94,7 +107,9 @@ export default function NewslettersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Newsletters</h1>
-          <p className="text-gray-500 mt-1">Create and send newsletters to your subscribers</p>
+          <p className="text-gray-500 mt-1">
+            Create and send newsletters to your subscribers
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -119,15 +134,21 @@ export default function NewslettersPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Total Newsletters</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">
+              {stats.total}
+            </p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Drafts</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">{stats.drafts}</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">
+              {stats.drafts}
+            </p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Sent</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{stats.sent}</p>
+            <p className="text-2xl font-bold text-green-600 mt-1">
+              {stats.sent}
+            </p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Last Sent</p>
@@ -143,8 +164,12 @@ export default function NewslettersPage() {
         {newsletters.length === 0 ? (
           <div className="p-12 text-center">
             <Newspaper className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No newsletters yet</h3>
-            <p className="text-gray-500 mb-4">Create your first newsletter to engage with your subscribers.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No newsletters yet
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Create your first newsletter to engage with your subscribers.
+            </p>
             <Link
               href="/dashboard/newsletters/new"
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -177,7 +202,9 @@ export default function NewslettersPage() {
                     <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                       <span>Created {formatDate(newsletter.createdAt)}</span>
                       {newsletter.sentAt && (
-                        <span>Sent to {newsletter.recipientCount} subscribers</span>
+                        <span>
+                          Sent to {newsletter.recipientCount} subscribers
+                        </span>
                       )}
                     </div>
                   </div>
@@ -193,6 +220,7 @@ export default function NewslettersPage() {
                           <Edit className="h-4 w-4" />
                         </Link>
                         <button
+                          type="button"
                           onClick={() => sendNewsletter(newsletter.id)}
                           disabled={sending === newsletter.id}
                           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
@@ -204,6 +232,7 @@ export default function NewslettersPage() {
                       </>
                     )}
                     <button
+                      type="button"
                       onClick={() => deleteNewsletter(newsletter.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete"

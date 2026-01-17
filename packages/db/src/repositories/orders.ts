@@ -1,6 +1,6 @@
+import type { CreateOrderInput, Order } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Order, CreateOrderInput } from '@madebuy/shared'
 
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase()
@@ -8,8 +8,16 @@ function generateOrderNumber(): string {
   return `ORD-${timestamp}-${random}`
 }
 
-function calculateOrderTotals(items: Order['items'], shipping: number, tax: number, discount: number = 0) {
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+function calculateOrderTotals(
+  items: Order['items'],
+  shipping: number,
+  tax: number,
+  discount: number = 0,
+) {
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  )
   const total = subtotal + shipping + tax - discount
   return { subtotal, total }
 }
@@ -17,7 +25,13 @@ function calculateOrderTotals(items: Order['items'], shipping: number, tax: numb
 export async function createOrder(
   tenantId: string,
   data: CreateOrderInput,
-  pricing: { shipping: number; tax: number; discount?: number; currency?: string; stripeSessionId?: string }
+  pricing: {
+    shipping: number
+    tax: number
+    discount?: number
+    currency?: string
+    stripeSessionId?: string
+  },
 ): Promise<Order> {
   const db = await getDatabase()
 
@@ -25,7 +39,7 @@ export async function createOrder(
     data.items,
     pricing.shipping,
     pricing.tax,
-    pricing.discount || 0
+    pricing.discount || 0,
   )
 
   const order: Order = {
@@ -60,36 +74,59 @@ export async function createOrder(
   return order
 }
 
-export async function getOrder(tenantId: string, id: string): Promise<Order | null> {
+export async function getOrder(
+  tenantId: string,
+  id: string,
+): Promise<Order | null> {
   const db = await getDatabase()
-  return await db.collection('orders').findOne({ tenantId, id }) as Order | null
+  return (await db
+    .collection('orders')
+    .findOne({ tenantId, id })) as Order | null
 }
 
-export async function getOrderByNumber(tenantId: string, orderNumber: string): Promise<Order | null> {
+export async function getOrderByNumber(
+  tenantId: string,
+  orderNumber: string,
+): Promise<Order | null> {
   const db = await getDatabase()
-  return await db.collection('orders').findOne({ tenantId, orderNumber }) as Order | null
+  return (await db
+    .collection('orders')
+    .findOne({ tenantId, orderNumber })) as Order | null
 }
 
-export async function getOrderByPaymentIntent(paymentIntentId: string): Promise<Order | null> {
+export async function getOrderByPaymentIntent(
+  paymentIntentId: string,
+): Promise<Order | null> {
   const db = await getDatabase()
-  return await db.collection('orders').findOne({ paymentIntentId }) as Order | null
+  return (await db
+    .collection('orders')
+    .findOne({ paymentIntentId })) as Order | null
 }
 
 /**
  * Get order by Stripe checkout session ID (for idempotency checks)
  */
-export async function getOrderByStripeSessionId(tenantId: string, sessionId: string): Promise<Order | null> {
+export async function getOrderByStripeSessionId(
+  tenantId: string,
+  sessionId: string,
+): Promise<Order | null> {
   const db = await getDatabase()
-  return await db.collection('orders').findOne({ tenantId, stripeSessionId: sessionId }) as Order | null
+  return (await db
+    .collection('orders')
+    .findOne({ tenantId, stripeSessionId: sessionId })) as Order | null
 }
 
 /**
  * Get order by order number (global lookup, no tenant required)
  * Order numbers are unique across all tenants
  */
-export async function getOrderByOrderNumber(orderNumber: string): Promise<Order | null> {
+export async function getOrderByOrderNumber(
+  orderNumber: string,
+): Promise<Order | null> {
   const db = await getDatabase()
-  return await db.collection('orders').findOne({ orderNumber }) as Order | null
+  return (await db
+    .collection('orders')
+    .findOne({ orderNumber })) as Order | null
 }
 
 export async function listOrders(
@@ -102,7 +139,7 @@ export async function listOrders(
     offset?: number
     /** If true, returns only essential fields for list views (reduces bandwidth) */
     listView?: boolean
-  }
+  },
 ): Promise<Order[]> {
   const db = await getDatabase()
 
@@ -120,8 +157,7 @@ export async function listOrders(
     query.customerEmail = filters.customerEmail
   }
 
-  let cursor = db.collection('orders')
-    .find(query)
+  let cursor = db.collection('orders').find(query)
 
   // Add projection for list views to reduce data transfer
   if (filters?.listView) {
@@ -160,7 +196,7 @@ export async function listOrders(
 export async function updateOrderStatus(
   tenantId: string,
   id: string,
-  status: Order['status']
+  status: Order['status'],
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
@@ -169,15 +205,15 @@ export async function updateOrderStatus(
       $set: {
         status,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
 export async function updateOrderPaymentStatus(
   tenantId: string,
   id: string,
-  paymentStatus: Order['paymentStatus']
+  paymentStatus: Order['paymentStatus'],
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
@@ -186,15 +222,17 @@ export async function updateOrderPaymentStatus(
       $set: {
         paymentStatus,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
 export async function updateOrder(
   tenantId: string,
   id: string,
-  updates: Partial<Omit<Order, 'id' | 'tenantId' | 'orderNumber' | 'createdAt'>>
+  updates: Partial<
+    Omit<Order, 'id' | 'tenantId' | 'orderNumber' | 'createdAt'>
+  >,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
@@ -203,8 +241,8 @@ export async function updateOrder(
       $set: {
         ...updates,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -230,18 +268,21 @@ export async function getOrderStats(tenantId: string): Promise<{
   total: number
 }> {
   const db = await getDatabase()
-  const result = await db.collection('orders').aggregate([
-    { $match: { tenantId } },
-    { $group: { _id: '$status', count: { $sum: 1 } } }
-  ]).toArray()
+  const result = await db
+    .collection('orders')
+    .aggregate([
+      { $match: { tenantId } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ])
+    .toArray()
 
-  const statusMap = new Map(result.map(r => [r._id, r.count]))
+  const statusMap = new Map(result.map((r) => [r._id, r.count]))
   return {
     pending: statusMap.get('pending') || 0,
     processing: statusMap.get('processing') || 0,
     shipped: statusMap.get('shipped') || 0,
     delivered: statusMap.get('delivered') || 0,
-    total: result.reduce((sum, r) => sum + r.count, 0)
+    total: result.reduce((sum, r) => sum + r.count, 0),
   }
 }
 
@@ -251,13 +292,14 @@ export async function getOrderStats(tenantId: string): Promise<{
  */
 export async function getOrdersForSync(
   tenantId: string,
-  days: number = 30
+  days: number = 30,
 ): Promise<Order[]> {
   const db = await getDatabase()
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - days)
 
-  const results = await db.collection('orders')
+  const results = await db
+    .collection('orders')
     .find({
       tenantId,
       paymentStatus: 'paid',
@@ -266,8 +308,8 @@ export async function getOrdersForSync(
       $or: [
         { syncedToAccounting: { $exists: false } },
         { syncedToAccounting: null },
-        { 'syncedToAccounting.xero': { $exists: false } }
-      ]
+        { 'syncedToAccounting.xero': { $exists: false } },
+      ],
     })
     .sort({ createdAt: -1 })
     .toArray()
@@ -281,7 +323,7 @@ export async function getOrdersForSync(
 export async function markAsSynced(
   orderId: string,
   provider: 'xero' | 'myob' | 'quickbooks',
-  externalId: string | undefined
+  externalId: string | undefined,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
@@ -290,11 +332,11 @@ export async function markAsSynced(
       $set: {
         [`syncedToAccounting.${provider}`]: {
           syncedAt: new Date(),
-          externalId: externalId || null
+          externalId: externalId || null,
         },
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 
@@ -303,15 +345,16 @@ export async function markAsSynced(
  */
 export async function getFailedSyncOrders(
   tenantId: string,
-  provider: 'xero' | 'myob' | 'quickbooks'
+  provider: 'xero' | 'myob' | 'quickbooks',
 ): Promise<Order[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('orders')
+  const results = await db
+    .collection('orders')
     .find({
       tenantId,
       paymentStatus: 'paid',
-      [`syncedToAccounting.${provider}.error`]: { $exists: true }
+      [`syncedToAccounting.${provider}.error`]: { $exists: true },
     })
     .sort({ createdAt: -1 })
     .toArray()
@@ -325,7 +368,7 @@ export async function getFailedSyncOrders(
 export async function markSyncFailed(
   orderId: string,
   provider: 'xero' | 'myob' | 'quickbooks',
-  error: string
+  error: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
@@ -334,11 +377,11 @@ export async function markSyncFailed(
       $set: {
         [`syncedToAccounting.${provider}`]: {
           error,
-          failedAt: new Date()
+          failedAt: new Date(),
         },
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 
@@ -349,7 +392,7 @@ export async function markSyncFailed(
 export async function bulkUpdateOrderStatus(
   tenantId: string,
   orderIds: string[],
-  status: Order['status']
+  status: Order['status'],
 ): Promise<number> {
   if (orderIds.length === 0) return 0
 
@@ -357,14 +400,14 @@ export async function bulkUpdateOrderStatus(
   const result = await db.collection('orders').updateMany(
     {
       tenantId,
-      id: { $in: orderIds }
+      id: { $in: orderIds },
     },
     {
       $set: {
         status,
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 
   return result.modifiedCount
@@ -378,7 +421,7 @@ export async function bulkUpdateOrderStatus(
  */
 export async function getOrdersForReviewRequest(
   tenantId: string,
-  minDeliveryDays: number = 7
+  minDeliveryDays: number = 7,
 ): Promise<Order[]> {
   const db = await getDatabase()
 
@@ -408,7 +451,7 @@ export async function getOrdersForReviewRequest(
  */
 export async function markReviewRequestSent(
   tenantId: string,
-  orderId: string
+  orderId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -419,7 +462,7 @@ export async function markReviewRequestSent(
         reviewRequestSentAt: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -435,7 +478,7 @@ export async function markReviewRequestSent(
 export async function findDeliveredOrderWithProduct(
   tenantId: string,
   email: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<Order | null> {
   const db = await getDatabase()
 

@@ -1,14 +1,14 @@
 'use client'
 
+import { usePathname, useRouter } from 'next/navigation'
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
-  useCallback,
-  type ReactNode,
 } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
 
 // Shortcuts configuration
 export const SHORTCUTS = {
@@ -16,12 +16,28 @@ export const SHORTCUTS = {
     label: 'Navigation',
     shortcuts: [
       { keys: ['g', 'd'], label: 'Go to Dashboard', path: '/dashboard' },
-      { keys: ['g', 'i'], label: 'Go to Inventory', path: '/dashboard/inventory' },
+      {
+        keys: ['g', 'i'],
+        label: 'Go to Inventory',
+        path: '/dashboard/inventory',
+      },
       { keys: ['g', 'o'], label: 'Go to Orders', path: '/dashboard/orders' },
-      { keys: ['g', 'c'], label: 'Go to Customers', path: '/dashboard/customers' },
-      { keys: ['g', 'm'], label: 'Go to Materials', path: '/dashboard/materials' },
+      {
+        keys: ['g', 'c'],
+        label: 'Go to Customers',
+        path: '/dashboard/customers',
+      },
+      {
+        keys: ['g', 'm'],
+        label: 'Go to Materials',
+        path: '/dashboard/materials',
+      },
       { keys: ['g', 'p'], label: 'Go to Publish', path: '/dashboard/publish' },
-      { keys: ['g', 's'], label: 'Go to Settings', path: '/dashboard/settings' },
+      {
+        keys: ['g', 's'],
+        label: 'Go to Settings',
+        path: '/dashboard/settings',
+      },
     ],
   },
   actions: {
@@ -51,12 +67,15 @@ interface KeyboardShortcutsContextType {
   pendingKey: string | null
 }
 
-const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | null>(null)
+const KeyboardShortcutsContext =
+  createContext<KeyboardShortcutsContextType | null>(null)
 
 export function useKeyboardShortcuts() {
   const context = useContext(KeyboardShortcutsContext)
   if (!context) {
-    throw new Error('useKeyboardShortcuts must be used within KeyboardShortcutsProvider')
+    throw new Error(
+      'useKeyboardShortcuts must be used within KeyboardShortcutsProvider',
+    )
   }
   return context
 }
@@ -65,7 +84,9 @@ interface KeyboardShortcutsProviderProps {
   children: ReactNode
 }
 
-export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProviderProps) {
+export function KeyboardShortcutsProvider({
+  children,
+}: KeyboardShortcutsProviderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [showHelp, setShowHelp] = useState(false)
@@ -98,7 +119,7 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
 
     // Find partial match for nested routes
     for (const [basePath, newPath] of Object.entries(NEW_ITEM_PATHS)) {
-      if (pathname && pathname.startsWith(basePath)) {
+      if (pathname?.startsWith(basePath)) {
         return newPath
       }
     }
@@ -110,7 +131,7 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
   // Focus search input
   const focusSearch = useCallback(() => {
     const searchInput = document.querySelector<HTMLInputElement>(
-      'input[type="text"][placeholder*="Search"], input[type="search"]'
+      'input[type="text"][placeholder*="Search"], input[type="search"]',
     )
     if (searchInput) {
       searchInput.focus()
@@ -194,7 +215,7 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
 
         // Find matching navigation shortcut
         const navShortcut = SHORTCUTS.navigation.shortcuts.find(
-          (s) => s.keys[1] === key
+          (s) => s.keys[1] === key,
         )
 
         if (navShortcut?.path) {
@@ -212,7 +233,14 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
         clearTimeout(timeoutId)
       }
     }
-  }, [isTypingInInput, pendingKey, showHelp, router, getNewItemPath, focusSearch])
+  }, [
+    isTypingInInput,
+    pendingKey,
+    showHelp,
+    router,
+    getNewItemPath,
+    focusSearch,
+  ])
 
   return (
     <KeyboardShortcutsContext.Provider

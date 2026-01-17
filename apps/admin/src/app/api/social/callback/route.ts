@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { tenants } from '@madebuy/db'
-import { lateClient } from '@madebuy/social'
-import type { SocialPlatform, SocialConnection } from '@madebuy/shared'
+import type { SocialConnection, SocialPlatform } from '@madebuy/shared'
 import { encrypt } from '@madebuy/shared'
+import { lateClient } from '@madebuy/social'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,13 +15,13 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('OAuth error:', error)
       return NextResponse.redirect(
-        new URL('/dashboard/connections?error=oauth_failed', request.url)
+        new URL('/dashboard/connections?error=oauth_failed', request.url),
       )
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/dashboard/connections?error=missing_params', request.url)
+        new URL('/dashboard/connections?error=missing_params', request.url),
       )
     }
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     if (!tenantId || !platform) {
       return NextResponse.redirect(
-        new URL('/dashboard/connections?error=invalid_state', request.url)
+        new URL('/dashboard/connections?error=invalid_state', request.url),
       )
     }
 
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const tenant = await tenants.getTenantById(tenantId)
     if (!tenant) {
       return NextResponse.redirect(
-        new URL('/dashboard/connections?error=tenant_not_found', request.url)
+        new URL('/dashboard/connections?error=tenant_not_found', request.url),
       )
     }
 
@@ -59,8 +59,12 @@ export async function GET(request: NextRequest) {
       platform: platform as SocialPlatform,
       method: 'late',
       // Encrypt sensitive tokens before storage
-      accessToken: tokenResponse.accessToken ? encrypt(tokenResponse.accessToken) : undefined,
-      refreshToken: tokenResponse.refreshToken ? encrypt(tokenResponse.refreshToken) : undefined,
+      accessToken: tokenResponse.accessToken
+        ? encrypt(tokenResponse.accessToken)
+        : undefined,
+      refreshToken: tokenResponse.refreshToken
+        ? encrypt(tokenResponse.refreshToken)
+        : undefined,
       accountId: `${platform}_account`,
       accountName: 'Connected Account',
       isActive: true,
@@ -73,7 +77,7 @@ export async function GET(request: NextRequest) {
     // Update tenant's social connections
     const existingConnections = tenant.socialConnections || []
     const updatedConnections = existingConnections.filter(
-      c => c.platform !== platform
+      (c) => c.platform !== platform,
     )
     updatedConnections.push(newConnection)
 
@@ -83,12 +87,12 @@ export async function GET(request: NextRequest) {
 
     // Redirect back to settings page with success
     return NextResponse.redirect(
-      new URL(`/dashboard/connections?success=${platform}`, request.url)
+      new URL(`/dashboard/connections?success=${platform}`, request.url),
     )
   } catch (error) {
     console.error('OAuth callback error:', error)
     return NextResponse.redirect(
-      new URL('/dashboard/connections?error=callback_failed', request.url)
+      new URL('/dashboard/connections?error=callback_failed', request.url),
     )
   }
 }

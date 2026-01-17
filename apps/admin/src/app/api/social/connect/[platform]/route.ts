@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { lateClient } from '@madebuy/social'
 import type { SocialPlatform } from '@madebuy/shared'
+import { lateClient } from '@madebuy/social'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { platform: string } }
+  { params }: { params: { platform: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -22,12 +22,15 @@ export async function POST(
     const platform = params.platform as SocialPlatform
 
     // Validate platform
-    const validPlatforms: SocialPlatform[] = ['instagram', 'facebook', 'tiktok', 'pinterest', 'youtube']
+    const validPlatforms: SocialPlatform[] = [
+      'instagram',
+      'facebook',
+      'tiktok',
+      'pinterest',
+      'youtube',
+    ]
     if (!validPlatforms.includes(platform)) {
-      return NextResponse.json(
-        { error: 'Invalid platform' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid platform' }, { status: 400 })
     }
 
     // Build redirect URI for Late.dev callback
@@ -44,8 +47,13 @@ export async function POST(
   } catch (error) {
     console.error('OAuth initiation error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to initiate connection' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to initiate connection',
+      },
+      { status: 500 },
     )
   }
 }

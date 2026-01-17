@@ -9,7 +9,11 @@ import { z } from 'zod'
 export const CartItemSchema = z.object({
   pieceId: z.string().min(1, 'Piece ID is required'),
   variantId: z.string().optional(),
-  quantity: z.number().int().min(1, 'Quantity must be at least 1').max(100, 'Quantity cannot exceed 100'),
+  quantity: z
+    .number()
+    .int()
+    .min(1, 'Quantity must be at least 1')
+    .max(100, 'Quantity cannot exceed 100'),
   price: z.number().positive('Price must be positive'),
   currency: z.string().length(3).optional().default('AUD'),
 })
@@ -22,19 +26,27 @@ export const CustomerInfoSchema = z.object({
 })
 
 // Shipping address
-export const ShippingAddressSchema = z.object({
-  line1: z.string().min(1, 'Address line 1 is required').max(200),
-  line2: z.string().max(200).optional(),
-  city: z.string().min(1, 'City is required').max(100),
-  state: z.string().min(1, 'State is required').max(100),
-  postalCode: z.string().min(1, 'Postal code is required').max(20),
-  country: z.string().length(2, 'Country must be 2-letter ISO code').default('AU'),
-}).optional()
+export const ShippingAddressSchema = z
+  .object({
+    line1: z.string().min(1, 'Address line 1 is required').max(200),
+    line2: z.string().max(200).optional(),
+    city: z.string().min(1, 'City is required').max(100),
+    state: z.string().min(1, 'State is required').max(100),
+    postalCode: z.string().min(1, 'Postal code is required').max(20),
+    country: z
+      .string()
+      .length(2, 'Country must be 2-letter ISO code')
+      .default('AU'),
+  })
+  .optional()
 
 // Full checkout request
 export const CheckoutRequestSchema = z.object({
   tenantId: z.string().min(1, 'Tenant ID is required'),
-  items: z.array(CartItemSchema).min(1, 'At least one item is required').max(50, 'Cannot checkout more than 50 items'),
+  items: z
+    .array(CartItemSchema)
+    .min(1, 'At least one item is required')
+    .max(50, 'Cannot checkout more than 50 items'),
   customerInfo: CustomerInfoSchema,
   shippingAddress: ShippingAddressSchema,
   notes: z.string().max(500).optional(),

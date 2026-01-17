@@ -1,30 +1,34 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import type {
+  QuarterlyGSTReport,
+  TransactionStatus,
+  TransactionType,
+} from '@madebuy/shared'
 import {
-  BookOpen,
-  Receipt,
-  ArrowUpRight,
+  AlertCircle,
   ArrowDownRight,
-  RefreshCw,
-  DollarSign,
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
   Download,
-  Loader2,
-  AlertCircle,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
   FileText,
-  Settings,
   Filter,
+  Loader2,
+  Receipt,
+  RefreshCw,
+  Settings,
+  TrendingDown,
+  TrendingUp,
   X,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import type { TransactionType, TransactionStatus, QuarterlyGSTReport } from '@madebuy/shared'
 
 // ============================================================================
 // Types
@@ -167,20 +171,25 @@ export default function ReportsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Reports</h1>
-        <p className="mt-1 text-gray-500">Financial reports and transaction history</p>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          Reports
+        </h1>
+        <p className="mt-1 text-gray-500">
+          Financial reports and transaction history
+        </p>
       </div>
 
       {/* Tab Navigation */}
       <div className="relative">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-        <nav className="flex gap-1" role="tablist">
+        <nav className="flex gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
 
             return (
               <button
+                type="button"
                 key={tab.id}
                 role="tab"
                 aria-selected={isActive}
@@ -190,13 +199,17 @@ export default function ReportsPage() {
                   'rounded-t-xl border border-b-0',
                   isActive
                     ? 'bg-white text-gray-900 border-gray-200 shadow-sm z-10 -mb-px'
-                    : 'bg-gray-50/80 text-gray-500 border-transparent hover:bg-gray-100/80 hover:text-gray-700'
+                    : 'bg-gray-50/80 text-gray-500 border-transparent hover:bg-gray-100/80 hover:text-gray-700',
                 )}
               >
-                <Icon className={cn(
-                  'h-4 w-4 transition-colors',
-                  isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
-                )} />
+                <Icon
+                  className={cn(
+                    'h-4 w-4 transition-colors',
+                    isActive
+                      ? 'text-blue-600'
+                      : 'text-gray-400 group-hover:text-gray-500',
+                  )}
+                />
                 <span>{tab.label}</span>
                 {isActive && (
                   <span className="absolute inset-x-0 -bottom-px h-0.5 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500" />
@@ -208,10 +221,12 @@ export default function ReportsPage() {
       </div>
 
       {/* Tab Content */}
-      <div className={cn(
-        'transition-opacity duration-150',
-        isTransitioning ? 'opacity-0' : 'opacity-100'
-      )}>
+      <div
+        className={cn(
+          'transition-opacity duration-150',
+          isTransitioning ? 'opacity-0' : 'opacity-100',
+        )}
+      >
         {activeTab === 'ledger' && <LedgerTab />}
         {activeTab === 'gst' && <GSTTab />}
       </div>
@@ -233,7 +248,9 @@ function LedgerTab() {
   const [isLoading, setIsLoading] = useState(true)
 
   // Filter state
-  const [startDate, setStartDate] = useState(searchParams?.get('startDate') || '')
+  const [startDate, setStartDate] = useState(
+    searchParams?.get('startDate') || '',
+  )
   const [endDate, setEndDate] = useState(searchParams?.get('endDate') || '')
   const [txType, setTxType] = useState(searchParams?.get('type') || '')
   const [dateError, setDateError] = useState('')
@@ -242,7 +259,11 @@ function LedgerTab() {
   const PAGE_SIZE = 50
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
-  const isInvalidDateRange = !!(startDate && endDate && new Date(startDate) > new Date(endDate))
+  const isInvalidDateRange = !!(
+    startDate &&
+    endDate &&
+    new Date(startDate) > new Date(endDate)
+  )
   const hasFilter = startDate || endDate || txType
 
   // Fetch data
@@ -311,7 +332,7 @@ function LedgerTab() {
     if (!balance || !transactions.length) return []
 
     let runningBalance = balance.totalNet
-    return transactions.map(tx => {
+    return transactions.map((tx) => {
       const result = { ...tx, runningBalance }
       if (tx.status === 'completed') {
         if (tx.type === 'sale' || tx.type === 'fee') {
@@ -339,20 +360,26 @@ function LedgerTab() {
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Type</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Type
+            </label>
             <select
               value={txType}
               onChange={(e) => setTxType(e.target.value)}
               className="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
               {TRANSACTION_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">From</label>
+            <label className="block text-sm font-medium text-gray-700">
+              From
+            </label>
             <input
               type="date"
               value={startDate}
@@ -362,7 +389,9 @@ function LedgerTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">To</label>
+            <label className="block text-sm font-medium text-gray-700">
+              To
+            </label>
             <input
               type="date"
               value={endDate}
@@ -373,10 +402,13 @@ function LedgerTab() {
           </div>
 
           {(isInvalidDateRange || dateError) && (
-            <div className="text-sm text-red-600 self-center">{dateError || 'Start date must be before end date'}</div>
+            <div className="text-sm text-red-600 self-center">
+              {dateError || 'Start date must be before end date'}
+            </div>
           )}
 
           <button
+            type="button"
             onClick={applyFilter}
             disabled={isInvalidDateRange}
             className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
@@ -387,6 +419,7 @@ function LedgerTab() {
 
           {hasFilter && (
             <button
+              type="button"
               onClick={clearFilter}
               className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
             >
@@ -397,6 +430,7 @@ function LedgerTab() {
 
           <div className="ml-auto">
             <button
+              type="button"
               onClick={exportCSV}
               className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
             >
@@ -410,16 +444,44 @@ function LedgerTab() {
       {/* Balance Cards */}
       {balance && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <BalanceCard title="Total Revenue" value={balance.totalGross} currency={balance.currency} icon={DollarSign} color="emerald" />
-          <BalanceCard title="Processing Fees" value={balance.totalStripeFees} currency={balance.currency} icon={ArrowDownRight} color="red" />
-          <BalanceCard title="Net Earnings" value={balance.totalNet} currency={balance.currency} icon={ArrowUpRight} color="blue" />
-          <BalanceCard title="Pending Balance" value={balance.pendingBalance} currency={balance.currency} icon={RefreshCw} color="amber" />
+          <BalanceCard
+            title="Total Revenue"
+            value={balance.totalGross}
+            currency={balance.currency}
+            icon={DollarSign}
+            color="emerald"
+          />
+          <BalanceCard
+            title="Processing Fees"
+            value={balance.totalStripeFees}
+            currency={balance.currency}
+            icon={ArrowDownRight}
+            color="red"
+          />
+          <BalanceCard
+            title="Net Earnings"
+            value={balance.totalNet}
+            currency={balance.currency}
+            icon={ArrowUpRight}
+            color="blue"
+          />
+          <BalanceCard
+            title="Pending Balance"
+            value={balance.pendingBalance}
+            currency={balance.currency}
+            icon={RefreshCw}
+            color="amber"
+          />
         </div>
       )}
 
       {/* Transactions Table */}
       {transactionsWithBalance.length === 0 ? (
-        <EmptyState icon={BookOpen} title="No transactions yet" description="Your transaction history will appear here when you receive orders." />
+        <EmptyState
+          icon={BookOpen}
+          title="No transactions yet"
+          description="Your transaction history will appear here when you receive orders."
+        />
       ) : (
         <>
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -427,45 +489,90 @@ function LedgerTab() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50/80">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Description</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Amount</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Fees</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Net</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Balance</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Description
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Fees
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Net
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Balance
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {transactionsWithBalance.map((tx) => (
                     <tr key={tx.id} className="hover:bg-gray-50">
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{formatDate(tx.createdAt)}</td>
-                      <td className="whitespace-nowrap px-6 py-4"><TransactionTypeBadge type={tx.type} /></td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        {formatDate(tx.createdAt)}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <TransactionTypeBadge type={tx.type} />
+                      </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{tx.description || getDefaultDescription(tx.type)}</div>
+                        <div className="text-sm text-gray-900">
+                          {tx.description || getDefaultDescription(tx.type)}
+                        </div>
                         {tx.orderId && (
-                          <Link href={`/dashboard/orders/${tx.orderId}`} className="text-xs text-blue-600 hover:underline">
+                          <Link
+                            href={`/dashboard/orders/${tx.orderId}`}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
                             View Order
                           </Link>
                         )}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
-                        <span className={tx.type === 'refund' || tx.type === 'payout' ? 'text-red-600' : 'text-gray-900'}>
-                          {tx.type === 'refund' || tx.type === 'payout' ? '-' : ''}
+                        <span
+                          className={
+                            tx.type === 'refund' || tx.type === 'payout'
+                              ? 'text-red-600'
+                              : 'text-gray-900'
+                          }
+                        >
+                          {tx.type === 'refund' || tx.type === 'payout'
+                            ? '-'
+                            : ''}
                           {formatCurrency(tx.grossAmount, tx.currency)}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-500">
-                        {tx.stripeFee > 0 ? formatCurrency(tx.stripeFee, tx.currency) : '-'}
+                        {tx.stripeFee > 0
+                          ? formatCurrency(tx.stripeFee, tx.currency)
+                          : '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                        <span className={tx.type === 'refund' || tx.type === 'payout' ? 'text-red-600' : 'text-emerald-600'}>
-                          {tx.type === 'refund' || tx.type === 'payout' ? '-' : '+'}
+                        <span
+                          className={
+                            tx.type === 'refund' || tx.type === 'payout'
+                              ? 'text-red-600'
+                              : 'text-emerald-600'
+                          }
+                        >
+                          {tx.type === 'refund' || tx.type === 'payout'
+                            ? '-'
+                            : '+'}
                           {formatCurrency(Math.abs(tx.netAmount), tx.currency)}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-center"><TransactionStatusBadge status={tx.status} /></td>
+                      <td className="whitespace-nowrap px-6 py-4 text-center">
+                        <TransactionStatusBadge status={tx.status} />
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
                         {formatCurrency(tx.runningBalance, tx.currency)}
                       </td>
@@ -514,9 +621,13 @@ function LedgerTab() {
 
 function GSTTab() {
   const quarterOptions = getQuarterOptions()
-  const [selectedQuarter, setSelectedQuarter] = useState(quarterOptions[0].value)
+  const [selectedQuarter, setSelectedQuarter] = useState(
+    quarterOptions[0].value,
+  )
   const [report, setReport] = useState<GSTReportResponse | null>(null)
-  const [error, setError] = useState<{ error: string; code?: string } | null>(null)
+  const [error, setError] = useState<{ error: string; code?: string } | null>(
+    null,
+  )
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -525,7 +636,9 @@ function GSTTab() {
       setError(null)
 
       try {
-        const response = await fetch(`/api/reports/gst?quarter=${selectedQuarter}`)
+        const response = await fetch(
+          `/api/reports/gst?quarter=${selectedQuarter}`,
+        )
         const data = await response.json()
 
         if (!response.ok) {
@@ -535,7 +648,7 @@ function GSTTab() {
           setReport(data)
           setError(null)
         }
-      } catch (err) {
+      } catch (_err) {
         setError({ error: 'Failed to load GST report' })
         setReport(null)
       } finally {
@@ -547,14 +660,18 @@ function GSTTab() {
   }, [selectedQuarter])
 
   const goToQuarter = (direction: 'prev' | 'next') => {
-    const currentIndex = quarterOptions.findIndex((q) => q.value === selectedQuarter)
+    const currentIndex = quarterOptions.findIndex(
+      (q) => q.value === selectedQuarter,
+    )
     const newIndex = direction === 'prev' ? currentIndex + 1 : currentIndex - 1
     if (newIndex >= 0 && newIndex < quarterOptions.length) {
       setSelectedQuarter(quarterOptions[newIndex].value)
     }
   }
 
-  const currentQuarterIndex = quarterOptions.findIndex((q) => q.value === selectedQuarter)
+  const currentQuarterIndex = quarterOptions.findIndex(
+    (q) => q.value === selectedQuarter,
+  )
   const canGoNext = currentQuarterIndex > 0
   const canGoPrev = currentQuarterIndex < quarterOptions.length - 1
 
@@ -572,11 +689,16 @@ function GSTTab() {
       <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-gray-300" />
         <h3 className="mt-4 text-lg font-medium text-gray-900">
-          {error.code === 'GST_NOT_REGISTERED' ? 'GST Not Registered' : 'Unable to Load Report'}
+          {error.code === 'GST_NOT_REGISTERED'
+            ? 'GST Not Registered'
+            : 'Unable to Load Report'}
         </h3>
         <p className="mt-2 text-gray-500">{error.error}</p>
         {error.code === 'GST_NOT_REGISTERED' && (
-          <Link href="/dashboard/settings/tax" className="mt-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700">
+          <Link
+            href="/dashboard/settings/tax"
+            className="mt-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+          >
             <Settings className="h-4 w-4" />
             Go to Tax Settings
           </Link>
@@ -590,6 +712,7 @@ function GSTTab() {
       {/* Quarter Selector */}
       <div className="flex items-center justify-center gap-4">
         <button
+          type="button"
           onClick={() => goToQuarter('prev')}
           disabled={!canGoPrev}
           className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -603,11 +726,14 @@ function GSTTab() {
           className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           {quarterOptions.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
           ))}
         </select>
 
         <button
+          type="button"
           onClick={() => goToQuarter('next')}
           disabled={!canGoNext}
           className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -617,6 +743,7 @@ function GSTTab() {
 
         {report && (
           <button
+            type="button"
             onClick={() => window.print()}
             className="ml-4 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
@@ -633,21 +760,28 @@ function GSTTab() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-gray-500">Business</p>
-                <p className="font-medium text-gray-900">{report.tenant.businessName}</p>
+                <p className="font-medium text-gray-900">
+                  {report.tenant.businessName}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">ABN</p>
-                <p className="font-medium text-gray-900">{report.tenant.abn || 'Not provided'}</p>
+                <p className="font-medium text-gray-900">
+                  {report.tenant.abn || 'Not provided'}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Period</p>
                 <p className="font-medium text-gray-900">
-                  {formatDate(report.report.startDate)} - {formatDate(report.report.endDate)}
+                  {formatDate(report.report.startDate)} -{' '}
+                  {formatDate(report.report.endDate)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">GST Rate</p>
-                <p className="font-medium text-gray-900">{report.tenant.gstRate}%</p>
+                <p className="font-medium text-gray-900">
+                  {report.tenant.gstRate}%
+                </p>
               </div>
             </div>
           </div>
@@ -661,12 +795,18 @@ function GSTTab() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">GST Collected</p>
-                  <p className="text-2xl font-bold text-emerald-600">{formatCurrencyCents(report.report.gstCollected)}</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {formatCurrencyCents(report.report.gstCollected)}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 border-t border-gray-100 pt-4">
-                <p className="text-xs text-gray-500">From {report.report.salesCount} sales</p>
-                <p className="text-sm text-gray-900">Gross: {formatCurrencyCents(report.report.salesGross)}</p>
+                <p className="text-xs text-gray-500">
+                  From {report.report.salesCount} sales
+                </p>
+                <p className="text-sm text-gray-900">
+                  Gross: {formatCurrencyCents(report.report.salesGross)}
+                </p>
               </div>
             </div>
 
@@ -677,12 +817,18 @@ function GSTTab() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">GST on Refunds</p>
-                  <p className="text-2xl font-bold text-red-600">{formatCurrencyCents(report.report.gstPaid)}</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {formatCurrencyCents(report.report.gstPaid)}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 border-t border-gray-100 pt-4">
-                <p className="text-xs text-gray-500">From {report.report.refundsCount} refunds</p>
-                <p className="text-sm text-gray-900">Total: {formatCurrencyCents(report.report.refundsTotal)}</p>
+                <p className="text-xs text-gray-500">
+                  From {report.report.refundsCount} refunds
+                </p>
+                <p className="text-sm text-gray-900">
+                  Total: {formatCurrencyCents(report.report.refundsTotal)}
+                </p>
               </div>
             </div>
 
@@ -693,13 +839,17 @@ function GSTTab() {
                 </div>
                 <div>
                   <p className="text-sm text-blue-600">Net GST Payable</p>
-                  <p className="text-2xl font-bold text-blue-700">{formatCurrencyCents(report.report.netGst)}</p>
+                  <p className="text-2xl font-bold text-blue-700">
+                    {formatCurrencyCents(report.report.netGst)}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 border-t border-blue-200 pt-4">
                 <p className="text-xs text-blue-600">Amount to report on BAS</p>
                 <p className="text-sm text-blue-700 font-medium">
-                  {report.report.netGst >= 0 ? 'Payable to ATO' : 'Claimable from ATO'}
+                  {report.report.netGst >= 0
+                    ? 'Payable to ATO'
+                    : 'Claimable from ATO'}
                 </p>
               </div>
             </div>
@@ -709,12 +859,31 @@ function GSTTab() {
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
               <h2 className="font-semibold text-gray-900">BAS Summary</h2>
-              <p className="text-sm text-gray-500">Key figures for your Business Activity Statement</p>
+              <p className="text-sm text-gray-500">
+                Key figures for your Business Activity Statement
+              </p>
             </div>
             <div className="divide-y divide-gray-100">
-              <BASRow code="G1" label="Total Sales" sublabel="Including GST" value={formatCurrencyCents(report.report.salesGross)} />
-              <BASRow code="1A" label="GST on Sales" sublabel="GST collected from customers" value={formatCurrencyCents(report.report.gstCollected)} valueColor="text-emerald-600" />
-              <BASRow code="1B" label="GST on Refunds" sublabel="GST returned with refunds" value={`-${formatCurrencyCents(report.report.gstPaid)}`} valueColor="text-red-600" />
+              <BASRow
+                code="G1"
+                label="Total Sales"
+                sublabel="Including GST"
+                value={formatCurrencyCents(report.report.salesGross)}
+              />
+              <BASRow
+                code="1A"
+                label="GST on Sales"
+                sublabel="GST collected from customers"
+                value={formatCurrencyCents(report.report.gstCollected)}
+                valueColor="text-emerald-600"
+              />
+              <BASRow
+                code="1B"
+                label="GST on Refunds"
+                sublabel="GST returned with refunds"
+                value={`-${formatCurrencyCents(report.report.gstPaid)}`}
+                valueColor="text-red-600"
+              />
               <div className="flex items-center justify-between bg-blue-50 px-6 py-4">
                 <div className="flex items-center gap-3">
                   <ArrowRight className="h-5 w-5 text-blue-600" />
@@ -723,7 +892,9 @@ function GSTTab() {
                     <p className="text-sm text-blue-600">1A minus 1B</p>
                   </div>
                 </div>
-                <p className="text-xl font-bold text-blue-700">{formatCurrencyCents(report.report.netGst)}</p>
+                <p className="text-xl font-bold text-blue-700">
+                  {formatCurrencyCents(report.report.netGst)}
+                </p>
               </div>
             </div>
           </div>
@@ -735,9 +906,11 @@ function GSTTab() {
               <div>
                 <h3 className="font-medium text-amber-900">Important Note</h3>
                 <p className="mt-1 text-sm text-amber-700">
-                  This summary shows GST from sales processed through MadeBuy only. If you have other
-                  business income or expenses, consult your accountant for your complete BAS figures.
-                  Input tax credits from business purchases are not included in this report.
+                  This summary shows GST from sales processed through MadeBuy
+                  only. If you have other business income or expenses, consult
+                  your accountant for your complete BAS figures. Input tax
+                  credits from business purchases are not included in this
+                  report.
                 </p>
               </div>
             </div>
@@ -752,7 +925,13 @@ function GSTTab() {
 // Shared Components
 // ============================================================================
 
-function BalanceCard({ title, value, currency, icon: Icon, color }: {
+function BalanceCard({
+  title,
+  value,
+  currency,
+  icon: Icon,
+  color,
+}: {
   title: string
   value: number
   currency: string
@@ -771,7 +950,9 @@ function BalanceCard({ title, value, currency, icon: Icon, color }: {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{formatCurrency(value, currency)}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">
+            {formatCurrency(value, currency)}
+          </p>
         </div>
         <div className={cn('rounded-lg p-2', colors[color])}>
           <Icon className="h-5 w-5" />
@@ -781,7 +962,13 @@ function BalanceCard({ title, value, currency, icon: Icon, color }: {
   )
 }
 
-function BASRow({ code, label, sublabel, value, valueColor }: {
+function BASRow({
+  code,
+  label,
+  sublabel,
+  value,
+  valueColor,
+}: {
   code: string
   label: string
   sublabel: string
@@ -799,7 +986,9 @@ function BASRow({ code, label, sublabel, value, valueColor }: {
           <p className="text-sm text-gray-500">{sublabel}</p>
         </div>
       </div>
-      <p className={cn('text-lg font-semibold', valueColor || 'text-gray-900')}>{value}</p>
+      <p className={cn('text-lg font-semibold', valueColor || 'text-gray-900')}>
+        {value}
+      </p>
     </div>
   )
 }
@@ -822,7 +1011,12 @@ function TransactionTypeBadge({ type }: { type: TransactionType }) {
   }
 
   return (
-    <span className={cn('inline-flex rounded-full px-2.5 py-1 text-xs font-semibold', colors[type])}>
+    <span
+      className={cn(
+        'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+        colors[type],
+      )}
+    >
       {labels[type]}
     </span>
   )
@@ -837,13 +1031,26 @@ function TransactionStatusBadge({ status }: { status: TransactionStatus }) {
   }
 
   return (
-    <span className={cn('inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize', colors[status])}>
+    <span
+      className={cn(
+        'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize',
+        colors[status],
+      )}
+    >
       {status}
     </span>
   )
 }
 
-function EmptyState({ icon: Icon, title, description }: { icon: typeof BookOpen; title: string; description: string }) {
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof BookOpen
+  title: string
+  description: string
+}) {
   return (
     <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
       <Icon className="mx-auto h-12 w-12 text-gray-300" />

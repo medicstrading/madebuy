@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import { DiscountForm } from '@/components/discounts/DiscountForm'
 
 export default function NewDiscountPage() {
@@ -14,7 +14,9 @@ export default function NewDiscountPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Create Discount</h1>
-          <p className="text-gray-500 mt-1">Add a new promotional code for your store</p>
+          <p className="text-gray-500 mt-1">
+            Add a new promotional code for your store
+          </p>
         </div>
       </div>
 

@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { getCurrentTenant } from '@/lib/session'
-import { marketplace, pieces, media } from '@madebuy/db'
+import { marketplace, media, pieces } from '@madebuy/db'
 import type { MarketplaceListing } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import {
   createEbayClient,
-  getEbayDomain,
   type EbayInventoryItem,
+  getEbayDomain,
 } from '@/lib/marketplace/ebay'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * Validation schema for creating eBay listings
@@ -36,8 +36,8 @@ function generateSku(tenantId: string, pieceId: string): string {
 async function buildInventoryItemPayload(
   tenantId: string,
   piece: NonNullable<Awaited<ReturnType<typeof pieces.getPiece>>>,
-  overridePrice?: number,
-  overrideQuantity?: number
+  _overridePrice?: number,
+  overrideQuantity?: number,
 ) {
   // Get piece media for images
   const pieceMedia = piece.mediaIds?.length
@@ -59,14 +59,14 @@ async function buildInventoryItemPayload(
   const aspects: Record<string, string[]> = {}
 
   if (piece.materials && piece.materials.length > 0) {
-    aspects['Material'] = piece.materials
+    aspects.Material = piece.materials
   }
   if (piece.techniques && piece.techniques.length > 0) {
-    aspects['Handmade'] = ['Yes']
-    aspects['Technique'] = piece.techniques
+    aspects.Handmade = ['Yes']
+    aspects.Technique = piece.techniques
   }
   if (piece.category) {
-    aspects['Type'] = [piece.category]
+    aspects.Type = [piece.category]
   }
 
   // Build typed inventory item payload
@@ -118,7 +118,7 @@ function buildOfferPayload(
   price: number,
   currency: string,
   categoryId: string,
-  marketplaceId: string = 'EBAY_AU'
+  marketplaceId: string = 'EBAY_AU',
 ) {
   return {
     sku,
@@ -153,7 +153,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Check eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
     }
@@ -167,7 +170,7 @@ export async function GET(request: NextRequest) {
     // Default to showing active/pending/error listings, exclude ended unless specifically requested
     const effectiveStatus = status
       ? (status as MarketplaceListing['status'])
-      : ['active', 'pending', 'error'] as MarketplaceListing['status'][]
+      : (['active', 'pending', 'error'] as MarketplaceListing['status'][])
     const listings = await marketplace.listListings(tenant.id, {
       marketplace: 'ebay',
       status: effectiveStatus,
@@ -190,13 +193,16 @@ export async function GET(request: NextRequest) {
               }
             : null,
         }
-      })
+      }),
     )
 
     return NextResponse.json({ listings: enrichedListings })
   } catch (error) {
     console.error('Error fetching eBay listings:', error)
-    return NextResponse.json({ error: 'Failed to fetch listings' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch listings' },
+      { status: 500 },
+    )
   }
 }
 
@@ -211,9 +217,7 @@ function checkEbayConfig(): { ok: boolean; missing: string[] } {
     { key: 'EBAY_MERCHANT_LOCATION_KEY', name: 'Merchant Location' },
   ]
 
-  const missing = required
-    .filter(r => !process.env[r.key])
-    .map(r => r.name)
+  const missing = required.filter((r) => !process.env[r.key]).map((r) => r.name)
 
   return { ok: missing.length === 0, missing }
 }
@@ -231,7 +235,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
     }
@@ -239,14 +246,17 @@ export async function POST(request: NextRequest) {
     // Check required eBay configuration
     const configCheck = checkEbayConfig()
     if (!configCheck.ok) {
-      console.error('[eBay Listings] Missing configuration:', configCheck.missing)
+      console.error(
+        '[eBay Listings] Missing configuration:',
+        configCheck.missing,
+      )
       return NextResponse.json(
         {
           error: 'eBay listing configuration incomplete',
           details: `Missing: ${configCheck.missing.join(', ')}. Please set up Business Policies in eBay Seller Hub.`,
           missing: configCheck.missing,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -260,7 +270,7 @@ export async function POST(request: NextRequest) {
           error: 'Validation failed',
           details: validation.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -282,7 +292,9 @@ export async function POST(request: NextRequest) {
 
     // Check for description - eBay needs a proper description
     if (!piece.description || piece.description.trim().length < 10) {
-      validationErrors.push('A description (at least 10 characters) is required for eBay listings')
+      validationErrors.push(
+        'A description (at least 10 characters) is required for eBay listings',
+      )
     }
 
     // Check for price
@@ -297,31 +309,40 @@ export async function POST(request: NextRequest) {
           details: validationErrors,
           missingFields: {
             images: !piece.mediaIds || piece.mediaIds.length === 0,
-            description: !piece.description || piece.description.trim().length < 10,
+            description:
+              !piece.description || piece.description.trim().length < 10,
             price: !piece.price || piece.price <= 0,
           },
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Check if listing already exists
-    const existingListing = await marketplace.getListingByPiece(tenant.id, pieceId, 'ebay')
+    const existingListing = await marketplace.getListingByPiece(
+      tenant.id,
+      pieceId,
+      'ebay',
+    )
     if (existingListing && existingListing.status !== 'ended') {
       return NextResponse.json(
         { error: 'Piece is already listed on eBay', listing: existingListing },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
     // Determine price and category
     const listingPrice = price ?? piece.price
-    const listingCategory = categoryId ?? process.env.EBAY_DEFAULT_CATEGORY_ID ?? '281'
+    const listingCategory =
+      categoryId ?? process.env.EBAY_DEFAULT_CATEGORY_ID ?? '281'
     const currency = piece.currency || 'AUD'
     const marketplaceId = process.env.EBAY_MARKETPLACE_ID || 'EBAY_AU'
 
     if (!listingPrice || listingPrice <= 0) {
-      return NextResponse.json({ error: 'Valid price is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Valid price is required' },
+        { status: 400 },
+      )
     }
 
     // Generate SKU
@@ -330,7 +351,7 @@ export async function POST(request: NextRequest) {
     // Create eBay API client (handles headers correctly)
     const ebay = createEbayClient(
       connection.accessToken!,
-      connection.refreshToken || undefined
+      connection.refreshToken || undefined,
     )
     console.log('[eBay] Using ebay-api package for listing creation')
 
@@ -339,19 +360,19 @@ export async function POST(request: NextRequest) {
       tenant.id,
       piece,
       listingPrice,
-      quantity
+      quantity,
     )
 
     // Step 1: Create/Update Inventory Item using ebay-api package
-    let inventoryResult
+    let _inventoryResult: any
     try {
-      inventoryResult = await ebay.sell.inventory.createOrReplaceInventoryItem(
+      _inventoryResult = await ebay.sell.inventory.createOrReplaceInventoryItem(
         sku,
-        inventoryPayload
+        inventoryPayload,
       )
       console.log('[eBay] Inventory item created successfully')
       // Small delay to allow eBay to propagate the inventory item
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     } catch (inventoryError: any) {
       // Log full error for debugging
       console.error('eBay Inventory API error:', {
@@ -360,15 +381,22 @@ export async function POST(request: NextRequest) {
         meta: inventoryError?.meta,
         response: inventoryError?.response,
         status: inventoryError?.status,
-        fullError: JSON.stringify(inventoryError, Object.getOwnPropertyNames(inventoryError), 2),
+        fullError: JSON.stringify(
+          inventoryError,
+          Object.getOwnPropertyNames(inventoryError),
+          2,
+        ),
       })
-      const errorDetails = inventoryError?.meta?.res?.data || inventoryError?.response?.data || inventoryError?.message
+      const errorDetails =
+        inventoryError?.meta?.res?.data ||
+        inventoryError?.response?.data ||
+        inventoryError?.message
       return NextResponse.json(
         {
           error: 'Failed to create eBay inventory item. Please try again.',
           details: errorDetails,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -378,11 +406,14 @@ export async function POST(request: NextRequest) {
       listingPrice,
       currency,
       listingCategory,
-      marketplaceId
+      marketplaceId,
     )
 
-    let offerResult
-    console.log('[eBay] Creating offer with payload:', JSON.stringify(offerPayload, null, 2))
+    let offerResult: any
+    console.log(
+      '[eBay] Creating offer with payload:',
+      JSON.stringify(offerPayload, null, 2),
+    )
     try {
       offerResult = await ebay.sell.inventory.createOffer(offerPayload)
       console.log('[eBay] Offer created successfully:', offerResult.offerId)
@@ -392,25 +423,34 @@ export async function POST(request: NextRequest) {
         meta: offerError?.meta,
         response: offerError?.response?.data,
       })
-      const errorDetails = offerError?.meta?.res?.data || offerError?.response?.data || offerError?.message
+      const errorDetails =
+        offerError?.meta?.res?.data ||
+        offerError?.response?.data ||
+        offerError?.message
       return NextResponse.json(
         {
           error: 'Failed to create eBay offer. Please try again.',
           details: errorDetails,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     const offerId = offerResult.offerId
 
     // Step 3: Publish Offer using ebay-api package
-    let publishResult
+    let publishResult: any
     try {
       publishResult = await ebay.sell.inventory.publishOffer(offerId)
-      console.log('[eBay] Offer published successfully:', publishResult.listingId)
+      console.log(
+        '[eBay] Offer published successfully:',
+        publishResult.listingId,
+      )
     } catch (publishError: any) {
-      console.error('eBay Publish API error:', publishError?.message || publishError)
+      console.error(
+        'eBay Publish API error:',
+        publishError?.message || publishError,
+      )
 
       // Still save the listing as pending since offer was created
       const listing = await marketplace.createListing(tenant.id, {
@@ -425,7 +465,8 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      const errorDetails = publishError?.meta?.res?.data || publishError?.message
+      const errorDetails =
+        publishError?.meta?.res?.data || publishError?.message
       return NextResponse.json(
         {
           success: false,
@@ -433,7 +474,7 @@ export async function POST(request: NextRequest) {
           details: errorDetails,
           listing,
         },
-        { status: 207 }
+        { status: 207 },
       )
     }
 
@@ -462,7 +503,7 @@ export async function POST(request: NextRequest) {
       tenant.id,
       listing.id,
       listingPrice,
-      quantity ?? piece.stock ?? 1
+      quantity ?? piece.stock ?? 1,
     )
 
     return NextResponse.json({
@@ -473,6 +514,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error creating eBay listing:', error)
-    return NextResponse.json({ error: 'Failed to create listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to create listing' },
+      { status: 500 },
+    )
   }
 }

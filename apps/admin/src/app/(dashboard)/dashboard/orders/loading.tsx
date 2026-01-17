@@ -20,7 +20,10 @@ export default function OrdersLoading() {
       {/* Orders list */}
       <div className="space-y-4">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="rounded-xl border border-gray-200 bg-white p-4">
+          <div
+            key={i}
+            className="rounded-xl border border-gray-200 bg-white p-4"
+          >
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <div className="h-5 w-32 bg-gray-100 rounded" />

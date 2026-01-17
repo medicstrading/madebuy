@@ -1,8 +1,14 @@
 'use client'
 
+import type {
+  FAQItem,
+  FeatureItem,
+  PageSection,
+  PageSectionSettings,
+  TestimonialItem,
+} from '@madebuy/shared/src/types/template'
+import { Check, Loader2, Plus, Trash2, Upload } from 'lucide-react'
 import { useState } from 'react'
-import { Check, Upload, Plus, Trash2, Loader2 } from 'lucide-react'
-import type { PageSection, PageSectionSettings, FeatureItem, TestimonialItem, FAQItem } from '@madebuy/shared/src/types/template'
 
 interface SectionContentFormProps {
   section: PageSection
@@ -46,11 +52,17 @@ function ImageUploader({ label, value, onChange, hint }: ImageUploaderProps) {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+      </label>
       <label className="block cursor-pointer">
-        <div className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors ${
-          value ? 'border-gray-300 bg-gray-50' : 'border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50'
-        }`}>
+        <div
+          className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors ${
+            value
+              ? 'border-gray-300 bg-gray-50'
+              : 'border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/50'
+          }`}
+        >
           {isUploading ? (
             <div className="py-4">
               <Loader2 className="w-8 h-8 mx-auto text-indigo-500 animate-spin" />
@@ -68,7 +80,9 @@ function ImageUploader({ label, value, onChange, hint }: ImageUploaderProps) {
           ) : (
             <div className="py-4">
               <Upload className="w-8 h-8 mx-auto text-gray-400" />
-              <p className="text-sm text-gray-600 mt-2">Click to upload image</p>
+              <p className="text-sm text-gray-600 mt-2">
+                Click to upload image
+              </p>
               {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
             </div>
           )}
@@ -84,7 +98,10 @@ function ImageUploader({ label, value, onChange, hint }: ImageUploaderProps) {
   )
 }
 
-export function SectionContentForm({ section, onChange }: SectionContentFormProps) {
+export function SectionContentForm({
+  section,
+  onChange,
+}: SectionContentFormProps) {
   const settings = section.settings || {}
 
   const updateSettings = (updates: Partial<PageSectionSettings>) => {
@@ -108,7 +125,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Headline</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Headline
+            </label>
             <input
               type="text"
               value={settings.headline || ''}
@@ -119,7 +138,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Subheadline</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subheadline
+            </label>
             <input
               type="text"
               value={settings.subheadline || ''}
@@ -131,7 +152,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Button Text
+              </label>
               <input
                 type="text"
                 value={settings.buttonText || ''}
@@ -141,7 +164,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Button Link</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Button Link
+              </label>
               <input
                 type="text"
                 value={settings.buttonUrl || ''}
@@ -155,11 +180,14 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           <ImageUploader
             label="Background Image"
             value={settings.backgroundImageUrl}
-            onChange={(id, url) => updateSettings({ backgroundMediaId: id, backgroundImageUrl: url })}
+            onChange={(id, url) =>
+              updateSettings({ backgroundMediaId: id, backgroundImageUrl: url })
+            }
             hint="Recommended: 1920x600px"
           />
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -176,9 +204,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
         { id: '3', title: '', description: '' },
       ]
 
-      const updateFeature = (index: number, field: keyof FeatureItem, value: string) => {
+      const updateFeature = (
+        index: number,
+        field: keyof FeatureItem,
+        value: string,
+      ) => {
         const newFeatures = features.map((f, i) =>
-          i === index ? { ...f, [field]: value } : f
+          i === index ? { ...f, [field]: value } : f,
         )
         updateSettings({ features: newFeatures })
       }
@@ -186,7 +218,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -197,22 +231,33 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">Feature Cards</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Feature Cards
+            </label>
             {features.map((feature, index) => (
-              <div key={feature.id || index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+              <div
+                key={feature.id || index}
+                className="p-4 bg-gray-50 rounded-lg space-y-3"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-500">Card {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-500">
+                    Card {index + 1}
+                  </span>
                 </div>
                 <input
                   type="text"
                   value={feature.title}
-                  onChange={(e) => updateFeature(index, 'title', e.target.value)}
+                  onChange={(e) =>
+                    updateFeature(index, 'title', e.target.value)
+                  }
                   placeholder="Feature Title"
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors text-sm"
                 />
                 <textarea
                   value={feature.description}
-                  onChange={(e) => updateFeature(index, 'description', e.target.value)}
+                  onChange={(e) =>
+                    updateFeature(index, 'description', e.target.value)
+                  }
                   placeholder="Feature description..."
                   rows={2}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors text-sm resize-none"
@@ -222,6 +267,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -239,9 +285,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
         { id: '3', name: '', content: '' },
       ]
 
-      const updateTestimonial = (index: number, field: keyof TestimonialItem, value: string | number) => {
+      const updateTestimonial = (
+        index: number,
+        field: keyof TestimonialItem,
+        value: string | number,
+      ) => {
         const newTestimonials = testimonials.map((t, i) =>
-          i === index ? { ...t, [field]: value } : t
+          i === index ? { ...t, [field]: value } : t,
         )
         updateSettings({ testimonials: newTestimonials })
       }
@@ -249,7 +299,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -260,22 +312,33 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">Testimonials</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Testimonials
+            </label>
             {testimonials.map((testimonial, index) => (
-              <div key={testimonial.id || index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+              <div
+                key={testimonial.id || index}
+                className="p-4 bg-gray-50 rounded-lg space-y-3"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-500">Testimonial {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-500">
+                    Testimonial {index + 1}
+                  </span>
                 </div>
                 <input
                   type="text"
                   value={testimonial.name}
-                  onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                  onChange={(e) =>
+                    updateTestimonial(index, 'name', e.target.value)
+                  }
                   placeholder="Customer Name"
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors text-sm"
                 />
                 <textarea
                   value={testimonial.content}
-                  onChange={(e) => updateTestimonial(index, 'content', e.target.value)}
+                  onChange={(e) =>
+                    updateTestimonial(index, 'content', e.target.value)
+                  }
                   placeholder="Customer testimonial..."
                   rows={3}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors text-sm resize-none"
@@ -285,6 +348,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -299,7 +363,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Heading</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Heading
+            </label>
             <input
               type="text"
               value={settings.heading || ''}
@@ -310,10 +376,17 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Your Story</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Your Story
+            </label>
             <textarea
               value={settings.storyText || settings.aboutContent || ''}
-              onChange={(e) => updateSettings({ storyText: e.target.value, aboutContent: e.target.value })}
+              onChange={(e) =>
+                updateSettings({
+                  storyText: e.target.value,
+                  aboutContent: e.target.value,
+                })
+              }
               placeholder="Tell your story... What inspired you to start? What makes your products special?"
               rows={6}
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors resize-none"
@@ -323,11 +396,19 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           <ImageUploader
             label="Photo"
             value={settings.photoUrl || settings.aboutImage}
-            onChange={(id, url) => updateSettings({ photoMediaId: id, photoUrl: url, aboutImageMediaId: id, aboutImage: url })}
+            onChange={(id, url) =>
+              updateSettings({
+                photoMediaId: id,
+                photoUrl: url,
+                aboutImageMediaId: id,
+                aboutImage: url,
+              })
+            }
             hint="A photo of you, your workspace, or your craft"
           />
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -343,30 +424,36 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
         { id: '2', question: '', answer: '' },
       ]
 
-      const updateFaq = (index: number, field: keyof FAQItem, value: string) => {
+      const updateFaq = (
+        index: number,
+        field: keyof FAQItem,
+        value: string,
+      ) => {
         const newFaqs = faqs.map((f, i) =>
-          i === index ? { ...f, [field]: value } : f
+          i === index ? { ...f, [field]: value } : f,
         )
         updateSettings({ faqs: newFaqs })
       }
 
       const addFaq = () => {
         updateSettings({
-          faqs: [...faqs, { id: `${Date.now()}`, question: '', answer: '' }]
+          faqs: [...faqs, { id: `${Date.now()}`, question: '', answer: '' }],
         })
       }
 
       const removeFaq = (index: number) => {
         if (faqs.length <= 1) return
         updateSettings({
-          faqs: faqs.filter((_, i) => i !== index)
+          faqs: faqs.filter((_, i) => i !== index),
         })
       }
 
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -377,13 +464,21 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">Questions & Answers</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Questions & Answers
+            </label>
             {faqs.map((faq, index) => (
-              <div key={faq.id || index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+              <div
+                key={faq.id || index}
+                className="p-4 bg-gray-50 rounded-lg space-y-3"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-500">Q&A {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-500">
+                    Q&A {index + 1}
+                  </span>
                   {faqs.length > 1 && (
                     <button
+                      type="button"
                       onClick={() => removeFaq(index)}
                       className="p-1 text-gray-400 hover:text-red-500"
                     >
@@ -409,6 +504,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
             ))}
 
             <button
+              type="button"
               onClick={addFaq}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
             >
@@ -418,6 +514,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -432,21 +529,37 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Heading</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Heading
+            </label>
             <input
               type="text"
               value={settings.heading || settings.newsletterTitle || ''}
-              onChange={(e) => updateSettings({ heading: e.target.value, newsletterTitle: e.target.value })}
+              onChange={(e) =>
+                updateSettings({
+                  heading: e.target.value,
+                  newsletterTitle: e.target.value,
+                })
+              }
               placeholder="Stay Updated"
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
             <textarea
-              value={settings.description || settings.newsletterDescription || ''}
-              onChange={(e) => updateSettings({ description: e.target.value, newsletterDescription: e.target.value })}
+              value={
+                settings.description || settings.newsletterDescription || ''
+              }
+              onChange={(e) =>
+                updateSettings({
+                  description: e.target.value,
+                  newsletterDescription: e.target.value,
+                })
+              }
               placeholder="Subscribe to get updates about new products and special offers."
               rows={2}
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors resize-none"
@@ -454,17 +567,25 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Button Text
+            </label>
             <input
               type="text"
               value={settings.buttonText || settings.newsletterButtonText || ''}
-              onChange={(e) => updateSettings({ buttonText: e.target.value, newsletterButtonText: e.target.value })}
+              onChange={(e) =>
+                updateSettings({
+                  buttonText: e.target.value,
+                  newsletterButtonText: e.target.value,
+                })
+              }
               placeholder="Subscribe"
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             />
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -478,18 +599,27 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Headline</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Headline
+            </label>
             <input
               type="text"
               value={settings.headline || settings.ctaText || ''}
-              onChange={(e) => updateSettings({ headline: e.target.value, ctaText: e.target.value })}
+              onChange={(e) =>
+                updateSettings({
+                  headline: e.target.value,
+                  ctaText: e.target.value,
+                })
+              }
               placeholder="Ready to Get Started?"
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
             <textarea
               value={settings.description || ''}
               onChange={(e) => updateSettings({ description: e.target.value })}
@@ -501,21 +631,35 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Button Text
+              </label>
               <input
                 type="text"
                 value={settings.buttonText || settings.ctaButtonText || ''}
-                onChange={(e) => updateSettings({ buttonText: e.target.value, ctaButtonText: e.target.value })}
+                onChange={(e) =>
+                  updateSettings({
+                    buttonText: e.target.value,
+                    ctaButtonText: e.target.value,
+                  })
+                }
                 placeholder="Get Started"
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Button Link</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Button Link
+              </label>
               <input
                 type="text"
                 value={settings.buttonUrl || settings.ctaUrl || ''}
-                onChange={(e) => updateSettings({ buttonUrl: e.target.value, ctaUrl: e.target.value })}
+                onChange={(e) =>
+                  updateSettings({
+                    buttonUrl: e.target.value,
+                    ctaUrl: e.target.value,
+                  })
+                }
                 placeholder="/contact"
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
               />
@@ -523,6 +667,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -538,18 +683,26 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
               onChange={(e) => updateSettings({ title: e.target.value })}
-              placeholder={section.type === 'collections' ? 'Shop by Collection' : 'Featured Products'}
+              placeholder={
+                section.type === 'collections'
+                  ? 'Shop by Collection'
+                  : 'Featured Products'
+              }
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subtitle (optional)
+            </label>
             <input
               type="text"
               value={settings.subtitle || ''}
@@ -561,11 +714,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
 
           <div className="p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
-              Products will be automatically pulled from your inventory. Make sure you have products added to display them here.
+              Products will be automatically pulled from your inventory. Make
+              sure you have products added to display them here.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -579,7 +734,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -591,11 +748,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
 
           <div className="p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
-              Blog posts will be automatically pulled from your blog. Visit the Blog section in the dashboard to add posts.
+              Blog posts will be automatically pulled from your blog. Visit the
+              Blog section in the dashboard to add posts.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -609,7 +768,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -624,7 +785,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
               <input
                 type="checkbox"
                 checked={settings.showContactForm ?? true}
-                onChange={(e) => updateSettings({ showContactForm: e.target.checked })}
+                onChange={(e) =>
+                  updateSettings({ showContactForm: e.target.checked })
+                }
                 className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <span className="text-sm text-gray-700">Show contact form</span>
@@ -634,7 +797,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
               <input
                 type="checkbox"
                 checked={settings.showEmail ?? true}
-                onChange={(e) => updateSettings({ showEmail: e.target.checked })}
+                onChange={(e) =>
+                  updateSettings({ showEmail: e.target.checked })
+                }
                 className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <span className="text-sm text-gray-700">Show email address</span>
@@ -644,7 +809,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
               <input
                 type="checkbox"
                 checked={settings.showPhone ?? false}
-                onChange={(e) => updateSettings({ showPhone: e.target.checked })}
+                onChange={(e) =>
+                  updateSettings({ showPhone: e.target.checked })
+                }
                 className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <span className="text-sm text-gray-700">Show phone number</span>
@@ -653,11 +820,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
 
           <div className="p-4 bg-amber-50 rounded-lg">
             <p className="text-sm text-amber-700">
-              Contact info is pulled from your account settings. Update your details in Settings → Business Info.
+              Contact info is pulled from your account settings. Update your
+              details in Settings → Business Info.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -671,7 +840,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -683,11 +854,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
 
           <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-3">
-              Gallery images can be managed from the media library. This section will display your selected gallery images.
+              Gallery images can be managed from the media library. This section
+              will display your selected gallery images.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -701,7 +874,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -712,7 +887,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Content
+            </label>
             <textarea
               value={settings.content || ''}
               onChange={(e) => updateSettings({ content: e.target.value })}
@@ -725,10 +902,13 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           <ImageUploader
             label="Image"
             value={settings.image}
-            onChange={(id, url) => updateSettings({ imageMediaId: id, image: url })}
+            onChange={(id, url) =>
+              updateSettings({ imageMediaId: id, image: url })
+            }
           />
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -742,21 +922,37 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Title
+            </label>
             <input
               type="text"
               value={settings.customOrderTitle || settings.title || ''}
-              onChange={(e) => updateSettings({ customOrderTitle: e.target.value, title: e.target.value })}
+              onChange={(e) =>
+                updateSettings({
+                  customOrderTitle: e.target.value,
+                  title: e.target.value,
+                })
+              }
               placeholder="Custom Orders Welcome"
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
             <textarea
-              value={settings.customOrderDescription || settings.description || ''}
-              onChange={(e) => updateSettings({ customOrderDescription: e.target.value, description: e.target.value })}
+              value={
+                settings.customOrderDescription || settings.description || ''
+              }
+              onChange={(e) =>
+                updateSettings({
+                  customOrderDescription: e.target.value,
+                  description: e.target.value,
+                })
+              }
               placeholder="Looking for something special? We'd love to create a custom piece just for you..."
               rows={3}
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors resize-none"
@@ -764,17 +960,27 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Button Text
+            </label>
             <input
               type="text"
-              value={settings.customOrderButtonText || settings.buttonText || ''}
-              onChange={(e) => updateSettings({ customOrderButtonText: e.target.value, buttonText: e.target.value })}
+              value={
+                settings.customOrderButtonText || settings.buttonText || ''
+              }
+              onChange={(e) =>
+                updateSettings({
+                  customOrderButtonText: e.target.value,
+                  buttonText: e.target.value,
+                })
+              }
               placeholder="Enquire Now"
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             />
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -791,6 +997,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
             This is a visual spacing element. No content needed.
           </p>
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -804,7 +1011,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
       return (
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Section Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
             <input
               type="text"
               value={settings.title || ''}
@@ -815,7 +1024,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subtitle (optional)
+            </label>
             <input
               type="text"
               value={settings.subtitle || ''}
@@ -826,10 +1037,16 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Layout
+            </label>
             <select
               value={settings.reviewsLayout || 'grid'}
-              onChange={(e) => updateSettings({ reviewsLayout: e.target.value as 'grid' | 'list' })}
+              onChange={(e) =>
+                updateSettings({
+                  reviewsLayout: e.target.value as 'grid' | 'list',
+                })
+              }
               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
             >
               <option value="grid">Grid (3 columns)</option>
@@ -847,7 +1064,9 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
               max="12"
               step="1"
               value={settings.reviewsLimit || 6}
-              onChange={(e) => updateSettings({ reviewsLimit: parseInt(e.target.value) })}
+              onChange={(e) =>
+                updateSettings({ reviewsLimit: parseInt(e.target.value, 10) })
+              }
               className="w-full"
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -860,19 +1079,26 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
             <input
               type="checkbox"
               checked={settings.reviewsShowRatingBreakdown ?? true}
-              onChange={(e) => updateSettings({ reviewsShowRatingBreakdown: e.target.checked })}
+              onChange={(e) =>
+                updateSettings({ reviewsShowRatingBreakdown: e.target.checked })
+              }
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">Show rating breakdown summary</span>
+            <span className="text-sm text-gray-700">
+              Show rating breakdown summary
+            </span>
           </label>
 
           <div className="p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
-              Reviews are pulled from your approved product reviews. Customers can submit reviews from product pages after verifying their purchase.
+              Reviews are pulled from your approved product reviews. Customers
+              can submit reviews from product pages after verifying their
+              purchase.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={markComplete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >
@@ -887,6 +1113,7 @@ export function SectionContentForm({ section, onChange }: SectionContentFormProp
         <div className="py-8 text-center text-gray-500">
           <p>Content editor not available for this section type.</p>
           <button
+            type="button"
             onClick={markComplete}
             className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
           >

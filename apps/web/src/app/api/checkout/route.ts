@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { media, pieces, stockReservations, tenants } from '@madebuy/db'
+import type { ProductVariant, ShippingMethod } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { pieces, media, stockReservations, tenants } from '@madebuy/db'
 import { rateLimiters } from '@/lib/rate-limit'
-import type { ShippingMethod, ProductVariant } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -46,12 +46,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { tenantId, items, customerInfo, shippingAddress, notes, successUrl, cancelUrl } = body
+    const {
+      tenantId,
+      items,
+      customerInfo,
+      shippingAddress,
+      notes,
+      successUrl,
+      cancelUrl,
+    } = body
 
     if (!tenantId || !items || items.length === 0) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -61,11 +69,15 @@ export async function POST(request: NextRequest) {
 
     // Verify all pieces exist, are available, and reserve stock
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
-    const reservedItems: { pieceId: string; variantId?: string; quantity: number }[] = []
+    const reservedItems: {
+      pieceId: string
+      variantId?: string
+      quantity: number
+    }[] = []
 
     // First pass: validate all pieces and reserve stock
     const validatedItems: Array<{
-      item: typeof items[0]
+      item: (typeof items)[0]
       piece: Awaited<ReturnType<typeof pieces.getPiece>>
       selectedVariant?: ProductVariant
     }> = []
@@ -78,7 +90,7 @@ export async function POST(request: NextRequest) {
         await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
           { error: `Piece ${item.pieceId} not found` },
-          { status: 404 }
+          { status: 404 },
         )
       }
 
@@ -86,26 +98,26 @@ export async function POST(request: NextRequest) {
         await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
           { error: `${piece.name} is no longer available` },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
       // Handle variant products
       let selectedVariant: ProductVariant | undefined
       if (piece.hasVariants && item.variantId) {
-        selectedVariant = piece.variants?.find(v => v.id === item.variantId)
+        selectedVariant = piece.variants?.find((v) => v.id === item.variantId)
         if (!selectedVariant) {
           await stockReservations.cancelReservation(tempSessionId)
           return NextResponse.json(
             { error: `Variant ${item.variantId} not found for ${piece.name}` },
-            { status: 404 }
+            { status: 404 },
           )
         }
         if (!selectedVariant.isAvailable) {
           await stockReservations.cancelReservation(tempSessionId)
           return NextResponse.json(
             { error: `Selected variant for ${piece.name} is not available` },
-            { status: 400 }
+            { status: 400 },
           )
         }
       } else if (piece.hasVariants && !item.variantId) {
@@ -113,7 +125,7 @@ export async function POST(request: NextRequest) {
         await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
           { error: `Please select a variant for ${piece.name}` },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
@@ -124,28 +136,37 @@ export async function POST(request: NextRequest) {
         item.quantity,
         tempSessionId,
         30, // 30 minutes expiration
-        item.variantId // Pass variantId for variant-level stock
+        item.variantId, // Pass variantId for variant-level stock
       )
 
       if (!reservation) {
         // Release any reservations made so far
         await stockReservations.cancelReservation(tempSessionId)
         return NextResponse.json(
-          { error: `Insufficient stock for ${piece.name}${selectedVariant ? ` (${formatVariantOptions(selectedVariant.options)})` : ''}` },
-          { status: 400 }
+          {
+            error: `Insufficient stock for ${piece.name}${selectedVariant ? ` (${formatVariantOptions(selectedVariant.options)})` : ''}`,
+          },
+          { status: 400 },
         )
       }
 
-      reservedItems.push({ pieceId: item.pieceId, variantId: item.variantId, quantity: item.quantity })
+      reservedItems.push({
+        pieceId: item.pieceId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+      })
       validatedItems.push({ item, piece, selectedVariant })
     }
 
     // Batch fetch all media in one query (optimization: avoids N+1 queries)
     const mediaIds = validatedItems
-      .map(({ piece }) => piece?.primaryMediaId || (piece?.mediaIds?.[0]))
+      .map(({ piece }) => piece?.primaryMediaId || piece?.mediaIds?.[0])
       .filter((id): id is string => !!id)
 
-    const mediaMap = new Map<string, Awaited<ReturnType<typeof media.getMedia>>>()
+    const mediaMap = new Map<
+      string,
+      Awaited<ReturnType<typeof media.getMedia>>
+    >()
     if (mediaIds.length > 0) {
       const mediaItems = await media.getMediaByIds(tenantId, mediaIds)
       for (const m of mediaItems) {
@@ -163,7 +184,8 @@ export async function POST(request: NextRequest) {
       if (mediaId) {
         const mediaItem = mediaMap.get(mediaId)
         if (mediaItem) {
-          imageUrl = mediaItem.variants.large?.url || mediaItem.variants.original.url
+          imageUrl =
+            mediaItem.variants.large?.url || mediaItem.variants.original.url
         }
       }
 
@@ -182,7 +204,10 @@ export async function POST(request: NextRequest) {
       let description = piece.description || ''
       if (item.personalization && item.personalization.length > 0) {
         const personalizationLines = item.personalization
-          .map((p: { fieldName: string; value: unknown }) => `${p.fieldName}: ${String(p.value)}`)
+          .map(
+            (p: { fieldName: string; value: unknown }) =>
+              `${p.fieldName}: ${String(p.value)}`,
+          )
           .join(', ')
         description = description
           ? `${description}\n\nPersonalization: ${personalizationLines}`
@@ -208,7 +233,10 @@ export async function POST(request: NextRequest) {
             name: productName,
             description: description || undefined,
             images: imageUrl ? [imageUrl] : undefined,
-            metadata: Object.keys(productMetadata).length > 0 ? productMetadata : undefined,
+            metadata:
+              Object.keys(productMetadata).length > 0
+                ? productMetadata
+                : undefined,
           },
           unit_amount: Math.round(effectivePrice * 100), // Convert to cents (includes personalization)
         },
@@ -217,18 +245,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate subtotal for free shipping threshold (includes personalization costs)
-    const subtotal = items.reduce((sum: number, item: { price: number; quantity: number; personalizationTotal?: number }) =>
-      sum + ((item.price + (item.personalizationTotal || 0)) * item.quantity), 0
+    const _subtotal = items.reduce(
+      (
+        sum: number,
+        item: {
+          price: number
+          quantity: number
+          personalizationTotal?: number
+        },
+      ) =>
+        sum + (item.price + (item.personalizationTotal || 0)) * item.quantity,
+      0,
     )
 
     // Verify tenant exists and is valid before processing
     const tenant = await tenants.getTenantById(tenantId)
     if (!tenant) {
       await stockReservations.cancelReservation(tempSessionId)
-      return NextResponse.json(
-        { error: 'Invalid tenant' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid tenant' }, { status: 400 })
     }
 
     // Verify seller has Stripe Connect set up and can accept payments
@@ -241,37 +275,43 @@ export async function POST(request: NextRequest) {
       await stockReservations.cancelReservation(tempSessionId)
       return NextResponse.json(
         { error: 'Store not ready for payments' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Marketplace mode with destination charges
 
     // Use tenant's shipping methods if configured, otherwise fall back to defaults
-    const configuredMethods = (tenant.shippingMethods ?? []).filter((m: ShippingMethod) => m.enabled)
-    const effectiveShippingMethods = configuredMethods.length > 0 ? configuredMethods : DEFAULT_SHIPPING_METHODS
+    const configuredMethods = (tenant.shippingMethods ?? []).filter(
+      (m: ShippingMethod) => m.enabled,
+    )
+    const effectiveShippingMethods =
+      configuredMethods.length > 0
+        ? configuredMethods
+        : DEFAULT_SHIPPING_METHODS
 
     // Build Stripe shipping options
-    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = effectiveShippingMethods.map(method => ({
-      shipping_rate_data: {
-        type: 'fixed_amount' as const,
-        fixed_amount: {
-          amount: Math.round(method.price * 100),
-          currency: (method.currency || 'AUD').toLowerCase(),
-        },
-        display_name: method.name,
-        delivery_estimate: {
-          minimum: {
-            unit: 'business_day' as const,
-            value: method.estimatedDays.min,
+    const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] =
+      effectiveShippingMethods.map((method) => ({
+        shipping_rate_data: {
+          type: 'fixed_amount' as const,
+          fixed_amount: {
+            amount: Math.round(method.price * 100),
+            currency: (method.currency || 'AUD').toLowerCase(),
           },
-          maximum: {
-            unit: 'business_day' as const,
-            value: method.estimatedDays.max,
+          display_name: method.name,
+          delivery_estimate: {
+            minimum: {
+              unit: 'business_day' as const,
+              value: method.estimatedDays.min,
+            },
+            maximum: {
+              unit: 'business_day' as const,
+              value: method.estimatedDays.max,
+            },
           },
         },
-      },
-    }))
+      }))
 
     // Add local pickup option
     shippingOptions.push({
@@ -332,8 +372,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Checkout error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create checkout session' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create checkout session',
+      },
+      { status: 500 },
     )
   }
 }

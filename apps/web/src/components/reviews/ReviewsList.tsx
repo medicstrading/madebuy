@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Star, ChevronDown, Loader2, MessageSquare } from 'lucide-react'
+import type { ProductReviewStats, Review } from '@madebuy/shared'
+import { ChevronDown, Loader2, MessageSquare, Star } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { ReviewCard } from './ReviewCard'
 import { ReviewStars } from './ReviewStars'
-import type { Review, ProductReviewStats } from '@madebuy/shared'
 
 interface ReviewsListProps {
   tenantId: string
@@ -40,7 +40,9 @@ export function ReviewsList({
   pageSize = 10,
 }: ReviewsListProps) {
   const [reviews, setReviews] = useState<Review[]>(initialReviews)
-  const [stats, setStats] = useState<ProductReviewStats | null>(initialStats || null)
+  const [stats, setStats] = useState<ProductReviewStats | null>(
+    initialStats || null,
+  )
   const [isLoading, setIsLoading] = useState(!initialReviews.length)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -49,36 +51,36 @@ export function ReviewsList({
   const [filterRating, setFilterRating] = useState<number | null>(null)
 
   // Fetch reviews
-  const fetchReviews = useCallback(async (
-    currentOffset: number,
-    append: boolean = false
-  ) => {
-    try {
-      const params = new URLSearchParams({
-        tenantId,
-        pieceId,
-        limit: String(pageSize),
-        offset: String(currentOffset),
-      })
+  const fetchReviews = useCallback(
+    async (currentOffset: number, append: boolean = false) => {
+      try {
+        const params = new URLSearchParams({
+          tenantId,
+          pieceId,
+          limit: String(pageSize),
+          offset: String(currentOffset),
+        })
 
-      const response = await fetch(`/api/reviews?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch reviews')
+        const response = await fetch(`/api/reviews?${params}`)
+        if (!response.ok) throw new Error('Failed to fetch reviews')
 
-      const data: ReviewsResponse = await response.json()
+        const data: ReviewsResponse = await response.json()
 
-      if (append) {
-        setReviews(prev => [...prev, ...data.reviews])
-      } else {
-        setReviews(data.reviews)
+        if (append) {
+          setReviews((prev) => [...prev, ...data.reviews])
+        } else {
+          setReviews(data.reviews)
+        }
+
+        setStats(data.stats)
+        setHasMore(data.reviews.length === pageSize)
+        setOffset(currentOffset + data.reviews.length)
+      } catch (error) {
+        console.error('Error fetching reviews:', error)
       }
-
-      setStats(data.stats)
-      setHasMore(data.reviews.length === pageSize)
-      setOffset(currentOffset + data.reviews.length)
-    } catch (error) {
-      console.error('Error fetching reviews:', error)
-    }
-  }, [tenantId, pieceId, pageSize])
+    },
+    [tenantId, pieceId, pageSize],
+  )
 
   // Initial load if no initial data
   useEffect(() => {
@@ -99,10 +101,10 @@ export function ReviewsList({
   const handleHelpful = async (reviewId: string) => {
     try {
       await fetch(`/api/reviews/${reviewId}/helpful`, { method: 'POST' })
-      setReviews(prev =>
-        prev.map(r =>
-          r.id === reviewId ? { ...r, helpfulCount: r.helpfulCount + 1 } : r
-        )
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId ? { ...r, helpfulCount: r.helpfulCount + 1 } : r,
+        ),
       )
     } catch (error) {
       console.error('Error marking review helpful:', error)
@@ -121,7 +123,7 @@ export function ReviewsList({
 
   // Filter reviews by rating
   const filteredReviews = filterRating
-    ? reviews.filter(r => r.rating === filterRating)
+    ? reviews.filter((r) => r.rating === filterRating)
     : reviews
 
   // Sort reviews
@@ -144,7 +146,9 @@ export function ReviewsList({
     return (
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
         <MessageSquare className="mx-auto h-10 w-10 text-gray-400" />
-        <h3 className="mt-3 text-lg font-medium text-gray-900">No reviews yet</h3>
+        <h3 className="mt-3 text-lg font-medium text-gray-900">
+          No reviews yet
+        </h3>
         <p className="mt-1 text-sm text-gray-500">
           Be the first to review this product
         </p>
@@ -164,30 +168,36 @@ export function ReviewsList({
             </div>
             <ReviewStars rating={stats.averageRating} size="md" />
             <p className="mt-1 text-sm text-gray-500">
-              {stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'}
+              {stats.totalReviews}{' '}
+              {stats.totalReviews === 1 ? 'review' : 'reviews'}
             </p>
           </div>
 
           {/* Rating Breakdown */}
           <div className="flex-1 space-y-2">
             {[5, 4, 3, 2, 1].map((rating) => {
-              const count = stats.ratingBreakdown[rating.toString() as keyof typeof stats.ratingBreakdown]
-              const percentage = stats.totalReviews > 0
-                ? (count / stats.totalReviews) * 100
-                : 0
+              const count =
+                stats.ratingBreakdown[
+                  rating.toString() as keyof typeof stats.ratingBreakdown
+                ]
+              const percentage =
+                stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0
 
               return (
                 <button
                   key={rating}
-                  type="button"
-                  onClick={() => setFilterRating(filterRating === rating ? null : rating)}
+                  onClick={() =>
+                    setFilterRating(filterRating === rating ? null : rating)
+                  }
                   className={`flex w-full items-center gap-2 rounded-lg p-1 transition-colors ${
                     filterRating === rating
                       ? 'bg-yellow-50'
                       : 'hover:bg-gray-50'
                   }`}
                 >
-                  <span className="w-8 text-sm text-gray-600">{rating} star</span>
+                  <span className="w-8 text-sm text-gray-600">
+                    {rating} star
+                  </span>
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
@@ -195,7 +205,9 @@ export function ReviewsList({
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-                  <span className="w-8 text-right text-sm text-gray-500">{count}</span>
+                  <span className="w-8 text-right text-sm text-gray-500">
+                    {count}
+                  </span>
                 </button>
               )
             })}
@@ -206,7 +218,8 @@ export function ReviewsList({
         <div className="mt-4 flex flex-wrap gap-4 pt-4 border-t border-gray-100">
           {stats.verifiedPurchaseCount > 0 && (
             <span className="text-sm text-gray-600">
-              {stats.verifiedPurchaseCount} verified {stats.verifiedPurchaseCount === 1 ? 'purchase' : 'purchases'}
+              {stats.verifiedPurchaseCount} verified{' '}
+              {stats.verifiedPurchaseCount === 1 ? 'purchase' : 'purchases'}
             </span>
           )}
           {stats.withPhotosCount > 0 && (
@@ -222,7 +235,6 @@ export function ReviewsList({
         <div className="flex items-center gap-2">
           {filterRating && (
             <button
-              type="button"
               onClick={() => setFilterRating(null)}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
@@ -234,7 +246,9 @@ export function ReviewsList({
           <span className="text-sm text-gray-500">Sort by:</span>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'createdAt' | 'rating')}
+            onChange={(e) =>
+              setSortBy(e.target.value as 'createdAt' | 'rating')
+            }
             className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="createdAt">Most Recent</option>
@@ -259,7 +273,6 @@ export function ReviewsList({
       {hasMore && !filterRating && (
         <div className="text-center">
           <button
-            type="button"
             onClick={handleLoadMore}
             disabled={isLoadingMore}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"

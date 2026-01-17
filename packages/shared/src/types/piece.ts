@@ -10,9 +10,9 @@ import type { SocialVideo } from './product'
  * Different from MaterialUsage in material.ts which is for historical tracking records
  */
 export interface PieceMaterialUsage {
-  materialId: string     // Reference to Material.id
-  quantity: number       // Amount used
-  unit: string          // Unit of measurement (should match material's unit)
+  materialId: string // Reference to Material.id
+  quantity: number // Amount used
+  unit: string // Unit of measurement (should match material's unit)
 }
 
 export interface Piece {
@@ -38,19 +38,19 @@ export interface Piece {
   chainLength?: string
 
   // Shipping dimensions (structured for carrier API integration)
-  shippingWeight?: number  // Weight in grams
-  shippingLength?: number  // Length in cm
-  shippingWidth?: number   // Width in cm
-  shippingHeight?: number  // Height in cm
+  shippingWeight?: number // Weight in grams
+  shippingLength?: number // Length in cm
+  shippingWidth?: number // Width in cm
+  shippingHeight?: number // Height in cm
 
   // Pricing
   price?: number
   currency: string
 
   // COGS (Cost of Goods Sold)
-  materialsUsed?: PieceMaterialUsage[]  // Materials used in this piece
-  calculatedCOGS?: number               // Total cost in cents, calculated from materialsUsed
-  profitMargin?: number                 // Percentage profit margin ((price - COGS) / price * 100)
+  materialsUsed?: PieceMaterialUsage[] // Materials used in this piece
+  calculatedCOGS?: number // Total cost in cents, calculated from materialsUsed
+  profitMargin?: number // Percentage profit margin ((price - COGS) / price * 100)
 
   // DEPRECATED: Legacy COGS field, use calculatedCOGS instead
   cogs?: number // Cost of Goods Sold (calculated from material usages)
@@ -105,8 +105,8 @@ export interface Piece {
   viewCount?: number
 
   // Reviews (populated by review moderation)
-  avgRating?: number       // Average rating 0-5
-  reviewCount?: number     // Total approved reviews
+  avgRating?: number // Average rating 0-5
+  reviewCount?: number // Total approved reviews
 
   // Timestamps
   createdAt: Date
@@ -298,56 +298,56 @@ export interface VariantCombination {
  * Personalization field types
  */
 export type PersonalizationFieldType =
-  | 'text'      // Single line text input
-  | 'textarea'  // Multi-line text input
-  | 'select'    // Dropdown selection
-  | 'checkbox'  // Yes/No toggle
-  | 'file'      // Image/file upload
-  | 'date'      // Date picker (delivery date, event date)
-  | 'number'    // Numeric input (quantity, measurements)
+  | 'text' // Single line text input
+  | 'textarea' // Multi-line text input
+  | 'select' // Dropdown selection
+  | 'checkbox' // Yes/No toggle
+  | 'file' // Image/file upload
+  | 'date' // Date picker (delivery date, event date)
+  | 'number' // Numeric input (quantity, measurements)
 
 /**
  * PersonalizationField - defines a field for customer personalization
  */
 export interface PersonalizationField {
   id: string
-  name: string                           // Display name: "Engraving Text", "Gift Message"
+  name: string // Display name: "Engraving Text", "Gift Message"
   type: PersonalizationFieldType
   required: boolean
-  placeholder?: string                   // Placeholder text for input
-  helpText?: string                      // Instructions for buyer
+  placeholder?: string // Placeholder text for input
+  helpText?: string // Instructions for buyer
 
   // Text validation constraints
   minLength?: number
   maxLength?: number
-  pattern?: string                       // Regex pattern for validation
-  patternError?: string                  // Custom error message for pattern mismatch
+  pattern?: string // Regex pattern for validation
+  patternError?: string // Custom error message for pattern mismatch
 
   // Select type options
-  options?: string[]                     // Available choices for select type
+  options?: string[] // Available choices for select type
 
   // Number type constraints
   min?: number
   max?: number
-  step?: number                          // Step increment for number input
+  step?: number // Step increment for number input
 
   // File type constraints
-  acceptedFileTypes?: string[]           // MIME types: ["image/png", "image/jpeg"]
-  maxFileSizeMB?: number                 // Max file size in megabytes
+  acceptedFileTypes?: string[] // MIME types: ["image/png", "image/jpeg"]
+  maxFileSizeMB?: number // Max file size in megabytes
 
   // Date type constraints
-  minDate?: string                       // ISO date string for minimum date
-  maxDate?: string                       // ISO date string for maximum date
+  minDate?: string // ISO date string for minimum date
+  maxDate?: string // ISO date string for maximum date
 
   // Pricing impact
-  priceAdjustment?: number               // Additional cost for this field/option (cents)
+  priceAdjustment?: number // Additional cost for this field/option (cents)
   priceAdjustmentType?: 'fixed' | 'percentage'
 
   // Display order in form
   displayOrder: number
 
   // DEPRECATED: Keep for backwards compatibility
-  label?: string                         // Old field name, use 'name' instead
+  label?: string // Old field name, use 'name' instead
 }
 
 /**
@@ -356,9 +356,9 @@ export interface PersonalizationField {
 export interface PersonalizationConfig {
   enabled: boolean
   fields: PersonalizationField[]
-  previewEnabled?: boolean               // Show live preview to buyer
-  processingDays?: number                // Extra days needed for personalized items
-  instructions?: string                  // General instructions displayed at top of form
+  previewEnabled?: boolean // Show live preview to buyer
+  processingDays?: number // Extra days needed for personalized items
+  instructions?: string // General instructions displayed at top of form
 }
 
 /**
@@ -368,9 +368,9 @@ export interface PersonalizationValue {
   fieldId: string
   fieldName: string
   value: string | number | boolean
-  fileUrl?: string                       // For file type fields
-  fileName?: string                      // Original filename for file uploads
-  priceAdjustment: number                // Calculated price adjustment in cents
+  fileUrl?: string // For file type fields
+  fileName?: string // Original filename for file uploads
+  priceAdjustment: number // Calculated price adjustment in cents
 }
 
 /**
@@ -378,14 +378,14 @@ export interface PersonalizationValue {
  */
 export interface DigitalFile {
   id: string
-  name: string                      // Display name
-  fileName: string                  // Original filename
-  r2Key: string                     // Cloudflare R2 storage key
-  sizeBytes: number                 // Size in bytes
+  name: string // Display name
+  fileName: string // Original filename
+  r2Key: string // Cloudflare R2 storage key
+  sizeBytes: number // Size in bytes
   mimeType: string
-  description?: string              // What this file contains
-  version?: string                  // v1.0, v2.0 for updates
-  sortOrder: number                 // Display order
+  description?: string // What this file contains
+  version?: string // v1.0, v2.0 for updates
+  sortOrder: number // Display order
   createdAt: Date
   updatedAt: Date
 }
@@ -398,16 +398,16 @@ export interface DigitalProductConfig {
   files: DigitalFile[]
 
   // Download settings
-  downloadLimit?: number            // Max downloads per purchase (null = unlimited)
-  downloadExpiryDays?: number       // Days until link expires (null = never)
+  downloadLimit?: number // Max downloads per purchase (null = unlimited)
+  downloadExpiryDays?: number // Days until link expires (null = never)
 
   // Delivery
-  instantDelivery: boolean          // Deliver immediately after payment
-  emailDelivery: boolean            // Send download link via email
+  instantDelivery: boolean // Deliver immediately after payment
+  emailDelivery: boolean // Send download link via email
 
   // Terms
   licenseType?: 'personal' | 'commercial' | 'extended'
-  licenseText?: string              // Custom license terms
+  licenseText?: string // Custom license terms
 }
 
 /**
@@ -434,9 +434,7 @@ export interface UpdateDigitalFileInput {
 }
 
 // External integrations archived (2026-01-02)
-export interface PieceIntegrations {
-  // Reserved for future integrations
-}
+export type PieceIntegrations = {}
 
 export interface CreatePieceInput {
   name: string
@@ -454,7 +452,7 @@ export interface CreatePieceInput {
   price?: number
   currency?: string
   // COGS tracking
-  materialsUsed?: PieceMaterialUsage[]  // Materials used for COGS calculation
+  materialsUsed?: PieceMaterialUsage[] // Materials used for COGS calculation
   stock?: number
   lowStockThreshold?: number
   category?: string

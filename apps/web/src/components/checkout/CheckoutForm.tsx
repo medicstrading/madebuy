@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useCart } from '@/contexts/CartContext'
+import {
+  createEmptyAddress,
+  formatShippingPrice,
+  hasRequiredAddressFields,
+  isDigitalOnlyOrder,
+  requiresShipping,
+  type ShippingAddress,
+  type ShippingQuote,
+} from '@/lib/checkout/shipping'
 import { formatCurrency } from '@/lib/utils'
 import { ShippingSelector } from './ShippingSelector'
-import {
-  ShippingAddress,
-  ShippingQuote,
-  createEmptyAddress,
-  hasRequiredAddressFields,
-  requiresShipping,
-  isDigitalOnlyOrder,
-  formatShippingPrice,
-} from '@/lib/checkout/shipping'
 
 // Update abandoned cart with customer email
 async function updateCartWithEmail(tenantId: string, email: string) {
@@ -45,8 +45,11 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
   const [step, setStep] = useState<'shipping' | 'review'>('shipping')
 
   // Shipping state
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(createEmptyAddress())
-  const [selectedShipping, setSelectedShipping] = useState<ShippingQuote | null>(null)
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(
+    createEmptyAddress(),
+  )
+  const [selectedShipping, setSelectedShipping] =
+    useState<ShippingQuote | null>(null)
 
   // Order notes
   const [notes, setNotes] = useState('')
@@ -56,7 +59,10 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
   const isDigitalOnly = useMemo(() => isDigitalOnlyOrder(items), [items])
 
   // Calculate order totals
-  const subtotalCents = useMemo(() => Math.round(totalAmount * 100), [totalAmount])
+  const subtotalCents = useMemo(
+    () => Math.round(totalAmount * 100),
+    [totalAmount],
+  )
   const shippingCents = selectedShipping?.price || 0
   const totalCents = subtotalCents + (needsShipping ? shippingCents : 0)
 
@@ -67,7 +73,9 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
       return Boolean(shippingAddress.email?.trim())
     }
     // For physical orders, need full address and shipping method
-    return hasRequiredAddressFields(shippingAddress) && selectedShipping !== null
+    return (
+      hasRequiredAddressFields(shippingAddress) && selectedShipping !== null
+    )
   }, [isDigitalOnly, shippingAddress, selectedShipping])
 
   // Debounced email tracking for abandoned cart
@@ -128,7 +136,7 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tenantId,
-          items: items.map(item => ({
+          items: items.map((item) => ({
             pieceId: item.product.id,
             quantity: item.quantity,
             price: (item.product.price || 0) + (item.personalizationTotal || 0),
@@ -200,8 +208,12 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
               d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
             />
           </svg>
-          <h2 className="mt-4 text-lg font-medium text-gray-900">Your cart is empty</h2>
-          <p className="mt-2 text-gray-600">Add some items to your cart to checkout.</p>
+          <h2 className="mt-4 text-lg font-medium text-gray-900">
+            Your cart is empty
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Add some items to your cart to checkout.
+          </p>
         </div>
       </div>
     )
@@ -215,7 +227,6 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
           {/* Step Indicator */}
           <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow-sm">
             <button
-              type="button"
               onClick={() => setStep('shipping')}
               className={`flex items-center ${
                 step === 'shipping' ? 'text-blue-600' : 'text-gray-500'
@@ -238,7 +249,6 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
             <div className="h-px flex-1 bg-gray-200 mx-4" />
 
             <button
-              type="button"
               onClick={() => canProceedToReview && setStep('review')}
               disabled={!canProceedToReview}
               className={`flex items-center ${
@@ -266,7 +276,9 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                 {isDigitalOnly ? (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Contact Information</h2>
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        Contact Information
+                      </h2>
                       <p className="mt-1 text-sm text-gray-600">
                         Your download links will be sent to this email address.
                       </p>
@@ -285,8 +297,11 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                           id="email"
                           required
                           value={shippingAddress.email || ''}
-                          onChange={e =>
-                            handleAddressChange({ ...shippingAddress, email: e.target.value })
+                          onChange={(e) =>
+                            handleAddressChange({
+                              ...shippingAddress,
+                              email: e.target.value,
+                            })
                           }
                           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                           placeholder="your@email.com"
@@ -304,8 +319,11 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                           type="text"
                           id="name"
                           value={shippingAddress.name || ''}
-                          onChange={e =>
-                            handleAddressChange({ ...shippingAddress, name: e.target.value })
+                          onChange={(e) =>
+                            handleAddressChange({
+                              ...shippingAddress,
+                              name: e.target.value,
+                            })
                           }
                           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                           placeholder="John Smith"
@@ -333,7 +351,8 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                             Digital Products - No Shipping Required
                           </p>
                           <p className="mt-1 text-sm text-green-700">
-                            You&apos;ll receive instant access to your downloads after payment.
+                            You&apos;ll receive instant access to your downloads
+                            after payment.
                           </p>
                         </div>
                       </div>
@@ -354,7 +373,6 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                 {/* Continue Button */}
                 <div className="mt-6">
                   <button
-                    type="button"
                     onClick={handleProceedToReview}
                     disabled={!canProceedToReview}
                     className="w-full rounded-lg bg-blue-600 px-6 py-3 text-lg font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -367,19 +385,25 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
             {step === 'review' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900">Review Your Order</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Review Your Order
+                </h2>
 
                 {/* Shipping Summary */}
                 {needsShipping && (
                   <div className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Ship to:</h3>
+                        <h3 className="text-sm font-medium text-gray-900">
+                          Ship to:
+                        </h3>
                         <p className="mt-1 text-sm text-gray-600">
                           {shippingAddress.name}
                           <br />
                           {shippingAddress.line1}
-                          {shippingAddress.line2 && <>, {shippingAddress.line2}</>}
+                          {shippingAddress.line2 && (
+                            <>, {shippingAddress.line2}</>
+                          )}
                           <br />
                           {shippingAddress.suburb}, {shippingAddress.state}{' '}
                           {shippingAddress.postcode}
@@ -388,7 +412,6 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                         </p>
                       </div>
                       <button
-                        type="button"
                         onClick={() => setStep('shipping')}
                         className="text-sm font-medium text-blue-600 hover:text-blue-500"
                       >
@@ -398,12 +421,16 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
                     {selectedShipping && (
                       <div className="mt-4 border-t border-gray-200 pt-4">
-                        <h3 className="text-sm font-medium text-gray-900">Shipping Method:</h3>
+                        <h3 className="text-sm font-medium text-gray-900">
+                          Shipping Method:
+                        </h3>
                         <p className="mt-1 text-sm text-gray-600">
-                          {selectedShipping.service} - {formatShippingPrice(selectedShipping.price)}
+                          {selectedShipping.service} -{' '}
+                          {formatShippingPrice(selectedShipping.price)}
                           <br />
                           <span className="text-gray-500">
-                            Est. {selectedShipping.estimatedDays.min}-{selectedShipping.estimatedDays.max} business days
+                            Est. {selectedShipping.estimatedDays.min}-
+                            {selectedShipping.estimatedDays.max} business days
                           </span>
                         </p>
                       </div>
@@ -416,14 +443,20 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                   <div className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Deliver to:</h3>
+                        <h3 className="text-sm font-medium text-gray-900">
+                          Deliver to:
+                        </h3>
                         <p className="mt-1 text-sm text-gray-600">
-                          {shippingAddress.name && <>{shippingAddress.name}<br /></>}
+                          {shippingAddress.name && (
+                            <>
+                              {shippingAddress.name}
+                              <br />
+                            </>
+                          )}
                           {shippingAddress.email}
                         </p>
                       </div>
                       <button
-                        type="button"
                         onClick={() => setStep('shipping')}
                         className="text-sm font-medium text-blue-600 hover:text-blue-500"
                       >
@@ -439,13 +472,14 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                     htmlFor="notes"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Order Notes <span className="text-gray-400">(optional)</span>
+                    Order Notes{' '}
+                    <span className="text-gray-400">(optional)</span>
                   </label>
                   <textarea
                     id="notes"
                     rows={3}
                     value={notes}
-                    onChange={e => setNotes(e.target.value)}
+                    onChange={(e) => setNotes(e.target.value)}
                     className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     placeholder="Any special instructions for your order..."
                   />
@@ -506,7 +540,8 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                 </button>
 
                 <p className="text-center text-xs text-gray-500">
-                  You&apos;ll be redirected to our secure payment partner to complete your purchase.
+                  You&apos;ll be redirected to our secure payment partner to
+                  complete your purchase.
                 </p>
               </div>
             )}
@@ -521,43 +556,46 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
           {/* Items */}
           <div className="mt-4 space-y-4">
-            {items.map(item => {
+            {items.map((item) => {
               // Get image URL - handle both string and MediaItem types
-              const imageUrl = typeof item.product.primaryImage === 'string'
-                ? item.product.primaryImage
-                : item.product.primaryImage?.variants?.thumb?.url ||
-                  item.product.primaryImage?.variants?.large?.url ||
-                  item.product.primaryImage?.variants?.original?.url
+              const imageUrl =
+                typeof item.product.primaryImage === 'string'
+                  ? item.product.primaryImage
+                  : item.product.primaryImage?.variants?.thumb?.url ||
+                    item.product.primaryImage?.variants?.large?.url ||
+                    item.product.primaryImage?.variants?.original?.url
 
               return (
-              <div key={item.product.id} className="flex gap-3">
-                {/* Product Image */}
-                {imageUrl && (
-                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                    <img
-                      src={imageUrl}
-                      alt={item.product.name}
-                      className="h-full w-full object-cover object-center"
-                    />
-                  </div>
-                )}
-                <div className="flex flex-1 flex-col">
-                  <div className="flex justify-between text-sm">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 line-clamp-2">
-                        {item.product.name}
-                      </p>
-                      <p className="text-gray-600">Qty: {item.quantity}</p>
+                <div key={item.product.id} className="flex gap-3">
+                  {/* Product Image */}
+                  {imageUrl && (
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                      <img
+                        src={imageUrl}
+                        alt={item.product.name}
+                        className="h-full w-full object-cover object-center"
+                      />
                     </div>
-                    <p className="font-medium text-gray-900">
-                      {formatCurrency(
-                        item.product.price ? item.product.price * item.quantity : undefined,
-                        item.product.currency
-                      )}
-                    </p>
+                  )}
+                  <div className="flex flex-1 flex-col">
+                    <div className="flex justify-between text-sm">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 line-clamp-2">
+                          {item.product.name}
+                        </p>
+                        <p className="text-gray-600">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="font-medium text-gray-900">
+                        {formatCurrency(
+                          item.product.price
+                            ? item.product.price * item.quantity
+                            : undefined,
+                          item.product.currency,
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
               )
             })}
           </div>

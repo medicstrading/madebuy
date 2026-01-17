@@ -4,6 +4,6 @@ import { NextResponse } from 'next/server'
 export async function POST() {
   return NextResponse.json(
     { status: 'failed', error: 'Website scanner not yet configured' },
-    { status: 503 }
+    { status: 503 },
   )
 }

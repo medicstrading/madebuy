@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { pieces, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { rateLimiters } from '@/lib/rate-limit'
 
 const MAX_QUERY_LENGTH = 200
@@ -29,12 +29,14 @@ export async function GET(request: NextRequest) {
     if (!tenantId) {
       return NextResponse.json(
         { error: 'tenantId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate tenant exists (accept ID or slug)
-    const tenant = await tenants.getTenantById(tenantId) || await tenants.getTenantBySlug(tenantId)
+    const tenant =
+      (await tenants.getTenantById(tenantId)) ||
+      (await tenants.getTenantBySlug(tenantId))
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
@@ -42,12 +44,12 @@ export async function GET(request: NextRequest) {
     const parsedLimit = limitParam ? parseInt(limitParam, 10) : 50
     const options = {
       limit: Number.isNaN(parsedLimit) ? 50 : parsedLimit,
-      category: category || undefined
+      category: category || undefined,
     }
 
     let results
 
-    if (query && query.trim()) {
+    if (query?.trim()) {
       // Full-text search
       results = await pieces.searchPieces(tenant.id, query, options)
     } else {
@@ -56,17 +58,20 @@ export async function GET(request: NextRequest) {
         status: 'available',
         isPublishedToWebsite: true,
         category: options.category,
-        limit: options.limit
+        limit: options.limit,
       })
     }
 
     return NextResponse.json({
       pieces: results,
       query: query || null,
-      total: results.length
+      total: results.length,
     })
   } catch (error) {
     console.error('Error searching pieces:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

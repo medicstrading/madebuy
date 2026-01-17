@@ -1,11 +1,12 @@
+import { Facebook, Instagram } from 'lucide-react'
 import Image from 'next/image'
-import { Instagram, Facebook } from 'lucide-react'
-import type { SectionProps } from './SectionRenderer'
 import { sanitizeHtml } from '@/lib/sanitize'
+import type { SectionProps } from './SectionRenderer'
 
 export function AboutSection({ settings, tenant }: SectionProps) {
   const title = settings.title || 'About Us'
-  const content = settings.aboutContent || settings.subtitle || tenant.description
+  const content =
+    settings.aboutContent || settings.subtitle || tenant.description
   const imageUrl = settings.aboutImage
   const showSocialLinks = settings.showSocialLinks ?? true
 
@@ -34,6 +35,7 @@ export function AboutSection({ settings, tenant }: SectionProps) {
           </h2>
 
           {content && (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Rich text content is sanitized with sanitizeHtml() before rendering
             <div
               className="text-lg text-gray-600 leading-relaxed mb-8 prose prose-gray max-w-none"
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
@@ -70,9 +72,7 @@ export function AboutSection({ settings, tenant }: SectionProps) {
 
           {/* Location */}
           {tenant.location && (
-            <p className="mt-6 text-gray-500">
-              📍 {tenant.location}
-            </p>
+            <p className="mt-6 text-gray-500">📍 {tenant.location}</p>
           )}
         </div>
       </div>

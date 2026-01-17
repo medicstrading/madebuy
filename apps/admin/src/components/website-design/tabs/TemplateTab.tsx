@@ -1,9 +1,15 @@
 'use client'
 
+import type {
+  WebsitePage,
+  WebsiteTemplate,
+} from '@madebuy/shared/src/types/template'
+import {
+  getDefaultPages,
+  TEMPLATE_DEFINITIONS,
+} from '@madebuy/shared/src/types/template'
+import { Check, Eye, Sparkles, Wand2 } from 'lucide-react'
 import { useState } from 'react'
-import { Check, Sparkles, Wand2, Eye } from 'lucide-react'
-import { TEMPLATE_DEFINITIONS, getDefaultPages } from '@madebuy/shared/src/types/template'
-import type { WebsiteTemplate, WebsitePage } from '@madebuy/shared/src/types/template'
 
 interface TemplateTabProps {
   currentTemplate: WebsiteTemplate | null
@@ -11,7 +17,10 @@ interface TemplateTabProps {
   onBuildCustom: () => void
 }
 
-const TEMPLATE_PREVIEWS: Record<WebsiteTemplate, { gradient: string; accent: string }> = {
+const TEMPLATE_PREVIEWS: Record<
+  WebsiteTemplate,
+  { gradient: string; accent: string }
+> = {
   'classic-store': {
     gradient: 'from-slate-800 via-slate-700 to-slate-900',
     accent: '#3B82F6',
@@ -30,9 +39,15 @@ const TEMPLATE_PREVIEWS: Record<WebsiteTemplate, { gradient: string; accent: str
   },
 }
 
-export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }: TemplateTabProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<WebsiteTemplate | null>(currentTemplate)
-  const [hoveredTemplate, setHoveredTemplate] = useState<WebsiteTemplate | null>(null)
+export function TemplateTab({
+  currentTemplate,
+  onSelectTemplate,
+  onBuildCustom,
+}: TemplateTabProps) {
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<WebsiteTemplate | null>(currentTemplate)
+  const [hoveredTemplate, setHoveredTemplate] =
+    useState<WebsiteTemplate | null>(null)
 
   const handleSelect = (templateId: WebsiteTemplate) => {
     setSelectedTemplate(templateId)
@@ -53,7 +68,8 @@ export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }
           Choose Your Website Style
         </h1>
         <p className="text-gray-600 text-lg">
-          Pick a design that matches your brand. You can customize everything after.
+          Pick a design that matches your brand. You can customize everything
+          after.
         </p>
       </div>
 
@@ -66,6 +82,7 @@ export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }
 
           return (
             <button
+              type="button"
               key={template.id}
               onClick={() => handleSelect(template.id)}
               onMouseEnter={() => setHoveredTemplate(template.id)}
@@ -77,7 +94,9 @@ export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }
               }`}
             >
               {/* Preview Image Area */}
-              <div className={`relative h-40 bg-gradient-to-br ${preview.gradient} overflow-hidden`}>
+              <div
+                className={`relative h-40 bg-gradient-to-br ${preview.gradient} overflow-hidden`}
+              >
                 {/* Decorative elements */}
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-4 left-4 right-4 h-3 bg-white/30 rounded" />
@@ -149,6 +168,7 @@ export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }
       {/* Action Buttons */}
       <div className="flex items-center justify-center gap-4 pt-4">
         <button
+          type="button"
           onClick={handleUseTemplate}
           disabled={!selectedTemplate}
           className={`inline-flex items-center gap-2 px-8 py-3 rounded-xl text-base font-semibold transition-all duration-200 ${
@@ -162,6 +182,7 @@ export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }
         </button>
 
         <button
+          type="button"
           onClick={onBuildCustom}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
         >
@@ -188,15 +209,17 @@ export function TemplateTab({ currentTemplate, onSelectTemplate, onBuildCustom }
                   {TEMPLATE_DEFINITIONS[selectedTemplate].description}
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {TEMPLATE_DEFINITIONS[selectedTemplate].features.map((feature, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 text-sm text-gray-700"
-                    >
-                      <Check className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                      {feature}
-                    </div>
-                  ))}
+                  {TEMPLATE_DEFINITIONS[selectedTemplate].features.map(
+                    (feature, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-sm text-gray-700"
+                      >
+                        <Check className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                        {feature}
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             </div>

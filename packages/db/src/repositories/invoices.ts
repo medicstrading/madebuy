@@ -1,11 +1,11 @@
+import type {
+  CreateInvoiceInput,
+  InvoiceFilters,
+  InvoiceRecord,
+  UpdateInvoiceInput,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type {
-  InvoiceRecord,
-  CreateInvoiceInput,
-  UpdateInvoiceInput,
-  InvoiceFilters,
-} from '@madebuy/shared'
 
 /** Escape special regex characters to prevent ReDoS attacks */
 function escapeRegex(str: string): string {
@@ -22,7 +22,7 @@ interface InvoiceDbRecord extends InvoiceRecord {
  */
 export async function createInvoice(
   tenantId: string,
-  data: CreateInvoiceInput
+  data: CreateInvoiceInput,
 ): Promise<InvoiceRecord> {
   const db = await getDatabase()
 
@@ -52,10 +52,12 @@ export async function createInvoice(
  */
 export async function getInvoice(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<InvoiceRecord | null> {
   const db = await getDatabase()
-  return await db.collection('invoices').findOne({ tenantId, id }) as InvoiceRecord | null
+  return (await db
+    .collection('invoices')
+    .findOne({ tenantId, id })) as InvoiceRecord | null
 }
 
 /**
@@ -63,7 +65,7 @@ export async function getInvoice(
  */
 export async function listInvoices(
   tenantId: string,
-  filters?: InvoiceFilters
+  filters?: InvoiceFilters,
 ): Promise<InvoiceRecord[]> {
   const db = await getDatabase()
 
@@ -88,7 +90,8 @@ export async function listInvoices(
     query.uploadedAt = dateQuery
   }
 
-  const results = await db.collection('invoices')
+  const results = await db
+    .collection('invoices')
     .find(query)
     .sort({ uploadedAt: -1 })
     .toArray()
@@ -102,7 +105,7 @@ export async function listInvoices(
 export async function updateInvoice(
   tenantId: string,
   id: string,
-  updates: UpdateInvoiceInput
+  updates: UpdateInvoiceInput,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -112,8 +115,8 @@ export async function updateInvoice(
       $set: {
         ...updates,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -122,7 +125,7 @@ export async function updateInvoice(
  */
 export async function deleteInvoice(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('invoices').deleteOne({ tenantId, id })
@@ -133,16 +136,17 @@ export async function deleteInvoice(
  */
 export async function getRecentInvoices(
   tenantId: string,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<InvoiceRecord[]> {
   const db = await getDatabase()
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const results = await db.collection('invoices')
+  const results = await db
+    .collection('invoices')
     .find({
       tenantId,
-      uploadedAt: { $gte: thirtyDaysAgo }
+      uploadedAt: { $gte: thirtyDaysAgo },
     })
     .sort({ uploadedAt: -1 })
     .limit(limit)
@@ -156,14 +160,15 @@ export async function getRecentInvoices(
  */
 export async function getInvoicesBySupplier(
   tenantId: string,
-  supplier: string
+  supplier: string,
 ): Promise<InvoiceRecord[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('invoices')
+  const results = await db
+    .collection('invoices')
     .find({
       tenantId,
-      supplier: { $regex: escapeRegex(supplier), $options: 'i' }
+      supplier: { $regex: escapeRegex(supplier), $options: 'i' },
     })
     .sort({ uploadedAt: -1 })
     .toArray()
@@ -183,9 +188,10 @@ export async function getInvoiceStats(tenantId: string): Promise<{
 }> {
   const db = await getDatabase()
 
-  const invoices = await db.collection('invoices')
+  const invoices = (await db
+    .collection('invoices')
     .find({ tenantId })
-    .toArray() as InvoiceDbRecord[]
+    .toArray()) as InvoiceDbRecord[]
 
   const stats = {
     totalInvoices: invoices.length,
@@ -194,7 +200,7 @@ export async function getInvoiceStats(tenantId: string): Promise<{
     errorCount: invoices.filter((inv) => inv.status === 'error').length,
     totalSpent: invoices
       .filter((inv) => inv.totalAmount && inv.status === 'processed')
-      .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+      .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0),
   }
 
   return stats

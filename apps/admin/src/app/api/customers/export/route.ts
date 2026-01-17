@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { customers } from '@madebuy/db'
 import type { Customer, CustomerFilters } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 // Maximum records to export to prevent memory exhaustion (P1 fix)
 const MAX_EXPORT_RECORDS = 10000
@@ -38,7 +38,9 @@ export async function GET(request: NextRequest) {
 
     // Warn if export was truncated
     if (customerData.length >= MAX_EXPORT_RECORDS) {
-      console.warn(`Customer export for tenant ${tenant.id} was truncated at ${MAX_EXPORT_RECORDS} records`)
+      console.warn(
+        `Customer export for tenant ${tenant.id} was truncated at ${MAX_EXPORT_RECORDS} records`,
+      )
     }
 
     // Convert to CSV
@@ -57,7 +59,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error exporting customers:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 

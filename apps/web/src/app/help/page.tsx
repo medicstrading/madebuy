@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -11,27 +11,33 @@ export const metadata: Metadata = {
 const faqs = [
   {
     question: 'How do I create a seller account?',
-    answer: 'Click "Start Selling" and follow the signup process. You can start listing products immediately on our Free plan.',
+    answer:
+      'Click "Start Selling" and follow the signup process. You can start listing products immediately on our Free plan.',
   },
   {
     question: 'What are the fees?',
-    answer: 'MadeBuy charges zero transaction fees. You only pay standard Stripe payment processing (1.7% + $0.30 for domestic cards). Optional subscription plans unlock additional features.',
+    answer:
+      'MadeBuy charges zero transaction fees. You only pay standard Stripe payment processing (1.7% + $0.30 for domestic cards). Optional subscription plans unlock additional features.',
   },
   {
     question: 'How do I track my order?',
-    answer: 'You\'ll receive a tracking number via email once your order ships. You can also track orders from your order confirmation page.',
+    answer:
+      "You'll receive a tracking number via email once your order ships. You can also track orders from your order confirmation page.",
   },
   {
     question: 'How do returns work?',
-    answer: 'Return policies are set by individual sellers. Check the product page or contact the seller directly for their return policy.',
+    answer:
+      'Return policies are set by individual sellers. Check the product page or contact the seller directly for their return policy.',
   },
   {
     question: 'How do I contact a seller?',
-    answer: 'Visit the seller\'s shop page and use the contact form, or check the product listing for contact options.',
+    answer:
+      "Visit the seller's shop page and use the contact form, or check the product listing for contact options.",
   },
   {
     question: 'Is my payment secure?',
-    answer: 'Yes! All payments are processed securely through Stripe. We never store your card details.',
+    answer:
+      'Yes! All payments are processed securely through Stripe. We never store your card details.',
   },
 ]
 
@@ -40,7 +46,10 @@ export default function HelpPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/marketplace" className="text-2xl font-bold text-gray-900">
+          <Link
+            href="/marketplace"
+            className="text-2xl font-bold text-gray-900"
+          >
             MadeBuy
           </Link>
         </div>
@@ -66,9 +75,7 @@ export default function HelpPage() {
                   ▼
                 </span>
               </summary>
-              <div className="px-6 pb-4 text-gray-600">
-                {faq.answer}
-              </div>
+              <div className="px-6 pb-4 text-gray-600">{faq.answer}</div>
             </details>
           ))}
         </div>

@@ -1,14 +1,14 @@
-import { randomBytes } from 'crypto'
-import { getDatabase } from '../client'
+import { randomBytes } from 'node:crypto'
 import type {
-  DownloadRecord,
-  DownloadEvent,
-  DownloadValidationResult,
   CreateDownloadRecordInput,
-  DownloadFilters,
-  DownloadStats,
   DigitalFile,
+  DownloadEvent,
+  DownloadFilters,
+  DownloadRecord,
+  DownloadStats,
+  DownloadValidationResult,
 } from '@madebuy/shared'
+import { getDatabase } from '../client'
 
 const COLLECTION = 'download_records'
 
@@ -25,7 +25,7 @@ function generateSecureToken(): string {
  */
 export async function createDownloadRecord(
   tenantId: string,
-  input: CreateDownloadRecordInput
+  input: CreateDownloadRecordInput,
 ): Promise<DownloadRecord> {
   const db = await getDatabase()
 
@@ -69,10 +69,12 @@ export async function createDownloadRecord(
  * Get a download record by its secure token
  */
 export async function getDownloadRecordByToken(
-  token: string
+  token: string,
 ): Promise<DownloadRecord | null> {
   const db = await getDatabase()
-  const record = await db.collection(COLLECTION).findOne({ downloadToken: token })
+  const record = await db
+    .collection(COLLECTION)
+    .findOne({ downloadToken: token })
   return record as DownloadRecord | null
 }
 
@@ -81,7 +83,7 @@ export async function getDownloadRecordByToken(
  */
 export async function getDownloadRecord(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<DownloadRecord | null> {
   const db = await getDatabase()
   const record = await db.collection(COLLECTION).findOne({ tenantId, id })
@@ -93,7 +95,7 @@ export async function getDownloadRecord(
  */
 export async function getDownloadsForOrder(
   tenantId: string,
-  orderId: string
+  orderId: string,
 ): Promise<DownloadRecord[]> {
   const db = await getDatabase()
   const records = await db
@@ -109,7 +111,7 @@ export async function getDownloadsForOrder(
  */
 export async function listDownloadRecords(
   tenantId: string,
-  filters?: DownloadFilters
+  filters?: DownloadFilters,
 ): Promise<DownloadRecord[]> {
   const db = await getDatabase()
 
@@ -143,7 +145,7 @@ export async function listDownloadRecords(
 export async function validateDownload(
   token: string,
   fileId: string,
-  pieceFiles: DigitalFile[]
+  pieceFiles: DigitalFile[],
 ): Promise<DownloadValidationResult> {
   const record = await getDownloadRecordByToken(token)
 
@@ -222,7 +224,7 @@ export async function validateDownload(
  */
 export async function recordDownload(
   token: string,
-  event: Omit<DownloadEvent, 'timestamp'>
+  event: Omit<DownloadEvent, 'timestamp'>,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -247,10 +249,9 @@ export async function recordDownload(
     }
   }
 
-  const result = await db.collection(COLLECTION).updateOne(
-    { downloadToken: token },
-    update
-  )
+  const result = await db
+    .collection(COLLECTION)
+    .updateOne({ downloadToken: token }, update)
 
   return result.modifiedCount > 0
 }
@@ -262,7 +263,7 @@ export async function recordDownload(
 export async function regenerateToken(
   tenantId: string,
   recordId: string,
-  newExpiryDays?: number
+  newExpiryDays?: number,
 ): Promise<string | null> {
   const db = await getDatabase()
 
@@ -281,14 +282,13 @@ export async function regenerateToken(
       newExpiry.setDate(newExpiry.getDate() + newExpiryDays)
       update.tokenExpiresAt = newExpiry
     } else {
-      update.tokenExpiresAt = null  // Remove expiry
+      update.tokenExpiresAt = null // Remove expiry
     }
   }
 
-  const result = await db.collection(COLLECTION).updateOne(
-    { tenantId, id: recordId },
-    { $set: update }
-  )
+  const result = await db
+    .collection(COLLECTION)
+    .updateOne({ tenantId, id: recordId }, { $set: update })
 
   return result.modifiedCount > 0 ? newToken : null
 }
@@ -299,7 +299,7 @@ export async function regenerateToken(
 export async function revokeAccess(
   tenantId: string,
   recordId: string,
-  reason?: string
+  reason?: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -312,7 +312,7 @@ export async function revokeAccess(
         revokedReason: reason,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return result.modifiedCount > 0
@@ -323,7 +323,7 @@ export async function revokeAccess(
  */
 export async function restoreAccess(
   tenantId: string,
-  recordId: string
+  recordId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -338,7 +338,7 @@ export async function restoreAccess(
         revokedAt: '',
         revokedReason: '',
       },
-    }
+    },
   )
 
   return result.modifiedCount > 0
@@ -351,7 +351,7 @@ export async function updateDownloadLimits(
   tenantId: string,
   recordId: string,
   maxDownloads?: number,
-  expiryDays?: number
+  expiryDays?: number,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -373,10 +373,9 @@ export async function updateDownloadLimits(
     }
   }
 
-  const result = await db.collection(COLLECTION).updateOne(
-    { tenantId, id: recordId },
-    { $set: update }
-  )
+  const result = await db
+    .collection(COLLECTION)
+    .updateOne({ tenantId, id: recordId }, { $set: update })
 
   return result.modifiedCount > 0
 }
@@ -386,14 +385,14 @@ export async function updateDownloadLimits(
  */
 export async function getDownloadStats(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<DownloadStats> {
   const db = await getDatabase()
 
-  const records = await db
+  const records = (await db
     .collection(COLLECTION)
     .find({ tenantId, pieceId })
-    .toArray() as unknown as DownloadRecord[]
+    .toArray()) as unknown as DownloadRecord[]
 
   // Aggregate stats
   let totalDownloads = 0
@@ -426,7 +425,10 @@ export async function getDownloadStats(
 
   // Get recent downloads (last 50)
   const recentDownloads = allDownloads
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    )
     .slice(0, 50)
 
   return {
@@ -442,7 +444,7 @@ export async function getDownloadStats(
  */
 export async function deleteDownloadRecord(
   tenantId: string,
-  recordId: string
+  recordId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -460,7 +462,7 @@ export async function deleteDownloadRecord(
 export async function getDownloadRecordByOrderItem(
   tenantId: string,
   orderId: string,
-  orderItemId: string
+  orderItemId: string,
 ): Promise<DownloadRecord | null> {
   const db = await getDatabase()
   const record = await db.collection(COLLECTION).findOne({

@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Lock } from 'lucide-react'
-import { STEP_ORDER, STEP_LABELS, type WizardStep } from './types'
+import { STEP_LABELS, STEP_ORDER, type WizardStep } from './types'
 
 interface WizardProgressProps {
   currentStep: WizardStep
@@ -16,7 +16,7 @@ export function WizardProgress({
   onStepClick,
   lockedSteps = [],
 }: WizardProgressProps) {
-  const displaySteps = STEP_ORDER.filter(s => s !== 'complete')
+  const displaySteps = STEP_ORDER.filter((s) => s !== 'complete')
 
   return (
     <div className="w-full">
@@ -43,11 +43,14 @@ export function WizardProgress({
 
             return (
               <button
+                type="button"
                 key={step}
                 onClick={() => canClick && !isLocked && onStepClick(step)}
                 disabled={!canClick || isLocked}
                 className={`flex flex-col items-center gap-2 transition-all ${
-                  canClick && !isLocked ? 'cursor-pointer' : 'cursor-not-allowed'
+                  canClick && !isLocked
+                    ? 'cursor-pointer'
+                    : 'cursor-not-allowed'
                 }`}
               >
                 {/* Circle */}

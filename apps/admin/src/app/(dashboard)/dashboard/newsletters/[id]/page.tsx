@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Save, Send, Eye } from 'lucide-react'
-import { sanitizeHtml } from '@madebuy/shared'
 import type { Newsletter } from '@madebuy/shared'
+import { sanitizeHtml } from '@madebuy/shared'
+import { ArrowLeft, Eye, Save, Send } from 'lucide-react'
+import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function EditNewsletterPage() {
   const params = useParams()
@@ -71,7 +71,12 @@ export default function EditNewsletterPage() {
 
   async function handleSend() {
     if (!newsletterId) return
-    if (!confirm('Are you sure you want to send this newsletter? This action cannot be undone.')) return
+    if (
+      !confirm(
+        'Are you sure you want to send this newsletter? This action cannot be undone.',
+      )
+    )
+      return
 
     setSending(true)
     setError('')
@@ -80,7 +85,9 @@ export default function EditNewsletterPage() {
       // Save first
       await handleSave()
 
-      const res = await fetch(`/api/newsletters/${newsletterId}/send`, { method: 'POST' })
+      const res = await fetch(`/api/newsletters/${newsletterId}/send`, {
+        method: 'POST',
+      })
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.error)
@@ -105,8 +112,13 @@ export default function EditNewsletterPage() {
   if (!newsletter) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-lg font-medium text-gray-900">Newsletter not found</h2>
-        <Link href="/dashboard/newsletters" className="text-blue-600 hover:underline mt-2 inline-block">
+        <h2 className="text-lg font-medium text-gray-900">
+          Newsletter not found
+        </h2>
+        <Link
+          href="/dashboard/newsletters"
+          className="text-blue-600 hover:underline mt-2 inline-block"
+        >
           Back to newsletters
         </Link>
       </div>
@@ -124,17 +136,23 @@ export default function EditNewsletterPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{newsletter.subject}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {newsletter.subject}
+            </h1>
             <p className="text-gray-500 mt-1">
-              Sent on {new Date(newsletter.sentAt!).toLocaleDateString()} to {newsletter.recipientCount} subscribers
+              Sent on {new Date(newsletter.sentAt!).toLocaleDateString()} to{' '}
+              {newsletter.recipientCount} subscribers
             </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Newsletter content is sanitized with sanitizeHtml() before rendering */}
           <div
             className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(newsletter.content) }}
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(newsletter.content),
+            }}
           />
         </div>
       </div>
@@ -152,13 +170,16 @@ export default function EditNewsletterPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Newsletter</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Edit Newsletter
+            </h1>
             <p className="text-gray-500 mt-1">Draft - not yet sent</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => setShowPreview(!showPreview)}
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
           >
@@ -166,6 +187,7 @@ export default function EditNewsletterPage() {
             {showPreview ? 'Edit' : 'Preview'}
           </button>
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -174,6 +196,7 @@ export default function EditNewsletterPage() {
             {saving ? 'Saving...' : 'Save'}
           </button>
           <button
+            type="button"
             onClick={handleSend}
             disabled={sending || !formData.subject || !formData.content}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
@@ -194,8 +217,11 @@ export default function EditNewsletterPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="mb-4 pb-4 border-b border-gray-200">
             <p className="text-sm text-gray-500">Subject:</p>
-            <p className="text-lg font-medium text-gray-900">{formData.subject}</p>
+            <p className="text-lg font-medium text-gray-900">
+              {formData.subject}
+            </p>
           </div>
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Newsletter content is sanitized with sanitizeHtml() before rendering */}
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.content) }}
@@ -210,7 +236,9 @@ export default function EditNewsletterPage() {
             <input
               type="text"
               value={formData.subject}
-              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, subject: e.target.value })
+              }
               placeholder="e.g., New arrivals this week!"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -222,7 +250,9 @@ export default function EditNewsletterPage() {
             </label>
             <textarea
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
               placeholder="Write your newsletter content here..."
               rows={16}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"

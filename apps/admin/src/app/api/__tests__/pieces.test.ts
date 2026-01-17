@@ -3,9 +3,9 @@
  * Covers CRUD operations, auth, and validation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { pieces } from '@madebuy/db'
 import { NextRequest } from 'next/server'
-import { pieces, materials } from '@madebuy/db'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock getCurrentTenant
 const mockGetCurrentTenant = vi.fn()

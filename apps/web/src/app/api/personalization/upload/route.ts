@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { nanoid } from 'nanoid'
-import { uploadToR2 } from '@madebuy/storage'
-import { pieces } from '@madebuy/db'
 import type { PersonalizationField } from '@madebuy/shared'
+import { uploadToR2 } from '@madebuy/storage'
+import { nanoid } from 'nanoid'
+import { type NextRequest, NextResponse } from 'next/server'
 
 // Allowed file types for personalization uploads
 const ALLOWED_MIME_TYPES = new Set([
@@ -31,23 +30,20 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
     if (!pieceId) {
       return NextResponse.json(
         { error: 'Piece ID is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!fieldId) {
       return NextResponse.json(
         { error: 'Field ID is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -58,7 +54,7 @@ export async function POST(request: NextRequest) {
           error: 'Invalid file type',
           message: `Allowed types: ${Array.from(ALLOWED_MIME_TYPES).join(', ')}`,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -69,7 +65,7 @@ export async function POST(request: NextRequest) {
           error: 'File too large',
           message: `Maximum file size is ${MAX_FILE_SIZE / 1024 / 1024}MB`,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -78,10 +74,7 @@ export async function POST(request: NextRequest) {
     // This is a bit inefficient, but safer
     const piece = await findPieceById(pieceId)
     if (!piece) {
-      return NextResponse.json(
-        { error: 'Piece not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
     // Verify the field exists in the piece's personalization config
@@ -89,22 +82,24 @@ export async function POST(request: NextRequest) {
     if (!config || !config.enabled) {
       return NextResponse.json(
         { error: 'Personalization is not enabled for this piece' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
-    const field = config.fields.find((f: PersonalizationField) => f.id === fieldId)
+    const field = config.fields.find(
+      (f: PersonalizationField) => f.id === fieldId,
+    )
     if (!field) {
       return NextResponse.json(
         { error: 'Field not found in personalization config' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (field.type !== 'file') {
       return NextResponse.json(
         { error: 'Field is not a file upload field' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -123,7 +118,7 @@ export async function POST(request: NextRequest) {
             error: 'File type not allowed',
             message: `Allowed types: ${field.acceptedFileTypes.join(', ')}`,
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -137,7 +132,7 @@ export async function POST(request: NextRequest) {
             error: 'File too large',
             message: `Maximum file size for this field is ${field.maxFileSizeMB}MB`,
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -145,7 +140,7 @@ export async function POST(request: NextRequest) {
     // Generate safe filename
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'bin'
     const safeFileName = `${nanoid(16)}.${fileExtension}`
-    const storageKey = `personalization/${piece.tenantId}/${pieceId}/${fieldId}/${safeFileName}`
+    const _storageKey = `personalization/${piece.tenantId}/${pieceId}/${fieldId}/${safeFileName}`
 
     // Read file as buffer
     const arrayBuffer = await file.arrayBuffer()
@@ -181,7 +176,7 @@ export async function POST(request: NextRequest) {
         error: 'Failed to upload file',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

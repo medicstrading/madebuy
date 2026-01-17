@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
 
@@ -15,7 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  * - Cancel subscription
  * - Update billing details
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const tenant = await getCurrentTenant()
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (!tenant.stripeCustomerId) {
       return NextResponse.json(
         { error: 'No billing account found. Subscribe to a plan first.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -45,8 +45,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Billing portal error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create portal session' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create portal session',
+      },
+      { status: 500 },
     )
   }
 }

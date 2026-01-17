@@ -23,11 +23,11 @@ export interface SendleAddress {
 }
 
 export interface SendleParcel {
-  weight_value: number  // in kg
+  weight_value: number // in kg
   weight_units: 'kg' | 'lb'
-  length_value?: number  // in cm
-  width_value?: number   // in cm
-  height_value?: number  // in cm
+  length_value?: number // in cm
+  width_value?: number // in cm
+  height_value?: number // in cm
   dimension_units?: 'cm' | 'in'
   description?: string
 }
@@ -84,7 +84,13 @@ export interface SendleOrder {
     pdf_url: string
     zpl_url?: string
   }
-  state: 'pending' | 'pickup_scheduled' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled'
+  state:
+    | 'pending'
+    | 'pickup_scheduled'
+    | 'picked_up'
+    | 'in_transit'
+    | 'delivered'
+    | 'cancelled'
   price: {
     gross: { amount: number; currency: string }
     net: { amount: number; currency: string }
@@ -104,16 +110,19 @@ export class SendleClient {
   private readonly headers: HeadersInit
 
   constructor(config: SendleConfig) {
-    this.baseUrl = config.environment === 'production'
-      ? 'https://api.sendle.com/api'
-      : 'https://sandbox.sendle.com/api'
+    this.baseUrl =
+      config.environment === 'production'
+        ? 'https://api.sendle.com/api'
+        : 'https://sandbox.sendle.com/api'
 
     // Sendle uses HTTP Basic Auth with senderId:apiKey
-    const credentials = Buffer.from(`${config.senderId}:${config.apiKey}`).toString('base64')
+    const credentials = Buffer.from(
+      `${config.senderId}:${config.apiKey}`,
+    ).toString('base64')
     this.headers = {
-      'Authorization': `Basic ${credentials}`,
+      Authorization: `Basic ${credentials}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
     }
   }
 
@@ -163,7 +172,7 @@ export class SendleClient {
       throw new SendleError(
         `Failed to get quotes: ${error.message || response.statusText}`,
         response.status,
-        error
+        error,
       )
     }
 
@@ -215,12 +224,14 @@ export class SendleClient {
           value: request.parcel.weight_value,
           units: request.parcel.weight_units,
         },
-        dimensions: request.parcel.length_value ? {
-          length: request.parcel.length_value,
-          width: request.parcel.width_value,
-          height: request.parcel.height_value,
-          units: request.parcel.dimension_units,
-        } : undefined,
+        dimensions: request.parcel.length_value
+          ? {
+              length: request.parcel.length_value,
+              width: request.parcel.width_value,
+              height: request.parcel.height_value,
+              units: request.parcel.dimension_units,
+            }
+          : undefined,
         customer_reference: request.customer_reference,
         metadata: request.metadata,
       }),
@@ -231,7 +242,7 @@ export class SendleClient {
       throw new SendleError(
         `Failed to create order: ${error.message || response.statusText}`,
         response.status,
-        error
+        error,
       )
     }
 
@@ -252,7 +263,7 @@ export class SendleClient {
       throw new SendleError(
         `Failed to get order: ${error.message || response.statusText}`,
         response.status,
-        error
+        error,
       )
     }
 
@@ -273,7 +284,7 @@ export class SendleClient {
       throw new SendleError(
         `Failed to get tracking: ${error.message || response.statusText}`,
         response.status,
-        error
+        error,
       )
     }
 
@@ -295,7 +306,7 @@ export class SendleClient {
       throw new SendleError(
         `Failed to cancel order: ${error.message || response.statusText}`,
         response.status,
-        error
+        error,
       )
     }
   }
@@ -320,7 +331,7 @@ export class SendleError extends Error {
   constructor(
     message: string,
     public readonly statusCode: number,
-    public readonly details?: unknown
+    public readonly details?: unknown,
   ) {
     super(message)
     this.name = 'SendleError'

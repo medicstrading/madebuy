@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { auditLog, passwordResets, tenants } from '@madebuy/db'
+import { ADMIN_PASSWORD_REQUIREMENTS, validatePassword } from '@madebuy/shared'
 import bcrypt from 'bcryptjs'
-import { tenants, passwordResets, auditLog } from '@madebuy/db'
-import { validatePassword, ADMIN_PASSWORD_REQUIREMENTS } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,16 +12,23 @@ export async function POST(request: NextRequest) {
     if (!token || !password) {
       return NextResponse.json(
         { error: 'Token and password are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate password strength
-    const passwordValidation = validatePassword(password, ADMIN_PASSWORD_REQUIREMENTS)
+    const passwordValidation = validatePassword(
+      password,
+      ADMIN_PASSWORD_REQUIREMENTS,
+    )
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: passwordValidation.errors[0] || 'Password does not meet security requirements' },
-        { status: 400 }
+        {
+          error:
+            passwordValidation.errors[0] ||
+            'Password does not meet security requirements',
+        },
+        { status: 400 },
       )
     }
 
@@ -31,17 +38,14 @@ export async function POST(request: NextRequest) {
     if (!tenantId) {
       return NextResponse.json(
         { error: 'Invalid or expired reset token' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Get tenant
     const tenant = await tenants.getTenantById(tenantId)
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Account not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 })
     }
 
     // Hash new password
@@ -51,14 +55,16 @@ export async function POST(request: NextRequest) {
     await tenants.updateTenant(tenantId, { passwordHash })
 
     // Log password reset event
-    auditLog.logAuditEvent({
-      tenantId: tenant.id,
-      eventType: 'auth.password.reset',
-      actorId: tenant.id,
-      actorEmail: tenant.email,
-      actorType: 'tenant',
-      success: true,
-    }).catch(e => console.error('Audit log failed (password reset):', e))
+    auditLog
+      .logAuditEvent({
+        tenantId: tenant.id,
+        eventType: 'auth.password.reset',
+        actorId: tenant.id,
+        actorEmail: tenant.email,
+        actorType: 'tenant',
+        success: true,
+      })
+      .catch((e) => console.error('Audit log failed (password reset):', e))
 
     return NextResponse.json({
       success: true,
@@ -68,7 +74,7 @@ export async function POST(request: NextRequest) {
     console.error('Password reset error:', error)
     return NextResponse.json(
       { error: 'Failed to reset password' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

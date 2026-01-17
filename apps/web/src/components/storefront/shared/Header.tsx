@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import type { HeaderConfig, Tenant, WebsitePage } from '@madebuy/shared'
+import {
+  Facebook,
+  Heart,
+  Instagram,
+  Menu,
+  Search,
+  ShoppingBag,
+  X,
+} from 'lucide-react'
 import Image from 'next/image'
-import { Menu, X, Instagram, Facebook, ShoppingBag, User, Heart, Search } from 'lucide-react'
-import type { Tenant, HeaderConfig, WebsitePage } from '@madebuy/shared'
+import Link from 'next/link'
+import { useState } from 'react'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
 
@@ -21,19 +29,23 @@ interface SimpleNavLink {
   label: string
 }
 
-function getNavLinksFromPages(tenantSlug: string, pages: WebsitePage[]): SimpleNavLink[] {
+function getNavLinksFromPages(
+  tenantSlug: string,
+  pages: WebsitePage[],
+): SimpleNavLink[] {
   return pages
-    .filter(p => p.type !== 'home') // Don't show home in navigation
-    .map(page => ({
+    .filter((p) => p.type !== 'home') // Don't show home in navigation
+    .map((page) => ({
       url: `/${tenantSlug}${page.slug ? `/${page.slug}` : ''}`,
       label: page.navigationLabel || page.title,
     }))
 }
 
-function getDefaultNavLinks(tenantSlug: string, tenant: Tenant): SimpleNavLink[] {
-  const links: SimpleNavLink[] = [
-    { url: `/${tenantSlug}/shop`, label: 'Shop' },
-  ]
+function getDefaultNavLinks(
+  tenantSlug: string,
+  tenant: Tenant,
+): SimpleNavLink[] {
+  const links: SimpleNavLink[] = [{ url: `/${tenantSlug}/shop`, label: 'Shop' }]
 
   // Add Collections if tenant has them
   links.push({ url: `/${tenantSlug}/collections`, label: 'Collections' })
@@ -50,7 +62,13 @@ function getDefaultNavLinks(tenantSlug: string, tenant: Tenant): SimpleNavLink[]
   return links
 }
 
-export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: HeaderProps) {
+export function Header({
+  tenant,
+  tenantSlug,
+  headerConfig,
+  logoUrl,
+  pages,
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { totalItems } = useCart()
   const { count: wishlistCount } = useWishlist()
@@ -67,7 +85,7 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
   if (pages && pages.length > 0) {
     navLinks = getNavLinksFromPages(tenantSlug, pages)
   } else if (headerConfig?.navLinks?.length) {
-    navLinks = headerConfig.navLinks.map(link => ({
+    navLinks = headerConfig.navLinks.map((link) => ({
       url: link.url,
       label: link.label,
     }))
@@ -81,8 +99,12 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
   const isMinimal = style === 'minimal'
 
   const socialLinks = {
-    instagram: tenant.instagram ? `https://instagram.com/${tenant.instagram}` : undefined,
-    facebook: tenant.facebook ? `https://facebook.com/${tenant.facebook}` : undefined,
+    instagram: tenant.instagram
+      ? `https://instagram.com/${tenant.instagram}`
+      : undefined,
+    facebook: tenant.facebook
+      ? `https://facebook.com/${tenant.facebook}`
+      : undefined,
   }
 
   return (
@@ -92,7 +114,11 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
           ? 'border-white/10 bg-black/20 backdrop-blur-md'
           : 'border-gray-100 bg-white'
       }`}
-      style={!isTransparent ? { backgroundColor: headerConfig?.backgroundColor } : undefined}
+      style={
+        !isTransparent
+          ? { backgroundColor: headerConfig?.backgroundColor }
+          : undefined
+      }
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between">
@@ -107,7 +133,10 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
 
           {/* Logo and business name */}
           <div className="flex-1 lg:flex-none">
-            <Link href={`/${tenantSlug}`} className="flex items-center gap-2 lg:gap-3">
+            <Link
+              href={`/${tenantSlug}`}
+              className="flex items-center gap-2 lg:gap-3"
+            >
               {logoUrl ? (
                 <Image
                   src={logoUrl}
@@ -181,9 +210,7 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
             >
               <Heart className="w-5 h-5" />
               {wishlistCount > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-white text-xs font-bold rounded-full bg-pink-500"
-                >
+                <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-white text-xs font-bold rounded-full bg-pink-500">
                   {wishlistCount}
                 </span>
               )}
@@ -248,7 +275,9 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
       {/* Mobile menu drawer */}
       <div
         className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
-          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          mobileMenuOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         }`}
       >
         {/* Backdrop */}
@@ -268,7 +297,9 @@ export function Header({ tenant, tenantSlug, headerConfig, logoUrl, pages }: Hea
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <span className="text-xl font-serif text-gray-900">{businessName}</span>
+            <span className="text-xl font-serif text-gray-900">
+              {businessName}
+            </span>
             <button
               onClick={() => setMobileMenuOpen(false)}
               className="p-1 text-gray-500"

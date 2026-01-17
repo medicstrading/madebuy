@@ -1,5 +1,5 @@
-import type { SectionProps } from './SectionRenderer'
 import type { FeatureItem } from '@madebuy/shared'
+import type { SectionProps } from './SectionRenderer'
 
 // Default features if none provided
 const DEFAULT_FEATURES: FeatureItem[] = [
@@ -7,27 +7,32 @@ const DEFAULT_FEATURES: FeatureItem[] = [
     id: '1',
     icon: '✨',
     title: 'Handcrafted With Care',
-    description: 'Each piece is meticulously crafted by hand, ensuring unique character and exceptional quality.',
+    description:
+      'Each piece is meticulously crafted by hand, ensuring unique character and exceptional quality.',
   },
   {
     id: '2',
     icon: '🎨',
     title: 'One-of-a-Kind',
-    description: 'No mass production here. Every piece is an original creation that reflects individuality.',
+    description:
+      'No mass production here. Every piece is an original creation that reflects individuality.',
   },
   {
     id: '3',
     icon: '💝',
     title: 'Made With Love',
-    description: 'We pour our heart and soul into every creation, making each piece truly special.',
+    description:
+      'We pour our heart and soul into every creation, making each piece truly special.',
   },
 ]
 
 export function FeatureCards({ settings, tenant }: SectionProps) {
   const title = settings.title
   const subtitle = settings.subtitle
-  const features = settings.features?.length ? settings.features : DEFAULT_FEATURES
-  const style = settings.style || 'icons'
+  const features = settings.features?.length
+    ? settings.features
+    : DEFAULT_FEATURES
+  const _style = settings.style || 'icons'
 
   return (
     <div className="max-w-7xl mx-auto px-6">

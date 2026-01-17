@@ -3,9 +3,9 @@
  * Covers CRUD operations and payment configuration
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { seedMockCollection, getMockCollectionData } from '../setup'
+import { beforeEach, describe, expect, it } from 'vitest'
 import * as tenants from '../../repositories/tenants'
+import { getMockCollectionData, seedMockCollection } from '../setup'
 
 describe('Tenants Repository', () => {
   const mockTenantData = {
@@ -38,7 +38,7 @@ describe('Tenants Repository', () => {
       const tenant = await tenants.createTenant(
         'new@example.com',
         'hashed-pw',
-        'New Business'
+        'New Business',
       )
 
       expect(tenant).toBeDefined()
@@ -55,7 +55,7 @@ describe('Tenants Repository', () => {
       const tenant = await tenants.createTenant(
         'user@example.com',
         'hashed-pw',
-        ''
+        '',
       )
 
       expect(tenant.slug).toBe('user')
@@ -65,7 +65,7 @@ describe('Tenants Repository', () => {
       const tenant = await tenants.createTenant(
         'test@example.com',
         'hashed-pw',
-        'My Shop & Store!'
+        'My Shop & Store!',
       )
 
       expect(tenant.slug).toBe('my-shop-store')
@@ -142,7 +142,7 @@ describe('Tenants Repository', () => {
       })
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.businessName).toBe('Updated Shop')
       expect(updated?.primaryColor).toBe('#ff0000')
@@ -157,7 +157,7 @@ describe('Tenants Repository', () => {
       })
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.id).toBe('tenant-123')
       expect(updated?.createdAt).toEqual(originalCreatedAt)
@@ -199,7 +199,7 @@ describe('Tenants Repository', () => {
       })
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.paymentConfig?.stripe?.connectAccountId).toBe('acct_123')
       expect(updated?.paymentConfig?.stripe?.status).toBe('active')
@@ -208,23 +208,25 @@ describe('Tenants Repository', () => {
 
     it('should remove Stripe Connect', async () => {
       // First set up Stripe Connect
-      seedMockCollection('tenants', [{
-        ...mockTenantData,
-        paymentConfig: {
-          stripe: {
-            connectAccountId: 'acct_123',
-            status: 'active',
-            chargesEnabled: true,
-            payoutsEnabled: true,
+      seedMockCollection('tenants', [
+        {
+          ...mockTenantData,
+          paymentConfig: {
+            stripe: {
+              connectAccountId: 'acct_123',
+              status: 'active',
+              chargesEnabled: true,
+              payoutsEnabled: true,
+            },
+            enabledMethods: ['stripe'],
           },
-          enabledMethods: ['stripe'],
         },
-      }])
+      ])
 
       await tenants.removeStripeConnect('tenant-123')
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.paymentConfig?.stripe).toBeUndefined()
     })
@@ -232,22 +234,24 @@ describe('Tenants Repository', () => {
 
   describe('Usage Tracking', () => {
     beforeEach(() => {
-      seedMockCollection('tenants', [{
-        ...mockTenantData,
-        usage: {
-          storageUsedMB: 100,
-          aiCaptionsUsedThisMonth: 5,
-          ordersThisMonth: 10,
-          lastResetDate: new Date('2024-01-01'),
+      seedMockCollection('tenants', [
+        {
+          ...mockTenantData,
+          usage: {
+            storageUsedMB: 100,
+            aiCaptionsUsedThisMonth: 5,
+            ordersThisMonth: 10,
+            lastResetDate: new Date('2024-01-01'),
+          },
         },
-      }])
+      ])
     })
 
     it('should increment usage counter', async () => {
       await tenants.incrementUsage('tenant-123', 'storageUsedMB', 50)
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.usage?.storageUsedMB).toBe(150)
     })
@@ -256,7 +260,7 @@ describe('Tenants Repository', () => {
       await tenants.resetMonthlyUsage('tenant-123')
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.usage?.aiCaptionsUsedThisMonth).toBe(0)
       expect(updated?.usage?.ordersThisMonth).toBe(0)
@@ -272,7 +276,7 @@ describe('Tenants Repository', () => {
       await tenants.updateOnboardingStep('tenant-123', 'design')
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.onboardingStep).toBe('design')
     })
@@ -281,7 +285,7 @@ describe('Tenants Repository', () => {
       await tenants.completeOnboarding('tenant-123')
 
       const data = getMockCollectionData('tenants')
-      const updated = data.find(t => t.id === 'tenant-123')
+      const updated = data.find((t) => t.id === 'tenant-123')
 
       expect(updated?.onboardingComplete).toBe(true)
       expect(updated?.onboardingStep).toBe('complete')
@@ -289,30 +293,32 @@ describe('Tenants Repository', () => {
 
     it('should check if tenant needs onboarding', async () => {
       // Re-seed to ensure clean state with onboardingComplete: false
-      seedMockCollection('tenants', [{
-        id: 'tenant-123',
-        slug: 'test-shop',
-        email: 'test@example.com',
-        passwordHash: 'hashed-password',
-        businessName: 'Test Shop',
-        primaryColor: '#2563eb',
-        accentColor: '#10b981',
-        domainStatus: 'none',
-        features: {
-          socialPublishing: false,
-          aiCaptions: false,
-          unlimitedPieces: false,
-          customDomain: false,
-          prioritySupport: false,
-          apiAccess: false,
-          advancedAnalytics: false,
+      seedMockCollection('tenants', [
+        {
+          id: 'tenant-123',
+          slug: 'test-shop',
+          email: 'test@example.com',
+          passwordHash: 'hashed-password',
+          businessName: 'Test Shop',
+          primaryColor: '#2563eb',
+          accentColor: '#10b981',
+          domainStatus: 'none',
+          features: {
+            socialPublishing: false,
+            aiCaptions: false,
+            unlimitedPieces: false,
+            customDomain: false,
+            prioritySupport: false,
+            apiAccess: false,
+            advancedAnalytics: false,
+          },
+          plan: 'free',
+          onboardingComplete: false,
+          onboardingStep: 'domain',
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
         },
-        plan: 'free',
-        onboardingComplete: false,
-        onboardingStep: 'domain',
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-01'),
-      }])
+      ])
 
       const needs = await tenants.needsOnboarding('tenant-123')
       expect(needs).toBe(true)

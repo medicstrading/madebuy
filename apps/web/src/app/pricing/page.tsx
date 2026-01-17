@@ -1,11 +1,12 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Pricing - MadeBuy',
-  description: 'Zero transaction fees. Choose the plan that fits your business.',
+  description:
+    'Zero transaction fees. Choose the plan that fits your business.',
 }
 
 const plans = [
@@ -83,7 +84,10 @@ export default function PricingPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <header className="border-b bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/marketplace" className="text-2xl font-bold text-gray-900">
+          <Link
+            href="/marketplace"
+            className="text-2xl font-bold text-gray-900"
+          >
             MadeBuy
           </Link>
         </div>
@@ -112,27 +116,47 @@ export default function PricingPage() {
                   : 'bg-white border border-gray-200'
               }`}
             >
-              <h3 className={`text-lg font-semibold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+              <h3
+                className={`text-lg font-semibold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}
+              >
                 {plan.name}
               </h3>
-              <p className={`mt-2 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}>
+              <p
+                className={`mt-2 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}
+              >
                 {plan.description}
               </p>
               <div className="mt-4">
-                <span className={`text-4xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                <span
+                  className={`text-4xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}
+                >
                   ${plan.price}
                 </span>
-                <span className={plan.highlighted ? 'text-blue-100' : 'text-gray-500'}>
+                <span
+                  className={
+                    plan.highlighted ? 'text-blue-100' : 'text-gray-500'
+                  }
+                >
                   {plan.period}
                 </span>
               </div>
               <ul className="mt-6 space-y-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2">
-                    <svg className={`h-5 w-5 ${plan.highlighted ? 'text-blue-200' : 'text-blue-600'}`} fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className={`h-5 w-5 ${plan.highlighted ? 'text-blue-200' : 'text-blue-600'}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
-                    <span className={`text-sm ${plan.highlighted ? 'text-white' : 'text-gray-600'}`}>
+                    <span
+                      className={`text-sm ${plan.highlighted ? 'text-white' : 'text-gray-600'}`}
+                    >
                       {feature}
                     </span>
                   </li>
@@ -154,7 +178,8 @@ export default function PricingPage() {
 
         <div className="mt-16 text-center">
           <p className="text-gray-600">
-            All plans include: Secure payments via Stripe | Australian-based support | Zero transaction fees
+            All plans include: Secure payments via Stripe | Australian-based
+            support | Zero transaction fees
           </p>
         </div>
       </main>

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { downloads, pieces, tenants } from '@madebuy/db'
 import type { DigitalFile } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/downloads/[token]/info
@@ -9,8 +9,8 @@ import type { DigitalFile } from '@madebuy/shared'
  * Returns product info, file list, download stats, and validity status
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
     const { token } = await params
@@ -19,7 +19,7 @@ export async function GET(
     if (!token || token.length < 20) {
       return NextResponse.json(
         { error: 'Invalid download token.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -28,7 +28,7 @@ export async function GET(
     if (!record) {
       return NextResponse.json(
         { error: 'Download link not found or invalid.' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -37,7 +37,7 @@ export async function GET(
     if (!piece || !piece.digital?.files?.length) {
       return NextResponse.json(
         { error: 'Digital product not found.' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -45,8 +45,10 @@ export async function GET(
     const tenant = await tenants.getTenantById(record.tenantId)
 
     // Check validity status
-    const isExpired = record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)
-    const limitReached = record.maxDownloads && record.downloadCount >= record.maxDownloads
+    const isExpired =
+      record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)
+    const limitReached =
+      record.maxDownloads && record.downloadCount >= record.maxDownloads
 
     let status: 'valid' | 'expired' | 'revoked' | 'limit_reached' = 'valid'
     let statusMessage: string | undefined
@@ -99,15 +101,20 @@ export async function GET(
       },
 
       // Seller info
-      seller: tenant ? {
-        name: tenant.businessName,
-        slug: tenant.slug,
-      } : null,
+      seller: tenant
+        ? {
+            name: tenant.businessName,
+            slug: tenant.slug,
+          }
+        : null,
 
       // Files
       files,
       fileCount: files.length,
-      totalSizeBytes: files.reduce((sum: number, f: { sizeBytes: number }) => sum + f.sizeBytes, 0),
+      totalSizeBytes: files.reduce(
+        (sum: number, f: { sizeBytes: number }) => sum + f.sizeBytes,
+        0,
+      ),
 
       // Download stats
       downloadCount: record.downloadCount,
@@ -119,10 +126,12 @@ export async function GET(
       hasExpiry: !!expiresAt,
 
       // License
-      license: piece.digital.licenseType ? {
-        type: piece.digital.licenseType,
-        text: piece.digital.licenseText,
-      } : null,
+      license: piece.digital.licenseType
+        ? {
+            type: piece.digital.licenseType,
+            text: piece.digital.licenseText,
+          }
+        : null,
 
       // Customer info (limited)
       customer: {
@@ -143,7 +152,7 @@ export async function GET(
     console.error('Download info error:', error)
     return NextResponse.json(
       { error: 'An error occurred fetching download information.' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

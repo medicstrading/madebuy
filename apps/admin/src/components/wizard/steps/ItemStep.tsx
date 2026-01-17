@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Sparkles, Loader2 } from 'lucide-react'
 import type { Piece } from '@madebuy/shared'
-import { useTenantCategories, FALLBACK_PRODUCT_CATEGORIES } from '@/hooks/useTenantCategories'
+import { Loader2, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import {
+  FALLBACK_PRODUCT_CATEGORIES,
+  useTenantCategories,
+} from '@/hooks/useTenantCategories'
 
 interface ItemStepProps {
   initialData: Partial<Piece> | null
@@ -12,9 +15,18 @@ interface ItemStepProps {
   loading: boolean
 }
 
-export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps) {
-  const { productCategories, isLoading: categoriesLoading } = useTenantCategories()
-  const categories = productCategories.length > 0 ? productCategories : FALLBACK_PRODUCT_CATEGORIES
+export function ItemStep({
+  initialData,
+  onSave,
+  onSkip,
+  loading,
+}: ItemStepProps) {
+  const { productCategories, isLoading: categoriesLoading } =
+    useTenantCategories()
+  const categories =
+    productCategories.length > 0
+      ? productCategories
+      : FALLBACK_PRODUCT_CATEGORIES
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -28,24 +40,32 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'price' || name === 'stock'
-        ? value === '' ? undefined : parseFloat(value)
-        : value,
+      [name]:
+        name === 'price' || name === 'stock'
+          ? value === ''
+            ? undefined
+            : parseFloat(value)
+          : value,
     }))
     // Clear error on change
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
+      setErrors((prev) => ({ ...prev, [name]: '' }))
     }
   }
 
   const handleGenerateDescription = async () => {
     if (!formData.name.trim()) {
-      setErrors(prev => ({ ...prev, name: 'Enter a name first to generate description' }))
+      setErrors((prev) => ({
+        ...prev,
+        name: 'Enter a name first to generate description',
+      }))
       return
     }
 
@@ -62,7 +82,7 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
 
       if (response.ok) {
         const data = await response.json()
-        setFormData(prev => ({ ...prev, description: data.description }))
+        setFormData((prev) => ({ ...prev, description: data.description }))
       }
     } catch (error) {
       console.error('Failed to generate description:', error)
@@ -107,20 +127,29 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
       const { piece } = await response.json()
       onSave(formData, piece.id)
     } catch (error) {
-      setErrors({ form: error instanceof Error ? error.message : 'Failed to save' })
+      setErrors({
+        form: error instanceof Error ? error.message : 'Failed to save',
+      })
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">What are you selling?</h2>
-        <p className="mt-2 text-gray-600">Start with the basics - you can add more details later</p>
+        <h2 className="text-2xl font-bold text-gray-900">
+          What are you selling?
+        </h2>
+        <p className="mt-2 text-gray-600">
+          Start with the basics - you can add more details later
+        </p>
       </div>
 
       {/* Name */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Item Name *
         </label>
         <input
@@ -135,18 +164,23 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
               ? 'border-red-300 focus:border-red-500'
               : 'border-gray-200 focus:border-purple-500'
           }`}
-          autoFocus
         />
-        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+        )}
       </div>
 
       {/* Description with AI */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700"
+          >
             Description
           </label>
           <button
+            type="button"
             type="button"
             onClick={handleGenerateDescription}
             disabled={generatingDescription || !formData.name.trim()}
@@ -175,7 +209,10 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Category */}
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Category *
           </label>
           {categoriesLoading ? (
@@ -197,21 +234,30 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
             >
               <option value="">Select category</option>
               {categories.map((cat: string) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
               <option value="Other">Other</option>
             </select>
           )}
-          {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+          {errors.category && (
+            <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+          )}
         </div>
 
         {/* Price */}
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="price"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Price
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
+              $
+            </span>
             <input
               type="number"
               id="price"
@@ -229,8 +275,12 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
 
       {/* Stock (optional) */}
       <div>
-        <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
-          Stock Quantity <span className="text-gray-400 font-normal">(optional)</span>
+        <label
+          htmlFor="stock"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Stock Quantity{' '}
+          <span className="text-gray-400 font-normal">(optional)</span>
         </label>
         <input
           type="number"
@@ -256,12 +306,14 @@ export function ItemStep({ initialData, onSave, onSkip, loading }: ItemStepProps
       <div className="flex items-center justify-between pt-4">
         <button
           type="button"
+          type="button"
           onClick={onSkip}
           className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           Skip for now
         </button>
         <button
+          type="button"
           type="submit"
           disabled={loading}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"

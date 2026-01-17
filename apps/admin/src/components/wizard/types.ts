@@ -1,6 +1,11 @@
 import type { Piece, SocialPlatform } from '@madebuy/shared'
 
-export type WizardStep = 'item' | 'media' | 'marketplace' | 'social' | 'complete'
+export type WizardStep =
+  | 'item'
+  | 'media'
+  | 'marketplace'
+  | 'social'
+  | 'complete'
 
 export interface WizardState {
   currentStep: WizardStep
@@ -50,7 +55,13 @@ export interface WizardDraft {
   createdAt: Date
 }
 
-export const STEP_ORDER: WizardStep[] = ['item', 'media', 'marketplace', 'social', 'complete']
+export const STEP_ORDER: WizardStep[] = [
+  'item',
+  'media',
+  'marketplace',
+  'social',
+  'complete',
+]
 
 export const STEP_LABELS: Record<WizardStep, string> = {
   item: 'Item',
@@ -95,7 +106,10 @@ export function getInitialWizardState(): WizardState {
   }
 }
 
-export function canProceedToStep(state: WizardState, targetStep: WizardStep): boolean {
+export function canProceedToStep(
+  state: WizardState,
+  targetStep: WizardStep,
+): boolean {
   const currentIndex = STEP_ORDER.indexOf(state.currentStep)
   const targetIndex = STEP_ORDER.indexOf(targetStep)
 

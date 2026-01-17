@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { tenants } from '@madebuy/db'
 import type { TenantNotificationPreferences } from '@madebuy/shared'
+import { NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 // Default notification preferences (all on by default except newsletter)
 const defaultPreferences: TenantNotificationPreferences = {
@@ -29,7 +29,7 @@ export async function GET() {
     console.error('Error fetching notification preferences:', error)
     return NextResponse.json(
       { error: 'Failed to fetch notification preferences' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -47,7 +47,7 @@ export async function PUT(request: Request) {
     if (!preferences || typeof preferences !== 'object') {
       return NextResponse.json(
         { error: 'Invalid preferences data' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -75,7 +75,7 @@ export async function PUT(request: Request) {
     console.error('Error updating notification preferences:', error)
     return NextResponse.json(
       { error: 'Failed to update notification preferences' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

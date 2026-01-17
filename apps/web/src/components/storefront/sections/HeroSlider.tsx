@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import type { HeroSlide } from '@madebuy/shared'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import type { SectionProps } from './SectionRenderer'
-import type { HeroSlide } from '@madebuy/shared'
 
 const HEIGHT_MAP = {
   small: 'h-[40vh] min-h-[300px]',
@@ -57,7 +57,9 @@ export function HeroSlider({ settings, tenant, tenantSlug }: SectionProps) {
         <div
           key={slide.id || index}
           className={`absolute inset-0 transition-opacity duration-700 ${
-            index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            index === currentSlide
+              ? 'opacity-100'
+              : 'opacity-0 pointer-events-none'
           }`}
         >
           {/* Background */}
@@ -149,9 +151,22 @@ export function HeroSlider({ settings, tenant, tenantSlug }: SectionProps) {
       )}
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
-        <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      <div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+        aria-hidden="true"
+      >
+        <svg
+          className="w-6 h-6 text-white/60"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
         </svg>
       </div>
     </div>

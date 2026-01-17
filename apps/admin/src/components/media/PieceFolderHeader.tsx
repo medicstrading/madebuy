@@ -1,10 +1,10 @@
 'use client'
 
+import type { MediaItem, Piece } from '@madebuy/shared'
 import { Folder, Video, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import type { MediaItem, Piece } from '@madebuy/shared'
 
 interface PieceFolderHeaderProps {
   piece: Piece
@@ -12,12 +12,20 @@ interface PieceFolderHeaderProps {
   primaryMedia?: MediaItem
 }
 
-export function PieceFolderHeader({ piece, mediaCount, primaryMedia }: PieceFolderHeaderProps) {
+export function PieceFolderHeader({
+  piece,
+  mediaCount,
+  primaryMedia,
+}: PieceFolderHeaderProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete "${piece.name}" and all its media? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${piece.name}" and all its media? This action cannot be undone.`,
+      )
+    ) {
       return
     }
 
@@ -46,7 +54,10 @@ export function PieceFolderHeader({ piece, mediaCount, primaryMedia }: PieceFold
         <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
           {primaryMedia.type === 'image' ? (
             <img
-              src={primaryMedia.variants.thumb?.url || primaryMedia.variants.original.url}
+              src={
+                primaryMedia.variants.thumb?.url ||
+                primaryMedia.variants.original.url
+              }
               alt={piece.name}
               className="h-full w-full object-cover"
             />
@@ -84,6 +95,7 @@ export function PieceFolderHeader({ piece, mediaCount, primaryMedia }: PieceFold
           View Piece
         </Link>
         <button
+          type="button"
           onClick={handleDelete}
           disabled={deleting}
           className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, createContext, useContext } from 'react'
-import { Plus, Upload } from 'lucide-react'
-import { MediaUploadModal } from './MediaUploadModal'
-import { LinkMediaModal } from './LinkMediaModal'
-import { BulkUploadModal } from './BulkUploadModal'
 import type { Piece } from '@madebuy/shared'
+import { Plus, Upload } from 'lucide-react'
+import { createContext, useContext, useState } from 'react'
+import { BulkUploadModal } from './BulkUploadModal'
+import { LinkMediaModal } from './LinkMediaModal'
+import { MediaUploadModal } from './MediaUploadModal'
 
 interface PieceWithCount {
   piece: Piece
@@ -31,7 +31,10 @@ interface MediaLibraryClientProps {
   piecesData: PieceWithCount[]
 }
 
-export function MediaLibraryClient({ children, piecesData }: MediaLibraryClientProps) {
+export function MediaLibraryClient({
+  children,
+  piecesData,
+}: MediaLibraryClientProps) {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showBulkUploadModal, setShowBulkUploadModal] = useState(false)
   const [showLinkModal, setShowLinkModal] = useState(false)
@@ -48,7 +51,7 @@ export function MediaLibraryClient({ children, piecesData }: MediaLibraryClientP
   }
 
   // Extract just the pieces for bulk upload
-  const pieces = piecesData.map(pd => pd.piece)
+  const pieces = piecesData.map((pd) => pd.piece)
 
   return (
     <MediaLibraryContext.Provider value={{ openLinkModal }}>
@@ -57,10 +60,13 @@ export function MediaLibraryClient({ children, piecesData }: MediaLibraryClientP
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Media Library</h1>
-            <p className="mt-2 text-gray-600">Organize media by inventory pieces</p>
+            <p className="mt-2 text-gray-600">
+              Organize media by inventory pieces
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => setShowBulkUploadModal(true)}
               className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
             >
@@ -68,6 +74,7 @@ export function MediaLibraryClient({ children, piecesData }: MediaLibraryClientP
               Bulk Upload
             </button>
             <button
+              type="button"
               onClick={() => setShowUploadModal(true)}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >

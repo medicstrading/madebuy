@@ -1,17 +1,29 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import type { Material, PieceMaterialUsage } from '@madebuy/shared'
 import {
   calculateCOGS,
   calculateProfitMargin,
-  suggestPrice,
   getMarginHealth,
+  suggestPrice,
   TARGET_MARGINS,
 } from '@madebuy/shared'
-import { Plus, Trash2, Calculator, Loader2, Package, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react'
-import { useTenantCategories, FALLBACK_PRODUCT_CATEGORIES } from '@/hooks/useTenantCategories'
+import {
+  AlertTriangle,
+  Calculator,
+  Lightbulb,
+  Loader2,
+  Package,
+  Plus,
+  Trash2,
+  TrendingUp,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
+import {
+  FALLBACK_PRODUCT_CATEGORIES,
+  useTenantCategories,
+} from '@/hooks/useTenantCategories'
 
 interface PieceFormProps {
   tenantId: string
@@ -30,16 +42,24 @@ interface FormErrors {
   form?: string
 }
 
-export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProps) {
+export function PieceForm({
+  tenantId,
+  availableMaterials,
+  piece,
+}: PieceFormProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
 
   // Get dynamic categories based on maker type
-  const { productCategories, isLoading: categoriesLoading } = useTenantCategories()
+  const { productCategories, isLoading: categoriesLoading } =
+    useTenantCategories()
 
   // Use fetched categories or fallback to jewelry categories
-  const categories = productCategories.length > 0 ? productCategories : FALLBACK_PRODUCT_CATEGORIES
+  const categories =
+    productCategories.length > 0
+      ? productCategories
+      : FALLBACK_PRODUCT_CATEGORIES
 
   // Piece data
   const [formData, setFormData] = useState({
@@ -62,14 +82,16 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
   const [materialUsages, setMaterialUsages] = useState<MaterialUsageEntry[]>([])
 
   // Target margin for suggested pricing (default 50%)
-  const [targetMargin, setTargetMargin] = useState<number>(TARGET_MARGINS.STANDARD)
+  const [targetMargin, setTargetMargin] = useState<number>(
+    TARGET_MARGINS.STANDARD,
+  )
 
   // Convert material usages to PieceMaterialUsage format for COGS calculation
   const materialsUsedForCOGS: PieceMaterialUsage[] = useMemo(() => {
     return materialUsages
-      .filter(u => u.materialId && u.quantityUsed > 0)
-      .map(u => {
-        const material = availableMaterials.find(m => m.id === u.materialId)
+      .filter((u) => u.materialId && u.quantityUsed > 0)
+      .map((u) => {
+        const material = availableMaterials.find((m) => m.id === u.materialId)
         return {
           materialId: u.materialId,
           quantity: u.quantityUsed,
@@ -101,38 +123,62 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
     return suggested ? suggested / 100 : null // Convert cents to dollars
   }, [totalCOGS, targetMargin])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target
-    const numericFields = ['price', 'stock', 'lowStockThreshold', 'shippingWeight', 'shippingLength', 'shippingWidth', 'shippingHeight']
-    setFormData(prev => ({
+    const numericFields = [
+      'price',
+      'stock',
+      'lowStockThreshold',
+      'shippingWeight',
+      'shippingLength',
+      'shippingWidth',
+      'shippingHeight',
+    ]
+    setFormData((prev) => ({
       ...prev,
       [name]: numericFields.includes(name)
-        ? (value === '' ? undefined : parseFloat(value))
-        : value
+        ? value === ''
+          ? undefined
+          : parseFloat(value)
+        : value,
     }))
   }
 
   const addMaterialUsage = () => {
     if (availableMaterials.length === 0) {
-      setErrors(prev => ({ ...prev, form: 'No materials available. Please add materials first.' }))
+      setErrors((prev) => ({
+        ...prev,
+        form: 'No materials available. Please add materials first.',
+      }))
       return
     }
-    setErrors(prev => ({ ...prev, form: undefined }))
-    setMaterialUsages(prev => [...prev, { materialId: '', quantityUsed: 0 }])
+    setErrors((prev) => ({ ...prev, form: undefined }))
+    setMaterialUsages((prev) => [...prev, { materialId: '', quantityUsed: 0 }])
   }
 
   const removeMaterialUsage = (index: number) => {
-    setMaterialUsages(prev => prev.filter((_, i) => i !== index))
+    setMaterialUsages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const updateMaterialUsage = (index: number, field: 'materialId' | 'quantityUsed', value: string | number) => {
-    setMaterialUsages(prev => prev.map((usage, i) => {
-      if (i !== index) return usage
-      return {
-        ...usage,
-        [field]: field === 'quantityUsed' ? parseFloat(value as string) || 0 : value
-      }
-    }))
+  const updateMaterialUsage = (
+    index: number,
+    field: 'materialId' | 'quantityUsed',
+    value: string | number,
+  ) => {
+    setMaterialUsages((prev) =>
+      prev.map((usage, i) => {
+        if (i !== index) return usage
+        return {
+          ...usage,
+          [field]:
+            field === 'quantityUsed' ? parseFloat(value as string) || 0 : value,
+        }
+      }),
+    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,7 +209,8 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
       const pieceData = {
         ...formData,
         // Include materialsUsed for automatic COGS calculation
-        materialsUsed: materialsUsedForCOGS.length > 0 ? materialsUsedForCOGS : undefined,
+        materialsUsed:
+          materialsUsedForCOGS.length > 0 ? materialsUsedForCOGS : undefined,
       }
 
       // Create the piece
@@ -182,7 +229,9 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
       // Record material usages for inventory deduction (separate from COGS tracking)
       // This reduces material stock when materials are actually used
       if (materialUsages.length > 0) {
-        const validUsages = materialUsages.filter(u => u.materialId && u.quantityUsed > 0)
+        const validUsages = materialUsages.filter(
+          (u) => u.materialId && u.quantityUsed > 0,
+        )
 
         for (const usage of validUsages) {
           await fetch(`/api/materials/${usage.materialId}/usage`, {
@@ -210,12 +259,17 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Information */}
       <div className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Basic Information
+        </h2>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Name */}
           <div className="md:col-span-2">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Piece Name *
             </label>
             <input
@@ -225,7 +279,8 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
               value={formData.name}
               onChange={(e) => {
                 handleChange(e)
-                if (errors.name) setErrors(prev => ({ ...prev, name: undefined }))
+                if (errors.name)
+                  setErrors((prev) => ({ ...prev, name: undefined }))
               }}
               placeholder="e.g., Sterling Silver Ring"
               className={`w-full rounded-lg border p-2.5 focus:outline-none focus:ring-2 ${
@@ -241,7 +296,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Description */}
           <div className="md:col-span-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Description
             </label>
             <textarea
@@ -257,13 +315,18 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Category *
             </label>
             {categoriesLoading ? (
               <div className="flex items-center gap-2 h-[42px] rounded-lg border border-gray-300 px-3 bg-gray-50">
                 <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                <span className="text-sm text-gray-500">Loading categories...</span>
+                <span className="text-sm text-gray-500">
+                  Loading categories...
+                </span>
               </div>
             ) : (
               <select
@@ -272,7 +335,8 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                 value={formData.category}
                 onChange={(e) => {
                   handleChange(e)
-                  if (errors.category) setErrors(prev => ({ ...prev, category: undefined }))
+                  if (errors.category)
+                    setErrors((prev) => ({ ...prev, category: undefined }))
                 }}
                 className={`w-full rounded-lg border p-2.5 focus:outline-none focus:ring-2 ${
                   errors.category
@@ -300,7 +364,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Status */}
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="status"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Status *
             </label>
             <select
@@ -320,7 +387,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Price */}
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Price
             </label>
             <input
@@ -338,7 +408,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Stock */}
           <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Stock Quantity
             </label>
             <input
@@ -359,7 +432,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Low Stock Threshold */}
           <div>
-            <label htmlFor="lowStockThreshold" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="lowStockThreshold"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Low Stock Alert
             </label>
             <input
@@ -385,15 +461,22 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
         <div className="flex items-center gap-2 mb-4">
           <Package className="h-5 w-5 text-gray-600" />
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Shipping Dimensions</h2>
-            <p className="text-sm text-gray-600">Used for calculating shipping costs at checkout</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Shipping Dimensions
+            </h2>
+            <p className="text-sm text-gray-600">
+              Used for calculating shipping costs at checkout
+            </p>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
           {/* Weight */}
           <div>
-            <label htmlFor="shippingWeight" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="shippingWeight"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Weight (grams)
             </label>
             <input
@@ -411,7 +494,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Length */}
           <div>
-            <label htmlFor="shippingLength" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="shippingLength"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Length (cm)
             </label>
             <input
@@ -429,7 +515,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Width */}
           <div>
-            <label htmlFor="shippingWidth" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="shippingWidth"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Width (cm)
             </label>
             <input
@@ -447,7 +536,10 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
           {/* Height */}
           <div>
-            <label htmlFor="shippingHeight" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="shippingHeight"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Height (cm)
             </label>
             <input
@@ -465,7 +557,8 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
         </div>
 
         <p className="mt-3 text-xs text-gray-500">
-          Leave blank to use default dimensions for shipping quotes. Accurate dimensions help provide better shipping rates.
+          Leave blank to use default dimensions for shipping quotes. Accurate
+          dimensions help provide better shipping rates.
         </p>
       </div>
 
@@ -473,10 +566,15 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
       <div className="rounded-lg bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Material Usage</h2>
-            <p className="text-sm text-gray-600">Track materials used in this piece</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Material Usage
+            </h2>
+            <p className="text-sm text-gray-600">
+              Track materials used in this piece
+            </p>
           </div>
           <button
+            type="button"
             type="button"
             onClick={addMaterialUsage}
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -490,17 +588,25 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
           <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
             <Calculator className="mx-auto h-8 w-8 text-gray-400" />
             <p className="mt-2 text-sm text-gray-600">
-              No materials added yet. Click &ldquo;Add Material&rdquo; to track material costs and calculate COGS.
+              No materials added yet. Click &ldquo;Add Material&rdquo; to track
+              material costs and calculate COGS.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {materialUsages.map((usage, index) => {
-              const selectedMaterial = availableMaterials.find(m => m.id === usage.materialId)
-              const lineCost = selectedMaterial ? selectedMaterial.costPerUnit * usage.quantityUsed : 0
+              const selectedMaterial = availableMaterials.find(
+                (m) => m.id === usage.materialId,
+              )
+              const lineCost = selectedMaterial
+                ? selectedMaterial.costPerUnit * usage.quantityUsed
+                : 0
 
               return (
-                <div key={index} className="flex items-start gap-3 rounded-lg border border-gray-200 p-4">
+                <div
+                  key={index}
+                  className="flex items-start gap-3 rounded-lg border border-gray-200 p-4"
+                >
                   <div className="flex-1 grid gap-3 md:grid-cols-3">
                     {/* Material Selection */}
                     <div className="md:col-span-1">
@@ -509,11 +615,17 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                       </label>
                       <select
                         value={usage.materialId}
-                        onChange={(e) => updateMaterialUsage(index, 'materialId', e.target.value)}
+                        onChange={(e) =>
+                          updateMaterialUsage(
+                            index,
+                            'materialId',
+                            e.target.value,
+                          )
+                        }
                         className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select material</option>
-                        {availableMaterials.map(material => (
+                        {availableMaterials.map((material) => (
                           <option key={material.id} value={material.id}>
                             {material.name} ({material.unit})
                           </option>
@@ -529,7 +641,13 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                       <input
                         type="number"
                         value={usage.quantityUsed || ''}
-                        onChange={(e) => updateMaterialUsage(index, 'quantityUsed', e.target.value)}
+                        onChange={(e) =>
+                          updateMaterialUsage(
+                            index,
+                            'quantityUsed',
+                            e.target.value,
+                          )
+                        }
                         min="0"
                         step="0.01"
                         placeholder="0.00"
@@ -537,7 +655,8 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                       />
                       {selectedMaterial && (
                         <p className="mt-1 text-xs text-gray-500">
-                          ${selectedMaterial.costPerUnit.toFixed(2)} per {selectedMaterial.unit}
+                          ${selectedMaterial.costPerUnit.toFixed(2)} per{' '}
+                          {selectedMaterial.unit}
                         </p>
                       )}
                     </div>
@@ -556,6 +675,7 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                   {/* Remove Button */}
                   <button
                     type="button"
+                    type="button"
                     onClick={() => removeMaterialUsage(index)}
                     className="mt-7 text-red-600 hover:text-red-700"
                   >
@@ -569,7 +689,9 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
             <div className="flex items-center justify-between rounded-lg bg-blue-50 border border-blue-200 p-4">
               <div className="flex items-center gap-2">
                 <Calculator className="h-5 w-5 text-blue-600" />
-                <span className="font-medium text-blue-900">Total Cost of Goods Sold (COGS)</span>
+                <span className="font-medium text-blue-900">
+                  Total Cost of Goods Sold (COGS)
+                </span>
               </div>
               <span className="text-xl font-bold text-blue-900">
                 ${(totalCOGS / 100).toFixed(2)}
@@ -578,13 +700,19 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
 
             {/* Profit Margin with Health Indicator */}
             {formData.price && formData.price > 0 && totalCOGS > 0 && (
-              <div className={`flex items-center justify-between rounded-lg border p-4 ${
-                marginHealth === 'healthy' ? 'bg-green-50 border-green-200' :
-                marginHealth === 'warning' ? 'bg-yellow-50 border-yellow-200' :
-                marginHealth === 'low' ? 'bg-orange-50 border-orange-200' :
-                marginHealth === 'negative' ? 'bg-red-50 border-red-200' :
-                'bg-gray-50 border-gray-200'
-              }`}>
+              <div
+                className={`flex items-center justify-between rounded-lg border p-4 ${
+                  marginHealth === 'healthy'
+                    ? 'bg-green-50 border-green-200'
+                    : marginHealth === 'warning'
+                      ? 'bg-yellow-50 border-yellow-200'
+                      : marginHealth === 'low'
+                        ? 'bg-orange-50 border-orange-200'
+                        : marginHealth === 'negative'
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-gray-50 border-gray-200'
+                }`}
+              >
                 <div className="flex items-center gap-2">
                   {marginHealth === 'healthy' ? (
                     <TrendingUp className="h-5 w-5 text-green-600" />
@@ -594,33 +722,54 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                     <TrendingUp className="h-5 w-5 text-yellow-600" />
                   )}
                   <div>
-                    <span className={`font-medium ${
-                      marginHealth === 'healthy' ? 'text-green-900' :
-                      marginHealth === 'warning' ? 'text-yellow-900' :
-                      marginHealth === 'low' ? 'text-orange-900' :
-                      marginHealth === 'negative' ? 'text-red-900' :
-                      'text-gray-900'
-                    }`}>Profit Margin</span>
+                    <span
+                      className={`font-medium ${
+                        marginHealth === 'healthy'
+                          ? 'text-green-900'
+                          : marginHealth === 'warning'
+                            ? 'text-yellow-900'
+                            : marginHealth === 'low'
+                              ? 'text-orange-900'
+                              : marginHealth === 'negative'
+                                ? 'text-red-900'
+                                : 'text-gray-900'
+                      }`}
+                    >
+                      Profit Margin
+                    </span>
                     {marginHealth === 'low' && (
-                      <p className="text-xs text-orange-600 mt-0.5">Low margin - consider raising price</p>
+                      <p className="text-xs text-orange-600 mt-0.5">
+                        Low margin - consider raising price
+                      </p>
                     )}
                     {marginHealth === 'negative' && (
-                      <p className="text-xs text-red-600 mt-0.5">Selling below cost!</p>
+                      <p className="text-xs text-red-600 mt-0.5">
+                        Selling below cost!
+                      </p>
                     )}
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`text-xl font-bold ${
-                    marginHealth === 'healthy' ? 'text-green-900' :
-                    marginHealth === 'warning' ? 'text-yellow-900' :
-                    marginHealth === 'low' ? 'text-orange-900' :
-                    marginHealth === 'negative' ? 'text-red-900' :
-                    'text-gray-900'
-                  }`}>
-                    {profitMargin !== null ? `${profitMargin.toFixed(1)}%` : '-'}
+                  <span
+                    className={`text-xl font-bold ${
+                      marginHealth === 'healthy'
+                        ? 'text-green-900'
+                        : marginHealth === 'warning'
+                          ? 'text-yellow-900'
+                          : marginHealth === 'low'
+                            ? 'text-orange-900'
+                            : marginHealth === 'negative'
+                              ? 'text-red-900'
+                              : 'text-gray-900'
+                    }`}
+                  >
+                    {profitMargin !== null
+                      ? `${profitMargin.toFixed(1)}%`
+                      : '-'}
                   </span>
                   <p className="text-sm text-gray-600">
-                    ${((formData.price * 100 - totalCOGS) / 100).toFixed(2)} profit
+                    ${((formData.price * 100 - totalCOGS) / 100).toFixed(2)}{' '}
+                    profit
                   </p>
                 </div>
               </div>
@@ -631,20 +780,32 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
               <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Lightbulb className="h-5 w-5 text-purple-600" />
-                  <span className="font-medium text-purple-900">Suggested Pricing</span>
+                  <span className="font-medium text-purple-900">
+                    Suggested Pricing
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 mb-3">
-                  <label className="text-sm text-purple-800">Target Margin:</label>
+                  <label className="text-sm text-purple-800">
+                    Target Margin:
+                  </label>
                   <select
                     value={targetMargin}
                     onChange={(e) => setTargetMargin(Number(e.target.value))}
                     className="rounded border border-purple-300 px-2 py-1 text-sm bg-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                   >
                     <option value={TARGET_MARGINS.BUDGET}>30% (Budget)</option>
-                    <option value={TARGET_MARGINS.STANDARD}>50% (Standard)</option>
-                    <option value={TARGET_MARGINS.PREMIUM}>60% (Premium)</option>
-                    <option value={TARGET_MARGINS.ARTISAN}>70% (Artisan)</option>
-                    <option value={TARGET_MARGINS.EXCLUSIVE}>80% (Exclusive)</option>
+                    <option value={TARGET_MARGINS.STANDARD}>
+                      50% (Standard)
+                    </option>
+                    <option value={TARGET_MARGINS.PREMIUM}>
+                      60% (Premium)
+                    </option>
+                    <option value={TARGET_MARGINS.ARTISAN}>
+                      70% (Artisan)
+                    </option>
+                    <option value={TARGET_MARGINS.EXCLUSIVE}>
+                      80% (Exclusive)
+                    </option>
                   </select>
                 </div>
                 {suggestedPrice && (
@@ -658,7 +819,13 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
                       </span>
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, price: suggestedPrice }))}
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            price: suggestedPrice,
+                          }))
+                        }
                         className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700"
                       >
                         Apply
@@ -683,12 +850,14 @@ export function PieceForm({ tenantId, availableMaterials, piece }: PieceFormProp
       <div className="flex gap-3 justify-end">
         <button
           type="button"
+          type="button"
           onClick={() => router.back()}
           className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
+          type="button"
           type="submit"
           disabled={submitting}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"

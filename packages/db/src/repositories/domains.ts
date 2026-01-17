@@ -1,6 +1,6 @@
+import dns from 'node:dns/promises'
+import type { DomainStatus, Tenant } from '@madebuy/shared'
 import { getDatabase } from '../client'
-import type { Tenant, DomainStatus } from '@madebuy/shared'
-import dns from 'dns/promises'
 
 /**
  * Domains Repository
@@ -17,7 +17,9 @@ export interface DomainVerificationResult {
 /**
  * Get tenant by custom domain
  */
-export async function getTenantByDomain(domain: string): Promise<Tenant | null> {
+export async function getTenantByDomain(
+  domain: string,
+): Promise<Tenant | null> {
   const db = await getDatabase()
 
   // Normalize domain (lowercase, no trailing dot)
@@ -36,7 +38,7 @@ export async function getTenantByDomain(domain: string): Promise<Tenant | null> 
  */
 export async function isDomainAvailable(
   domain: string,
-  excludeTenantId?: string
+  excludeTenantId?: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -57,7 +59,7 @@ export async function isDomainAvailable(
  */
 export async function setCustomDomain(
   tenantId: string,
-  domain: string
+  domain: string,
 ): Promise<{ success: boolean; message: string }> {
   const db = await getDatabase()
 
@@ -83,12 +85,13 @@ export async function setCustomDomain(
         domainStatus: 'pending_nameservers',
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return {
     success: true,
-    message: 'Domain added. Please update your nameservers to complete verification.',
+    message:
+      'Domain added. Please update your nameservers to complete verification.',
   }
 }
 
@@ -110,7 +113,7 @@ export async function removeCustomDomain(tenantId: string): Promise<void> {
         cloudflareZoneId: '',
         nameservers: '',
       },
-    }
+    },
   )
 }
 
@@ -120,7 +123,7 @@ export async function removeCustomDomain(tenantId: string): Promise<void> {
  */
 export async function verifyDomain(
   tenantId: string,
-  domain: string
+  domain: string,
 ): Promise<DomainVerificationResult> {
   try {
     const normalizedDomain = domain.toLowerCase().replace(/\.$/, '')
@@ -129,7 +132,9 @@ export async function verifyDomain(
     try {
       const cnameRecords = await dns.resolveCname(normalizedDomain)
       const hasMadeBuyCname = cnameRecords.some(
-        record => record.includes('madebuy.com.au') || record.includes('shops.madebuy.com.au')
+        (record) =>
+          record.includes('madebuy.com.au') ||
+          record.includes('shops.madebuy.com.au'),
       )
 
       if (hasMadeBuyCname) {
@@ -153,7 +158,7 @@ export async function verifyDomain(
 
     try {
       const aRecords = await dns.resolve4(normalizedDomain)
-      const hasCorrectIP = aRecords.some(ip => expectedIPs.includes(ip))
+      const hasCorrectIP = aRecords.some((ip) => expectedIPs.includes(ip))
 
       if (hasCorrectIP) {
         await updateDomainStatus(tenantId, 'active')
@@ -171,8 +176,8 @@ export async function verifyDomain(
     try {
       const txtRecords = await dns.resolveTxt(normalizedDomain)
       const verificationToken = `madebuy-verify=${tenantId}`
-      const hasVerificationTxt = txtRecords.some(
-        records => records.some(r => r === verificationToken)
+      const hasVerificationTxt = txtRecords.some((records) =>
+        records.some((r) => r === verificationToken),
       )
 
       if (hasVerificationTxt) {
@@ -190,7 +195,7 @@ export async function verifyDomain(
     return {
       verified: false,
       status: 'pending_nameservers',
-      message: 'Domain DNS not configured. Please add a CNAME record pointing to shops.madebuy.com.au or add a TXT record with madebuy-verify=' + tenantId,
+      message: `Domain DNS not configured. Please add a CNAME record pointing to shops.madebuy.com.au or add a TXT record with madebuy-verify=${tenantId}`,
     }
   } catch (error) {
     console.error('Domain verification error:', error)
@@ -207,7 +212,7 @@ export async function verifyDomain(
  */
 async function updateDomainStatus(
   tenantId: string,
-  status: DomainStatus
+  status: DomainStatus,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -218,7 +223,7 @@ async function updateDomainStatus(
         domainStatus: status,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -256,7 +261,8 @@ export async function getDomainStatus(tenantId: string): Promise<{
 export async function listActiveCustomDomains(): Promise<string[]> {
   const db = await getDatabase()
 
-  const tenants = await db.collection('tenants')
+  const tenants = await db
+    .collection('tenants')
     .find({
       customDomain: { $exists: true, $ne: null },
       domainStatus: 'active',
@@ -264,5 +270,5 @@ export async function listActiveCustomDomains(): Promise<string[]> {
     .project({ customDomain: 1 })
     .toArray()
 
-  return tenants.map(t => t.customDomain).filter(Boolean) as string[]
+  return tenants.map((t) => t.customDomain).filter(Boolean) as string[]
 }

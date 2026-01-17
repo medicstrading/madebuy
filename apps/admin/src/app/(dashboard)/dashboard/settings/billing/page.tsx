@@ -1,8 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import {
+  Check,
+  CheckCircle2,
+  CreditCard,
+  Crown,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  XCircle,
+  Zap,
+} from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { Check, CreditCard, Sparkles, Zap, Crown, ExternalLink, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 const PLANS = [
   {
@@ -90,11 +100,17 @@ export default function BillingPage() {
   const [hasSubscription, setHasSubscription] = useState(false)
   const [loading, setLoading] = useState(true)
   const [upgrading, setUpgrading] = useState<string | null>(null)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
 
   useEffect(() => {
     if (searchParams?.get('success') === 'true') {
-      setMessage({ type: 'success', text: 'Subscription updated successfully!' })
+      setMessage({
+        type: 'success',
+        text: 'Subscription updated successfully!',
+      })
     } else if (searchParams?.get('canceled') === 'true') {
       setMessage({ type: 'error', text: 'Subscription update was cancelled.' })
     }
@@ -139,7 +155,10 @@ export default function BillingPage() {
     } catch (err) {
       setMessage({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Failed to start upgrade process',
+        text:
+          err instanceof Error
+            ? err.message
+            : 'Failed to start upgrade process',
       })
       setUpgrading(null)
     }
@@ -164,7 +183,8 @@ export default function BillingPage() {
     } catch (err) {
       setMessage({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Failed to open billing portal',
+        text:
+          err instanceof Error ? err.message : 'Failed to open billing portal',
       })
       setUpgrading(null)
     }
@@ -178,14 +198,18 @@ export default function BillingPage() {
     )
   }
 
-  const currentPlanData = PLANS.find(p => p.id === currentPlan)
+  const currentPlanData = PLANS.find((p) => p.id === currentPlan)
 
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Billing & Plans</h1>
-        <p className="mt-1 text-gray-500">Manage your subscription and billing settings</p>
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          Billing & Plans
+        </h1>
+        <p className="mt-1 text-gray-500">
+          Manage your subscription and billing settings
+        </p>
       </div>
 
       {/* Message Banner */}
@@ -202,7 +226,11 @@ export default function BillingPage() {
           ) : (
             <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
           )}
-          <p className={message.type === 'success' ? 'text-emerald-800' : 'text-red-800'}>
+          <p
+            className={
+              message.type === 'success' ? 'text-emerald-800' : 'text-red-800'
+            }
+          >
             {message.text}
           </p>
         </div>
@@ -224,6 +252,7 @@ export default function BillingPage() {
           </div>
           {hasSubscription && (
             <button
+              type="button"
               onClick={handleManageSubscription}
               disabled={upgrading === 'portal'}
               className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50 transition-colors"
@@ -244,7 +273,9 @@ export default function BillingPage() {
         {PLANS.map((plan) => {
           const Icon = plan.icon
           const isCurrentPlan = plan.id === currentPlan
-          const canUpgrade = PLANS.findIndex(p => p.id === plan.id) > PLANS.findIndex(p => p.id === currentPlan)
+          const canUpgrade =
+            PLANS.findIndex((p) => p.id === plan.id) >
+            PLANS.findIndex((p) => p.id === currentPlan)
 
           return (
             <div
@@ -253,8 +284,8 @@ export default function BillingPage() {
                 isCurrentPlan
                   ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg'
                   : plan.popular && !isCurrentPlan
-                  ? 'border-purple-300 hover:border-purple-400 hover:shadow-md'
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                    ? 'border-purple-300 hover:border-purple-400 hover:shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
               }`}
             >
               {/* Badge */}
@@ -276,7 +307,9 @@ export default function BillingPage() {
 
               {/* Plan Header */}
               <div className="mb-4 flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${plan.iconBg}`}>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${plan.iconBg}`}
+                >
                   <Icon className={`h-5 w-5 ${plan.iconColor}`} />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
@@ -284,7 +317,9 @@ export default function BillingPage() {
 
               {/* Price */}
               <div className="mb-3">
-                <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
+                <span className="text-3xl font-bold text-gray-900">
+                  ${plan.price}
+                </span>
                 <span className="text-gray-500 text-sm">/month</span>
               </div>
 
@@ -293,7 +328,10 @@ export default function BillingPage() {
               {/* Features */}
               <ul className="mb-5 space-y-2.5">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-gray-700">
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 text-sm text-gray-700"
+                  >
                     <Check className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                     <span>{feature}</span>
                   </li>
@@ -303,6 +341,7 @@ export default function BillingPage() {
               {/* Action Button */}
               {isCurrentPlan ? (
                 <button
+                  type="button"
                   disabled
                   className="w-full rounded-xl bg-gray-100 py-2.5 text-sm font-medium text-gray-400 cursor-not-allowed"
                 >
@@ -310,6 +349,7 @@ export default function BillingPage() {
                 </button>
               ) : canUpgrade ? (
                 <button
+                  type="button"
                   onClick={() => handleUpgrade(plan.id)}
                   disabled={upgrading !== null}
                   className={`w-full rounded-xl py-2.5 text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
@@ -329,6 +369,7 @@ export default function BillingPage() {
                 </button>
               ) : (
                 <button
+                  type="button"
                   disabled
                   className="w-full rounded-xl bg-gray-100 py-2.5 text-sm font-medium text-gray-400 cursor-not-allowed"
                 >
@@ -344,7 +385,10 @@ export default function BillingPage() {
       <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5 text-center">
         <p className="text-sm text-gray-600">
           Need help choosing a plan?{' '}
-          <a href="mailto:support@madebuy.com.au" className="text-blue-600 hover:underline font-medium">
+          <a
+            href="mailto:support@madebuy.com.au"
+            className="text-blue-600 hover:underline font-medium"
+          >
             Contact our team
           </a>{' '}
           for personalized recommendations.

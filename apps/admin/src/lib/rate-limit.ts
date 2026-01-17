@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Rate Limiting Implementation
@@ -95,7 +95,10 @@ export class RateLimiter {
     this.uniqueTokenPerInterval = config.uniqueTokenPerInterval
   }
 
-  async check(request: NextRequest, limit?: number): Promise<{
+  async check(
+    request: NextRequest,
+    limit?: number,
+  ): Promise<{
     success: boolean
     limit: number
     remaining: number
@@ -186,7 +189,7 @@ export const rateLimiters = {
 export async function rateLimit(
   request: NextRequest,
   limiter: RateLimiter,
-  limit?: number
+  limit?: number,
 ): Promise<NextResponse | null> {
   const result = await limiter.check(request, limit)
 
@@ -202,9 +205,11 @@ export async function rateLimit(
           'X-RateLimit-Limit': result.limit.toString(),
           'X-RateLimit-Remaining': '0',
           'X-RateLimit-Reset': new Date(result.reset).toISOString(),
-          'Retry-After': Math.ceil((result.reset - Date.now()) / 1000).toString(),
+          'Retry-After': Math.ceil(
+            (result.reset - Date.now()) / 1000,
+          ).toString(),
         },
-      }
+      },
     )
   }
 
@@ -220,10 +225,13 @@ export function addRateLimitHeaders(
     limit: number
     remaining: number
     reset: number
-  }
+  },
 ): NextResponse {
   response.headers.set('X-RateLimit-Limit', result.limit.toString())
   response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
-  response.headers.set('X-RateLimit-Reset', new Date(result.reset).toISOString())
+  response.headers.set(
+    'X-RateLimit-Reset',
+    new Date(result.reset).toISOString(),
+  )
   return response
 }

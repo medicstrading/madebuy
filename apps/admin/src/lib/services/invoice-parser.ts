@@ -16,13 +16,15 @@ function normalizeUnit(unitStr: string): MaterialUnit | undefined {
   if (normalized.match(/^m|meter|meters|metre|metres$/)) return 'meter'
 
   // Piece variations
-  if (normalized.match(/^pc|pcs|piece|pieces|unit|units|ea|each$/)) return 'piece'
+  if (normalized.match(/^pc|pcs|piece|pieces|unit|units|ea|each$/))
+    return 'piece'
 
   // Set variations
   if (normalized.match(/^set|sets$/)) return 'set'
 
   // Milliliter variations
-  if (normalized.match(/^ml|milliliter|milliliters|millilitre|millilitres$/)) return 'ml'
+  if (normalized.match(/^ml|milliliter|milliliters|millilitre|millilitres$/))
+    return 'ml'
 
   return undefined
 }
@@ -61,11 +63,14 @@ function calculateConfidence(data: {
 export function parseLineItem(text: string): InvoiceLineItem {
   // Extract price: $85.00, 85.00, $85, etc.
   const priceMatch = text.match(/\$?\s*(\d+[,.]?\d*\.?\d*)/g)
-  const prices = priceMatch?.map(p => parseFloat(p.replace(/[$,\s]/g, ''))) || []
-  const price = prices.find(p => p > 0) // Get first valid price
+  const prices =
+    priceMatch?.map((p) => parseFloat(p.replace(/[$,\s]/g, ''))) || []
+  const price = prices.find((p) => p > 0) // Get first valid price
 
   // Extract quantity + unit: "100g", "50 meter", "25 piece", "1.5kg", etc.
-  const qtyUnitMatch = text.match(/(\d+\.?\d*)\s*(g|gram|kg|m|meter|pc|piece|set|ml|ea|each|unit)/i)
+  const qtyUnitMatch = text.match(
+    /(\d+\.?\d*)\s*(g|gram|kg|m|meter|pc|piece|set|ml|ea|each|unit)/i,
+  )
   const quantity = qtyUnitMatch ? parseFloat(qtyUnitMatch[1]) : undefined
   const unitStr = qtyUnitMatch ? qtyUnitMatch[2] : undefined
   const unit = unitStr ? normalizeUnit(unitStr) : undefined
@@ -75,7 +80,10 @@ export function parseLineItem(text: string): InvoiceLineItem {
     // Remove prices
     .replace(/\$?\s*\d+[,.]?\d*\.?\d*/g, '')
     // Remove quantity+unit patterns
-    .replace(/\d+\.?\d*\s*(g|gram|kg|m|meter|pc|piece|set|ml|ea|each|unit)/gi, '')
+    .replace(
+      /\d+\.?\d*\s*(g|gram|kg|m|meter|pc|piece|set|ml|ea|each|unit)/gi,
+      '',
+    )
     // Remove common noise
     .replace(/[-|]/g, ' ')
     .trim()
@@ -90,7 +98,7 @@ export function parseLineItem(text: string): InvoiceLineItem {
     parsedPrice: price,
     parsedQuantity: quantity,
     parsedUnit: unit,
-    confidence: calculateConfidence({ price, quantity, name: parsedName })
+    confidence: calculateConfidence({ price, quantity, name: parsedName }),
   }
 }
 
@@ -123,7 +131,7 @@ export function parseInvoiceLines(lines: string[]): InvoiceLineItem[] {
     if (!line || line.trim().length === 0) continue
 
     // Skip header lines
-    if (headerPatterns.some(pattern => pattern.test(line))) continue
+    if (headerPatterns.some((pattern) => pattern.test(line))) continue
 
     // Skip lines with only numbers or symbols
     if (/^[\d\s\-.$,]+$/.test(line)) continue
@@ -183,7 +191,9 @@ export function extractTotalAmount(lines: string[]): number | undefined {
     }
 
     // Also check for common total patterns like "Total: $250.00" or "TOTAL 250.00"
-    const totalMatch = line.match(/(total|grand total|amount due)[:\s]+\$?\s*(\d+[,.]?\d*\.?\d*)/i)
+    const totalMatch = line.match(
+      /(total|grand total|amount due)[:\s]+\$?\s*(\d+[,.]?\d*\.?\d*)/i,
+    )
     if (totalMatch) {
       return parseFloat(totalMatch[2].replace(/[,$]/g, ''))
     }
@@ -202,8 +212,8 @@ export function extractInvoiceDate(lines: string[]): Date | undefined {
   for (const line of topLines) {
     // Common date formats: MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD, Month DD, YYYY
     const datePatterns = [
-      /(\d{1,2}\/\d{1,2}\/\d{4})/,           // MM/DD/YYYY or DD/MM/YYYY
-      /(\d{4}-\d{1,2}-\d{1,2})/,             // YYYY-MM-DD
+      /(\d{1,2}\/\d{1,2}\/\d{4})/, // MM/DD/YYYY or DD/MM/YYYY
+      /(\d{4}-\d{1,2}-\d{1,2})/, // YYYY-MM-DD
       /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2},?\s+\d{4}/i, // Month DD, YYYY
     ]
 
@@ -212,7 +222,7 @@ export function extractInvoiceDate(lines: string[]): Date | undefined {
       if (match) {
         try {
           const date = new Date(match[1])
-          if (!isNaN(date.getTime())) {
+          if (!Number.isNaN(date.getTime())) {
             return date
           }
         } catch {

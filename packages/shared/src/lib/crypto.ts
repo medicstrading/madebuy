@@ -3,7 +3,12 @@
  * Uses AES-256-GCM for authenticated encryption
  */
 
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto'
+import {
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  scryptSync,
+} from 'node:crypto'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
@@ -25,7 +30,9 @@ function deriveKey(password: string, salt: Buffer): Buffer {
 function getEncryptionKey(): string {
   const key = process.env.TOKEN_ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET
   if (!key) {
-    throw new Error('TOKEN_ENCRYPTION_KEY or NEXTAUTH_SECRET must be set for token encryption')
+    throw new Error(
+      'TOKEN_ENCRYPTION_KEY or NEXTAUTH_SECRET must be set for token encryption',
+    )
   }
   return key
 }
@@ -65,7 +72,7 @@ export function decrypt(ciphertext: string): string {
   const iv = combined.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
   const authTag = combined.subarray(
     SALT_LENGTH + IV_LENGTH,
-    SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH
+    SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH,
   )
   const encrypted = combined.subarray(SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH)
 

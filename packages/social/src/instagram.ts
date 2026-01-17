@@ -30,7 +30,7 @@ export interface InstagramPublishResponse {
  * Create Instagram media container (step 1 of publishing)
  */
 export async function createInstagramMediaContainer(
-  request: InstagramPublishRequest
+  request: InstagramPublishRequest,
 ): Promise<InstagramMediaContainer> {
   const { imageUrl, caption, accessToken, instagramBusinessAccountId } = request
 
@@ -45,7 +45,7 @@ export async function createInstagramMediaContainer(
     {
       method: 'POST',
       body: params,
-    }
+    },
   )
 
   if (!response.ok) {
@@ -62,7 +62,7 @@ export async function createInstagramMediaContainer(
 export async function publishInstagramMedia(
   containerId: string,
   accessToken: string,
-  instagramBusinessAccountId: string
+  instagramBusinessAccountId: string,
 ): Promise<InstagramPublishResponse> {
   const params = new URLSearchParams({
     creation_id: containerId,
@@ -74,7 +74,7 @@ export async function publishInstagramMedia(
     {
       method: 'POST',
       body: params,
-    }
+    },
   )
 
   if (!response.ok) {
@@ -89,7 +89,7 @@ export async function publishInstagramMedia(
  * Complete Instagram publishing flow (create + publish)
  */
 export async function publishToInstagram(
-  request: InstagramPublishRequest
+  request: InstagramPublishRequest,
 ): Promise<InstagramPublishResponse> {
   // Step 1: Create media container
   const container = await createInstagramMediaContainer(request)
@@ -98,7 +98,7 @@ export async function publishToInstagram(
   const result = await publishInstagramMedia(
     container.id,
     request.accessToken,
-    request.instagramBusinessAccountId
+    request.instagramBusinessAccountId,
   )
 
   return result
@@ -109,10 +109,10 @@ export async function publishToInstagram(
  */
 export async function getInstagramMediaPermalink(
   mediaId: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<string> {
   const response = await fetch(
-    `https://graph.facebook.com/v18.0/${mediaId}?fields=permalink&access_token=${accessToken}`
+    `https://graph.facebook.com/v18.0/${mediaId}?fields=permalink&access_token=${accessToken}`,
   )
 
   if (!response.ok) {

@@ -1,12 +1,13 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
 import { ArrowLeft, Check, Sparkles, Store, Zap } from 'lucide-react'
+import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Start Selling - MadeBuy',
-  description: 'Create your MadeBuy seller account and start selling handmade products',
+  description:
+    'Create your MadeBuy seller account and start selling handmade products',
 }
 
 const benefits = [
@@ -33,7 +34,9 @@ export default function SignUpPage() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-mb-blue">
                 <span className="text-lg font-bold text-white">M</span>
               </div>
-              <span className="text-xl font-semibold text-gray-900">MadeBuy</span>
+              <span className="text-xl font-semibold text-gray-900">
+                MadeBuy
+              </span>
             </Link>
             <div className="w-32" />
           </div>
@@ -59,7 +62,10 @@ export default function SignUpPage() {
           {/* Benefits */}
           <div className="flex justify-center gap-6 mb-8">
             {benefits.map((benefit) => (
-              <div key={benefit.text} className="flex items-center gap-2 text-sm text-gray-600">
+              <div
+                key={benefit.text}
+                className="flex items-center gap-2 text-sm text-gray-600"
+              >
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
                   <Check className="h-3.5 w-3.5 text-green-600" />
                 </div>
@@ -76,7 +82,8 @@ export default function SignUpPage() {
                 Create Your Seller Account
               </h2>
               <p className="text-gray-500">
-                Set up your shop in minutes and start reaching customers across Australia
+                Set up your shop in minutes and start reaching customers across
+                Australia
               </p>
             </div>
 
@@ -105,7 +112,10 @@ export default function SignUpPage() {
 
           <p className="mt-8 text-center text-sm text-gray-500">
             Already have an account?{' '}
-            <Link href="/auth/signin" className="font-medium text-mb-blue hover:text-mb-blue-dark">
+            <Link
+              href="/auth/signin"
+              className="font-medium text-mb-blue hover:text-mb-blue-dark"
+            >
               Sign in
             </Link>
           </p>

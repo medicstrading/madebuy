@@ -1,29 +1,35 @@
 'use client'
 
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
-import {
-  Upload,
-  X,
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-  HelpCircle,
-  ImageIcon,
-  FileText,
-} from 'lucide-react'
 import type {
   PersonalizationConfig,
   PersonalizationField,
   PersonalizationValue,
 } from '@madebuy/shared'
-import { validateFieldValue, calculatePersonalizationTotal } from '@madebuy/shared'
+import {
+  calculatePersonalizationTotal,
+  validateFieldValue,
+} from '@madebuy/shared'
+import {
+  AlertCircle,
+  CheckCircle,
+  FileText,
+  HelpCircle,
+  ImageIcon,
+  Loader2,
+  Upload,
+  X,
+} from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface PersonalizationFormProps {
   config: PersonalizationConfig
   pieceId: string
   tenantId: string
   basePrice: number // in cents
-  onValuesChange: (values: PersonalizationValue[], totalAdjustment: number) => void
+  onValuesChange: (
+    values: PersonalizationValue[],
+    totalAdjustment: number,
+  ) => void
   onValidationChange?: (isValid: boolean) => void
   disabled?: boolean
 }
@@ -47,16 +53,18 @@ export function PersonalizationForm({
   disabled = false,
 }: PersonalizationFormProps) {
   // Track field states
-  const [fieldStates, setFieldStates] = useState<Record<string, FieldState>>(() => {
-    const initial: Record<string, FieldState> = {}
-    config.fields.forEach(field => {
-      initial[field.id] = {
-        value: field.type === 'checkbox' ? false : '',
-        touched: false,
-      }
-    })
-    return initial
-  })
+  const [fieldStates, setFieldStates] = useState<Record<string, FieldState>>(
+    () => {
+      const initial: Record<string, FieldState> = {}
+      config.fields.forEach((field) => {
+        initial[field.id] = {
+          value: field.type === 'checkbox' ? false : '',
+          touched: false,
+        }
+      })
+      return initial
+    },
+  )
 
   // Calculate if form is valid
   const isFormValid = useMemo(() => {
@@ -68,7 +76,11 @@ export function PersonalizationForm({
       if (field.required) {
         if (field.type === 'file') {
           if (!state.fileUrl) return false
-        } else if (state.value === '' || state.value === undefined || state.value === null) {
+        } else if (
+          state.value === '' ||
+          state.value === undefined ||
+          state.value === null
+        ) {
           return false
         }
       }
@@ -89,14 +101,20 @@ export function PersonalizationForm({
   // Build PersonalizationValues and notify parent
   useEffect(() => {
     const values: PersonalizationValue[] = []
-    const inputMap: Record<string, { value: string | number | boolean; fileUrl?: string }> = {}
+    const inputMap: Record<
+      string,
+      { value: string | number | boolean; fileUrl?: string }
+    > = {}
 
     for (const field of config.fields) {
       const state = fieldStates[field.id]
       if (!state) continue
 
       // Skip empty non-required fields
-      if (!field.required && (state.value === '' || state.value === undefined)) {
+      if (
+        !field.required &&
+        (state.value === '' || state.value === undefined)
+      ) {
         continue
       }
 
@@ -104,9 +122,16 @@ export function PersonalizationForm({
 
       // Calculate price adjustment for this field
       let priceAdjustment = 0
-      if (field.priceAdjustment && state.value !== '' && state.value !== undefined && state.value !== false) {
+      if (
+        field.priceAdjustment &&
+        state.value !== '' &&
+        state.value !== undefined &&
+        state.value !== false
+      ) {
         if (field.priceAdjustmentType === 'percentage') {
-          priceAdjustment = Math.round(basePrice * (field.priceAdjustment / 100))
+          priceAdjustment = Math.round(
+            basePrice * (field.priceAdjustment / 100),
+          )
         } else {
           priceAdjustment = field.priceAdjustment
         }
@@ -122,34 +147,46 @@ export function PersonalizationForm({
       })
     }
 
-    const totalAdjustment = calculatePersonalizationTotal(config, inputMap, basePrice)
+    const totalAdjustment = calculatePersonalizationTotal(
+      config,
+      inputMap,
+      basePrice,
+    )
     onValuesChange(values, totalAdjustment)
   }, [fieldStates, config, basePrice, onValuesChange])
 
   // Update field value and validate
-  const updateField = useCallback((fieldId: string, value: string | number | boolean, fileUrl?: string, fileName?: string) => {
-    const field = config.fields.find(f => f.id === fieldId)
-    if (!field) return
+  const updateField = useCallback(
+    (
+      fieldId: string,
+      value: string | number | boolean,
+      fileUrl?: string,
+      fileName?: string,
+    ) => {
+      const field = config.fields.find((f) => f.id === fieldId)
+      if (!field) return
 
-    // Validate the value
-    const errors = validateFieldValue(field, value, fileUrl)
+      // Validate the value
+      const errors = validateFieldValue(field, value, fileUrl)
 
-    setFieldStates(prev => ({
-      ...prev,
-      [fieldId]: {
-        ...prev[fieldId],
-        value,
-        fileUrl,
-        fileName,
-        error: errors.length > 0 ? errors : undefined,
-        touched: true,
-      },
-    }))
-  }, [config.fields])
+      setFieldStates((prev) => ({
+        ...prev,
+        [fieldId]: {
+          ...prev[fieldId],
+          value,
+          fileUrl,
+          fileName,
+          error: errors.length > 0 ? errors : undefined,
+          touched: true,
+        },
+      }))
+    },
+    [config.fields],
+  )
 
   // Handle blur (mark as touched for showing errors)
   const handleBlur = useCallback((fieldId: string) => {
-    setFieldStates(prev => ({
+    setFieldStates((prev) => ({
       ...prev,
       [fieldId]: {
         ...prev[fieldId],
@@ -169,7 +206,9 @@ export function PersonalizationForm({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Personalize This Item</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-4">
+        Personalize This Item
+      </h3>
 
       {config.instructions && (
         <div className="mb-4 rounded-lg bg-blue-50 border border-blue-100 p-3">
@@ -180,7 +219,10 @@ export function PersonalizationForm({
       {config.processingDays && config.processingDays > 0 && (
         <div className="mb-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-3">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>Personalized items require {config.processingDays} additional day(s) for processing.</span>
+          <span>
+            Personalized items require {config.processingDays} additional day(s)
+            for processing.
+          </span>
         </div>
       )}
 
@@ -193,16 +235,18 @@ export function PersonalizationForm({
             pieceId={pieceId}
             tenantId={tenantId}
             disabled={disabled}
-            onChange={(value, fileUrl, fileName) => updateField(field.id, value, fileUrl, fileName)}
+            onChange={(value, fileUrl, fileName) =>
+              updateField(field.id, value, fileUrl, fileName)
+            }
             onBlur={() => handleBlur(field.id)}
             onUploadStart={() => {
-              setFieldStates(prev => ({
+              setFieldStates((prev) => ({
                 ...prev,
                 [field.id]: { ...prev[field.id], uploading: true },
               }))
             }}
             onUploadEnd={() => {
-              setFieldStates(prev => ({
+              setFieldStates((prev) => ({
                 ...prev,
                 [field.id]: { ...prev[field.id], uploading: false },
               }))
@@ -221,7 +265,11 @@ interface PersonalizationFieldInputProps {
   pieceId: string
   tenantId: string
   disabled: boolean
-  onChange: (value: string | number | boolean, fileUrl?: string, fileName?: string) => void
+  onChange: (
+    value: string | number | boolean,
+    fileUrl?: string,
+    fileName?: string,
+  ) => void
   onBlur: () => void
   onUploadStart: () => void
   onUploadEnd: () => void
@@ -252,7 +300,11 @@ function PersonalizationFieldInput({
     if (!field.priceAdjustment) return null
     return (
       <span className="ml-2 text-xs font-normal text-green-600">
-        (+${field.priceAdjustmentType === 'percentage' ? `${field.priceAdjustment}%` : (field.priceAdjustment / 100).toFixed(2)})
+        (+$
+        {field.priceAdjustmentType === 'percentage'
+          ? `${field.priceAdjustment}%`
+          : (field.priceAdjustment / 100).toFixed(2)}
+        )
       </span>
     )
   }
@@ -272,7 +324,7 @@ function PersonalizationFieldInput({
     return (
       <div className="mt-1.5 flex items-start gap-1 text-xs text-red-600">
         <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-        <span>{state.error![0]}</span>
+        <span>{state.error?.[0]}</span>
       </div>
     )
   }
@@ -280,10 +332,12 @@ function PersonalizationFieldInput({
   const renderCharacterCount = () => {
     if (field.type !== 'text' && field.type !== 'textarea') return null
     if (!field.maxLength) return null
-    const currentLength = (state.value as string || '').length
+    const currentLength = ((state.value as string) || '').length
     const isNearLimit = currentLength > field.maxLength * 0.8
     return (
-      <p className={`mt-1 text-xs text-right ${isNearLimit ? 'text-amber-600' : 'text-gray-400'}`}>
+      <p
+        className={`mt-1 text-xs text-right ${isNearLimit ? 'text-amber-600' : 'text-gray-400'}`}
+      >
         {currentLength}/{field.maxLength}
       </p>
     )
@@ -301,7 +355,7 @@ function PersonalizationFieldInput({
           <input
             type="text"
             id={inputId}
-            value={state.value as string || ''}
+            value={(state.value as string) || ''}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
             placeholder={field.placeholder}
@@ -327,7 +381,7 @@ function PersonalizationFieldInput({
           </label>
           <textarea
             id={inputId}
-            value={state.value as string || ''}
+            value={(state.value as string) || ''}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
             placeholder={field.placeholder}
@@ -354,7 +408,7 @@ function PersonalizationFieldInput({
           </label>
           <select
             id={inputId}
-            value={state.value as string || ''}
+            value={(state.value as string) || ''}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
             disabled={disabled}
@@ -364,7 +418,9 @@ function PersonalizationFieldInput({
           >
             <option value="">{field.placeholder || 'Select an option'}</option>
             {(field.options || []).map((option) => (
-              <option key={option} value={option}>{option}</option>
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
           {renderHelpText()}
@@ -379,7 +435,7 @@ function PersonalizationFieldInput({
             <input
               type="checkbox"
               id={inputId}
-              checked={state.value as boolean || false}
+              checked={(state.value as boolean) || false}
               onChange={(e) => onChange(e.target.checked)}
               onBlur={onBlur}
               disabled={disabled}
@@ -407,8 +463,10 @@ function PersonalizationFieldInput({
           <input
             type="number"
             id={inputId}
-            value={state.value as number || ''}
-            onChange={(e) => onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+            value={(state.value as number) || ''}
+            onChange={(e) =>
+              onChange(e.target.value === '' ? '' : parseFloat(e.target.value))
+            }
             onBlur={onBlur}
             placeholder={field.placeholder}
             min={field.min}
@@ -424,8 +482,8 @@ function PersonalizationFieldInput({
               {field.min !== undefined && field.max !== undefined
                 ? `Range: ${field.min} - ${field.max}`
                 : field.min !== undefined
-                ? `Minimum: ${field.min}`
-                : `Maximum: ${field.max}`}
+                  ? `Minimum: ${field.min}`
+                  : `Maximum: ${field.max}`}
             </p>
           ) : null}
           {renderHelpText()}
@@ -444,7 +502,7 @@ function PersonalizationFieldInput({
           <input
             type="date"
             id={inputId}
-            value={state.value as string || ''}
+            value={(state.value as string) || ''}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
             min={field.minDate}
@@ -487,7 +545,11 @@ interface FileUploadFieldProps {
   pieceId: string
   tenantId: string
   disabled: boolean
-  onChange: (value: string | number | boolean, fileUrl?: string, fileName?: string) => void
+  onChange: (
+    value: string | number | boolean,
+    fileUrl?: string,
+    fileName?: string,
+  ) => void
   onBlur: () => void
   onUploadStart: () => void
   onUploadEnd: () => void
@@ -522,21 +584,25 @@ function FileUploadField({
 
     // Validate file type
     if (field.acceptedFileTypes && field.acceptedFileTypes.length > 0) {
-      const isValidType = field.acceptedFileTypes.some(type => {
+      const isValidType = field.acceptedFileTypes.some((type) => {
         if (type.endsWith('/*')) {
           return file.type.startsWith(type.replace('/*', '/'))
         }
         return file.type === type
       })
       if (!isValidType) {
-        setUploadError(`Invalid file type. Accepted: ${field.acceptedFileTypes.join(', ')}`)
+        setUploadError(
+          `Invalid file type. Accepted: ${field.acceptedFileTypes.join(', ')}`,
+        )
         return
       }
     }
 
     // Validate file size
     if (file.size > maxSizeBytes) {
-      setUploadError(`File too large. Maximum size: ${field.maxFileSizeMB || 5}MB`)
+      setUploadError(
+        `File too large. Maximum size: ${field.maxFileSizeMB || 5}MB`,
+      )
       return
     }
 
@@ -562,7 +628,9 @@ function FileUploadField({
       onChange(file.name, url, uploadedFileName || file.name)
     } catch (err) {
       console.error('Upload error:', err)
-      setUploadError(err instanceof Error ? err.message : 'Failed to upload file')
+      setUploadError(
+        err instanceof Error ? err.message : 'Failed to upload file',
+      )
     } finally {
       onUploadEnd()
     }
@@ -611,7 +679,11 @@ function FileUploadField({
         {field.required && <span className="text-red-500 ml-0.5">*</span>}
         {field.priceAdjustment ? (
           <span className="ml-2 text-xs font-normal text-green-600">
-            (+${field.priceAdjustmentType === 'percentage' ? `${field.priceAdjustment}%` : (field.priceAdjustment / 100).toFixed(2)})
+            (+$
+            {field.priceAdjustmentType === 'percentage'
+              ? `${field.priceAdjustment}%`
+              : (field.priceAdjustment / 100).toFixed(2)}
+            )
           </span>
         ) : null}
       </label>
@@ -643,7 +715,6 @@ function FileUploadField({
               </div>
             </div>
             <button
-              type="button"
               onClick={handleRemove}
               disabled={disabled}
               className="p-2 text-gray-400 hover:text-red-500 transition-colors"
@@ -664,10 +735,10 @@ function FileUploadField({
             disabled || state.uploading
               ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
               : dragActive
-              ? 'border-blue-400 bg-blue-50'
-              : showError
-              ? 'border-red-300 bg-red-50'
-              : 'border-gray-300 hover:border-gray-400 cursor-pointer'
+                ? 'border-blue-400 bg-blue-50'
+                : showError
+                  ? 'border-red-300 bg-red-50'
+                  : 'border-gray-300 hover:border-gray-400 cursor-pointer'
           }`}
         >
           <input
@@ -690,17 +761,23 @@ function FileUploadField({
             ) : (
               <>
                 <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                  {field.acceptedFileTypes?.some(t => t.startsWith('image/')) ? (
+                  {field.acceptedFileTypes?.some((t) =>
+                    t.startsWith('image/'),
+                  ) ? (
                     <ImageIcon className="h-6 w-6 text-gray-400" />
                   ) : (
                     <Upload className="h-6 w-6 text-gray-400" />
                   )}
                 </div>
                 <p className="mt-2 text-sm text-gray-600">
-                  <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
+                  <span className="font-medium text-blue-600">
+                    Click to upload
+                  </span>{' '}
+                  or drag and drop
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
-                  {field.acceptedFileTypes?.join(', ') || 'Any image'} up to {field.maxFileSizeMB || 5}MB
+                  {field.acceptedFileTypes?.join(', ') || 'Any image'} up to{' '}
+                  {field.maxFileSizeMB || 5}MB
                 </p>
               </>
             )}
@@ -718,7 +795,7 @@ function FileUploadField({
       {(uploadError || (showError && state.error)) && (
         <div className="mt-1.5 flex items-start gap-1 text-xs text-red-600">
           <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-          <span>{uploadError || state.error![0]}</span>
+          <span>{uploadError || state.error?.[0]}</span>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { collections, tenants, pieces, media } from '@madebuy/db'
+import { collections, media, pieces, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/collections/[slug]
@@ -7,7 +7,7 @@ import { collections, tenants, pieces, media } from '@madebuy/db'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string } },
 ) {
   try {
     const { searchParams } = new URL(request.url)
@@ -16,44 +16,55 @@ export async function GET(
     if (!tenantId) {
       return NextResponse.json(
         { error: 'tenantId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate tenant exists
-    const tenant = await tenants.getTenantById(tenantId) || await tenants.getTenantBySlug(tenantId)
+    const tenant =
+      (await tenants.getTenantById(tenantId)) ||
+      (await tenants.getTenantBySlug(tenantId))
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     // Get collection by slug
-    const collection = await collections.getCollectionBySlug(tenant.id, params.slug)
+    const collection = await collections.getCollectionBySlug(
+      tenant.id,
+      params.slug,
+    )
 
     if (!collection) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 },
+      )
     }
 
     // Only return published collections
     if (!collection.isPublished) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Collection not found' },
+        { status: 404 },
+      )
     }
 
     // Fetch pieces in parallel using Promise.all (instead of sequential loop)
-    const piecePromises = collection.pieceIds.map(pieceId =>
-      pieces.getPiece(tenant.id, pieceId)
+    const piecePromises = collection.pieceIds.map((pieceId) =>
+      pieces.getPiece(tenant.id, pieceId),
     )
     const pieceResults = await Promise.all(piecePromises)
 
     // Filter available pieces and collect media IDs
     const availablePieces = pieceResults.filter(
       (piece): piece is NonNullable<typeof piece> =>
-        piece !== null && piece.status === 'available'
+        piece !== null && piece.status === 'available',
     )
 
     // Batch fetch all media in parallel
-    const mediaIds = availablePieces.map(piece =>
-      piece.primaryMediaId || piece.mediaIds[0]
-    ).filter(Boolean) as string[]
+    const mediaIds = availablePieces
+      .map((piece) => piece.primaryMediaId || piece.mediaIds[0])
+      .filter(Boolean) as string[]
 
     // Add cover media to the batch
     if (collection.coverMediaId) {
@@ -61,15 +72,15 @@ export async function GET(
     }
 
     // Fetch all media in one batch call
-    const allMedia = mediaIds.length > 0
-      ? await media.getMediaByIds(tenant.id, mediaIds)
-      : []
-    const mediaMap = new Map(allMedia.map(m => [m.id, m]))
+    const allMedia =
+      mediaIds.length > 0 ? await media.getMediaByIds(tenant.id, mediaIds) : []
+    const mediaMap = new Map(allMedia.map((m) => [m.id, m]))
 
     // Build collection pieces with their media
-    const collectionPieces = availablePieces.map(piece => ({
+    const collectionPieces = availablePieces.map((piece) => ({
       ...piece,
-      primaryMedia: mediaMap.get(piece.primaryMediaId || piece.mediaIds[0]) || null,
+      primaryMedia:
+        mediaMap.get(piece.primaryMediaId || piece.mediaIds[0]) || null,
     }))
 
     const coverMedia = collection.coverMediaId
@@ -90,6 +101,9 @@ export async function GET(
     return response
   } catch (error) {
     console.error('Error fetching collection:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

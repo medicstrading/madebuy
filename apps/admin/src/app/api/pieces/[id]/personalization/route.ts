@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
 import { safeValidatePersonalizationConfig } from '@madebuy/shared/src/validation'
 import { nanoid } from 'nanoid'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 /**
  * GET /api/pieces/[id]/personalization
  * Get the personalization configuration for a piece
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await requireTenant()
@@ -19,10 +19,7 @@ export async function GET(
     // Get the piece
     const piece = await pieces.getPiece(tenant.id, pieceId)
     if (!piece) {
-      return NextResponse.json(
-        { error: 'Piece not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
     // Return the personalization config (or default empty config)
@@ -39,15 +36,12 @@ export async function GET(
     console.error('Get personalization config error:', error)
 
     if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     return NextResponse.json(
       { error: 'Failed to get personalization configuration' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -58,7 +52,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await requireTenant()
@@ -68,10 +62,7 @@ export async function PUT(
     // Get the piece
     const piece = await pieces.getPiece(tenant.id, pieceId)
     if (!piece) {
-      return NextResponse.json(
-        { error: 'Piece not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
     // Validate the personalization config
@@ -80,19 +71,19 @@ export async function PUT(
       return NextResponse.json(
         {
           error: 'Invalid personalization configuration',
-          details: validation.error.errors.map(e => ({
+          details: validation.error.errors.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     const config = validation.data
 
     // Ensure all fields have valid IDs
-    const fieldsWithIds = config.fields.map(field => ({
+    const fieldsWithIds = config.fields.map((field) => ({
       ...field,
       id: field.id || nanoid(10),
     }))
@@ -119,15 +110,12 @@ export async function PUT(
     console.error('Update personalization config error:', error)
 
     if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     return NextResponse.json(
       { error: 'Failed to update personalization configuration' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -142,7 +142,10 @@ export function canAddMorePieces(plan: Plan, currentCount: number): boolean {
 /**
  * Get remaining piece slots
  */
-export function getRemainingPieceSlots(plan: Plan, currentCount: number): number {
+export function getRemainingPieceSlots(
+  plan: Plan,
+  currentCount: number,
+): number {
   const limits = getPlanLimits(plan)
   if (limits.pieces === -1) return Infinity
   return Math.max(0, limits.pieces - currentCount)
@@ -151,7 +154,10 @@ export function getRemainingPieceSlots(plan: Plan, currentCount: number): number
 /**
  * Check if adding more media would exceed plan limit
  */
-export function canAddMoreMedia(plan: Plan, currentMediaCount: number): boolean {
+export function canAddMoreMedia(
+  plan: Plan,
+  currentMediaCount: number,
+): boolean {
   const limits = getPlanLimits(plan)
   return currentMediaCount < limits.mediaPerPiece
 }
@@ -169,7 +175,8 @@ export function getFeaturesForPlan(plan: Plan): TenantFeatures {
     customDomain: limits.customDomain,
     prioritySupport: limits.prioritySupport,
     apiAccess: limits.apiAccess,
-    advancedAnalytics: limits.analytics === 'advanced' || limits.analytics === 'advanced_plus',
+    advancedAnalytics:
+      limits.analytics === 'advanced' || limits.analytics === 'advanced_plus',
   }
 }
 
@@ -193,14 +200,22 @@ export function getRequiredPlanForFeature(feature: keyof TenantFeatures): Plan {
  * Compare plans (returns -1, 0, or 1)
  */
 export function comparePlans(planA: Plan, planB: Plan): number {
-  const order: Record<Plan, number> = { free: 0, maker: 1, professional: 2, studio: 3 }
+  const order: Record<Plan, number> = {
+    free: 0,
+    maker: 1,
+    professional: 2,
+    studio: 3,
+  }
   return order[planA] - order[planB]
 }
 
 /**
  * Check if plan upgrade is needed for a feature
  */
-export function needsUpgradeFor(currentPlan: Plan, feature: keyof TenantFeatures): boolean {
+export function needsUpgradeFor(
+  currentPlan: Plan,
+  feature: keyof TenantFeatures,
+): boolean {
   const features = getFeaturesForPlan(currentPlan)
   return !features[feature]
 }
@@ -208,7 +223,10 @@ export function needsUpgradeFor(currentPlan: Plan, feature: keyof TenantFeatures
 /**
  * Get upgrade message for a feature
  */
-export function getUpgradeMessage(currentPlan: Plan, feature: keyof TenantFeatures): string | null {
+export function getUpgradeMessage(
+  currentPlan: Plan,
+  feature: keyof TenantFeatures,
+): string | null {
   if (!needsUpgradeFor(currentPlan, feature)) {
     return null
   }
@@ -243,7 +261,10 @@ export function canUseAiCaption(plan: Plan, usedThisMonth: number): boolean {
 /**
  * Get remaining AI captions for this month
  */
-export function getRemainingAiCaptions(plan: Plan, usedThisMonth: number): number {
+export function getRemainingAiCaptions(
+  plan: Plan,
+  usedThisMonth: number,
+): number {
   const limits = getPlanLimits(plan)
   if (!limits.aiCaptions) return 0
   if (limits.aiCaptionsPerMonth === -1) return Infinity
@@ -253,7 +274,10 @@ export function getRemainingAiCaptions(plan: Plan, usedThisMonth: number): numbe
 /**
  * Check if user can connect more social platforms
  */
-export function canConnectSocialPlatform(plan: Plan, connectedCount: number): boolean {
+export function canConnectSocialPlatform(
+  plan: Plan,
+  connectedCount: number,
+): boolean {
   const limits = getPlanLimits(plan)
   if (!limits.socialPublishing) return false
   if (limits.socialPlatforms === -1) return true // Unlimited
@@ -263,7 +287,10 @@ export function canConnectSocialPlatform(plan: Plan, connectedCount: number): bo
 /**
  * Get remaining social platform connections
  */
-export function getRemainingSocialPlatforms(plan: Plan, connectedCount: number): number {
+export function getRemainingSocialPlatforms(
+  plan: Plan,
+  connectedCount: number,
+): number {
   const limits = getPlanLimits(plan)
   if (!limits.socialPublishing) return 0
   if (limits.socialPlatforms === -1) return Infinity
@@ -299,7 +326,10 @@ export function formatStorage(mb: number): string {
 /**
  * Check if monthly order limit is reached
  */
-export function canAcceptMoreOrders(plan: Plan, ordersThisMonth: number): boolean {
+export function canAcceptMoreOrders(
+  plan: Plan,
+  ordersThisMonth: number,
+): boolean {
   const limits = getPlanLimits(plan)
   if (limits.ordersPerMonth === -1) return true // Unlimited
   return ordersThisMonth < limits.ordersPerMonth
@@ -308,7 +338,10 @@ export function canAcceptMoreOrders(plan: Plan, ordersThisMonth: number): boolea
 /**
  * Get remaining orders for this month
  */
-export function getRemainingOrders(plan: Plan, ordersThisMonth: number): number {
+export function getRemainingOrders(
+  plan: Plan,
+  ordersThisMonth: number,
+): number {
   const limits = getPlanLimits(plan)
   if (limits.ordersPerMonth === -1) return Infinity
   return Math.max(0, limits.ordersPerMonth - ordersThisMonth)

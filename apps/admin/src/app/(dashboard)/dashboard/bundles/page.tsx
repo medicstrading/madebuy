@@ -1,9 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Plus, Package, Trash2, Edit, Eye, EyeOff, Archive, Percent } from 'lucide-react'
 import type { Bundle } from '@madebuy/shared'
+import {
+  Archive,
+  Edit,
+  Eye,
+  EyeOff,
+  Package,
+  Percent,
+  Plus,
+  Trash2,
+} from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 function formatPrice(cents: number | undefined): string {
   if (cents === undefined) return '-'
@@ -21,7 +30,9 @@ function StatusBadge({ status }: { status: Bundle['status'] }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
+    <span
+      className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   )
@@ -33,7 +44,7 @@ export default function BundlesPage() {
 
   useEffect(() => {
     fetchBundles()
-  }, [])
+  }, [fetchBundles])
 
   async function fetchBundles() {
     try {
@@ -85,7 +96,9 @@ export default function BundlesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Product Bundles</h1>
-          <p className="text-gray-500 mt-1">Create discounted bundles of multiple products</p>
+          <p className="text-gray-500 mt-1">
+            Create discounted bundles of multiple products
+          </p>
         </div>
         <Link
           href="/dashboard/bundles/new"
@@ -100,8 +113,12 @@ export default function BundlesPage() {
       {bundles.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No bundles yet</h3>
-          <p className="text-gray-500 mb-4">Create product bundles to offer discounts on multiple items.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No bundles yet
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Create product bundles to offer discounts on multiple items.
+          </p>
           <Link
             href="/dashboard/bundles/new"
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -132,9 +149,12 @@ export default function BundlesPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{bundle.name}</h3>
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {bundle.name}
+                    </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      {bundle.pieces.length} product{bundle.pieces.length !== 1 ? 's' : ''}
+                      {bundle.pieces.length} product
+                      {bundle.pieces.length !== 1 ? 's' : ''}
                     </p>
                   </div>
                   <StatusBadge status={bundle.status} />
@@ -153,7 +173,9 @@ export default function BundlesPage() {
                 </div>
 
                 {bundle.description && (
-                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">{bundle.description}</p>
+                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                    {bundle.description}
+                  </p>
                 )}
 
                 {/* Actions */}
@@ -167,6 +189,8 @@ export default function BundlesPage() {
                   </Link>
                   {bundle.status === 'active' ? (
                     <button
+                      type="button"
+                      type="button"
                       onClick={() => updateStatus(bundle.id, 'draft')}
                       className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                       title="Set to Draft"
@@ -175,6 +199,8 @@ export default function BundlesPage() {
                     </button>
                   ) : bundle.status === 'draft' ? (
                     <button
+                      type="button"
+                      type="button"
                       onClick={() => updateStatus(bundle.id, 'active')}
                       className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Activate"
@@ -184,6 +210,8 @@ export default function BundlesPage() {
                   ) : null}
                   {bundle.status !== 'archived' && (
                     <button
+                      type="button"
+                      type="button"
                       onClick={() => updateStatus(bundle.id, 'archived')}
                       className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                       title="Archive"
@@ -192,6 +220,8 @@ export default function BundlesPage() {
                     </button>
                   )}
                   <button
+                    type="button"
+                    type="button"
                     onClick={() => deleteBundle(bundle.id)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"

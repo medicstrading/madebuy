@@ -1,5 +1,5 @@
-import { chromium, FullConfig } from '@playwright/test'
-import path from 'path'
+import path from 'node:path'
+import { chromium, type FullConfig } from '@playwright/test'
 
 /**
  * Global setup for MadeBuy Web (Storefront) E2E tests
@@ -49,8 +49,10 @@ async function globalSetup(config: FullConfig) {
   try {
     await page.goto(baseURL || 'http://localhost:3301', { timeout: 10000 })
     console.log('[Global Setup] Web server is accessible')
-  } catch (error) {
-    console.warn('[Global Setup] Web server not accessible - tests may fail. Start with: pnpm --filter web dev')
+  } catch (_error) {
+    console.warn(
+      '[Global Setup] Web server not accessible - tests may fail. Start with: pnpm --filter web dev',
+    )
     // Don't throw - let individual tests fail if server is down
   }
 

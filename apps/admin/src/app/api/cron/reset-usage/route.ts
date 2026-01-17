@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
+import { timingSafeEqual } from 'node:crypto'
 import { tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -47,10 +47,7 @@ export async function GET(request: NextRequest) {
 
     // If CRON_SECRET is set, require authorization
     if (cronSecret && !verifySecret(authHeader, cronSecret)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[CRON] Starting monthly usage reset...')
@@ -58,13 +55,15 @@ export async function GET(request: NextRequest) {
     // Get all tenants that need their usage reset
     const tenantsToReset = await tenants.getTenantsNeedingUsageReset()
 
-    console.log(`[CRON] Found ${tenantsToReset.length} tenants needing usage reset`)
+    console.log(
+      `[CRON] Found ${tenantsToReset.length} tenants needing usage reset`,
+    )
 
     if (tenantsToReset.length === 0) {
       return NextResponse.json({
         success: true,
         processed: 0,
-        message: 'No tenants need usage reset'
+        message: 'No tenants need usage reset',
       })
     }
 
@@ -77,40 +76,45 @@ export async function GET(request: NextRequest) {
         console.log(`[CRON] Reset usage for tenant ${tenant.id}`)
         results.push({
           tenantId: tenant.id,
-          success: true
+          success: true,
         })
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        console.error(`[CRON] Failed to reset usage for tenant ${tenant.id}:`, error)
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
+        console.error(
+          `[CRON] Failed to reset usage for tenant ${tenant.id}:`,
+          error,
+        )
         results.push({
           tenantId: tenant.id,
           success: false,
-          error: errorMessage
+          error: errorMessage,
         })
       }
     }
 
-    const succeeded = results.filter(r => r.success).length
-    const failed = results.filter(r => !r.success).length
+    const succeeded = results.filter((r) => r.success).length
+    const failed = results.filter((r) => !r.success).length
 
-    console.log(`[CRON] Usage reset completed: ${succeeded} successful, ${failed} failed`)
+    console.log(
+      `[CRON] Usage reset completed: ${succeeded} successful, ${failed} failed`,
+    )
 
     return NextResponse.json({
       success: true,
       processed: tenantsToReset.length,
       succeeded,
       failed,
-      results
+      results,
     })
-
   } catch (error) {
     console.error('[CRON] Usage reset error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Failed to reset usage',
-        success: false
+        success: false,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

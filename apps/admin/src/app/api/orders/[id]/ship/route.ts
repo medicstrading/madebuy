@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { orders, pieces, tenants } from '@madebuy/db'
 import { createSendleClient, SendleError } from '@madebuy/shipping'
+import { type NextRequest, NextResponse } from 'next/server'
 import { sendShippingNotificationEmail } from '@/lib/email'
+import { getCurrentTenant } from '@/lib/session'
 
 interface ShipOrderRequest {
   // Optional overrides for parcel dimensions
@@ -22,24 +22,18 @@ interface ShipOrderRequest {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get the order
     const order = await orders.getOrder(tenant.id, params.id)
     if (!order) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
     // Check if order is already shipped
@@ -51,7 +45,7 @@ export async function POST(
           trackingNumber: order.sendleReference,
           trackingUrl: order.trackingUrl,
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -59,7 +53,7 @@ export async function POST(
     if (order.paymentStatus !== 'paid') {
       return NextResponse.json(
         { error: 'Cannot ship unpaid order' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -67,16 +61,22 @@ export async function POST(
     if (order.isDigitalOnly) {
       return NextResponse.json(
         { error: 'Cannot ship digital-only order' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Check if Sendle is configured
     const fullTenant = await tenants.getTenantById(tenant.id)
-    if (!fullTenant?.sendleSettings?.isConnected || !fullTenant.sendleSettings.apiKey) {
+    if (
+      !fullTenant?.sendleSettings?.isConnected ||
+      !fullTenant.sendleSettings.apiKey
+    ) {
       return NextResponse.json(
-        { error: 'Sendle shipping not configured. Please set up Sendle in Settings > Shipping.' },
-        { status: 400 }
+        {
+          error:
+            'Sendle shipping not configured. Please set up Sendle in Settings > Shipping.',
+        },
+        { status: 400 },
       )
     }
 
@@ -118,7 +118,7 @@ export async function POST(
 
     // Build order description from items
     const itemDescriptions = order.items
-      .map(item => `${item.quantity}x ${item.name}`)
+      .map((item) => `${item.quantity}x ${item.name}`)
       .join(', ')
     const description = body.description || itemDescriptions.substring(0, 100)
 
@@ -190,7 +190,10 @@ export async function POST(
       })
 
       if (!emailResult.success) {
-        console.warn('Failed to send shipping notification email:', emailResult.error)
+        console.warn(
+          'Failed to send shipping notification email:',
+          emailResult.error,
+        )
         // Don't fail the request if email fails - order is already shipped
       }
 
@@ -204,13 +207,22 @@ export async function POST(
       })
     } catch (sendleError) {
       if (sendleError instanceof SendleError) {
-        console.error('Sendle API error:', sendleError.message, sendleError.details)
+        console.error(
+          'Sendle API error:',
+          sendleError.message,
+          sendleError.details,
+        )
         return NextResponse.json(
           {
             error: `Sendle API error: ${sendleError.message}`,
             details: sendleError.details,
           },
-          { status: sendleError.statusCode >= 400 && sendleError.statusCode < 500 ? 400 : 502 }
+          {
+            status:
+              sendleError.statusCode >= 400 && sendleError.statusCode < 500
+                ? 400
+                : 502,
+          },
         )
       }
       throw sendleError
@@ -219,7 +231,7 @@ export async function POST(
     console.error('Failed to generate shipping label:', error)
     return NextResponse.json(
       { error: 'Failed to generate shipping label' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -229,24 +241,18 @@ export async function POST(
  * Get shipping status and label URL for an order
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const order = await orders.getOrder(tenant.id, params.id)
     if (!order) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
     if (!order.sendleOrderId) {
@@ -270,7 +276,7 @@ export async function GET(
     console.error('Failed to get shipping status:', error)
     return NextResponse.json(
       { error: 'Failed to get shipping status' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

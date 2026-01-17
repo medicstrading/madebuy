@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 /**
  * Page Object for Product Detail pages
@@ -52,31 +52,41 @@ export class ProductPage {
 
     // Product info
     this.productTitle = page.getByRole('heading', { level: 1 })
-    this.productPrice = page.locator('[data-testid="product-price"]')
+    this.productPrice = page
+      .locator('[data-testid="product-price"]')
       .or(page.getByText(/\$\d+|\d+\s*AUD/))
-    this.productDescription = page.locator('[data-testid="product-description"]')
+    this.productDescription = page
+      .locator('[data-testid="product-description"]')
       .or(page.locator('.product-description'))
-    this.productImages = page.locator('[data-testid="product-images"]')
+    this.productImages = page
+      .locator('[data-testid="product-images"]')
       .or(page.locator('.product-images'))
-    this.mainImage = page.locator('[data-testid="main-image"]')
+    this.mainImage = page
+      .locator('[data-testid="main-image"]')
       .or(page.locator('img[alt]').first())
-    this.thumbnails = page.locator('[data-testid="thumbnail"]')
+    this.thumbnails = page
+      .locator('[data-testid="thumbnail"]')
       .or(page.locator('.thumbnail'))
 
     // Options/Variants
     this.variantSelectors = page.locator('[data-testid="variant-selector"]')
-    this.sizeSelector = page.getByLabel(/size/i)
+    this.sizeSelector = page
+      .getByLabel(/size/i)
       .or(page.locator('[data-testid="size-selector"]'))
-    this.colorSelector = page.getByLabel(/color|colour/i)
+    this.colorSelector = page
+      .getByLabel(/color|colour/i)
       .or(page.locator('[data-testid="color-selector"]'))
     this.customOptionInputs = page.locator('[data-testid="custom-option"]')
 
     // Purchase actions
-    this.quantityInput = page.getByLabel(/quantity|qty/i)
+    this.quantityInput = page
+      .getByLabel(/quantity|qty/i)
       .or(page.locator('input[type="number"]'))
     this.increaseQuantity = page.getByRole('button', { name: /\+|increase/i })
     this.decreaseQuantity = page.getByRole('button', { name: /-|decrease/i })
-    this.addToCartButton = page.getByRole('button', { name: /add to cart|add to bag/i })
+    this.addToCartButton = page.getByRole('button', {
+      name: /add to cart|add to bag/i,
+    })
     this.buyNowButton = page.getByRole('button', { name: /buy now/i })
 
     // Status
@@ -85,20 +95,24 @@ export class ProductPage {
     this.lowStockWarning = page.getByText(/only \d+ left|low stock/i)
 
     // Reviews
-    this.reviewSection = page.locator('[data-testid="reviews"]')
+    this.reviewSection = page
+      .locator('[data-testid="reviews"]')
       .or(page.getByText(/reviews/i).locator('..'))
     this.averageRating = page.locator('[data-testid="average-rating"]')
     this.reviewCount = page.locator('[data-testid="review-count"]')
     this.reviews = page.locator('[data-testid="review"]')
 
     // Related
-    this.relatedProducts = page.locator('[data-testid="related-products"]')
+    this.relatedProducts = page
+      .locator('[data-testid="related-products"]')
       .or(page.getByText(/you may also like|related/i).locator('..'))
 
     // Messages
-    this.successMessage = page.getByText(/added to cart|success/i)
+    this.successMessage = page
+      .getByText(/added to cart|success/i)
       .or(page.locator('[role="status"]'))
-    this.errorMessage = page.getByText(/error|failed|unable/i)
+    this.errorMessage = page
+      .getByText(/error|failed|unable/i)
       .or(page.locator('[role="alert"]'))
   }
 
@@ -192,7 +206,9 @@ export class ProductPage {
         await this.colorSelector.selectOption(color)
       } catch {
         // Handle swatch-style selectors
-        await this.page.locator(`[data-color="${color}"], [title="${color}"]`).click()
+        await this.page
+          .locator(`[data-color="${color}"], [title="${color}"]`)
+          .click()
       }
     }
   }
@@ -260,7 +276,9 @@ export class ProductPage {
    * Navigate to related product
    */
   async clickRelatedProduct(index: number): Promise<void> {
-    const relatedCards = this.relatedProducts.locator('[data-testid="product-card"], article')
+    const relatedCards = this.relatedProducts.locator(
+      '[data-testid="product-card"], article',
+    )
     await relatedCards.nth(index).click()
   }
 }

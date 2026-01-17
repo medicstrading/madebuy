@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { wishlist } from '@madebuy/db'
-import { cookies } from 'next/headers'
 import { nanoid } from 'nanoid'
+import { cookies } from 'next/headers'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/wishlist
@@ -14,19 +14,29 @@ export async function GET(request: NextRequest) {
     const customerEmail = searchParams.get('email')
 
     if (!tenantId) {
-      return NextResponse.json({ error: 'tenantId is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'tenantId is required' },
+        { status: 400 },
+      )
     }
 
     // Get session ID from cookie for guest users
     const cookieStore = await cookies()
     const sessionId = cookieStore.get('wishlist_session')?.value
 
-    const items = await wishlist.getWishlist(tenantId, customerEmail || undefined, sessionId)
+    const items = await wishlist.getWishlist(
+      tenantId,
+      customerEmail || undefined,
+      sessionId,
+    )
 
     return NextResponse.json({ items })
   } catch (error) {
     console.error('Error fetching wishlist:', error)
-    return NextResponse.json({ error: 'Failed to fetch wishlist' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch wishlist' },
+      { status: 500 },
+    )
   }
 }
 
@@ -42,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (!tenantId || !pieceId) {
       return NextResponse.json(
         { error: 'tenantId and pieceId are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -77,7 +87,10 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error) {
     console.error('Error adding to wishlist:', error)
-    return NextResponse.json({ error: 'Failed to add to wishlist' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to add to wishlist' },
+      { status: 500 },
+    )
   }
 }
 
@@ -95,7 +108,7 @@ export async function DELETE(request: NextRequest) {
     if (!tenantId || !pieceId) {
       return NextResponse.json(
         { error: 'tenantId and pieceId are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -110,16 +123,22 @@ export async function DELETE(request: NextRequest) {
       tenantId,
       pieceId,
       customerEmail || undefined,
-      customerEmail ? undefined : sessionId
+      customerEmail ? undefined : sessionId,
     )
 
     if (!removed) {
-      return NextResponse.json({ error: 'Item not found in wishlist' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Item not found in wishlist' },
+        { status: 404 },
+      )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error removing from wishlist:', error)
-    return NextResponse.json({ error: 'Failed to remove from wishlist' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to remove from wishlist' },
+      { status: 500 },
+    )
   }
 }

@@ -1,9 +1,13 @@
-import { requireTenant } from '@/lib/tenant'
-import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
+import Link from 'next/link'
 import { PurchaseTracker } from '@/components/analytics/PurchaseTracker'
+import { requireTenant } from '@/lib/tenant'
 
-export async function generateMetadata({ params }: { params: { tenant: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return {
@@ -38,20 +42,23 @@ export default async function CheckoutSuccessPage({
             </h1>
 
             <p className="mt-4 text-lg text-gray-600">
-              Thank you for your purchase. We&apos;ve received your order and will send you a confirmation email shortly.
+              Thank you for your purchase. We&apos;ve received your order and
+              will send you a confirmation email shortly.
             </p>
 
             {sessionId && (
               <div className="mt-6 rounded-md bg-gray-50 p-4">
                 <p className="text-sm text-gray-600">
-                  Order Reference: <span className="font-mono font-medium">{sessionId}</span>
+                  Order Reference:{' '}
+                  <span className="font-mono font-medium">{sessionId}</span>
                 </p>
               </div>
             )}
 
             <div className="mt-8 space-y-4">
               <p className="text-gray-600">
-                You&apos;ll receive an email with your order details and tracking information once your order ships.
+                You&apos;ll receive an email with your order details and
+                tracking information once your order ships.
               </p>
 
               <Link

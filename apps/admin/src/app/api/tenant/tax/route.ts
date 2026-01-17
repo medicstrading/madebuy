@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { tenants } from '@madebuy/db'
 import type { TenantTaxSettings } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/tenant/tax
@@ -32,7 +32,7 @@ export async function GET() {
     console.error('Error fetching tax settings:', error)
     return NextResponse.json(
       { error: 'Failed to fetch tax settings' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest) {
     if (!taxSettings) {
       return NextResponse.json(
         { error: 'Tax settings required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
       if (cleanAbn.length !== 11 || !/^\d+$/.test(cleanAbn)) {
         return NextResponse.json(
           { error: 'Invalid ABN format. Must be exactly 11 digits.' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       // Store cleaned ABN
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: 'GST rate must be between 0 and 100' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -100,7 +100,7 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating tax settings:', error)
     return NextResponse.json(
       { error: 'Failed to update tax settings' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

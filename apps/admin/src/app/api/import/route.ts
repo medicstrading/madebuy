@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { imports } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/import
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     console.error('Error listing import jobs:', error)
     return NextResponse.json(
       { error: 'Failed to list import jobs' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

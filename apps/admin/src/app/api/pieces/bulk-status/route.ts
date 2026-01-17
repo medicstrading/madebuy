@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
-import { requireTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
 import type { PieceStatus } from '@madebuy/shared'
+import { revalidatePath } from 'next/cache'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 const VALID_STATUSES: PieceStatus[] = ['draft', 'available', 'reserved', 'sold']
 
@@ -13,20 +13,26 @@ export async function POST(request: NextRequest) {
 
     const { pieceIds, status } = body
 
-    console.log('Bulk status update request:', { pieceIds, status, tenantId: tenant.id })
+    console.log('Bulk status update request:', {
+      pieceIds,
+      status,
+      tenantId: tenant.id,
+    })
 
     // Validate input
     if (!Array.isArray(pieceIds) || pieceIds.length === 0) {
       return NextResponse.json(
         { error: 'pieceIds must be a non-empty array' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!status || !VALID_STATUSES.includes(status)) {
       return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
-        { status: 400 }
+        {
+          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`,
+        },
+        { status: 400 },
       )
     }
 
@@ -34,17 +40,23 @@ export async function POST(request: NextRequest) {
     if (pieceIds.length > 100) {
       return NextResponse.json(
         { error: 'Maximum 100 pieces can be updated at once' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Batch fetch all pieces in one query to verify ownership (prevents N+1)
-    console.log(`Starting bulk update of ${pieceIds.length} pieces to status: ${status}`)
+    console.log(
+      `Starting bulk update of ${pieceIds.length} pieces to status: ${status}`,
+    )
 
     const pieceMap = await pieces.getPiecesByIds(tenant.id, pieceIds)
 
     // Build results array - identify pieces that don't exist or don't belong to tenant
-    const results: Array<{ pieceId: string; success: boolean; error?: string }> = []
+    const results: Array<{
+      pieceId: string
+      success: boolean
+      error?: string
+    }> = []
     const validPieceIds: string[] = []
 
     for (const pieceId of pieceIds) {
@@ -53,7 +65,9 @@ export async function POST(request: NextRequest) {
         console.log(`  Piece ${pieceId}: NOT FOUND`)
         results.push({ pieceId, success: false, error: 'Piece not found' })
       } else {
-        console.log(`  Piece ${pieceId} (${piece.name}): ${piece.status} -> ${status}`)
+        console.log(
+          `  Piece ${pieceId} (${piece.name}): ${piece.status} -> ${status}`,
+        )
         validPieceIds.push(pieceId)
       }
     }
@@ -73,8 +87,8 @@ export async function POST(request: NextRequest) {
     results.push(...updateResults)
     console.log('Bulk update results:', results)
 
-    const successCount = results.filter(r => r.success).length
-    const failedResults = results.filter(r => !r.success)
+    const successCount = results.filter((r) => r.success).length
+    const failedResults = results.filter((r) => !r.success)
 
     // Force revalidate the marketplace page to show updated data
     revalidatePath('/dashboard/marketplace/website')
@@ -90,7 +104,7 @@ export async function POST(request: NextRequest) {
     console.error('Bulk status update error:', error)
     return NextResponse.json(
       { error: 'Failed to update pieces' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

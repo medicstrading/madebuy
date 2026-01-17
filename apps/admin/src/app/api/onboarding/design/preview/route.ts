@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { previews, tenants } from '@madebuy/db'
+import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
-import { tenants, previews } from '@madebuy/db'
 
 /**
  * POST /api/onboarding/design/preview
@@ -11,19 +11,13 @@ export async function POST(): Promise<NextResponse> {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get tenant
     const tenant = await tenants.getTenantById(user.id)
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     // Check if we have a scan result
@@ -31,7 +25,7 @@ export async function POST(): Promise<NextResponse> {
     if (!designImport?.extractedDesign || !designImport.sourceUrl) {
       return NextResponse.json(
         { error: 'No scan result available. Please scan a website first.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -39,7 +33,7 @@ export async function POST(): Promise<NextResponse> {
     const preview = await previews.createPreview(
       tenant.id,
       designImport.extractedDesign,
-      designImport.sourceUrl
+      designImport.sourceUrl,
     )
 
     // Build preview URL
@@ -56,7 +50,7 @@ export async function POST(): Promise<NextResponse> {
     console.error('Preview generation error:', error)
     return NextResponse.json(
       { error: 'Failed to generate preview' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -70,10 +64,7 @@ export async function GET(): Promise<NextResponse> {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get latest preview for tenant
@@ -99,7 +90,7 @@ export async function GET(): Promise<NextResponse> {
     console.error('Get preview error:', error)
     return NextResponse.json(
       { error: 'Failed to get preview' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

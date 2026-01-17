@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import { getDatabase } from '@madebuy/db'
+import { NextResponse } from 'next/server'
 
 /**
  * Health check endpoint for load balancer and monitoring
@@ -25,7 +25,7 @@ export async function GET() {
         service: 'madebuy-admin',
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 503 }
+      { status: 503 },
     )
   }
 }

@@ -1,19 +1,40 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef } from 'react'
+import type { Order } from '@madebuy/shared'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import {
+  Check,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Package,
+  RefreshCw,
+  Search,
+  Truck,
+  X,
+  XCircle,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, X, ChevronRight, ChevronDown, Check, Truck, Package, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import type { Order } from '@madebuy/shared'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 interface OrdersTableProps {
   orders: Order[]
 }
 
-type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+type OrderStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
 
-const BULK_ACTIONS: { value: OrderStatus; label: string; icon: typeof Truck }[] = [
+const BULK_ACTIONS: {
+  value: OrderStatus
+  label: string
+  icon: typeof Truck
+}[] = [
   { value: 'processing', label: 'Mark as Processing', icon: Package },
   { value: 'shipped', label: 'Mark as Shipped', icon: Truck },
   { value: 'delivered', label: 'Mark as Delivered', icon: CheckCircle },
@@ -45,7 +66,10 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   // Bulk action dropdown
   const [showBulkActions, setShowBulkActions] = useState(false)
   // Confirmation modal
-  const [confirmAction, setConfirmAction] = useState<{ action: OrderStatus; label: string } | null>(null)
+  const [confirmAction, setConfirmAction] = useState<{
+    action: OrderStatus
+    label: string
+  } | null>(null)
   // Loading state
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -59,10 +83,11 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     }
 
     // Filter by order number, customer name, or email
-    return orders.filter(order =>
-      order.orderNumber.toLowerCase().includes(query) ||
-      order.customerName.toLowerCase().includes(query) ||
-      order.customerEmail.toLowerCase().includes(query)
+    return orders.filter(
+      (order) =>
+        order.orderNumber.toLowerCase().includes(query) ||
+        order.customerName.toLowerCase().includes(query) ||
+        order.customerEmail.toLowerCase().includes(query),
     )
   }, [orders, search])
 
@@ -77,21 +102,24 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   const shouldVirtualize = filteredOrders.length >= VIRTUALIZATION_THRESHOLD
 
   const handleClearSearch = () => {
-    setSearch('')  // Clear search, shows all results
+    setSearch('') // Clear search, shows all results
   }
 
   // Select all filtered orders
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(filteredOrders.map(o => o.id)))
-    } else {
-      setSelectedIds(new Set())
-    }
-  }, [filteredOrders])
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedIds(new Set(filteredOrders.map((o) => o.id)))
+      } else {
+        setSelectedIds(new Set())
+      }
+    },
+    [filteredOrders],
+  )
 
   // Toggle individual order selection
   const handleSelectOrder = useCallback((orderId: string, checked: boolean) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev)
       if (checked) {
         next.add(orderId)
@@ -119,8 +147,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderIds: Array.from(selectedIds),
-          action: confirmAction.action
-        })
+          action: confirmAction.action,
+        }),
       })
 
       if (!response.ok) {
@@ -140,7 +168,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     }
   }
 
-  const allSelected = filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.has(o.id))
+  const allSelected =
+    filteredOrders.length > 0 &&
+    filteredOrders.every((o) => selectedIds.has(o.id))
   const someSelected = selectedIds.size > 0 && !allSelected
 
   return (
@@ -162,6 +192,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           />
           {search && (
             <button
+              type="button"
               onClick={handleClearSearch}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
               aria-label="Clear search"
@@ -175,6 +206,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         {selectedIds.size > 0 && (
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowBulkActions(!showBulkActions)}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
@@ -194,6 +226,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   <div className="py-1">
                     {BULK_ACTIONS.map(({ value, label, icon: Icon }) => (
                       <button
+                        type="button"
                         key={value}
                         onClick={() => handleBulkActionClick(value, label)}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -217,7 +250,15 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             Showing {filteredOrders.length} of {orders.length} orders
             {filteredOrders.length === 0 && (
               <span className="ml-1">
-                - <button onClick={handleClearSearch} className="text-blue-600 hover:underline">Clear search</button> to see all orders
+                -{' '}
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-blue-600 hover:underline"
+                >
+                  Clear search
+                </button>{' '}
+                to see all orders
               </span>
             )}
           </>
@@ -251,18 +292,26 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                    <td
+                      colSpan={8}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
                       No orders match your search
                     </td>
                   </tr>
                 ) : (
                   <>
                     {/* Top spacer */}
-                    {virtualizer.getVirtualItems().length > 0 && virtualizer.getVirtualItems()[0].start > 0 && (
-                      <tr style={{ height: virtualizer.getVirtualItems()[0].start }} aria-hidden="true">
-                        <td colSpan={8} />
-                      </tr>
-                    )}
+                    {virtualizer.getVirtualItems().length > 0 &&
+                      virtualizer.getVirtualItems()[0].start > 0 && (
+                        <tr
+                          style={{
+                            height: virtualizer.getVirtualItems()[0].start,
+                          }}
+                        >
+                          <td colSpan={8} />
+                        </tr>
+                      )}
                     {/* Virtual rows */}
                     {virtualizer.getVirtualItems().map((virtualRow) => {
                       const order = filteredOrders[virtualRow.index]
@@ -280,9 +329,12 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     {virtualizer.getVirtualItems().length > 0 && (
                       <tr
                         style={{
-                          height: virtualizer.getTotalSize() - (virtualizer.getVirtualItems()[virtualizer.getVirtualItems().length - 1]?.end || 0),
+                          height:
+                            virtualizer.getTotalSize() -
+                            (virtualizer.getVirtualItems()[
+                              virtualizer.getVirtualItems().length - 1
+                            ]?.end || 0),
                         }}
-                        aria-hidden="true"
                       >
                         <td colSpan={8} />
                       </tr>
@@ -305,7 +357,10 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     No orders match your search
                   </td>
                 </tr>
@@ -332,7 +387,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               Confirm Bulk Action
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to <strong>{confirmAction.label.toLowerCase()}</strong> for{' '}
+              Are you sure you want to{' '}
+              <strong>{confirmAction.label.toLowerCase()}</strong> for{' '}
               <strong>{selectedIds.size} order(s)</strong>?
             </p>
             <p className="mt-1 text-xs text-gray-500">
@@ -340,6 +396,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setConfirmAction(null)}
                 disabled={isUpdating}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -347,6 +404,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={executeBulkAction}
                 disabled={isUpdating}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
@@ -377,14 +435,18 @@ interface TableHeaderProps {
   onSelectAll: (checked: boolean) => void
 }
 
-function TableHeader({ allSelected, someSelected, onSelectAll }: TableHeaderProps) {
+function TableHeader({
+  allSelected,
+  someSelected,
+  onSelectAll,
+}: TableHeaderProps) {
   return (
     <tr>
       <th className="w-12 px-3 py-3">
         <input
           type="checkbox"
           checked={allSelected}
-          ref={input => {
+          ref={(input) => {
             if (input) input.indeterminate = someSelected
           }}
           onChange={(e) => onSelectAll(e.target.checked)}
@@ -444,7 +506,9 @@ function OrderRow({ order, isSelected, onSelect, style }: OrderRowProps) {
           <div className="text-sm font-medium text-blue-600 group-hover:text-blue-800">
             {order.orderNumber}
           </div>
-          <div className="text-xs text-gray-500">{order.items.length} items</div>
+          <div className="text-xs text-gray-500">
+            {order.items.length} items
+          </div>
         </Link>
       </td>
       <td className="px-6 py-4">
@@ -486,7 +550,9 @@ function OrderStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.pending}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.pending}`}
+    >
       {status}
     </span>
   )
@@ -501,7 +567,9 @@ function PaymentStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.pending}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.pending}`}
+    >
       {status}
     </span>
   )

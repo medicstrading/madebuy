@@ -1,12 +1,18 @@
 'use client'
 
-import { formatCurrency } from '@/lib/utils'
+import type { PieceWithMedia } from '@madebuy/shared'
+import {
+  ArrowRight,
+  Heart,
+  ImageIcon,
+  ShoppingCart,
+  Trash2,
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trash2, Heart, ArrowRight, ImageIcon, ShoppingCart } from 'lucide-react'
-import type { PieceWithMedia } from '@madebuy/shared'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
+import { formatCurrency } from '@/lib/utils'
 
 interface WishlistContentProps {
   tenant: string
@@ -14,7 +20,11 @@ interface WishlistContentProps {
   allPieces: PieceWithMedia[]
 }
 
-export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContentProps) {
+export function WishlistContent({
+  tenant,
+  tenantId,
+  allPieces,
+}: WishlistContentProps) {
   const { addItem } = useCart()
   const { pieceIds, removeFromWishlist } = useWishlist()
 
@@ -29,7 +39,9 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
 
   // Get the pieces that are in the wishlist
   const wishlistPieces = pieceIds
-    .map((pieceId: string) => allPieces.find((p: PieceWithMedia) => p.id === pieceId))
+    .map((pieceId: string) =>
+      allPieces.find((p: PieceWithMedia) => p.id === pieceId),
+    )
     .filter((p): p is PieceWithMedia => p !== undefined)
 
   if (wishlistPieces.length === 0) {
@@ -38,7 +50,9 @@ export function WishlistContent({ tenant, tenantId, allPieces }: WishlistContent
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 mb-6">
           <Heart className="h-10 w-10 text-gray-300" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Your wishlist is empty</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Your wishlist is empty
+        </h2>
         <p className="text-gray-500 mb-8">Save items you love for later</p>
         <Link
           href={`/${tenant}`}

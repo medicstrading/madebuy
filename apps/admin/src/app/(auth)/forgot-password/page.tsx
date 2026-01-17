@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
       }
 
       setSuccess(true)
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -48,13 +48,16 @@ export default function ForgotPasswordPage() {
               <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
                 <p className="font-medium mb-1">Check your email</p>
                 <p className="text-sm">
-                  If an account exists with that email, we sent you a password reset link.
-                  Check your inbox and spam folder.
+                  If an account exists with that email, we sent you a password
+                  reset link. Check your inbox and spam folder.
                 </p>
               </div>
 
               <div className="text-center">
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
                   Back to login
                 </Link>
               </div>
@@ -68,7 +71,10 @@ export default function ForgotPasswordPage() {
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Email address
                 </label>
                 <input
@@ -81,11 +87,13 @@ export default function ForgotPasswordPage() {
                   placeholder="you@example.com"
                 />
                 <p className="mt-2 text-sm text-gray-500">
-                  Enter the email address associated with your account and we&apos;ll send you a link to reset your password.
+                  Enter the email address associated with your account and
+                  we&apos;ll send you a link to reset your password.
                 </p>
               </div>
 
               <button
+                type="button"
                 type="submit"
                 disabled={loading}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -95,7 +103,10 @@ export default function ForgotPasswordPage() {
 
               <p className="text-center text-sm text-gray-600">
                 Remember your password?{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
                   Sign in
                 </Link>
               </p>

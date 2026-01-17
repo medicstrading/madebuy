@@ -1,15 +1,15 @@
 import type { MeasurementSystem } from '../types/tenant'
 
 export interface CountryPreset {
-  code: string                    // ISO 3166-1 alpha-2
-  name: string                    // Display name
-  currency: string                // ISO 4217 currency code
-  currencySymbol: string          // Currency symbol (e.g., '$', '£')
-  locale: string                  // BCP 47 locale
-  timezone: string                // Primary IANA timezone
+  code: string // ISO 3166-1 alpha-2
+  name: string // Display name
+  currency: string // ISO 4217 currency code
+  currencySymbol: string // Currency symbol (e.g., '$', '£')
+  locale: string // BCP 47 locale
+  timezone: string // Primary IANA timezone
   measurementSystem: MeasurementSystem
-  flag: string                    // Unicode flag emoji
-  popularTimezones?: string[]     // For countries with multiple zones
+  flag: string // Unicode flag emoji
+  popularTimezones?: string[] // For countries with multiple zones
 }
 
 export const COUNTRY_PRESETS: CountryPreset[] = [

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * DEPRECATED: This webhook handler has been consolidated into /api/webhooks/stripe
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   // Log deprecation warning
   console.warn(
     '[DEPRECATED] /api/orders webhook endpoint is deprecated. ' +
-    'Please update your Stripe webhook configuration to use /api/webhooks/stripe'
+      'Please update your Stripe webhook configuration to use /api/webhooks/stripe',
   )
 
   // Forward the request to the canonical endpoint

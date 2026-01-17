@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { bundles, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/bundles/[slug]
@@ -7,7 +7,7 @@ import { bundles, tenants } from '@madebuy/db'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
     const { slug } = await params
@@ -17,12 +17,14 @@ export async function GET(
     if (!tenantId) {
       return NextResponse.json(
         { error: 'tenantId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate tenant exists
-    const tenant = await tenants.getTenantById(tenantId) || await tenants.getTenantBySlug(tenantId)
+    const tenant =
+      (await tenants.getTenantById(tenantId)) ||
+      (await tenants.getTenantBySlug(tenantId))
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
@@ -42,6 +44,9 @@ export async function GET(
     return NextResponse.json({ bundle })
   } catch (error) {
     console.error('Error fetching bundle:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

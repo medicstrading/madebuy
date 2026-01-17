@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { newsletters, customers, tenants } from '@madebuy/db'
+import { customers, newsletters, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { sendNewsletter } from '@/lib/email'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -18,13 +18,16 @@ export async function POST(
     const newsletter = await newsletters.getNewsletterById(tenant.id, params.id)
 
     if (!newsletter) {
-      return NextResponse.json({ error: 'Newsletter not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Newsletter not found' },
+        { status: 404 },
+      )
     }
 
     if (newsletter.status !== 'draft') {
       return NextResponse.json(
         { error: 'Newsletter has already been sent' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -32,12 +35,14 @@ export async function POST(
     const template = await newsletters.getNewsletterTemplate(tenant.id)
 
     // Get subscribed customers
-    const subscribedCustomers = await customers.getSubscribedCustomers(tenant.id)
+    const subscribedCustomers = await customers.getSubscribedCustomers(
+      tenant.id,
+    )
 
     if (subscribedCustomers.length === 0) {
       return NextResponse.json(
         { error: 'No subscribed customers to send to' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -53,7 +58,12 @@ export async function POST(
       name: c.name,
     }))
 
-    const result = await sendNewsletter(newsletter, template, tenantData, recipients)
+    const result = await sendNewsletter(
+      newsletter,
+      template,
+      tenantData,
+      recipients,
+    )
 
     if (!result.success && result.sentCount === 0) {
       return NextResponse.json(
@@ -61,7 +71,7 @@ export async function POST(
           error: 'Failed to send newsletter',
           details: result.errors,
         },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -69,7 +79,7 @@ export async function POST(
     const updatedNewsletter = await newsletters.markNewsletterSent(
       tenant.id,
       params.id,
-      result.sentCount
+      result.sentCount,
     )
 
     return NextResponse.json({
@@ -79,6 +89,9 @@ export async function POST(
     })
   } catch (error) {
     console.error('Error sending newsletter:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

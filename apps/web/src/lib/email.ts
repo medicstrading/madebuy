@@ -1,14 +1,20 @@
-import { Resend } from 'resend'
-import Stripe from 'stripe'
-import type { Order, Tenant, DownloadRecord, DigitalFile, DisputeReason } from '@madebuy/shared'
 import type { LowStockPiece } from '@madebuy/db'
+import type {
+  DigitalFile,
+  DisputeReason,
+  DownloadRecord,
+  Order,
+  Tenant,
+} from '@madebuy/shared'
 import {
   buildDownloadEmailHtml,
   buildDownloadEmailText,
+  type DownloadEmailData,
   getDownloadPageUrl,
   getFileDownloadUrl,
-  type DownloadEmailData,
 } from '@madebuy/shared'
+import { Resend } from 'resend'
+import type Stripe from 'stripe'
 
 let resend: Resend | null = null
 
@@ -42,7 +48,8 @@ function formatCurrency(amount: number | undefined, currency: string): string {
 }
 
 export async function sendOrderConfirmation(order: Order, tenant: Tenant) {
-  const fromEmail = tenant.email || process.env.DEFAULT_FROM_EMAIL || 'orders@madebuy.com.au'
+  const fromEmail =
+    tenant.email || process.env.DEFAULT_FROM_EMAIL || 'orders@madebuy.com.au'
 
   // Build order items HTML (escaping item names for XSS prevention)
   const itemsHtml = order.items
@@ -52,7 +59,7 @@ export async function sendOrderConfirmation(order: Order, tenant: Tenant) {
       <td style="padding: 12px; border-bottom: 1px solid #eee;">${escapeHtml(item.name)} x ${item.quantity}</td>
       <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(item.price * item.quantity, order.currency)}</td>
     </tr>
-  `
+  `,
     )
     .join('')
 
@@ -75,7 +82,9 @@ export async function sendOrderConfirmation(order: Order, tenant: Tenant) {
     <div style="background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
       <h2 style="margin-top: 0; color: #374151;">Order Details</h2>
       <p><strong>Order Number:</strong> ${order.orderNumber}</p>
-      <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-AU', {
+      <p><strong>Order Date:</strong> ${new Date(
+        order.createdAt,
+      ).toLocaleDateString('en-AU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -188,22 +197,39 @@ export interface SendDownloadEmailParams {
 }
 
 export async function sendDownloadEmail(params: SendDownloadEmailParams) {
-  const { order, tenant, downloadRecord, productName, files, downloadLimit, expiryDate } = params
+  const {
+    order,
+    tenant,
+    downloadRecord,
+    productName,
+    files,
+    downloadLimit,
+    expiryDate,
+  } = params
 
-  const fromEmail = tenant.email || process.env.DEFAULT_FROM_EMAIL || 'orders@madebuy.com.au'
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${tenant.slug}.madebuy.com.au`
+  const fromEmail =
+    tenant.email || process.env.DEFAULT_FROM_EMAIL || 'orders@madebuy.com.au'
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || `https://${tenant.slug}.madebuy.com.au`
 
-  const downloadPageUrl = getDownloadPageUrl(baseUrl, downloadRecord.downloadToken)
+  const downloadPageUrl = getDownloadPageUrl(
+    baseUrl,
+    downloadRecord.downloadToken,
+  )
 
   const emailData: DownloadEmailData = {
     customerName: order.customerName || 'there',
     productName,
     downloadPageUrl,
-    files: files.map(file => ({
+    files: files.map((file) => ({
       name: file.name,
       fileName: file.fileName,
       sizeBytes: file.sizeBytes,
-      directDownloadUrl: getFileDownloadUrl(baseUrl, downloadRecord.downloadToken, file.id),
+      directDownloadUrl: getFileDownloadUrl(
+        baseUrl,
+        downloadRecord.downloadToken,
+        file.id,
+      ),
     })),
     expiryDate,
     downloadLimit,
@@ -252,8 +278,12 @@ export async function sendPaymentFailedEmail(params: PaymentFailedEmailParams) {
   const { tenant, invoice, attemptCount, nextRetryDate } = params
 
   const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'billing@madebuy.com.au'
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.madebuy.com.au'
-  const amountDue = formatCurrency((invoice.amount_due || 0) / 100, invoice.currency?.toUpperCase() || 'AUD')
+  const adminUrl =
+    process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.madebuy.com.au'
+  const amountDue = formatCurrency(
+    (invoice.amount_due || 0) / 100,
+    invoice.currency?.toUpperCase() || 'AUD',
+  )
 
   // Stripe portal link for updating payment method
   const updatePaymentUrl = `${adminUrl}/dashboard/settings/billing`
@@ -279,11 +309,18 @@ export async function sendPaymentFailedEmail(params: PaymentFailedEmailParams) {
       <p><strong>Amount:</strong> ${amountDue}</p>
       <p><strong>Invoice ID:</strong> ${invoice.id}</p>
       <p><strong>Attempt:</strong> ${attemptCount} of 4</p>
-      ${nextRetryDate ? `<p><strong>Next Retry:</strong> ${nextRetryDate.toLocaleDateString('en-AU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })}</p>` : ''}
+      ${
+        nextRetryDate
+          ? `<p><strong>Next Retry:</strong> ${nextRetryDate.toLocaleDateString(
+              'en-AU',
+              {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              },
+            )}</p>`
+          : ''
+      }
     </div>
 
     <div style="background-color: #fef3c7; padding: 20px; border-radius: 5px; margin: 20px 0; border: 1px solid #fcd34d;">
@@ -353,12 +390,18 @@ export async function sendPayoutFailedEmail(params: PayoutFailedEmailParams) {
   const { tenant, payout, failureReason, bankAccountLast4 } = params
 
   const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'billing@madebuy.com.au'
-  const amount = formatCurrency(payout.amount / 100, payout.currency?.toUpperCase() || 'AUD')
+  const amount = formatCurrency(
+    payout.amount / 100,
+    payout.currency?.toUpperCase() || 'AUD',
+  )
 
   // Link to Stripe Express dashboard where they can update bank details
   const stripeDashboardUrl = 'https://connect.stripe.com/express_login'
 
-  const failureMessage = getPayoutFailureDescription(payout.failure_code || null, failureReason)
+  const failureMessage = getPayoutFailureDescription(
+    payout.failure_code || null,
+    failureReason,
+  )
 
   const emailHtml = `
 <!DOCTYPE html>
@@ -439,7 +482,10 @@ export async function sendPayoutFailedEmail(params: PayoutFailedEmailParams) {
 /**
  * Get human-readable description for payout failure codes
  */
-function getPayoutFailureDescription(failureCode: string | null, failureMessage: string | null): string {
+function getPayoutFailureDescription(
+  failureCode: string | null,
+  failureMessage: string | null,
+): string {
   // If we have a specific failure message from Stripe, use it
   if (failureMessage) {
     return failureMessage
@@ -492,15 +538,22 @@ export interface DisputeNotificationEmailParams {
   evidenceDueBy: Date | null
 }
 
-export async function sendDisputeNotificationEmail(params: DisputeNotificationEmailParams) {
+export async function sendDisputeNotificationEmail(
+  params: DisputeNotificationEmailParams,
+) {
   const { tenant, dispute, evidenceDueBy } = params
 
   const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'billing@madebuy.com.au'
-  const amount = formatCurrency(dispute.amount / 100, dispute.currency?.toUpperCase() || 'AUD')
+  const amount = formatCurrency(
+    dispute.amount / 100,
+    dispute.currency?.toUpperCase() || 'AUD',
+  )
 
   // Link to Stripe dashboard for responding to dispute
   const stripeDashboardUrl = `https://dashboard.stripe.com/disputes/${dispute.id}`
-  const reasonDescription = getDisputeReasonDescription(dispute.reason as DisputeReason)
+  const reasonDescription = getDisputeReasonDescription(
+    dispute.reason as DisputeReason,
+  )
 
   const emailHtml = `
 <!DOCTYPE html>
@@ -523,13 +576,20 @@ export async function sendDisputeNotificationEmail(params: DisputeNotificationEm
       <p><strong>Amount:</strong> ${amount}</p>
       <p><strong>Reason:</strong> ${reasonDescription}</p>
       <p><strong>Status:</strong> Needs Response</p>
-      ${evidenceDueBy ? `<p><strong>Evidence Deadline:</strong> ${evidenceDueBy.toLocaleDateString('en-AU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })}</p>` : ''}
+      ${
+        evidenceDueBy
+          ? `<p><strong>Evidence Deadline:</strong> ${evidenceDueBy.toLocaleDateString(
+              'en-AU',
+              {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              },
+            )}</p>`
+          : ''
+      }
     </div>
 
     <div style="background-color: #fef3c7; padding: 20px; border-radius: 5px; margin: 20px 0; border: 1px solid #fcd34d;">
@@ -568,7 +628,9 @@ export async function sendDisputeNotificationEmail(params: DisputeNotificationEm
   const client = getResendClient()
 
   if (!client) {
-    console.warn('Resend API key not configured, skipping dispute notification email')
+    console.warn(
+      'Resend API key not configured, skipping dispute notification email',
+    )
     return null
   }
 
@@ -644,12 +706,14 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
   const { tenant, pieces, dashboardUrl } = data
   const shopName = tenant.businessName || 'Your Shop'
 
-  const itemsHtml = pieces.map(piece => {
-    const stockStatus = piece.stock === 0
-      ? '<span style="color: #dc2626; font-weight: 600;">OUT OF STOCK</span>'
-      : `<span style="color: #d97706; font-weight: 600;">${piece.stock} left</span>`
+  const itemsHtml = pieces
+    .map((piece) => {
+      const stockStatus =
+        piece.stock === 0
+          ? '<span style="color: #dc2626; font-weight: 600;">OUT OF STOCK</span>'
+          : `<span style="color: #d97706; font-weight: 600;">${piece.stock} left</span>`
 
-    return `
+      return `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
         <div>
@@ -665,10 +729,11 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
       </td>
     </tr>
   `
-  }).join('')
+    })
+    .join('')
 
-  const outOfStockCount = pieces.filter(p => p.stock === 0).length
-  const lowStockCount = pieces.filter(p => p.stock > 0).length
+  const outOfStockCount = pieces.filter((p) => p.stock === 0).length
+  const lowStockCount = pieces.filter((p) => p.stock > 0).length
 
   return `
 <!DOCTYPE html>
@@ -697,18 +762,26 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
 
         <!-- Summary -->
         <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-          ${outOfStockCount > 0 ? `
+          ${
+            outOfStockCount > 0
+              ? `
           <div style="flex: 1; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; text-align: center;">
             <p style="margin: 0; font-size: 24px; font-weight: 700; color: #dc2626;">${outOfStockCount}</p>
             <p style="margin: 4px 0 0 0; font-size: 12px; color: #991b1b;">Out of Stock</p>
           </div>
-          ` : ''}
-          ${lowStockCount > 0 ? `
+          `
+              : ''
+          }
+          ${
+            lowStockCount > 0
+              ? `
           <div style="flex: 1; background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; text-align: center;">
             <p style="margin: 0; font-size: 24px; font-weight: 700; color: #d97706;">${lowStockCount}</p>
             <p style="margin: 4px 0 0 0; font-size: 12px; color: #92400e;">Low Stock</p>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <!-- Items Table -->
@@ -754,7 +827,9 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
 /**
  * Send low stock alert email to tenant
  */
-export async function sendLowStockAlertEmail(data: LowStockAlertEmailData): Promise<{
+export async function sendLowStockAlertEmail(
+  data: LowStockAlertEmailData,
+): Promise<{
   success: boolean
   error?: string
 }> {
@@ -765,8 +840,10 @@ export async function sendLowStockAlertEmail(data: LowStockAlertEmailData): Prom
     console.log('[EMAIL] Low stock alert email (not sent - no Resend API key):')
     console.log(`  To: ${data.tenant.email}`)
     console.log(`  Items: ${data.pieces.length}`)
-    console.log(`  Out of stock: ${data.pieces.filter(p => p.stock === 0).length}`)
-    console.log(`  Low stock: ${data.pieces.filter(p => p.stock > 0).length}`)
+    console.log(
+      `  Out of stock: ${data.pieces.filter((p) => p.stock === 0).length}`,
+    )
+    console.log(`  Low stock: ${data.pieces.filter((p) => p.stock > 0).length}`)
     return {
       success: true, // Return success in dev mode for testing
     }

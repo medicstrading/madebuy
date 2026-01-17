@@ -1,8 +1,8 @@
 'use client'
 
-import { BadgeCheck, ThumbsUp, Flag } from 'lucide-react'
-import { ReviewStars } from './ReviewStars'
 import type { Review } from '@madebuy/shared'
+import { BadgeCheck, Flag, ThumbsUp } from 'lucide-react'
+import { ReviewStars } from './ReviewStars'
 
 interface ReviewCardProps {
   review: Review
@@ -50,7 +50,9 @@ export function ReviewCard({
         <div className="flex flex-col gap-1">
           <ReviewStars rating={review.rating} size="sm" />
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium text-gray-900">{review.customerName}</span>
+            <span className="font-medium text-gray-900">
+              {review.customerName}
+            </span>
             {review.isVerifiedPurchase && (
               <span className="flex items-center gap-1 text-green-600">
                 <BadgeCheck className="h-4 w-4" />
@@ -59,7 +61,9 @@ export function ReviewCard({
             )}
           </div>
         </div>
-        <span className="text-sm text-gray-500">{formatDate(review.createdAt)}</span>
+        <span className="text-sm text-gray-500">
+          {formatDate(review.createdAt)}
+        </span>
       </div>
 
       {/* Title */}
@@ -92,7 +96,9 @@ export function ReviewCard({
       {review.sellerResponse && (
         <div className="mt-4 rounded-lg bg-gray-50 p-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Seller Response</span>
+            <span className="text-sm font-medium text-gray-700">
+              Seller Response
+            </span>
             {review.sellerRespondedAt && (
               <span className="text-xs text-gray-500">
                 {formatDate(review.sellerRespondedAt)}
@@ -107,7 +113,6 @@ export function ReviewCard({
       {showActions && (
         <div className="mt-4 flex items-center gap-4">
           <button
-            type="button"
             onClick={() => onHelpful?.(review.id)}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
@@ -118,7 +123,6 @@ export function ReviewCard({
             )}
           </button>
           <button
-            type="button"
             onClick={() => onReport?.(review.id)}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >

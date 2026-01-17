@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { downloads, pieces } from '@madebuy/db'
-import { getSignedUrl } from '@madebuy/storage'
 import type { DigitalFile } from '@madebuy/shared'
+import { getSignedUrl } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
 
 // Rate limiting map (in production, use Redis)
 const downloadAttempts = new Map<string, { count: number; resetAt: number }>()
@@ -41,7 +41,7 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
     const { token } = await params
@@ -49,9 +49,10 @@ export async function GET(
     const fileId = searchParams.get('file')
 
     // Get client info for logging
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-               request.headers.get('x-real-ip') ||
-               'unknown'
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     // Rate limit check
@@ -67,7 +68,7 @@ export async function GET(
           headers: {
             'Retry-After': String(rateLimit.retryAfter),
           },
-        }
+        },
       )
     }
 
@@ -75,7 +76,7 @@ export async function GET(
     if (!token || token.length < 20) {
       return NextResponse.json(
         { error: 'Invalid download token.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -83,7 +84,7 @@ export async function GET(
     if (!fileId) {
       return NextResponse.json(
         { error: 'File ID is required.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -91,10 +92,12 @@ export async function GET(
     const record = await downloads.getDownloadRecordByToken(token)
     if (!record) {
       // Log failed attempt
-      console.warn(`Download attempt with invalid token: ${token.substring(0, 8)}...`)
+      console.warn(
+        `Download attempt with invalid token: ${token.substring(0, 8)}...`,
+      )
       return NextResponse.json(
         { error: 'Download link not found or invalid.' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -110,14 +113,18 @@ export async function GET(
       })
       return NextResponse.json(
         { error: 'Digital product not found.' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     const pieceFiles: DigitalFile[] = piece.digital.files
 
     // Validate the download
-    const validation = await downloads.validateDownload(token, fileId, pieceFiles)
+    const validation = await downloads.validateDownload(
+      token,
+      fileId,
+      pieceFiles,
+    )
 
     if (!validation.valid) {
       // Log the failed attempt
@@ -130,11 +137,12 @@ export async function GET(
       })
 
       // Return appropriate error response
-      const statusCode = validation.error === 'expired' || validation.error === 'revoked'
-        ? 403
-        : validation.error === 'limit_reached'
-        ? 429
-        : 404
+      const statusCode =
+        validation.error === 'expired' || validation.error === 'revoked'
+          ? 403
+          : validation.error === 'limit_reached'
+            ? 429
+            : 404
 
       return NextResponse.json(
         {
@@ -142,7 +150,7 @@ export async function GET(
           code: validation.error,
           downloadsRemaining: validation.downloadsRemaining,
         },
-        { status: statusCode }
+        { status: statusCode },
       )
     }
 
@@ -163,7 +171,7 @@ export async function GET(
       })
       return NextResponse.json(
         { error: 'Failed to generate download link. Please try again.' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -188,7 +196,7 @@ export async function GET(
     console.error('Download error:', error)
     return NextResponse.json(
       { error: 'An error occurred processing your download.' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -199,7 +207,7 @@ export async function GET(
  */
 export async function HEAD(
   request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
     const { token } = await params
@@ -230,8 +238,10 @@ export async function HEAD(
     }
 
     // Check validity without incrementing counter
-    const isExpired = record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)
-    const limitReached = record.maxDownloads && record.downloadCount >= record.maxDownloads
+    const isExpired =
+      record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)
+    const limitReached =
+      record.maxDownloads && record.downloadCount >= record.maxDownloads
 
     if (record.isRevoked || isExpired || limitReached) {
       return new NextResponse(null, { status: 403 })
@@ -242,9 +252,12 @@ export async function HEAD(
     headers.set('X-File-Name', file.fileName)
     headers.set('X-File-Size', String(file.sizeBytes))
     headers.set('X-Content-Type', file.mimeType)
-    headers.set('X-Downloads-Remaining', record.maxDownloads
-      ? String(record.maxDownloads - record.downloadCount)
-      : 'unlimited')
+    headers.set(
+      'X-Downloads-Remaining',
+      record.maxDownloads
+        ? String(record.maxDownloads - record.downloadCount)
+        : 'unlimited',
+    )
 
     return new NextResponse(null, { status: 200, headers })
   } catch (error) {

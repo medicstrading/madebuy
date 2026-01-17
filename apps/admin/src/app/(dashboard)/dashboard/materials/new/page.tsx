@@ -1,7 +1,7 @@
-import { requireTenant } from '@/lib/session'
-import { MaterialForm } from '@/components/materials/MaterialForm'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { MaterialForm } from '@/components/materials/MaterialForm'
+import { requireTenant } from '@/lib/session'
 
 export default async function NewMaterialPage() {
   const tenant = await requireTenant()
@@ -20,7 +20,9 @@ export default async function NewMaterialPage() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Add Material</h1>
-        <p className="mt-2 text-gray-600">Add a new material to your inventory</p>
+        <p className="mt-2 text-gray-600">
+          Add a new material to your inventory
+        </p>
       </div>
 
       <MaterialForm tenantId={tenant.id} />

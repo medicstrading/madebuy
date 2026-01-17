@@ -1,8 +1,8 @@
-import { requireTenant } from '@/lib/session'
 import { publish } from '@madebuy/db'
-import { formatDate } from '@/lib/utils'
-import { Plus, Instagram, Facebook, TrendingUp, Calendar } from 'lucide-react'
+import { Calendar, Facebook, Instagram, Plus, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import { requireTenant } from '@/lib/session'
+import { formatDate } from '@/lib/utils'
 
 export default async function PublishPage() {
   const tenant = await requireTenant()
@@ -10,16 +10,18 @@ export default async function PublishPage() {
 
   const stats = {
     total: allPublishRecords.length,
-    published: allPublishRecords.filter(p => p.status === 'published').length,
-    scheduled: allPublishRecords.filter(p => p.status === 'scheduled').length,
-    draft: allPublishRecords.filter(p => p.status === 'draft').length,
+    published: allPublishRecords.filter((p) => p.status === 'published').length,
+    scheduled: allPublishRecords.filter((p) => p.status === 'scheduled').length,
+    draft: allPublishRecords.filter((p) => p.status === 'draft').length,
   }
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Social Publishing</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Social Publishing
+          </h1>
           <p className="mt-2 text-gray-600">Manage your social media posts</p>
         </div>
         <Link
@@ -32,10 +34,30 @@ export default async function PublishPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
-        <StatCard title="Total Posts" value={stats.total} icon={TrendingUp} color="blue" />
-        <StatCard title="Published" value={stats.published} icon={Instagram} color="green" />
-        <StatCard title="Scheduled" value={stats.scheduled} icon={Calendar} color="purple" />
-        <StatCard title="Drafts" value={stats.draft} icon={Facebook} color="gray" />
+        <StatCard
+          title="Total Posts"
+          value={stats.total}
+          icon={TrendingUp}
+          color="blue"
+        />
+        <StatCard
+          title="Published"
+          value={stats.published}
+          icon={Instagram}
+          color="green"
+        />
+        <StatCard
+          title="Scheduled"
+          value={stats.scheduled}
+          icon={Calendar}
+          color="purple"
+        />
+        <StatCard
+          title="Drafts"
+          value={stats.draft}
+          icon={Facebook}
+          color="gray"
+        />
       </div>
 
       {!tenant.socialConnections || tenant.socialConnections.length === 0 ? (
@@ -44,7 +66,8 @@ export default async function PublishPage() {
             Connect Your Social Accounts
           </h3>
           <p className="text-blue-800 mb-4">
-            Connect your Instagram, Facebook, or other social media accounts to start publishing.
+            Connect your Instagram, Facebook, or other social media accounts to
+            start publishing.
           </p>
           <Link
             href="/dashboard/connections"
@@ -58,7 +81,9 @@ export default async function PublishPage() {
       {allPublishRecords.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <Share2Icon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No posts yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No posts yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
             Create your first social media post to share your work.
           </p>
@@ -100,12 +125,13 @@ export default async function PublishPage() {
                       {record.caption}
                     </div>
                     <div className="mt-1 text-xs text-gray-500">
-                      {record.mediaIds.length} media • {record.hashtags.length} hashtags
+                      {record.mediaIds.length} media • {record.hashtags.length}{' '}
+                      hashtags
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex gap-1">
-                      {record.platforms.map(platform => (
+                      {record.platforms.map((platform) => (
                         <PlatformIcon key={platform} platform={platform} />
                       ))}
                     </div>
@@ -114,7 +140,9 @@ export default async function PublishPage() {
                     <PublishStatusBadge status={record.status} />
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                    {record.scheduledFor ? formatDate(record.scheduledFor) : '-'}
+                    {record.scheduledFor
+                      ? formatDate(record.scheduledFor)
+                      : '-'}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                     {formatDate(record.createdAt)}
@@ -133,7 +161,7 @@ function StatCard({
   title,
   value,
   icon: Icon,
-  color
+  color,
 }: {
   title: string
   value: number
@@ -172,7 +200,9 @@ function PublishStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.draft}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.draft}`}
+    >
       {status}
     </span>
   )
@@ -188,7 +218,9 @@ function PlatformIcon({ platform }: { platform: string }) {
   }
 
   return (
-    <span className={`inline-flex h-6 w-6 items-center justify-center rounded text-xs font-medium ${colors[platform as keyof typeof colors]}`}>
+    <span
+      className={`inline-flex h-6 w-6 items-center justify-center rounded text-xs font-medium ${colors[platform as keyof typeof colors]}`}
+    >
       {platform[0].toUpperCase()}
     </span>
   )
@@ -196,8 +228,19 @@ function PlatformIcon({ platform }: { platform: string }) {
 
 function Share2Icon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+      />
     </svg>
   )
 }

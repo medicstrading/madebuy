@@ -1,17 +1,23 @@
 'use client'
 
+import { Check, Mail } from 'lucide-react'
 import { useState } from 'react'
-import { Mail, Check } from 'lucide-react'
 import type { SectionProps } from './SectionRenderer'
 
-export function NewsletterSignup({ settings, tenant, tenantSlug }: SectionProps) {
+export function NewsletterSignup({
+  settings,
+  tenant,
+  tenantSlug,
+}: SectionProps) {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const title = settings.newsletterTitle || settings.title || 'Stay in the Loop'
-  const description = settings.newsletterDescription || settings.subtitle ||
+  const description =
+    settings.newsletterDescription ||
+    settings.subtitle ||
     'Subscribe to our newsletter for exclusive updates, new releases, and special offers.'
   const buttonText = settings.newsletterButtonText || 'Subscribe'
 
@@ -35,7 +41,11 @@ export function NewsletterSignup({ settings, tenant, tenantSlug }: SectionProps)
       setSubmitted(true)
       setEmail('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to subscribe. Please try again.')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to subscribe. Please try again.',
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -63,19 +73,22 @@ export function NewsletterSignup({ settings, tenant, tenantSlug }: SectionProps)
 
         {/* Title */}
         <h2 className="text-2xl md:text-3xl font-serif text-gray-900 mb-4">
-          {submitted ? 'You\'re Subscribed!' : title}
+          {submitted ? "You're Subscribed!" : title}
         </h2>
 
         {/* Description */}
         <p className="text-gray-600 mb-8">
           {submitted
-            ? 'Thank you for subscribing. We\'ll keep you updated with our latest news.'
+            ? "Thank you for subscribing. We'll keep you updated with our latest news."
             : description}
         </p>
 
         {/* Form */}
         {!submitted && (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+          >
             <input
               type="email"
               required
@@ -95,9 +108,7 @@ export function NewsletterSignup({ settings, tenant, tenantSlug }: SectionProps)
           </form>
         )}
 
-        {error && (
-          <p className="mt-4 text-red-600 text-sm">{error}</p>
-        )}
+        {error && <p className="mt-4 text-red-600 text-sm">{error}</p>}
 
         {/* Privacy note */}
         {!submitted && (

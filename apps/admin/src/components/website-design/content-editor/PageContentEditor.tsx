@@ -1,12 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import type {
+  PageSection,
+  PageSectionType,
+  WebsitePage,
+} from '@madebuy/shared/src/types/template'
 import {
-  ChevronDown, ChevronUp, Check, Eye, ExternalLink,
-  Image as ImageIcon, Type, Layout, MessageSquare, HelpCircle,
-  Mail, Newspaper, Target, Grid
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Eye,
+  Grid,
+  HelpCircle,
+  Image as ImageIcon,
+  Layout,
+  Mail,
+  MessageSquare,
+  Newspaper,
+  Target,
+  Type,
 } from 'lucide-react'
-import type { WebsitePage, PageSection, PageSectionType } from '@madebuy/shared/src/types/template'
+import { useState } from 'react'
 import { SectionContentForm } from './SectionContentForm'
 
 interface PageContentEditorProps {
@@ -15,25 +30,28 @@ interface PageContentEditorProps {
   tenantSlug?: string
 }
 
-const SECTION_ICONS: Record<PageSectionType, React.ComponentType<{ className?: string }>> = {
+const SECTION_ICONS: Record<
+  PageSectionType,
+  React.ComponentType<{ className?: string }>
+> = {
   'hero-slider': Layout,
   'hero-simple': Layout,
   'product-grid': Grid,
   'product-featured': Grid,
-  'collections': Grid,
+  collections: Grid,
   'feature-cards': Layout,
   'text-image': Type,
-  'gallery': ImageIcon,
-  'about': Type,
+  gallery: ImageIcon,
+  about: Type,
   'blog-preview': Newspaper,
-  'testimonials': MessageSquare,
-  'cta': Target,
-  'newsletter': Mail,
-  'faq': HelpCircle,
-  'contact': Mail,
+  testimonials: MessageSquare,
+  cta: Target,
+  newsletter: Mail,
+  faq: HelpCircle,
+  contact: Mail,
   'custom-order': Target,
-  'spacer': Layout,
-  'reviews': MessageSquare,
+  spacer: Layout,
+  reviews: MessageSquare,
 }
 
 const SECTION_LABELS: Record<PageSectionType, string> = {
@@ -41,29 +59,38 @@ const SECTION_LABELS: Record<PageSectionType, string> = {
   'hero-simple': 'Hero Banner',
   'product-grid': 'Products Grid',
   'product-featured': 'Featured Product',
-  'collections': 'Collections',
+  collections: 'Collections',
   'feature-cards': 'Feature Cards',
   'text-image': 'Text & Image',
-  'gallery': 'Gallery',
-  'about': 'About Section',
+  gallery: 'Gallery',
+  about: 'About Section',
   'blog-preview': 'Blog Preview',
-  'testimonials': 'Testimonials',
-  'cta': 'Call to Action',
-  'newsletter': 'Newsletter Signup',
-  'faq': 'FAQ',
-  'contact': 'Contact',
+  testimonials: 'Testimonials',
+  cta: 'Call to Action',
+  newsletter: 'Newsletter Signup',
+  faq: 'FAQ',
+  contact: 'Contact',
   'custom-order': 'Custom Order CTA',
-  'spacer': 'Spacer',
-  'reviews': 'Reviews',
+  spacer: 'Spacer',
+  reviews: 'Reviews',
 }
 
-export function PageContentEditor({ page, onSectionChange, tenantSlug }: PageContentEditorProps) {
+export function PageContentEditor({
+  page,
+  onSectionChange,
+  tenantSlug,
+}: PageContentEditorProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(page.sections.filter(s => s.enabled).slice(0, 1).map(s => s.id))
+    new Set(
+      page.sections
+        .filter((s) => s.enabled)
+        .slice(0, 1)
+        .map((s) => s.id),
+    ),
   )
 
   const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => {
+    setExpandedSections((prev) => {
       const next = new Set(prev)
       if (next.has(sectionId)) {
         next.delete(sectionId)
@@ -74,7 +101,7 @@ export function PageContentEditor({ page, onSectionChange, tenantSlug }: PageCon
     })
   }
 
-  const enabledSections = page.sections.filter(s => s.enabled)
+  const enabledSections = page.sections.filter((s) => s.enabled)
 
   return (
     <div className="space-y-4">
@@ -118,6 +145,7 @@ export function PageContentEditor({ page, onSectionChange, tenantSlug }: PageCon
             >
               {/* Section Header */}
               <button
+                type="button"
                 onClick={() => toggleSection(section.id)}
                 className="w-full flex items-center gap-4 px-5 py-4 text-left"
               >
@@ -133,12 +161,18 @@ export function PageContentEditor({ page, onSectionChange, tenantSlug }: PageCon
                 </div>
 
                 {/* Icon and label */}
-                <div className={`p-2 rounded-lg ${isExpanded ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                  <Icon className={`w-5 h-5 ${isExpanded ? 'text-indigo-600' : 'text-gray-500'}`} />
+                <div
+                  className={`p-2 rounded-lg ${isExpanded ? 'bg-indigo-100' : 'bg-gray-100'}`}
+                >
+                  <Icon
+                    className={`w-5 h-5 ${isExpanded ? 'text-indigo-600' : 'text-gray-500'}`}
+                  />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className={`font-medium ${isExpanded ? 'text-indigo-900' : 'text-gray-900'}`}>
+                  <h3
+                    className={`font-medium ${isExpanded ? 'text-indigo-900' : 'text-gray-900'}`}
+                  >
                     {section.settings?.title || SECTION_LABELS[section.type]}
                   </h3>
                   {!isComplete && (
@@ -178,8 +212,12 @@ export function PageContentEditor({ page, onSectionChange, tenantSlug }: PageCon
       {enabledSections.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <Layout className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-lg font-medium text-gray-700 mb-2">No sections on this page</p>
-          <p className="text-sm">Add sections to start building your page content.</p>
+          <p className="text-lg font-medium text-gray-700 mb-2">
+            No sections on this page
+          </p>
+          <p className="text-sm">
+            Add sections to start building your page content.
+          </p>
         </div>
       )}
     </div>

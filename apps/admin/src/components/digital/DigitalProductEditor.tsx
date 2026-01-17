@@ -1,25 +1,25 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import type { DigitalFile, DigitalProductConfig } from '@madebuy/shared'
 import {
-  FileText,
-  Download,
-  Settings,
-  Trash2,
-  GripVertical,
-  Plus,
-  Clock,
-  Shield,
-  Mail,
-  Zap,
-  Edit2,
-  Save,
-  X,
   AlertCircle,
   CheckCircle,
+  Clock,
+  Download,
+  Edit2,
+  FileText,
+  GripVertical,
+  Mail,
+  Plus,
+  Save,
+  Settings,
+  Shield,
+  Trash2,
+  X,
+  Zap,
 } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { FileUploader } from './FileUploader'
-import type { DigitalFile, DigitalProductConfig } from '@madebuy/shared'
 
 interface DigitalProductEditorProps {
   pieceId: string
@@ -28,7 +28,7 @@ interface DigitalProductEditorProps {
 }
 
 // License type labels
-const LICENSE_LABELS = {
+const _LICENSE_LABELS = {
   personal: 'Personal Use',
   commercial: 'Commercial Use',
   extended: 'Extended License',
@@ -40,7 +40,7 @@ function formatFileSize(bytes: number): string {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
 }
 
 // Get icon for file type
@@ -49,14 +49,24 @@ function getFileIcon(mimeType: string): string {
   if (mimeType.startsWith('audio/')) return '🎵'
   if (mimeType.startsWith('video/')) return '🎬'
   if (mimeType.includes('pdf')) return '📄'
-  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z')) return '📦'
+  if (
+    mimeType.includes('zip') ||
+    mimeType.includes('rar') ||
+    mimeType.includes('7z')
+  )
+    return '📦'
   if (mimeType.includes('word') || mimeType.includes('document')) return '📝'
-  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊'
+  if (mimeType.includes('excel') || mimeType.includes('spreadsheet'))
+    return '📊'
   if (mimeType.includes('font')) return '🔤'
   return '📁'
 }
 
-export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProductEditorProps) {
+export function DigitalProductEditor({
+  pieceId,
+  digital,
+  onUpdate,
+}: DigitalProductEditorProps) {
   const [isEnabled, setIsEnabled] = useState(digital?.isDigital ?? false)
   const [files, setFiles] = useState<DigitalFile[]>(digital?.files ?? [])
   const [settings, setSettings] = useState({
@@ -111,49 +121,15 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
   }, [pieceId, isEnabled, settings, onUpdate])
 
   // Handle file upload complete
-  const handleUploadComplete = useCallback((newFile: DigitalFile) => {
-    setFiles(prev => [...prev, newFile])
-    setUploadOpen(false)
+  const handleUploadComplete = useCallback(
+    (newFile: DigitalFile) => {
+      setFiles((prev) => [...prev, newFile])
+      setUploadOpen(false)
 
-    // Update parent with new file list
-    const updatedDigital: DigitalProductConfig = {
-      isDigital: true,
-      files: [...files, newFile],
-      downloadLimit: settings.downloadLimit ?? undefined,
-      downloadExpiryDays: settings.downloadExpiryDays ?? undefined,
-      instantDelivery: settings.instantDelivery,
-      emailDelivery: settings.emailDelivery,
-      licenseType: settings.licenseType ?? undefined,
-      licenseText: settings.licenseText || undefined,
-    }
-    onUpdate(updatedDigital)
-
-    // If this is first file, enable digital
-    if (!isEnabled) {
-      setIsEnabled(true)
-    }
-  }, [files, settings, isEnabled, onUpdate])
-
-  // Delete a file
-  const deleteFile = useCallback(async (fileId: string) => {
-    if (!confirm('Delete this file? This cannot be undone.')) return
-
-    try {
-      const response = await fetch(`/api/pieces/${pieceId}/files/${fileId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete file')
-      }
-
-      const updatedFiles = files.filter(f => f.id !== fileId)
-      setFiles(updatedFiles)
-
-      // Update parent
+      // Update parent with new file list
       const updatedDigital: DigitalProductConfig = {
-        isDigital: updatedFiles.length > 0,
-        files: updatedFiles,
+        isDigital: true,
+        files: [...files, newFile],
         downloadLimit: settings.downloadLimit ?? undefined,
         downloadExpiryDays: settings.downloadExpiryDays ?? undefined,
         instantDelivery: settings.instantDelivery,
@@ -163,16 +139,56 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
       }
       onUpdate(updatedDigital)
 
-      if (updatedFiles.length === 0) {
-        setIsEnabled(false)
+      // If this is first file, enable digital
+      if (!isEnabled) {
+        setIsEnabled(true)
       }
+    },
+    [files, settings, isEnabled, onUpdate],
+  )
 
-      setSuccess('File deleted')
-      setTimeout(() => setSuccess(null), 2000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete')
-    }
-  }, [pieceId, files, settings, onUpdate])
+  // Delete a file
+  const deleteFile = useCallback(
+    async (fileId: string) => {
+      if (!confirm('Delete this file? This cannot be undone.')) return
+
+      try {
+        const response = await fetch(`/api/pieces/${pieceId}/files/${fileId}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to delete file')
+        }
+
+        const updatedFiles = files.filter((f) => f.id !== fileId)
+        setFiles(updatedFiles)
+
+        // Update parent
+        const updatedDigital: DigitalProductConfig = {
+          isDigital: updatedFiles.length > 0,
+          files: updatedFiles,
+          downloadLimit: settings.downloadLimit ?? undefined,
+          downloadExpiryDays: settings.downloadExpiryDays ?? undefined,
+          instantDelivery: settings.instantDelivery,
+          emailDelivery: settings.emailDelivery,
+          licenseType: settings.licenseType ?? undefined,
+          licenseText: settings.licenseText || undefined,
+        }
+        onUpdate(updatedDigital)
+
+        if (updatedFiles.length === 0) {
+          setIsEnabled(false)
+        }
+
+        setSuccess('File deleted')
+        setTimeout(() => setSuccess(null), 2000)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete')
+      }
+    },
+    [pieceId, files, settings, onUpdate],
+  )
 
   // Start editing a file
   const startEditing = (file: DigitalFile) => {
@@ -202,11 +218,11 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
       const data = await response.json()
 
       // Update local state
-      setFiles(prev => prev.map(f => f.id === fileId ? data.file : f))
+      setFiles((prev) => prev.map((f) => (f.id === fileId ? data.file : f)))
       setEditingFile(null)
 
       // Update parent
-      const updatedFiles = files.map(f => f.id === fileId ? data.file : f)
+      const updatedFiles = files.map((f) => (f.id === fileId ? data.file : f))
       const updatedDigital: DigitalProductConfig = {
         isDigital: true,
         files: updatedFiles,
@@ -259,7 +275,9 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
             <Download className="h-5 w-5 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Digital Product</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Digital Product
+            </h2>
             <p className="text-sm text-gray-600">
               Sell downloadable files like PDFs, music, videos, or software
             </p>
@@ -268,6 +286,7 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
 
         {/* Toggle */}
         <button
+          type="button"
           onClick={toggleDigital}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             isEnabled ? 'bg-purple-600' : 'bg-gray-300'
@@ -289,7 +308,11 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
             <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {error}
-              <button onClick={() => setError(null)} className="ml-auto">
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="ml-auto"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -306,6 +329,7 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-gray-900">Downloadable Files</h3>
               <button
+                type="button"
                 onClick={() => setUploadOpen(true)}
                 className="flex items-center gap-2 rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
               >
@@ -317,11 +341,14 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
             {files.length === 0 ? (
               <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                 <FileText className="mx-auto h-10 w-10 text-gray-400" />
-                <p className="mt-2 text-sm font-medium text-gray-900">No files yet</p>
+                <p className="mt-2 text-sm font-medium text-gray-900">
+                  No files yet
+                </p>
                 <p className="mt-1 text-sm text-gray-500">
                   Upload files that customers can download after purchase
                 </p>
                 <button
+                  type="button"
                   onClick={() => setUploadOpen(true)}
                   className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
                 >
@@ -331,98 +358,116 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
               </div>
             ) : (
               <div className="space-y-2">
-                {files.sort((a, b) => a.sortOrder - b.sortOrder).map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
-                  >
-                    <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
+                {files
+                  .sort((a, b) => a.sortOrder - b.sortOrder)
+                  .map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+                    >
+                      <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
 
-                    <span className="text-xl">{getFileIcon(file.mimeType)}</span>
+                      <span className="text-xl">
+                        {getFileIcon(file.mimeType)}
+                      </span>
 
-                    {editingFile === file.id ? (
-                      // Edit mode
-                      <div className="flex-1 space-y-2">
-                        <input
-                          type="text"
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          placeholder="Display name"
-                          className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-purple-500 focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          value={editingDescription}
-                          onChange={(e) => setEditingDescription(e.target.value)}
-                          placeholder="Description (optional)"
-                          className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-purple-500 focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          value={editingVersion}
-                          onChange={(e) => setEditingVersion(e.target.value)}
-                          placeholder="Version (e.g., v1.0)"
-                          className="w-48 rounded border border-gray-300 px-2 py-1 text-sm focus:border-purple-500 focus:outline-none"
-                        />
-                      </div>
-                    ) : (
-                      // Display mode
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{file.name}</p>
-                        <p className="text-sm text-gray-500 truncate">
-                          {file.fileName} &bull; {formatFileSize(file.sizeBytes)}
-                          {file.version && ` &bull; ${file.version}`}
-                        </p>
-                        {file.description && (
-                          <p className="text-sm text-gray-600 mt-1">{file.description}</p>
+                      {editingFile === file.id ? (
+                        // Edit mode
+                        <div className="flex-1 space-y-2">
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            placeholder="Display name"
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-purple-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={editingDescription}
+                            onChange={(e) =>
+                              setEditingDescription(e.target.value)
+                            }
+                            placeholder="Description (optional)"
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-purple-500 focus:outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={editingVersion}
+                            onChange={(e) => setEditingVersion(e.target.value)}
+                            placeholder="Version (e.g., v1.0)"
+                            className="w-48 rounded border border-gray-300 px-2 py-1 text-sm focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
+                      ) : (
+                        // Display mode
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">
+                            {file.name}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {file.fileName} &bull;{' '}
+                            {formatFileSize(file.sizeBytes)}
+                            {file.version && ` &bull; ${file.version}`}
+                          </p>
+                          {file.description && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {file.description}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1">
+                        {editingFile === file.id ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => saveFileEdit(file.id)}
+                              className="rounded p-1.5 text-green-600 hover:bg-green-50"
+                              title="Save"
+                            >
+                              <Save className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingFile(null)}
+                              className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
+                              title="Cancel"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => startEditing(file)}
+                              className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
+                              title="Edit"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteFile(file.id)}
+                              className="rounded p-1.5 text-red-600 hover:bg-red-50"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                       </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1">
-                      {editingFile === file.id ? (
-                        <>
-                          <button
-                            onClick={() => saveFileEdit(file.id)}
-                            className="rounded p-1.5 text-green-600 hover:bg-green-50"
-                            title="Save"
-                          >
-                            <Save className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => setEditingFile(null)}
-                            className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                            title="Cancel"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => startEditing(file)}
-                            className="rounded p-1.5 text-gray-600 hover:bg-gray-100"
-                            title="Edit"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteFile(file.id)}
-                            className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  ))}
 
                 <p className="text-xs text-gray-500 text-center pt-2">
-                  Total: {files.length} file{files.length !== 1 ? 's' : ''} &bull;{' '}
-                  {formatFileSize(files.reduce((sum, f) => sum + f.sizeBytes, 0))}
+                  Total: {files.length} file{files.length !== 1 ? 's' : ''}{' '}
+                  &bull;{' '}
+                  {formatFileSize(
+                    files.reduce((sum, f) => sum + f.sizeBytes, 0),
+                  )}
                 </p>
               </div>
             )}
@@ -446,10 +491,14 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
                   type="number"
                   min="1"
                   value={settings.downloadLimit ?? ''}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    downloadLimit: e.target.value ? parseInt(e.target.value) : null,
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      downloadLimit: e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : null,
+                    }))
+                  }
                   placeholder="Unlimited"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none"
                 />
@@ -468,10 +517,14 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
                   type="number"
                   min="1"
                   value={settings.downloadExpiryDays ?? ''}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    downloadExpiryDays: e.target.value ? parseInt(e.target.value) : null,
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      downloadExpiryDays: e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : null,
+                    }))
+                  }
                   placeholder="Never expires"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none"
                 />
@@ -487,10 +540,12 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
                 <input
                   type="checkbox"
                   checked={settings.instantDelivery}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    instantDelivery: e.target.checked,
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      instantDelivery: e.target.checked,
+                    }))
+                  }
                   className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                 />
                 <span className="flex items-center gap-2 text-sm text-gray-700">
@@ -503,10 +558,12 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
                 <input
                   type="checkbox"
                   checked={settings.emailDelivery}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    emailDelivery: e.target.checked,
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      emailDelivery: e.target.checked,
+                    }))
+                  }
                   className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                 />
                 <span className="flex items-center gap-2 text-sm text-gray-700">
@@ -531,10 +588,16 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
                 </label>
                 <select
                   value={settings.licenseType ?? ''}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    licenseType: e.target.value as 'personal' | 'commercial' | 'extended' || null,
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      licenseType:
+                        (e.target.value as
+                          | 'personal'
+                          | 'commercial'
+                          | 'extended') || null,
+                    }))
+                  }
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none"
                 >
                   <option value="">No license specified</option>
@@ -550,10 +613,12 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
                 </label>
                 <textarea
                   value={settings.licenseText}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    licenseText: e.target.value,
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      licenseText: e.target.value,
+                    }))
+                  }
                   rows={4}
                   placeholder="Enter custom license terms (optional)..."
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none"
@@ -565,6 +630,7 @@ export function DigitalProductEditor({ pieceId, digital, onUpdate }: DigitalProd
           {/* Save Button */}
           <div className="border-t border-gray-200 pt-4 flex justify-end">
             <button
+              type="button"
               onClick={saveSettings}
               disabled={saving}
               className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"

@@ -1,13 +1,13 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  DiscountCode,
   CreateDiscountCodeInput,
-  UpdateDiscountCodeInput,
-  DiscountValidationResult,
+  DiscountCode,
   DiscountListOptions,
   DiscountStats,
+  DiscountValidationResult,
+  UpdateDiscountCodeInput,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 /** Escape special regex characters to prevent ReDoS attacks */
 function escapeRegex(str: string): string {
@@ -18,7 +18,7 @@ function escapeRegex(str: string): string {
 
 export async function createDiscountCode(
   tenantId: string,
-  input: CreateDiscountCodeInput
+  input: CreateDiscountCodeInput,
 ): Promise<DiscountCode> {
   const db = await getDatabase()
 
@@ -26,7 +26,9 @@ export async function createDiscountCode(
   const code = input.code.toUpperCase().trim()
 
   // Check for duplicate code within tenant
-  const existing = await db.collection('discount_codes').findOne({ tenantId, code })
+  const existing = await db
+    .collection('discount_codes')
+    .findOne({ tenantId, code })
   if (existing) {
     throw new Error(`Discount code "${code}" already exists`)
   }
@@ -60,7 +62,7 @@ export async function createDiscountCode(
 
 export async function getDiscountCodeById(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<DiscountCode | null> {
   const db = await getDatabase()
   const doc = await db.collection('discount_codes').findOne({ tenantId, id })
@@ -69,18 +71,20 @@ export async function getDiscountCodeById(
 
 export async function getDiscountCodeByCode(
   tenantId: string,
-  code: string
+  code: string,
 ): Promise<DiscountCode | null> {
   const db = await getDatabase()
   const normalizedCode = code.toUpperCase().trim()
-  const doc = await db.collection('discount_codes').findOne({ tenantId, code: normalizedCode })
+  const doc = await db
+    .collection('discount_codes')
+    .findOne({ tenantId, code: normalizedCode })
   return doc as unknown as DiscountCode | null
 }
 
 export async function updateDiscountCode(
   tenantId: string,
   id: string,
-  input: UpdateDiscountCodeInput
+  input: UpdateDiscountCodeInput,
 ): Promise<DiscountCode | null> {
   const db = await getDatabase()
 
@@ -114,18 +118,25 @@ export async function updateDiscountCode(
     updateDoc.expiresAt = new Date(input.expiresAt)
   }
 
-  const result = await db.collection('discount_codes').findOneAndUpdate(
-    { tenantId, id },
-    { $set: updateDoc },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('discount_codes')
+    .findOneAndUpdate(
+      { tenantId, id },
+      { $set: updateDoc },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as DiscountCode | null
 }
 
-export async function deleteDiscountCode(tenantId: string, id: string): Promise<boolean> {
+export async function deleteDiscountCode(
+  tenantId: string,
+  id: string,
+): Promise<boolean> {
   const db = await getDatabase()
-  const result = await db.collection('discount_codes').deleteOne({ tenantId, id })
+  const result = await db
+    .collection('discount_codes')
+    .deleteOne({ tenantId, id })
   return result.deletedCount === 1
 }
 
@@ -133,7 +144,7 @@ export async function deleteDiscountCode(tenantId: string, id: string): Promise<
 
 export async function listDiscountCodes(
   tenantId: string,
-  options: DiscountListOptions = {}
+  options: DiscountListOptions = {},
 ): Promise<{ items: DiscountCode[]; total: number; hasMore: boolean }> {
   const db = await getDatabase()
 
@@ -165,7 +176,8 @@ export async function listDiscountCodes(
   }
 
   const [items, total] = await Promise.all([
-    db.collection('discount_codes')
+    db
+      .collection('discount_codes')
       .find(query)
       .sort(sort)
       .skip(offset)
@@ -189,7 +201,7 @@ export async function validateDiscountCode(
   orderTotal: number,
   pieceIds: string[],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _customerEmail?: string
+  _customerEmail?: string,
 ): Promise<DiscountValidationResult> {
   const discount = await getDiscountCodeByCode(tenantId, code)
 
@@ -213,7 +225,10 @@ export async function validateDiscountCode(
 
   // Check usage limits
   if (discount.maxUses && discount.usageCount >= discount.maxUses) {
-    return { valid: false, error: 'This discount code has reached its usage limit' }
+    return {
+      valid: false,
+      error: 'This discount code has reached its usage limit',
+    }
   }
 
   // Check minimum order amount
@@ -226,17 +241,27 @@ export async function validateDiscountCode(
 
   // Check applicable pieces/categories
   if (discount.applicablePieceIds && discount.applicablePieceIds.length > 0) {
-    const hasApplicablePiece = pieceIds.some(id => discount.applicablePieceIds!.includes(id))
+    const hasApplicablePiece = pieceIds.some((id) =>
+      discount.applicablePieceIds?.includes(id),
+    )
     if (!hasApplicablePiece) {
-      return { valid: false, error: 'This discount code is not valid for these items' }
+      return {
+        valid: false,
+        error: 'This discount code is not valid for these items',
+      }
     }
   }
 
   // Check excluded pieces
   if (discount.excludedPieceIds && discount.excludedPieceIds.length > 0) {
-    const allExcluded = pieceIds.every(id => discount.excludedPieceIds!.includes(id))
+    const allExcluded = pieceIds.every((id) =>
+      discount.excludedPieceIds?.includes(id),
+    )
     if (allExcluded) {
-      return { valid: false, error: 'This discount code is not valid for these items' }
+      return {
+        valid: false,
+        error: 'This discount code is not valid for these items',
+      }
     }
   }
 
@@ -247,7 +272,10 @@ export async function validateDiscountCode(
     case 'percentage':
       discountAmount = orderTotal * (discount.value / 100)
       // Apply max discount cap if set
-      if (discount.maxDiscountAmount && discountAmount > discount.maxDiscountAmount) {
+      if (
+        discount.maxDiscountAmount &&
+        discountAmount > discount.maxDiscountAmount
+      ) {
         discountAmount = discount.maxDiscountAmount
       }
       break
@@ -271,7 +299,10 @@ export async function validateDiscountCode(
 
 // ============ Usage Tracking ============
 
-export async function incrementDiscountUsage(tenantId: string, id: string): Promise<void> {
+export async function incrementDiscountUsage(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
 
   await db.collection('discount_codes').updateOne(
@@ -279,45 +310,49 @@ export async function incrementDiscountUsage(tenantId: string, id: string): Prom
     {
       $inc: { usageCount: 1 },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }
 
 // ============ Stats ============
 
-export async function getDiscountStats(tenantId: string): Promise<DiscountStats> {
+export async function getDiscountStats(
+  tenantId: string,
+): Promise<DiscountStats> {
   const db = await getDatabase()
   const now = new Date()
 
-  const [totalCodes, activeCodes, expiredCodes, usageAgg, topCodes] = await Promise.all([
-    db.collection('discount_codes').countDocuments({ tenantId }),
-    db.collection('discount_codes').countDocuments({
-      tenantId,
-      isActive: true,
-      $or: [
-        { expiresAt: { $exists: false } },
-        { expiresAt: null },
-        { expiresAt: { $gt: now } },
-      ],
-    }),
-    db.collection('discount_codes').countDocuments({
-      tenantId,
-      $or: [
-        { isActive: false },
-        { expiresAt: { $lt: now } },
-      ],
-    }),
-    db.collection('discount_codes').aggregate([
-      { $match: { tenantId } },
-      { $group: { _id: null, total: { $sum: '$usageCount' } } },
-    ]).toArray(),
-    db.collection('discount_codes')
-      .find({ tenantId, usageCount: { $gt: 0 } })
-      .sort({ usageCount: -1 })
-      .limit(5)
-      .project({ code: 1, usageCount: 1, type: 1, value: 1 })
-      .toArray(),
-  ])
+  const [totalCodes, activeCodes, expiredCodes, usageAgg, topCodes] =
+    await Promise.all([
+      db.collection('discount_codes').countDocuments({ tenantId }),
+      db.collection('discount_codes').countDocuments({
+        tenantId,
+        isActive: true,
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: null },
+          { expiresAt: { $gt: now } },
+        ],
+      }),
+      db.collection('discount_codes').countDocuments({
+        tenantId,
+        $or: [{ isActive: false }, { expiresAt: { $lt: now } }],
+      }),
+      db
+        .collection('discount_codes')
+        .aggregate([
+          { $match: { tenantId } },
+          { $group: { _id: null, total: { $sum: '$usageCount' } } },
+        ])
+        .toArray(),
+      db
+        .collection('discount_codes')
+        .find({ tenantId, usageCount: { $gt: 0 } })
+        .sort({ usageCount: -1 })
+        .limit(5)
+        .project({ code: 1, usageCount: 1, type: 1, value: 1 })
+        .toArray(),
+    ])
 
   return {
     totalCodes,

@@ -1,41 +1,41 @@
 'use client'
 
-import { useState, useCallback, useMemo, memo } from 'react'
-import { useRouter } from 'next/navigation'
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
 } from '@dnd-kit/core'
 import {
   arrayMove,
+  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import type { MediaItem } from '@madebuy/shared'
 import {
+  AlertCircle,
+  Check,
+  GripVertical,
   Image as ImageIcon,
-  Video,
+  Loader2,
+  Maximize2,
+  Play,
   Star,
   Trash2,
   Upload,
+  Video,
   X,
-  Play,
-  GripVertical,
-  Check,
-  AlertCircle,
-  Loader2,
-  Maximize2,
 } from 'lucide-react'
-import type { MediaItem } from '@madebuy/shared'
+import { useRouter } from 'next/navigation'
+import { memo, useCallback, useMemo, useState } from 'react'
 
 // ============================================================================
 // Types
@@ -93,9 +93,11 @@ const SortableMediaItem = memo(function SortableMediaItem({
       return item.video?.thumbnailUrl || item.variants.thumb?.url || null
     }
     return item.variants.thumb?.url || item.variants.original?.url
-  }, [item])
+  }, [item.type, item.video?.thumbnailUrl, item.variants])
 
-  const isProcessing = item.processingStatus === 'pending' || item.processingStatus === 'processing'
+  const isProcessing =
+    item.processingStatus === 'pending' ||
+    item.processingStatus === 'processing'
   const hasFailed = item.processingStatus === 'failed'
 
   return (
@@ -119,6 +121,7 @@ const SortableMediaItem = memo(function SortableMediaItem({
 
       {/* Selection Checkbox */}
       <button
+        type="button"
         onClick={() => onSelect(item.id)}
         className={`absolute top-2 right-2 z-10 w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
           isSelected
@@ -140,6 +143,14 @@ const SortableMediaItem = memo(function SortableMediaItem({
       <div
         className="aspect-square bg-gray-100 cursor-pointer"
         onClick={() => onPreview(item)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onPreview(item)
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         {thumbnailUrl ? (
           <img
@@ -190,6 +201,7 @@ const SortableMediaItem = memo(function SortableMediaItem({
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors">
           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onSetPrimary(item.id)
@@ -205,6 +217,7 @@ const SortableMediaItem = memo(function SortableMediaItem({
             </button>
 
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onPreview(item)
@@ -216,6 +229,7 @@ const SortableMediaItem = memo(function SortableMediaItem({
             </button>
 
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete(item.id)
@@ -231,7 +245,10 @@ const SortableMediaItem = memo(function SortableMediaItem({
 
       {/* Info Bar */}
       <div className="p-2 bg-white border-t">
-        <p className="text-xs text-gray-600 truncate" title={item.originalFilename}>
+        <p
+          className="text-xs text-gray-600 truncate"
+          title={item.originalFilename}
+        >
           {item.originalFilename}
         </p>
         <div className="flex items-center gap-2 mt-1">
@@ -244,8 +261,8 @@ const SortableMediaItem = memo(function SortableMediaItem({
             {item.type === 'video' && item.video?.duration
               ? `${Math.floor(item.video.duration)}s`
               : item.sizeBytes
-              ? `${(item.sizeBytes / 1024 / 1024).toFixed(1)}MB`
-              : ''}
+                ? `${(item.sizeBytes / 1024 / 1024).toFixed(1)}MB`
+                : ''}
           </span>
         </div>
       </div>
@@ -302,8 +319,16 @@ function PreviewModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
       <button
+        type="button"
         onClick={onClose}
         className="absolute top-4 right-4 p-2 text-white hover:text-gray-300"
       >
@@ -364,6 +389,21 @@ export function MediaGallery({
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [showVideoOnly, setShowVideoOnly] = useState(false)
+
+  // Video filter helpers
+  const isVideo = useCallback(
+    (m: MediaItem) => m.type === 'video' || m.mimeType?.startsWith('video/'),
+    [],
+  )
+  const videoCount = useMemo(
+    () => items.filter(isVideo).length,
+    [items, isVideo],
+  )
+  const filteredItems = useMemo(
+    () => (showVideoOnly ? items.filter(isVideo) : items),
+    [items, showVideoOnly, isVideo],
+  )
 
   // DnD sensors
   const sensors = useSensors(
@@ -374,13 +414,13 @@ export function MediaGallery({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   )
 
   // Get active item for overlay
   const activeItem = useMemo(
     () => items.find((item) => item.id === activeId) || null,
-    [items, activeId]
+    [items, activeId],
   )
 
   // Handle drag start
@@ -426,7 +466,7 @@ export function MediaGallery({
         }
       }
     },
-    [items, pieceId, onMediaChange, router]
+    [items, pieceId, onMediaChange, router],
   )
 
   // Handle selection toggle
@@ -473,7 +513,7 @@ export function MediaGallery({
         console.error('Error setting primary media:', error)
       }
     },
-    [items, pieceId, onMediaChange, router]
+    [items, pieceId, onMediaChange, router],
   )
 
   // Handle delete single item
@@ -501,7 +541,7 @@ export function MediaGallery({
         setDeleteConfirmId(null)
       }
     },
-    [items, deleteConfirmId, onMediaChange, router]
+    [items, deleteConfirmId, onMediaChange, router],
   )
 
   // Handle bulk delete
@@ -509,7 +549,7 @@ export function MediaGallery({
     if (selectedIds.size === 0) return
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${selectedIds.size} item(s)?`
+      `Are you sure you want to delete ${selectedIds.size} item(s)?`,
     )
     if (!confirmed) return
 
@@ -541,7 +581,7 @@ export function MediaGallery({
 
       const files = Array.from(e.dataTransfer.files).filter(
         (file) =>
-          file.type.startsWith('image/') || file.type.startsWith('video/')
+          file.type.startsWith('image/') || file.type.startsWith('video/'),
       )
 
       if (files.length === 0) return
@@ -562,7 +602,7 @@ export function MediaGallery({
           alert(
             `File "${file.name}" exceeds maximum size of ${
               file.type.startsWith('video/') ? maxVideoSize : maxImageSize
-            }MB`
+            }MB`,
           )
           return
         }
@@ -578,7 +618,7 @@ export function MediaGallery({
         setUploading(false)
       }
     },
-    [items.length, maxItems, maxVideoSize, maxImageSize, onUpload, router]
+    [items.length, maxItems, maxVideoSize, maxImageSize, onUpload, router],
   )
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -593,7 +633,32 @@ export function MediaGallery({
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
+      {/* Filter Toolbar */}
+      {videoCount > 0 && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowVideoOnly(!showVideoOnly)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              showVideoOnly
+                ? 'bg-gradient-to-r from-fuchsia-500 to-violet-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Video
+              className={`h-4 w-4 ${showVideoOnly ? 'animate-pulse' : ''}`}
+            />
+            Videos ({videoCount})
+          </button>
+          {showVideoOnly && (
+            <span className="text-sm text-gray-500">
+              Showing {filteredItems.length} of {items.length} items
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Selection Toolbar */}
       {selectedIds.size > 0 && (
         <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <span className="text-sm text-blue-800">
@@ -601,12 +666,14 @@ export function MediaGallery({
           </span>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setSelectedIds(new Set())}
               className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
             >
               Clear
             </button>
             <button
+              type="button"
               onClick={handleBulkDelete}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded hover:bg-red-100"
             >
@@ -625,7 +692,7 @@ export function MediaGallery({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={items.map((item) => item.id)}
+          items={filteredItems.map((item) => item.id)}
           strategy={rectSortingStrategy}
         >
           <div
@@ -637,7 +704,7 @@ export function MediaGallery({
             onDragLeave={handleDrag}
             onDrop={handleDrop}
           >
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <SortableMediaItem
                 key={item.id}
                 item={item}
@@ -734,16 +801,19 @@ export function MediaGallery({
           <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
             <h3 className="text-lg font-medium text-gray-900">Delete Media?</h3>
             <p className="mt-2 text-sm text-gray-500">
-              This action cannot be undone. The file will be permanently deleted.
+              This action cannot be undone. The file will be permanently
+              deleted.
             </p>
             <div className="mt-4 flex justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(deleteConfirmId)}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
               >

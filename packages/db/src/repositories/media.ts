@@ -1,20 +1,23 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  MediaItem,
   CreateMediaInput,
-  UpdateMediaInput,
   MediaFilters,
+  MediaItem,
   ReorderResult,
+  UpdateMediaInput,
   VideoProcessingStatus,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 // Database record type
 interface MediaDbRecord extends MediaItem {
   _id?: unknown
 }
 
-export async function createMedia(tenantId: string, data: CreateMediaInput): Promise<MediaItem> {
+export async function createMedia(
+  tenantId: string,
+  data: CreateMediaInput,
+): Promise<MediaItem> {
   const db = await getDatabase()
 
   const media: MediaItem = {
@@ -49,9 +52,14 @@ export async function createMedia(tenantId: string, data: CreateMediaInput): Pro
   return media
 }
 
-export async function getMedia(tenantId: string, id: string): Promise<MediaItem | null> {
+export async function getMedia(
+  tenantId: string,
+  id: string,
+): Promise<MediaItem | null> {
   const db = await getDatabase()
-  return await db.collection('media').findOne({ tenantId, id }) as MediaItem | null
+  return (await db
+    .collection('media')
+    .findOne({ tenantId, id })) as MediaItem | null
 }
 
 // Maximum items to return in a single query (prevents memory issues)
@@ -64,7 +72,7 @@ export async function listMedia(
     sortOrder?: 'asc' | 'desc'
     limit?: number
     offset?: number
-  }
+  },
 ): Promise<MediaItem[]> {
   const db = await getDatabase()
 
@@ -102,7 +110,8 @@ export async function listMedia(
   const limit = Math.min(filters?.limit || MAX_QUERY_LIMIT, MAX_QUERY_LIMIT)
   const offset = filters?.offset || 0
 
-  const results = await db.collection('media')
+  const results = await db
+    .collection('media')
     .find(query)
     .sort({ [sortField]: sortOrder })
     .skip(offset)
@@ -115,7 +124,7 @@ export async function listMedia(
 export async function updateMedia(
   tenantId: string,
   id: string,
-  updates: UpdateMediaInput
+  updates: UpdateMediaInput,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('media').updateOne(
@@ -124,8 +133,8 @@ export async function updateMedia(
       $set: {
         ...updates,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -134,9 +143,13 @@ export async function deleteMedia(tenantId: string, id: string): Promise<void> {
   await db.collection('media').deleteOne({ tenantId, id })
 }
 
-export async function getMediaByIds(tenantId: string, ids: string[]): Promise<MediaItem[]> {
+export async function getMediaByIds(
+  tenantId: string,
+  ids: string[],
+): Promise<MediaItem[]> {
   const db = await getDatabase()
-  const results = await db.collection('media')
+  const results = await db
+    .collection('media')
     .find({ tenantId, id: { $in: ids } })
     .toArray()
 
@@ -146,15 +159,15 @@ export async function getMediaByIds(tenantId: string, ids: string[]): Promise<Me
 export async function addPublishDestination(
   tenantId: string,
   mediaId: string,
-  destination: MediaItem['publishedTo'][0]
+  destination: MediaItem['publishedTo'][0],
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('media').updateOne(
     { tenantId, id: mediaId },
     {
       $addToSet: { publishedTo: destination },
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -176,7 +189,7 @@ export async function countMedia(tenantId: string): Promise<number> {
 export async function updateDisplayOrder(
   tenantId: string,
   pieceId: string,
-  orderedIds: string[]
+  orderedIds: string[],
 ): Promise<ReorderResult> {
   const db = await getDatabase()
 
@@ -197,7 +210,8 @@ export async function updateDisplayOrder(
   const result = await db.collection('media').bulkWrite(bulkOps)
 
   return {
-    success: result.modifiedCount > 0 || result.matchedCount === orderedIds.length,
+    success:
+      result.modifiedCount > 0 || result.matchedCount === orderedIds.length,
     updatedCount: result.modifiedCount,
   }
 }
@@ -209,11 +223,12 @@ export async function updateDisplayOrder(
  */
 export async function getMediaByPiece(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<MediaItem[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('media')
+  const results = await db
+    .collection('media')
     .find({ tenantId, pieceId })
     .sort({ displayOrder: 1 })
     .toArray()
@@ -230,21 +245,25 @@ export async function getMediaByPiece(
 export async function setPrimaryMedia(
   tenantId: string,
   pieceId: string,
-  mediaId: string
+  mediaId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
   // First, unset primary on all media for this piece
-  await db.collection('media').updateMany(
-    { tenantId, pieceId },
-    { $set: { isPrimary: false, updatedAt: new Date() } }
-  )
+  await db
+    .collection('media')
+    .updateMany(
+      { tenantId, pieceId },
+      { $set: { isPrimary: false, updatedAt: new Date() } },
+    )
 
   // Then set the specified media as primary
-  await db.collection('media').updateOne(
-    { tenantId, id: mediaId, pieceId },
-    { $set: { isPrimary: true, displayOrder: 0, updatedAt: new Date() } }
-  )
+  await db
+    .collection('media')
+    .updateOne(
+      { tenantId, id: mediaId, pieceId },
+      { $set: { isPrimary: true, displayOrder: 0, updatedAt: new Date() } },
+    )
 }
 
 // ============================================================================
@@ -257,7 +276,8 @@ export async function setPrimaryMedia(
 export async function getVideosPendingProcessing(): Promise<MediaItem[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('media')
+  const results = await db
+    .collection('media')
     .find({
       type: 'video',
       processingStatus: 'pending',
@@ -276,7 +296,7 @@ export async function updateVideoProcessingStatus(
   tenantId: string,
   mediaId: string,
   status: VideoProcessingStatus,
-  error?: string
+  error?: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -292,10 +312,9 @@ export async function updateVideoProcessingStatus(
     updates.processingError = undefined
   }
 
-  await db.collection('media').updateOne(
-    { tenantId, id: mediaId },
-    { $set: updates }
-  )
+  await db
+    .collection('media')
+    .updateOne({ tenantId, id: mediaId }, { $set: updates })
 }
 
 /**
@@ -305,7 +324,7 @@ export async function updateVideoMetadata(
   tenantId: string,
   mediaId: string,
   videoMetadata: MediaItem['video'],
-  thumbnailVariants?: MediaItem['variants']
+  thumbnailVariants?: MediaItem['variants'],
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -326,10 +345,9 @@ export async function updateVideoMetadata(
     }
   }
 
-  await db.collection('media').updateOne(
-    { tenantId, id: mediaId },
-    { $set: updates }
-  )
+  await db
+    .collection('media')
+    .updateOne({ tenantId, id: mediaId }, { $set: updates })
 }
 
 /**
@@ -337,11 +355,12 @@ export async function updateVideoMetadata(
  */
 export async function getNextDisplayOrder(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<number> {
   const db = await getDatabase()
 
-  const result = await db.collection('media')
+  const result = await db
+    .collection('media')
     .find({ tenantId, pieceId })
     .sort({ displayOrder: -1 })
     .limit(1)
@@ -359,7 +378,7 @@ export async function getNextDisplayOrder(
  */
 export async function deleteMediaBulk(
   tenantId: string,
-  mediaIds: string[]
+  mediaIds: string[],
 ): Promise<number> {
   const db = await getDatabase()
 

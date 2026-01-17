@@ -72,10 +72,7 @@ export function ReviewStars({
 
   return (
     <div className="flex items-center gap-1">
-      <div
-        className="flex items-center"
-        onMouseLeave={handleMouseLeave}
-      >
+      <div className="flex items-center" onMouseLeave={handleMouseLeave}>
         {[1, 2, 3, 4, 5].map((star) => {
           const isFilled = star <= displayRating
           const isPartial = !isFilled && star - 0.5 <= displayRating
@@ -83,12 +80,15 @@ export function ReviewStars({
           return (
             <button
               key={star}
-              type="button"
               onClick={() => handleClick(star)}
               onMouseEnter={() => handleMouseEnter(star)}
               disabled={!interactive}
               className={`${interactive ? 'cursor-pointer hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded' : 'cursor-default'} p-0.5`}
-              aria-label={interactive ? `Rate ${star} star${star !== 1 ? 's' : ''}` : undefined}
+              aria-label={
+                interactive
+                  ? `Rate ${star} star${star !== 1 ? 's' : ''}`
+                  : undefined
+              }
             >
               <Star
                 className={`${sizeClasses[size]} ${
@@ -105,7 +105,9 @@ export function ReviewStars({
       </div>
 
       {showValue && (
-        <span className={`${textSizeClasses[size]} font-medium text-gray-700 ml-1`}>
+        <span
+          className={`${textSizeClasses[size]} font-medium text-gray-700 ml-1`}
+        >
           {rating.toFixed(1)}
         </span>
       )}
@@ -134,7 +136,9 @@ export function CompactRating({
   return (
     <div className="flex items-center gap-1">
       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-      <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
+      <span className="text-sm font-medium text-gray-700">
+        {rating.toFixed(1)}
+      </span>
       <span className="text-sm text-gray-500">({reviewCount})</span>
     </div>
   )

@@ -5,7 +5,7 @@
  * and other sensitive marketplace credentials.
  */
 
-import { randomBytes, createCipheriv, createDecipheriv } from 'crypto'
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12 // 96 bits for GCM
@@ -23,7 +23,7 @@ function getEncryptionKey(): Buffer {
   if (!key) {
     throw new Error(
       'MARKETPLACE_ENCRYPTION_KEY environment variable is not set. ' +
-        'Generate one with: openssl rand -base64 32'
+        'Generate one with: openssl rand -base64 32',
     )
   }
 
@@ -32,7 +32,7 @@ function getEncryptionKey(): Buffer {
   if (keyBuffer.length !== 32) {
     throw new Error(
       `MARKETPLACE_ENCRYPTION_KEY must be 32 bytes (256 bits) when decoded. ` +
-        `Got ${keyBuffer.length} bytes. Generate with: openssl rand -base64 32`
+        `Got ${keyBuffer.length} bytes. Generate with: openssl rand -base64 32`,
     )
   }
 
@@ -115,7 +115,10 @@ export function decrypt(ciphertext: string): string {
   // Extract IV, ciphertext, and auth tag
   const iv = combined.subarray(0, IV_LENGTH)
   const authTag = combined.subarray(combined.length - AUTH_TAG_LENGTH)
-  const encrypted = combined.subarray(IV_LENGTH, combined.length - AUTH_TAG_LENGTH)
+  const encrypted = combined.subarray(
+    IV_LENGTH,
+    combined.length - AUTH_TAG_LENGTH,
+  )
 
   // Create decipher
   const decipher = createDecipheriv(ALGORITHM, key, iv, {
@@ -146,7 +149,7 @@ export function encryptIfConfigured(plaintext: string): string {
     if (process.env.NODE_ENV !== 'production') {
       console.warn(
         '[SECURITY WARNING] MARKETPLACE_ENCRYPTION_KEY not configured. ' +
-          'OAuth tokens will be stored in plaintext.'
+          'OAuth tokens will be stored in plaintext.',
       )
     }
     return plaintext
@@ -174,7 +177,7 @@ export function decryptIfConfigured(ciphertext: string): string {
     if (process.env.NODE_ENV !== 'production') {
       console.warn(
         '[SECURITY WARNING] Found unencrypted token in database. ' +
-          'Consider running a migration to encrypt existing tokens.'
+          'Consider running a migration to encrypt existing tokens.',
       )
     }
     return ciphertext

@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
-import { deleteFromR2, getSignedUrl } from '@madebuy/storage'
 import type { UpdateDigitalFileInput } from '@madebuy/shared'
+import { deleteFromR2, getSignedUrl } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/pieces/[id]/files/[fileId]
  * Get a specific digital file's details and signed download URL
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; fileId: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string; fileId: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
-    const file = piece.digital?.files?.find(f => f.id === fileId)
+    const file = piece.digital?.files?.find((f) => f.id === fileId)
     if (!file) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 })
     }
@@ -41,8 +41,10 @@ export async function GET(
   } catch (error) {
     console.error('Error getting digital file:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -53,7 +55,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; fileId: string }> }
+  { params }: { params: Promise<{ id: string; fileId: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -69,20 +71,26 @@ export async function PUT(
     }
 
     const currentFiles = piece.digital?.files || []
-    const fileIndex = currentFiles.findIndex(f => f.id === fileId)
+    const fileIndex = currentFiles.findIndex((f) => f.id === fileId)
 
     if (fileIndex === -1) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 })
     }
 
-    const body = await request.json() as UpdateDigitalFileInput
+    const body = (await request.json()) as UpdateDigitalFileInput
 
     // Validate input
     if (body.name !== undefined && typeof body.name !== 'string') {
       return NextResponse.json({ error: 'Invalid name' }, { status: 400 })
     }
-    if (body.description !== undefined && typeof body.description !== 'string') {
-      return NextResponse.json({ error: 'Invalid description' }, { status: 400 })
+    if (
+      body.description !== undefined &&
+      typeof body.description !== 'string'
+    ) {
+      return NextResponse.json(
+        { error: 'Invalid description' },
+        { status: 400 },
+      )
     }
     if (body.version !== undefined && typeof body.version !== 'string') {
       return NextResponse.json({ error: 'Invalid version' }, { status: 400 })
@@ -115,8 +123,10 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating digital file:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -126,8 +136,8 @@ export async function PUT(
  * Delete a digital file
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; fileId: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string; fileId: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -143,7 +153,7 @@ export async function DELETE(
     }
 
     const currentFiles = piece.digital?.files || []
-    const file = currentFiles.find(f => f.id === fileId)
+    const file = currentFiles.find((f) => f.id === fileId)
 
     if (!file) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 })
@@ -158,7 +168,7 @@ export async function DELETE(
     }
 
     // Remove from piece
-    const updatedFiles = currentFiles.filter(f => f.id !== fileId)
+    const updatedFiles = currentFiles.filter((f) => f.id !== fileId)
 
     // Re-index sort orders
     const reindexedFiles = updatedFiles.map((f, i) => ({
@@ -189,8 +199,10 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting digital file:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

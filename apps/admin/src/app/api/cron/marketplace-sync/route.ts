@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
+import { timingSafeEqual } from 'node:crypto'
 import { marketplace, pieces, tenants } from '@madebuy/db'
 import type { MarketplaceConnection, MarketplaceListing } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 import { createEbayClient } from '@/lib/marketplace/ebay'
 
 /**
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       // Get active eBay connection
       const ebayConnection = await marketplace.getConnectionByMarketplace(
         tenant.id,
-        'ebay'
+        'ebay',
       )
 
       if (ebayConnection?.status === 'connected') {
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(
-      `[CRON] Marketplace sync completed: ${processedCount} synced, ${errorCount} errors`
+      `[CRON] Marketplace sync completed: ${processedCount} synced, ${errorCount} errors`,
     )
 
     return NextResponse.json({
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         error: error instanceof Error ? error.message : 'Failed to sync',
         success: false,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
  */
 async function syncEbayListings(
   tenantId: string,
-  connection: MarketplaceConnection
+  connection: MarketplaceConnection,
 ): Promise<SyncResult[]> {
   const results: SyncResult[] = []
 
@@ -123,7 +123,7 @@ async function syncEbayListings(
   const listingsToSync = await marketplace.getListingsNeedingSync(
     tenantId,
     'ebay',
-    15
+    15,
   )
 
   if (listingsToSync.length === 0) {
@@ -131,7 +131,7 @@ async function syncEbayListings(
   }
 
   console.log(
-    `[CRON] Syncing ${listingsToSync.length} eBay listings for tenant ${tenantId}`
+    `[CRON] Syncing ${listingsToSync.length} eBay listings for tenant ${tenantId}`,
   )
 
   for (const listing of listingsToSync) {
@@ -151,7 +151,7 @@ async function syncEbayListings(
 async function syncSingleEbayListing(
   tenantId: string,
   connection: MarketplaceConnection,
-  listing: MarketplaceListing
+  listing: MarketplaceListing,
 ): Promise<SyncResult> {
   try {
     // Get the piece
@@ -161,7 +161,7 @@ async function syncSingleEbayListing(
         tenantId,
         listing.id,
         'error',
-        'Piece not found'
+        'Piece not found',
       )
       return {
         tenantId,
@@ -209,7 +209,7 @@ async function syncSingleEbayListing(
         tenantId,
         listing.id,
         currentPrice,
-        currentQuantity
+        currentQuantity,
       )
       return {
         tenantId,
@@ -224,7 +224,7 @@ async function syncSingleEbayListing(
     // Create eBay API client
     const ebay = createEbayClient(
       connection.accessToken!,
-      connection.refreshToken || undefined
+      connection.refreshToken || undefined,
     )
 
     // Update inventory item (quantity)
@@ -238,19 +238,22 @@ async function syncSingleEbayListing(
       }
 
       try {
-        await ebay.sell.inventory.createOrReplaceInventoryItem(sku, inventoryPayload)
+        await ebay.sell.inventory.createOrReplaceInventoryItem(
+          sku,
+          inventoryPayload,
+        )
         console.log(`[CRON] Inventory updated for listing ${listing.id}`)
       } catch (inventoryError: any) {
         console.error(
           `[CRON] eBay inventory update failed for ${listing.id}:`,
-          inventoryError?.message || inventoryError
+          inventoryError?.message || inventoryError,
         )
 
         await marketplace.updateListingStatus(
           tenantId,
           listing.id,
           'error',
-          `Inventory sync failed: ${inventoryError?.message || 'Unknown error'}`
+          `Inventory sync failed: ${inventoryError?.message || 'Unknown error'}`,
         )
 
         return {
@@ -280,14 +283,14 @@ async function syncSingleEbayListing(
       } catch (offerError: any) {
         console.error(
           `[CRON] eBay offer update failed for ${listing.id}:`,
-          offerError?.message || offerError
+          offerError?.message || offerError,
         )
 
         await marketplace.updateListingStatus(
           tenantId,
           listing.id,
           'error',
-          `Price sync failed: ${offerError?.message || 'Unknown error'}`
+          `Price sync failed: ${offerError?.message || 'Unknown error'}`,
         )
 
         return {
@@ -305,7 +308,7 @@ async function syncSingleEbayListing(
       tenantId,
       listing.id,
       currentPrice,
-      currentQuantity
+      currentQuantity,
     )
     await marketplace.updateListingStatus(tenantId, listing.id, 'active')
 

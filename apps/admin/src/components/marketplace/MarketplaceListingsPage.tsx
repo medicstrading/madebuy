@@ -1,20 +1,23 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import type {
+  MarketplaceListingStatus,
+  MarketplacePlatform,
+} from '@madebuy/shared'
 import {
-  ExternalLink,
-  RefreshCw,
-  Trash2,
-  Package,
-  Loader2,
   AlertCircle,
   CheckCircle,
   Clock,
-  MoreHorizontal,
+  ExternalLink,
   Eye,
+  Loader2,
+  MoreHorizontal,
+  Package,
+  RefreshCw,
+  Trash2,
 } from 'lucide-react'
-import type { MarketplacePlatform, MarketplaceListingStatus } from '@madebuy/shared'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
 
 interface ListingWithPiece {
   id: string
@@ -43,13 +46,32 @@ interface MarketplaceListingsPageProps {
   platformColor: string
 }
 
-const statusConfig: Record<MarketplaceListingStatus, { label: string; color: string; icon: typeof CheckCircle }> = {
+const statusConfig: Record<
+  MarketplaceListingStatus,
+  { label: string; color: string; icon: typeof CheckCircle }
+> = {
   draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: Clock },
-  pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  active: { label: 'Active', color: 'bg-green-100 text-green-700', icon: CheckCircle },
+  pending: {
+    label: 'Pending',
+    color: 'bg-yellow-100 text-yellow-700',
+    icon: Clock,
+  },
+  active: {
+    label: 'Active',
+    color: 'bg-green-100 text-green-700',
+    icon: CheckCircle,
+  },
   ended: { label: 'Ended', color: 'bg-gray-100 text-gray-600', icon: Clock },
-  error: { label: 'Error', color: 'bg-red-100 text-red-700', icon: AlertCircle },
-  out_of_stock: { label: 'Out of Stock', color: 'bg-orange-100 text-orange-700', icon: AlertCircle },
+  error: {
+    label: 'Error',
+    color: 'bg-red-100 text-red-700',
+    icon: AlertCircle,
+  },
+  out_of_stock: {
+    label: 'Out of Stock',
+    color: 'bg-orange-100 text-orange-700',
+    icon: AlertCircle,
+  },
 }
 
 function formatTimeAgo(dateStr: string): string {
@@ -67,7 +89,11 @@ function formatTimeAgo(dateStr: string): string {
   return date.toLocaleDateString()
 }
 
-export function MarketplaceListingsPage({ platform, platformName, platformColor }: MarketplaceListingsPageProps) {
+export function MarketplaceListingsPage({
+  platform,
+  platformName,
+  platformColor,
+}: MarketplaceListingsPageProps) {
   const [listings, setListings] = useState<ListingWithPiece[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -102,9 +128,12 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
     setSyncing(listingId)
     setActionMenuOpen(null)
     try {
-      const response = await fetch(`/api/marketplace/${platform}/listings/${listingId}/sync`, {
-        method: 'POST',
-      })
+      const response = await fetch(
+        `/api/marketplace/${platform}/listings/${listingId}/sync`,
+        {
+          method: 'POST',
+        },
+      )
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'Sync failed')
@@ -118,15 +147,22 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
   }
 
   async function handleDelete(listingId: string, productName: string) {
-    if (!confirm(`Are you sure you want to remove "${productName}" from ${platformName}?`)) {
+    if (
+      !confirm(
+        `Are you sure you want to remove "${productName}" from ${platformName}?`,
+      )
+    ) {
       return
     }
     setDeleting(listingId)
     setActionMenuOpen(null)
     try {
-      const response = await fetch(`/api/marketplace/${platform}/listings/${listingId}`, {
-        method: 'DELETE',
-      })
+      const response = await fetch(
+        `/api/marketplace/${platform}/listings/${listingId}`,
+        {
+          method: 'DELETE',
+        },
+      )
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'Delete failed')
@@ -159,12 +195,15 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{platformName} Listings</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {platformName} Listings
+          </h1>
           <p className="mt-1 text-gray-500">
             Manage your products listed on {platformName}
           </p>
         </div>
         <button
+          type="button"
           onClick={fetchListings}
           disabled={loading}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
@@ -182,7 +221,9 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm font-medium text-gray-500">Active</p>
-          <p className="mt-1 text-2xl font-bold text-green-600">{stats.active}</p>
+          <p className="mt-1 text-2xl font-bold text-green-600">
+            {stats.active}
+          </p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-sm font-medium text-gray-500">Errors</p>
@@ -202,7 +243,9 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
       {listings.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No listings yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No listings yet
+          </h3>
           <p className="mt-2 text-sm text-gray-500">
             List your products on {platformName} from the inventory page.
           </p>
@@ -238,15 +281,19 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {listings.map((listing) => {
-                const status = statusConfig[listing.status] || statusConfig.draft
+                const status =
+                  statusConfig[listing.status] || statusConfig.draft
                 const StatusIcon = status.icon
-                const isProcessing = syncing === listing.id || deleting === listing.id
+                const isProcessing =
+                  syncing === listing.id || deleting === listing.id
 
                 return (
                   <tr key={listing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${platformColor}`}>
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg ${platformColor}`}
+                        >
                           <Package className="h-5 w-5 text-white" />
                         </div>
                         <div className="min-w-0">
@@ -260,29 +307,46 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.color}`}
+                      >
                         <StatusIcon className="h-3 w-3" />
                         {status.label}
                       </span>
                       {listing.syncError && (
-                        <p className="mt-1 text-xs text-red-600 line-clamp-1">{listing.syncError}</p>
+                        <p className="mt-1 text-xs text-red-600 line-clamp-1">
+                          {listing.syncError}
+                        </p>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-900">
-                        ${listing.lastSyncedPrice?.toFixed(2) || listing.piece?.price?.toFixed(2) || '—'}
+                        $
+                        {listing.lastSyncedPrice?.toFixed(2) ||
+                          listing.piece?.price?.toFixed(2) ||
+                          '—'}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Qty: {listing.lastSyncedQuantity ?? listing.piece?.stock ?? '—'}
+                        Qty:{' '}
+                        {listing.lastSyncedQuantity ??
+                          listing.piece?.stock ??
+                          '—'}
                       </p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {listing.lastSyncedAt ? formatTimeAgo(listing.lastSyncedAt) : 'Never'}
+                      {listing.lastSyncedAt
+                        ? formatTimeAgo(listing.lastSyncedAt)
+                        : 'Never'}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="relative inline-block text-left">
                         <button
-                          onClick={() => setActionMenuOpen(actionMenuOpen === listing.id ? null : listing.id)}
+                          type="button"
+                          onClick={() =>
+                            setActionMenuOpen(
+                              actionMenuOpen === listing.id ? null : listing.id,
+                            )
+                          }
                           disabled={isProcessing}
                           className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                         >
@@ -314,6 +378,7 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
                                   </a>
                                 )}
                                 <button
+                                  type="button"
                                   onClick={() => handleSync(listing.id)}
                                   className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                 >
@@ -331,7 +396,13 @@ export function MarketplaceListingsPage({ platform, platformName, platformColor 
                                   </Link>
                                 )}
                                 <button
-                                  onClick={() => handleDelete(listing.id, listing.piece?.name || 'this listing')}
+                                  type="button"
+                                  onClick={() =>
+                                    handleDelete(
+                                      listing.id,
+                                      listing.piece?.name || 'this listing',
+                                    )
+                                  }
                                   className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4" />

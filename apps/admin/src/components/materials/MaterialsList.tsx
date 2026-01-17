@@ -1,8 +1,8 @@
 'use client'
 
-import { Material } from '@madebuy/shared'
-import Link from 'next/link'
+import type { Material } from '@madebuy/shared'
 import { Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
 interface MaterialsListProps {
   materials: Material[]
@@ -91,7 +91,7 @@ export function MaterialsList({ materials, onDelete }: MaterialsListProps) {
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryColor(
-                    material.category
+                    material.category,
                   )}`}
                 >
                   {material.category}
@@ -131,6 +131,7 @@ export function MaterialsList({ materials, onDelete }: MaterialsListProps) {
                   </Link>
                   {onDelete && (
                     <button
+                      type="button"
                       onClick={() => onDelete(material.id)}
                       className="text-red-600 hover:text-red-900"
                     >

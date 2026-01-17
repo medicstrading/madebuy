@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { useTenantCategories, FALLBACK_MATERIAL_CATEGORIES } from '@/hooks/useTenantCategories'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import {
+  FALLBACK_MATERIAL_CATEGORIES,
+  useTenantCategories,
+} from '@/hooks/useTenantCategories'
 
 interface MaterialFormProps {
   tenantId: string
@@ -15,10 +18,14 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
   const [submitting, setSubmitting] = useState(false)
 
   // Get dynamic categories based on maker type
-  const { materialCategories, isLoading: categoriesLoading } = useTenantCategories()
+  const { materialCategories, isLoading: categoriesLoading } =
+    useTenantCategories()
 
   // Use fetched categories or fallback to jewelry categories
-  const categories = materialCategories.length > 0 ? materialCategories : FALLBACK_MATERIAL_CATEGORIES
+  const categories =
+    materialCategories.length > 0
+      ? materialCategories
+      : FALLBACK_MATERIAL_CATEGORIES
   const [formData, setFormData] = useState({
     name: material?.name || '',
     category: material?.category || '',
@@ -30,13 +37,20 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
     notes: material?.notes || '',
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'quantityInStock' || name === 'reorderPoint' || name === 'costPerUnit'
-        ? parseFloat(value) || 0
-        : value
+      [name]:
+        name === 'quantityInStock' ||
+        name === 'reorderPoint' ||
+        name === 'costPerUnit'
+          ? parseFloat(value) || 0
+          : value,
     }))
   }
 
@@ -84,12 +98,17 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Material Details</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Material Details
+        </h2>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Material Name *
             </label>
             <input
@@ -106,13 +125,18 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
 
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Category
             </label>
             {categoriesLoading ? (
               <div className="flex items-center gap-2 h-[42px] rounded-lg border border-gray-300 px-3 bg-gray-50">
                 <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                <span className="text-sm text-gray-500">Loading categories...</span>
+                <span className="text-sm text-gray-500">
+                  Loading categories...
+                </span>
               </div>
             ) : (
               <select
@@ -138,7 +162,10 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
 
           {/* Quantity in Stock */}
           <div>
-            <label htmlFor="quantityInStock" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="quantityInStock"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Quantity in Stock *
             </label>
             <input
@@ -156,7 +183,10 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
 
           {/* Unit */}
           <div>
-            <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="unit"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Unit of Measurement *
             </label>
             <input
@@ -173,7 +203,10 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
 
           {/* Reorder Point */}
           <div>
-            <label htmlFor="reorderPoint" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="reorderPoint"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Reorder Point *
             </label>
             <input
@@ -194,7 +227,10 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
 
           {/* Cost per Unit */}
           <div>
-            <label htmlFor="costPerUnit" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="costPerUnit"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Cost per Unit (AUD) *
             </label>
             <input
@@ -214,7 +250,10 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
         <div className="mt-6">
           {/* Supplier */}
           <div className="mb-4">
-            <label htmlFor="supplier" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="supplier"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Supplier
             </label>
             <input
@@ -230,7 +269,10 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
 
           {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Notes
             </label>
             <textarea
@@ -250,12 +292,14 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
       <div className="flex gap-3 justify-end">
         <button
           type="button"
+          type="button"
           onClick={() => router.back()}
           className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
+          type="button"
           type="submit"
           disabled={submitting}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"

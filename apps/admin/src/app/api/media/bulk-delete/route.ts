@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { media, pieces } from '@madebuy/db'
 import { deleteFromR2 } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * POST /api/media/bulk-delete
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     if (!mediaIds || !Array.isArray(mediaIds) || mediaIds.length === 0) {
       return NextResponse.json(
         { error: 'mediaIds array is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     if (invalidIds.length > 0) {
       return NextResponse.json(
         { error: `Media items not found: ${invalidIds.join(', ')}` },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
           deletePromises.push(
             deleteFromR2(variant.key).catch((err) => {
               console.error(`Failed to delete ${variant.key} from R2:`, err)
-            })
+            }),
           )
         }
       }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       // Delete video thumbnails if present
       if (item.video?.thumbnailKey) {
         deletePromises.push(
-          deleteFromR2(item.video.thumbnailKey).catch(() => {})
+          deleteFromR2(item.video.thumbnailKey).catch(() => {}),
         )
       }
     }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       const piece = await pieces.getPiece(tenant.id, pieceId)
       if (piece) {
         const remainingMediaIds = (piece.mediaIds || []).filter(
-          (id: string) => !deletedMediaIds.includes(id)
+          (id: string) => !deletedMediaIds.includes(id),
         )
 
         const updateData: any = {
@@ -95,7 +95,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Update primary media if it was deleted
-        if (piece.primaryMediaId && deletedMediaIds.includes(piece.primaryMediaId)) {
+        if (
+          piece.primaryMediaId &&
+          deletedMediaIds.includes(piece.primaryMediaId)
+        ) {
           updateData.primaryMediaId = remainingMediaIds[0] || null
         }
 
@@ -111,8 +114,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error bulk deleting media:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

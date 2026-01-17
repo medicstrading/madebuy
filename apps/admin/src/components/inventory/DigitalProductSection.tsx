@@ -1,15 +1,18 @@
 'use client'
 
+import type { DigitalProductConfig } from '@madebuy/shared'
 import { Download } from 'lucide-react'
 import { DigitalProductEditor } from '@/components/digital'
-import type { DigitalProductConfig } from '@madebuy/shared'
 
 interface DigitalProductSectionProps {
   pieceId: string
   digital?: DigitalProductConfig
 }
 
-export function DigitalProductSection({ pieceId, digital }: DigitalProductSectionProps) {
+export function DigitalProductSection({
+  pieceId,
+  digital,
+}: DigitalProductSectionProps) {
   // The DigitalProductEditor handles its own API calls internally
   // onUpdate is just for parent state sync which we don't need here
   const handleUpdate = () => {

@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  SkipBack,
-  SkipForward,
   AlertCircle,
   Loader2,
+  Maximize,
+  Minimize,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ============================================================================
 // Types
@@ -48,7 +48,7 @@ interface VideoState {
 // ============================================================================
 
 function formatTime(seconds: number): string {
-  if (!isFinite(seconds) || isNaN(seconds)) return '0:00'
+  if (!Number.isFinite(seconds) || Number.isNaN(seconds)) return '0:00'
 
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
@@ -126,19 +126,22 @@ export function VideoPlayer({
   }, [])
 
   // Change volume
-  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current
-    if (!video) return
+  const handleVolumeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const video = videoRef.current
+      if (!video) return
 
-    const volume = parseFloat(e.target.value)
-    video.volume = volume
-    video.muted = volume === 0
-    setState((prev) => ({
-      ...prev,
-      volume,
-      isMuted: volume === 0,
-    }))
-  }, [])
+      const volume = parseFloat(e.target.value)
+      video.volume = volume
+      video.muted = volume === 0
+      setState((prev) => ({
+        ...prev,
+        volume,
+        isMuted: volume === 0,
+      }))
+    },
+    [],
+  )
 
   // Seek video
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -156,7 +159,10 @@ export function VideoPlayer({
     const video = videoRef.current
     if (!video) return
 
-    video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds))
+    video.currentTime = Math.max(
+      0,
+      Math.min(video.duration, video.currentTime + seconds),
+    )
   }, [])
 
   // Toggle fullscreen
@@ -319,7 +325,8 @@ export function VideoPlayer({
   }, [togglePlay, toggleMute, toggleFullscreen, skip])
 
   // Calculate progress percentage
-  const progress = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0
+  const progress =
+    state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0
 
   // Error state
   if (state.hasError) {
@@ -367,6 +374,7 @@ export function VideoPlayer({
       {/* Play/Pause Overlay */}
       {!state.isPlaying && !state.isLoading && (
         <button
+          type="button"
           onClick={togglePlay}
           className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
         >
@@ -410,6 +418,7 @@ export function VideoPlayer({
           <div className="flex items-center gap-2">
             {/* Play/Pause */}
             <button
+              type="button"
               onClick={togglePlay}
               className="p-1.5 hover:bg-white/20 rounded transition-colors"
             >
@@ -422,6 +431,7 @@ export function VideoPlayer({
 
             {/* Skip Backward */}
             <button
+              type="button"
               onClick={() => skip(-10)}
               className="p-1.5 hover:bg-white/20 rounded transition-colors"
               title="Rewind 10s"
@@ -431,6 +441,7 @@ export function VideoPlayer({
 
             {/* Skip Forward */}
             <button
+              type="button"
               onClick={() => skip(10)}
               className="p-1.5 hover:bg-white/20 rounded transition-colors"
               title="Forward 10s"
@@ -441,6 +452,7 @@ export function VideoPlayer({
             {/* Volume */}
             <div className="flex items-center gap-2 group/volume">
               <button
+                type="button"
                 onClick={toggleMute}
                 className="p-1.5 hover:bg-white/20 rounded transition-colors"
               >
@@ -470,6 +482,7 @@ export function VideoPlayer({
           <div className="flex items-center gap-2">
             {/* Fullscreen */}
             <button
+              type="button"
               onClick={toggleFullscreen}
               className="p-1.5 hover:bg-white/20 rounded transition-colors"
             >

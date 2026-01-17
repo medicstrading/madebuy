@@ -1,16 +1,20 @@
-import { NextResponse } from 'next/server'
-import { unstable_cache } from 'next/cache'
-import { getCurrentTenant } from '@/lib/session'
 import { tracking } from '@madebuy/db'
+import { unstable_cache } from 'next/cache'
+import { NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 // Cache source data for 2 minutes
 const getCachedSourceData = unstable_cache(
   async (tenantId: string, startDate: Date, endDate: Date) => {
-    const summary = await tracking.getAnalyticsSummary(tenantId, startDate, endDate)
+    const summary = await tracking.getAnalyticsSummary(
+      tenantId,
+      startDate,
+      endDate,
+    )
     return summary
   },
   ['analytics-sources'],
-  { revalidate: 120, tags: ['analytics'] }
+  { revalidate: 120, tags: ['analytics'] },
 )
 
 export async function GET(request: Request) {
@@ -41,7 +45,7 @@ export async function GET(request: Request) {
     console.error('Error fetching source data:', error)
     return NextResponse.json(
       { error: 'Failed to fetch source data' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

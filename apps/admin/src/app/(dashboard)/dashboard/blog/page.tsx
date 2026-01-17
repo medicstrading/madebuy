@@ -1,8 +1,8 @@
-import { requireTenant } from '@/lib/session'
 import { blog } from '@madebuy/db'
-import { formatDate } from '@/lib/utils'
-import { FileText, Eye, Edit, Clock } from 'lucide-react'
+import { Clock, Edit, Eye, FileText } from 'lucide-react'
 import Link from 'next/link'
+import { requireTenant } from '@/lib/session'
+import { formatDate } from '@/lib/utils'
 
 export default async function BlogPage() {
   const tenant = await requireTenant()
@@ -10,8 +10,8 @@ export default async function BlogPage() {
 
   const stats = {
     total: allPosts.length,
-    published: allPosts.filter(p => p.status === 'published').length,
-    drafts: allPosts.filter(p => p.status === 'draft').length,
+    published: allPosts.filter((p) => p.status === 'published').length,
+    drafts: allPosts.filter((p) => p.status === 'draft').length,
     totalViews: allPosts.reduce((sum, p) => sum + p.views, 0),
   }
 
@@ -20,7 +20,9 @@ export default async function BlogPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Blog</h1>
-          <p className="mt-2 text-gray-600">Create and manage blog posts for your website</p>
+          <p className="mt-2 text-gray-600">
+            Create and manage blog posts for your website
+          </p>
         </div>
         <Link
           href="/dashboard/blog/new"
@@ -32,18 +34,41 @@ export default async function BlogPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard title="Total Posts" value={stats.total} icon={FileText} color="blue" />
-        <StatCard title="Published" value={stats.published} icon={FileText} color="green" />
-        <StatCard title="Drafts" value={stats.drafts} icon={Clock} color="yellow" />
-        <StatCard title="Total Views" value={stats.totalViews} icon={Eye} color="purple" />
+        <StatCard
+          title="Total Posts"
+          value={stats.total}
+          icon={FileText}
+          color="blue"
+        />
+        <StatCard
+          title="Published"
+          value={stats.published}
+          icon={FileText}
+          color="green"
+        />
+        <StatCard
+          title="Drafts"
+          value={stats.drafts}
+          icon={Clock}
+          color="yellow"
+        />
+        <StatCard
+          title="Total Views"
+          value={stats.totalViews}
+          icon={Eye}
+          color="purple"
+        />
       </div>
 
       {allPosts.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <FileText className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No blog posts yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No blog posts yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
-            Create your first blog post to share stories, tips, or showcase your work.
+            Create your first blog post to share stories, tips, or showcase your
+            work.
           </p>
           <Link
             href="/dashboard/blog/new"
@@ -89,9 +114,13 @@ export default async function BlogPage() {
                         </div>
                       )}
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{post.title}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {post.title}
+                        </div>
                         {post.excerpt && (
-                          <div className="text-xs text-gray-500 line-clamp-1 mt-1">{post.excerpt}</div>
+                          <div className="text-xs text-gray-500 line-clamp-1 mt-1">
+                            {post.excerpt}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -150,11 +179,11 @@ function StatCard({
   title,
   value,
   icon: Icon,
-  color
+  color,
 }: {
   title: string
   value: number
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   color: 'blue' | 'green' | 'yellow' | 'purple'
 }) {
   const colorClasses = {
@@ -186,7 +215,9 @@ function StatusBadge({ status }: { status: 'draft' | 'published' }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status]}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status]}`}
+    >
       {status}
     </span>
   )

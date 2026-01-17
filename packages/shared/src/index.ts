@@ -6,75 +6,61 @@
  * See: archive/packages/shared/src/
  */
 
-// Export all types
-export * from './types'
-
-// Export error classes
-export * from './errors'
-
-// Export sanitization utilities
-export * from './lib/sanitize'
-
-// Export cryptographic utilities
-export * from './lib/crypto'
-
-// Explicit re-export of value constants from types (needed for bundler resolution)
-export {
-  // Media constants
-  VALID_IMAGE_TYPES,
-  VALID_VIDEO_TYPES,
-  MAX_IMAGE_SIZE,
-  MAX_VIDEO_SIZE,
-  MAX_VIDEO_DURATION,
-  MAX_MEDIA_PER_PIECE,
-  VIDEO_EXTENSIONS,
-  IMAGE_EXTENSIONS,
-} from './types'
-
-// Export typography constants
-export { TYPOGRAPHY_PRESETS, getTypographyConfig } from './constants/typography'
-
 // Export country/regional presets
 export {
   COUNTRY_PRESETS,
-  getCountryPreset,
-  getCountryByName,
-  DEFAULT_REGIONAL_SETTINGS,
   type CountryPreset,
+  DEFAULT_REGIONAL_SETTINGS,
+  getCountryByName,
+  getCountryPreset,
 } from './constants/countryPresets'
-
-// Export template utilities
-export { getDefaultPages, getDefaultSections } from './types/template'
-
 // Export maker type presets
 export {
-  MAKER_TYPES,
-  MAKER_CATEGORY_PRESETS,
-  MAKER_MATERIAL_PRESETS,
+  getMakerTypeInfo,
   getTenantCategories,
   getTenantMaterialCategories,
-  getMakerTypeInfo,
+  MAKER_CATEGORY_PRESETS,
+  MAKER_MATERIAL_PRESETS,
+  MAKER_TYPES,
   type MakerType,
   type MakerTypeInfo,
 } from './constants/makerPresets'
-
-// Export subscription utilities
-export * from './lib/subscription'
-
-// Export COGS calculation utilities
-export * from './lib/cogs'
-
-// Export Stripe utilities (config only - Connect archived)
-export * from './stripe'
-
-// Export validation schemas
-export * from './validation'
-
-// Export digital delivery service
-export * from './services/digital-delivery'
-
+// Export typography constants
+export { getTypographyConfig, TYPOGRAPHY_PRESETS } from './constants/typography'
 // Export email templates
 export * from './email'
+// Export error classes
+export * from './errors'
+// Export COGS calculation utilities
+export * from './lib/cogs'
+// Export cryptographic utilities
+export * from './lib/crypto'
+// Export sanitization utilities
+export * from './lib/sanitize'
+// Export subscription utilities
+export * from './lib/subscription'
+// Export digital delivery service
+export * from './services/digital-delivery'
+// Export Stripe utilities (config only - Connect archived)
+export * from './stripe'
+// Export all types
+export * from './types'
+// Explicit re-export of value constants from types (needed for bundler resolution)
+export {
+  IMAGE_EXTENSIONS,
+  MAX_IMAGE_SIZE,
+  MAX_MEDIA_PER_PIECE,
+  MAX_VIDEO_DURATION,
+  MAX_VIDEO_SIZE,
+  // Media constants
+  VALID_IMAGE_TYPES,
+  VALID_VIDEO_TYPES,
+  VIDEO_EXTENSIONS,
+} from './types'
+// Export template utilities
+export { getDefaultPages, getDefaultSections } from './types/template'
+// Export validation schemas
+export * from './validation'
 
 // =============================================================================
 // ARCHIVED EXPORTS (removed 2026-01-02)

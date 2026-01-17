@@ -7,9 +7,9 @@ import type { CloudflareClient } from './client'
 import type {
   CloudflareDnsRecord,
   CreateDnsRecordParams,
-  UpdateDnsRecordParams,
   DnsRecordType,
   MadeBuyDnsRequirements,
+  UpdateDnsRecordParams,
 } from './types'
 
 // MadeBuy infrastructure configuration
@@ -30,7 +30,7 @@ export class DnsApi {
       content?: string
       page?: number
       per_page?: number
-    }
+    },
   ): Promise<CloudflareDnsRecord[]> {
     const queryParams: Record<string, string> = {}
     if (params?.type) queryParams.type = params.type
@@ -41,7 +41,7 @@ export class DnsApi {
 
     const response = await this.client.get<CloudflareDnsRecord[]>(
       `/zones/${zoneId}/dns_records`,
-      queryParams
+      queryParams,
     )
     return response.result
   }
@@ -49,9 +49,12 @@ export class DnsApi {
   /**
    * Get a specific DNS record
    */
-  async getRecord(zoneId: string, recordId: string): Promise<CloudflareDnsRecord> {
+  async getRecord(
+    zoneId: string,
+    recordId: string,
+  ): Promise<CloudflareDnsRecord> {
     const response = await this.client.get<CloudflareDnsRecord>(
-      `/zones/${zoneId}/dns_records/${recordId}`
+      `/zones/${zoneId}/dns_records/${recordId}`,
     )
     return response.result
   }
@@ -61,7 +64,7 @@ export class DnsApi {
    */
   async createRecord(
     zoneId: string,
-    params: CreateDnsRecordParams
+    params: CreateDnsRecordParams,
   ): Promise<CloudflareDnsRecord> {
     const response = await this.client.post<CloudflareDnsRecord>(
       `/zones/${zoneId}/dns_records`,
@@ -73,7 +76,7 @@ export class DnsApi {
         proxied: params.proxied ?? false,
         priority: params.priority,
         comment: params.comment,
-      }
+      },
     )
     return response.result
   }
@@ -84,11 +87,11 @@ export class DnsApi {
   async updateRecord(
     zoneId: string,
     recordId: string,
-    params: UpdateDnsRecordParams
+    params: UpdateDnsRecordParams,
   ): Promise<CloudflareDnsRecord> {
     const response = await this.client.patch<CloudflareDnsRecord>(
       `/zones/${zoneId}/dns_records/${recordId}`,
-      params
+      params,
     )
     return response.result
   }
@@ -96,9 +99,12 @@ export class DnsApi {
   /**
    * Delete a DNS record
    */
-  async deleteRecord(zoneId: string, recordId: string): Promise<{ id: string }> {
+  async deleteRecord(
+    zoneId: string,
+    recordId: string,
+  ): Promise<{ id: string }> {
     const response = await this.client.delete<{ id: string }>(
-      `/zones/${zoneId}/dns_records/${recordId}`
+      `/zones/${zoneId}/dns_records/${recordId}`,
     )
     return response.result
   }
@@ -109,7 +115,7 @@ export class DnsApi {
   async findRecord(
     zoneId: string,
     type: DnsRecordType,
-    name: string
+    name: string,
   ): Promise<CloudflareDnsRecord | null> {
     const records = await this.listRecords(zoneId, { type, name })
     return records.length > 0 ? records[0] : null
@@ -120,7 +126,7 @@ export class DnsApi {
    */
   async upsertRecord(
     zoneId: string,
-    params: CreateDnsRecordParams
+    params: CreateDnsRecordParams,
   ): Promise<CloudflareDnsRecord> {
     const existing = await this.findRecord(zoneId, params.type, params.name)
 
@@ -144,25 +150,26 @@ export class DnsApi {
    */
   async checkMadeBuyDnsRequirements(
     zoneId: string,
-    domain: string
+    domain: string,
   ): Promise<MadeBuyDnsRequirements> {
     const records = await this.listRecords(zoneId)
 
     // Check for A record on root domain
     const aRecord = records.find(
-      r => r.type === 'A' && (r.name === domain || r.name === '@')
+      (r) => r.type === 'A' && (r.name === domain || r.name === '@'),
     )
     const hasCorrectARecord = aRecord?.content === MADEBUY_A_RECORD_IP
 
     // Check for CNAME on www
     const wwwRecord = records.find(
-      r => r.type === 'CNAME' && (r.name === `www.${domain}` || r.name === 'www')
+      (r) =>
+        r.type === 'CNAME' && (r.name === `www.${domain}` || r.name === 'www'),
     )
     const hasCorrectCname = wwwRecord?.content === MADEBUY_CNAME_TARGET
 
     // Check for verification TXT record
     const txtRecord = records.find(
-      r => r.type === 'TXT' && r.content.startsWith('madebuy-verify=')
+      (r) => r.type === 'TXT' && r.content.startsWith('madebuy-verify='),
     )
     const hasVerificationTxt = !!txtRecord
 
@@ -192,8 +199,8 @@ export class DnsApi {
    */
   async configureMadeBuyDns(
     zoneId: string,
-    domain: string,
-    tenantId: string
+    _domain: string,
+    tenantId: string,
   ): Promise<{
     success: boolean
     records: CloudflareDnsRecord[]
@@ -213,7 +220,9 @@ export class DnsApi {
       })
       records.push(aRecord)
     } catch (error) {
-      errors.push(`Failed to create A record: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      errors.push(
+        `Failed to create A record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
 
     // Create CNAME for www
@@ -227,7 +236,9 @@ export class DnsApi {
       })
       records.push(cnameRecord)
     } catch (error) {
-      errors.push(`Failed to create CNAME record: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      errors.push(
+        `Failed to create CNAME record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
 
     // Create TXT verification record
@@ -240,7 +251,9 @@ export class DnsApi {
       })
       records.push(txtRecord)
     } catch (error) {
-      errors.push(`Failed to create TXT record: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      errors.push(
+        `Failed to create TXT record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
 
     return {
@@ -253,7 +266,10 @@ export class DnsApi {
   /**
    * Remove MadeBuy DNS records from a zone
    */
-  async removeMadeBuyDns(zoneId: string, domain: string): Promise<{
+  async removeMadeBuyDns(
+    zoneId: string,
+    _domain: string,
+  ): Promise<{
     success: boolean
     deletedCount: number
     errors: string[]
@@ -275,7 +291,9 @@ export class DnsApi {
           await this.deleteRecord(zoneId, record.id)
           deletedCount++
         } catch (error) {
-          errors.push(`Failed to delete ${record.type} record: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          errors.push(
+            `Failed to delete ${record.type} record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          )
         }
       }
     }

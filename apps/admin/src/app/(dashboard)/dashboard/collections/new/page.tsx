@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import { CollectionForm } from '@/components/collections/CollectionForm'
 
 export default function NewCollectionPage() {
@@ -13,8 +13,12 @@ export default function NewCollectionPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Collection</h1>
-          <p className="text-gray-500 mt-1">Group products into a themed collection</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Create Collection
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Group products into a themed collection
+          </p>
         </div>
       </div>
 

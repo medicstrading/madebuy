@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { reconciliations } from '@madebuy/db'
 import type { CreateReconciliationInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') as 'in_progress' | 'completed' | 'cancelled' | null
+    const status = searchParams.get('status') as
+      | 'in_progress'
+      | 'completed'
+      | 'cancelled'
+      | null
     const limit = parseInt(searchParams.get('limit') || '20', 10)
     const offset = parseInt(searchParams.get('offset') || '0', 10)
 
@@ -25,7 +29,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching reconciliations:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -39,11 +46,17 @@ export async function POST(request: NextRequest) {
 
     const data: CreateReconciliationInput = await request.json()
 
-    const reconciliation = await reconciliations.createReconciliation(tenant.id, data)
+    const reconciliation = await reconciliations.createReconciliation(
+      tenant.id,
+      data,
+    )
 
     return NextResponse.json({ reconciliation }, { status: 201 })
   } catch (error) {
     console.error('Error creating reconciliation:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

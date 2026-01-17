@@ -1,9 +1,15 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import type {
+  Bundle,
+  BundlePiece,
+  BundleStatus,
+  CreateBundleInput,
+  Piece,
+} from '@madebuy/shared'
+import { DollarSign, ImageIcon, Minus, Percent, Plus, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Plus, X, Package, Minus, DollarSign, Percent, ImageIcon } from 'lucide-react'
-import type { Bundle, CreateBundleInput, BundlePiece, Piece, BundleStatus } from '@madebuy/shared'
+import { useEffect, useMemo, useState } from 'react'
 
 interface BundleBuilderProps {
   bundle?: Bundle
@@ -47,7 +53,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
 
   useEffect(() => {
     fetchPieces()
-  }, [])
+  }, [fetchPieces])
 
   async function fetchPieces() {
     try {
@@ -65,7 +71,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
   const originalPrice = useMemo(() => {
     let total = 0
     for (const bp of formData.pieces) {
-      const piece = pieces.find(p => p.id === bp.pieceId)
+      const piece = pieces.find((p) => p.id === bp.pieceId)
       if (piece?.price) {
         total += piece.price * bp.quantity
       }
@@ -76,7 +82,8 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
   // Calculate discount percentage
   const discountPercent = useMemo(() => {
     if (originalPrice <= 0) return 0
-    const discount = ((originalPrice - formData.bundlePrice) / originalPrice) * 100
+    const discount =
+      ((originalPrice - formData.bundlePrice) / originalPrice) * 100
     return Math.round(discount * 10) / 10
   }, [originalPrice, formData.bundlePrice])
 
@@ -107,7 +114,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
           method: bundle ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-        }
+        },
       )
 
       if (!res.ok) {
@@ -125,13 +132,13 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
   }
 
   function addPiece(pieceId: string) {
-    const existing = formData.pieces.find(p => p.pieceId === pieceId)
+    const existing = formData.pieces.find((p) => p.pieceId === pieceId)
     if (existing) {
       // Increment quantity
       setFormData({
         ...formData,
-        pieces: formData.pieces.map(p =>
-          p.pieceId === pieceId ? { ...p, quantity: p.quantity + 1 } : p
+        pieces: formData.pieces.map((p) =>
+          p.pieceId === pieceId ? { ...p, quantity: p.quantity + 1 } : p,
         ),
       })
     } else {
@@ -145,7 +152,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
   function removePiece(pieceId: string) {
     setFormData({
       ...formData,
-      pieces: formData.pieces.filter(p => p.pieceId !== pieceId),
+      pieces: formData.pieces.filter((p) => p.pieceId !== pieceId),
     })
   }
 
@@ -156,19 +163,19 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
     }
     setFormData({
       ...formData,
-      pieces: formData.pieces.map(p =>
-        p.pieceId === pieceId ? { ...p, quantity } : p
+      pieces: formData.pieces.map((p) =>
+        p.pieceId === pieceId ? { ...p, quantity } : p,
       ),
     })
   }
 
   // Get piece details for display
   function getPieceDetails(pieceId: string): PieceWithImage | undefined {
-    return pieces.find(p => p.id === pieceId)
+    return pieces.find((p) => p.id === pieceId)
   }
 
-  const selectedPieceIds = formData.pieces.map(p => p.pieceId)
-  const availablePieces = pieces.filter(p => !selectedPieceIds.includes(p.id))
+  const selectedPieceIds = formData.pieces.map((p) => p.pieceId)
+  const availablePieces = pieces.filter((p) => !selectedPieceIds.includes(p.id))
 
   // Auto-suggest bundle price (e.g., 10% off original)
   function suggestPrice(discountPercent: number) {
@@ -196,7 +203,9 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., Starter Kit Bundle"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
@@ -209,7 +218,14 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
             <input
               type="text"
               value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  slug: e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-]/g, '-'),
+                })
+              }
               placeholder="Auto-generated from name"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -222,7 +238,9 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
           </label>
           <textarea
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             placeholder="Describe what's included in this bundle..."
             rows={3}
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -236,7 +254,12 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
             </label>
             <select
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as BundleStatus })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  status: e.target.value as BundleStatus,
+                })
+              }
               className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="draft">Draft</option>
@@ -270,7 +293,9 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                       <ImageIcon className="h-5 w-5 text-gray-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{piece.name}</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {piece.name}
+                      </p>
                       <p className="text-sm text-gray-500">
                         {formatPrice(piece.price || 0)} each
                       </p>
@@ -282,15 +307,23 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                     <div className="flex items-center rounded-lg border border-gray-200 bg-white">
                       <button
                         type="button"
-                        onClick={() => updateQuantity(bp.pieceId, bp.quantity - 1)}
+                        type="button"
+                        onClick={() =>
+                          updateQuantity(bp.pieceId, bp.quantity - 1)
+                        }
                         className="flex h-8 w-8 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-l-lg"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
-                      <span className="w-8 text-center text-sm font-medium">{bp.quantity}</span>
+                      <span className="w-8 text-center text-sm font-medium">
+                        {bp.quantity}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => updateQuantity(bp.pieceId, bp.quantity + 1)}
+                        type="button"
+                        onClick={() =>
+                          updateQuantity(bp.pieceId, bp.quantity + 1)
+                        }
                         className="flex h-8 w-8 items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-r-lg"
                       >
                         <Plus className="h-4 w-4" />
@@ -302,6 +335,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                     </span>
 
                     <button
+                      type="button"
                       type="button"
                       onClick={() => removePiece(bp.pieceId)}
                       className="p-2 text-gray-400 hover:text-red-600 rounded-lg"
@@ -334,6 +368,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
               {availablePieces.map((piece) => (
                 <button
+                  type="button"
                   key={piece.id}
                   type="button"
                   onClick={() => addPiece(piece.id)}
@@ -341,8 +376,12 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                 >
                   <Plus className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 truncate">{piece.name}</p>
-                    <p className="text-xs text-gray-500">{formatPrice(piece.price || 0)}</p>
+                    <p className="text-sm text-gray-700 truncate">
+                      {piece.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatPrice(piece.price || 0)}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -359,8 +398,12 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
           {/* Price Summary */}
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-600">Original Price (sum of products)</span>
-              <span className="font-medium text-gray-900">{formatPrice(originalPrice)}</span>
+              <span className="text-gray-600">
+                Original Price (sum of products)
+              </span>
+              <span className="font-medium text-gray-900">
+                {formatPrice(originalPrice)}
+              </span>
             </div>
 
             <div>
@@ -372,7 +415,14 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                 <input
                   type="number"
                   value={(formData.bundlePrice / 100).toFixed(2)}
-                  onChange={(e) => setFormData({ ...formData, bundlePrice: Math.round(parseFloat(e.target.value || '0') * 100) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      bundlePrice: Math.round(
+                        parseFloat(e.target.value || '0') * 100,
+                      ),
+                    })
+                  }
                   step="0.01"
                   min="0"
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -382,12 +432,14 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
               <div className="mt-2 flex gap-2">
                 <button
                   type="button"
+                  type="button"
                   onClick={() => suggestPrice(10)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
                 >
                   10% off
                 </button>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => suggestPrice(15)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
@@ -396,12 +448,14 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                 </button>
                 <button
                   type="button"
+                  type="button"
                   onClick={() => suggestPrice(20)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
                 >
                   20% off
                 </button>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => suggestPrice(25)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
@@ -441,7 +495,8 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
 
               {discountPercent <= 0 && formData.pieces.length > 0 && (
                 <p className="text-sm text-amber-600">
-                  Set a bundle price lower than {formatPrice(originalPrice)} to show savings
+                  Set a bundle price lower than {formatPrice(originalPrice)} to
+                  show savings
                 </p>
               )}
             </div>
@@ -453,12 +508,14 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
       <div className="flex items-center justify-end gap-3">
         <button
           type="button"
+          type="button"
           onClick={() => router.back()}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
+          type="button"
           type="submit"
           disabled={loading || formData.pieces.length === 0}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"

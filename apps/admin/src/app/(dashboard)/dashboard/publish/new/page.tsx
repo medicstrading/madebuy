@@ -1,9 +1,9 @@
-import { requireTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
-import { PublishComposer } from '@/components/publish/PublishComposer'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import type { SocialPlatform } from '@madebuy/shared'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { PublishComposer } from '@/components/publish/PublishComposer'
+import { requireTenant } from '@/lib/session'
 
 export default async function NewPublishPage() {
   const tenant = await requireTenant()
@@ -12,9 +12,10 @@ export default async function NewPublishPage() {
   const allMedia = await media.listMedia(tenant.id, { type: 'image' })
 
   // Get connected platforms
-  const connectedPlatforms: SocialPlatform[] = tenant.socialConnections
-    ?.filter((conn: any) => conn.isActive)
-    .map((conn: any) => conn.platform) || []
+  const connectedPlatforms: SocialPlatform[] =
+    tenant.socialConnections
+      ?.filter((conn: any) => conn.isActive)
+      .map((conn: any) => conn.platform) || []
 
   // Add website-blog if enabled
   if (tenant.websiteDesign?.blog?.enabled) {
@@ -35,7 +36,9 @@ export default async function NewPublishPage() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Create Social Post</h1>
-        <p className="mt-2 text-gray-600">Share your work across social media platforms</p>
+        <p className="mt-2 text-gray-600">
+          Share your work across social media platforms
+        </p>
       </div>
 
       {connectedPlatforms.length === 0 ? (
@@ -44,7 +47,8 @@ export default async function NewPublishPage() {
             No Social Accounts Connected
           </h3>
           <p className="text-yellow-800 mb-4">
-            You need to connect at least one social media account before you can publish.
+            You need to connect at least one social media account before you can
+            publish.
           </p>
           <Link
             href="/dashboard/connections"

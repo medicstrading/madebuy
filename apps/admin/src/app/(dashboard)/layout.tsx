@@ -1,9 +1,9 @@
-import { redirect } from 'next/navigation'
+import { marketplace } from '@madebuy/db'
 import { unstable_cache } from 'next/cache'
-import { getCurrentTenant } from '@/lib/session'
+import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { RegionalProvider } from '@/components/providers/RegionalProvider'
-import { marketplace } from '@madebuy/db'
+import { getCurrentTenant } from '@/lib/session'
 
 // Allow Next.js to cache this layout for 60 seconds (replaces force-dynamic)
 export const revalidate = 60
@@ -12,8 +12,12 @@ export const revalidate = 60
 const getCachedMarketplaceConnections = unstable_cache(
   async (tenantId: string) => {
     const [ebayConnection, etsyConnection] = await Promise.all([
-      marketplace.getConnectionByMarketplace(tenantId, 'ebay').catch(() => null),
-      marketplace.getConnectionByMarketplace(tenantId, 'etsy').catch(() => null),
+      marketplace
+        .getConnectionByMarketplace(tenantId, 'ebay')
+        .catch(() => null),
+      marketplace
+        .getConnectionByMarketplace(tenantId, 'etsy')
+        .catch(() => null),
     ])
 
     return {
@@ -22,7 +26,7 @@ const getCachedMarketplaceConnections = unstable_cache(
     }
   },
   ['marketplace-connections'],
-  { revalidate: 300, tags: ['marketplace'] } // 5 minute cache
+  { revalidate: 300, tags: ['marketplace'] }, // 5 minute cache
 )
 
 export default async function DashboardLayout({
@@ -38,7 +42,9 @@ export default async function DashboardLayout({
   }
 
   // Use cached marketplace connections (5 minute cache)
-  const marketplaceConnections = await getCachedMarketplaceConnections(tenant.id)
+  const marketplaceConnections = await getCachedMarketplaceConnections(
+    tenant.id,
+  )
 
   // Serialize to plain objects for client components (avoid MongoDB ObjectId/Date hydration issues)
   const serializedTenant = {
@@ -55,7 +61,11 @@ export default async function DashboardLayout({
 
   return (
     <RegionalProvider settings={tenant.regionalSettings || null}>
-      <DashboardShell user={user} tenant={serializedTenant} marketplaceConnections={marketplaceConnections}>
+      <DashboardShell
+        user={user}
+        tenant={serializedTenant}
+        marketplaceConnections={marketplaceConnections}
+      >
         {children}
       </DashboardShell>
     </RegionalProvider>

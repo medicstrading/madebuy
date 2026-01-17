@@ -1,40 +1,38 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
+import type { Collection, Piece, PieceStatus } from '@madebuy/shared'
+import { calculateProfitMargin, getMarginHealth } from '@madebuy/shared'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
-  Package,
-  Globe,
-  FolderOpen,
-  Plus,
-  Search,
-  X,
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle,
-  Clock,
-  ShoppingBag,
-  Loader2,
-  ChevronDown,
   Check,
-  Star,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  ExternalLink,
   Eye,
   EyeOff,
+  FolderOpen,
+  Globe,
+  Loader2,
+  Package,
   Pencil,
+  Plus,
+  Search,
+  ShoppingBag,
+  Star,
   Trash2,
-  MoreHorizontal,
-  ExternalLink,
+  TrendingDown,
+  TrendingUp,
+  X,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { DeletePieceButton } from './DeletePieceButton'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { BulkActionsToolbar } from './BulkActionsToolbar'
-import type { Piece, PieceStatus, Collection } from '@madebuy/shared'
-import { getMarginHealth, calculateProfitMargin } from '@madebuy/shared'
+import { DeletePieceButton } from './DeletePieceButton'
 
 // ============================================================================
 // Types
@@ -78,11 +76,44 @@ const tabs: { id: TabId; label: string; icon: typeof Package }[] = [
   { id: 'collections', label: 'Collections', icon: FolderOpen },
 ]
 
-const statusConfig: Record<PieceStatus, { label: string; color: string; bgColor: string; borderColor: string; icon: typeof CheckCircle }> = {
-  draft: { label: 'Draft', color: 'text-gray-600', bgColor: 'bg-gray-100', borderColor: 'border-gray-200', icon: Clock },
-  available: { label: 'Available', color: 'text-emerald-700', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200', icon: CheckCircle },
-  reserved: { label: 'Reserved', color: 'text-amber-700', bgColor: 'bg-amber-50', borderColor: 'border-amber-200', icon: Clock },
-  sold: { label: 'Sold', color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', icon: ShoppingBag },
+const statusConfig: Record<
+  PieceStatus,
+  {
+    label: string
+    color: string
+    bgColor: string
+    borderColor: string
+    icon: typeof CheckCircle
+  }
+> = {
+  draft: {
+    label: 'Draft',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100',
+    borderColor: 'border-gray-200',
+    icon: Clock,
+  },
+  available: {
+    label: 'Available',
+    color: 'text-emerald-700',
+    bgColor: 'bg-emerald-50',
+    borderColor: 'border-emerald-200',
+    icon: CheckCircle,
+  },
+  reserved: {
+    label: 'Reserved',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-200',
+    icon: Clock,
+  },
+  sold: {
+    label: 'Sold',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    icon: ShoppingBag,
+  },
 }
 
 const statusFilters: { value: StatusFilter; label: string }[] = [
@@ -123,8 +154,12 @@ export function InventoryPageClient({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Inventory</h1>
-          <p className="mt-1 text-gray-500">Manage your pieces, listings, and collections</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Inventory
+          </h1>
+          <p className="mt-1 text-gray-500">
+            Manage your pieces, listings, and collections
+          </p>
         </div>
         <Link
           href="/dashboard/inventory/new"
@@ -145,15 +180,22 @@ export function InventoryPageClient({
               </div>
               <div>
                 <p className="font-semibold text-amber-900">
-                  {lowStockCount} item{lowStockCount === 1 ? '' : 's'} need attention
+                  {lowStockCount} item{lowStockCount === 1 ? '' : 's'} need
+                  attention
                 </p>
                 <p className="text-sm text-amber-700">
                   {outOfStockCount > 0 && (
-                    <span className="font-medium text-red-700">{outOfStockCount} out of stock</span>
+                    <span className="font-medium text-red-700">
+                      {outOfStockCount} out of stock
+                    </span>
                   )}
-                  {outOfStockCount > 0 && lowStockCount - outOfStockCount > 0 && ', '}
+                  {outOfStockCount > 0 &&
+                    lowStockCount - outOfStockCount > 0 &&
+                    ', '}
                   {lowStockCount - outOfStockCount > 0 && (
-                    <span>{lowStockCount - outOfStockCount} below threshold</span>
+                    <span>
+                      {lowStockCount - outOfStockCount} below threshold
+                    </span>
                   )}
                 </p>
               </div>
@@ -173,13 +215,14 @@ export function InventoryPageClient({
         {/* Tab bar background with subtle texture */}
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
-        <nav className="flex gap-1" role="tablist">
+        <nav className="flex gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
 
             return (
               <button
+                type="button"
                 key={tab.id}
                 role="tab"
                 aria-selected={isActive}
@@ -189,13 +232,17 @@ export function InventoryPageClient({
                   'rounded-t-xl border border-b-0',
                   isActive
                     ? 'bg-white text-gray-900 border-gray-200 shadow-sm z-10 -mb-px'
-                    : 'bg-gray-50/80 text-gray-500 border-transparent hover:bg-gray-100/80 hover:text-gray-700'
+                    : 'bg-gray-50/80 text-gray-500 border-transparent hover:bg-gray-100/80 hover:text-gray-700',
                 )}
               >
-                <Icon className={cn(
-                  'h-4 w-4 transition-colors',
-                  isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
-                )} />
+                <Icon
+                  className={cn(
+                    'h-4 w-4 transition-colors',
+                    isActive
+                      ? 'text-blue-600'
+                      : 'text-gray-400 group-hover:text-gray-500',
+                  )}
+                />
                 <span>{tab.label}</span>
 
                 {/* Active indicator - subtle underline glow */}
@@ -205,18 +252,26 @@ export function InventoryPageClient({
 
                 {/* Count badges */}
                 {tab.id === 'all' && (
-                  <span className={cn(
-                    'rounded-full px-2 py-0.5 text-xs tabular-nums',
-                    isActive ? 'bg-gray-100 text-gray-600' : 'bg-gray-200/60 text-gray-500'
-                  )}>
+                  <span
+                    className={cn(
+                      'rounded-full px-2 py-0.5 text-xs tabular-nums',
+                      isActive
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-200/60 text-gray-500',
+                    )}
+                  >
                     {pieces.length}
                   </span>
                 )}
                 {tab.id === 'collections' && (
-                  <span className={cn(
-                    'rounded-full px-2 py-0.5 text-xs tabular-nums',
-                    isActive ? 'bg-gray-100 text-gray-600' : 'bg-gray-200/60 text-gray-500'
-                  )}>
+                  <span
+                    className={cn(
+                      'rounded-full px-2 py-0.5 text-xs tabular-nums',
+                      isActive
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-200/60 text-gray-500',
+                    )}
+                  >
                     {collections.length}
                   </span>
                 )}
@@ -227,13 +282,13 @@ export function InventoryPageClient({
       </div>
 
       {/* Tab Content with transition */}
-      <div className={cn(
-        'transition-opacity duration-150',
-        isTransitioning ? 'opacity-0' : 'opacity-100'
-      )}>
-        {activeTab === 'all' && (
-          <AllItemsTab pieces={pieces} />
+      <div
+        className={cn(
+          'transition-opacity duration-150',
+          isTransitioning ? 'opacity-0' : 'opacity-100',
         )}
+      >
+        {activeTab === 'all' && <AllItemsTab pieces={pieces} />}
         {activeTab === 'website' && (
           <WebsiteTab
             pieces={pieces}
@@ -263,10 +318,11 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
   const filteredPieces = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return pieces
-    return pieces.filter(piece =>
-      piece.name.toLowerCase().includes(query) ||
-      piece.description?.toLowerCase().includes(query) ||
-      piece.category?.toLowerCase().includes(query)
+    return pieces.filter(
+      (piece) =>
+        piece.name.toLowerCase().includes(query) ||
+        piece.description?.toLowerCase().includes(query) ||
+        piece.category?.toLowerCase().includes(query),
     )
   }, [pieces, search])
 
@@ -277,12 +333,17 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
     overscan: 10,
   })
 
-  const handleSelectAll = useCallback((checked: boolean) => {
-    setSelectedIds(checked ? new Set(filteredPieces.map(p => p.id)) : new Set())
-  }, [filteredPieces])
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      setSelectedIds(
+        checked ? new Set(filteredPieces.map((p) => p.id)) : new Set(),
+      )
+    },
+    [filteredPieces],
+  )
 
   const handleSelectPiece = useCallback((pieceId: string, checked: boolean) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev)
       checked ? next.add(pieceId) : next.delete(pieceId)
       return next
@@ -298,7 +359,9 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
 
   const virtualItems = virtualizer.getVirtualItems()
   const shouldVirtualize = filteredPieces.length >= VIRTUALIZATION_THRESHOLD
-  const allSelected = filteredPieces.length > 0 && filteredPieces.every(p => selectedIds.has(p.id))
+  const allSelected =
+    filteredPieces.length > 0 &&
+    filteredPieces.every((p) => selectedIds.has(p.id))
   const someSelected = selectedIds.size > 0 && !allSelected
 
   if (pieces.length === 0) {
@@ -320,6 +383,7 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
           />
           {search && (
             <button
+              type="button"
               onClick={() => setSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
@@ -330,7 +394,9 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
 
         <div className="text-sm text-gray-500">
           {search ? (
-            <>Showing {filteredPieces.length} of {pieces.length} pieces</>
+            <>
+              Showing {filteredPieces.length} of {pieces.length} pieces
+            </>
           ) : (
             <>{pieces.length} pieces</>
           )}
@@ -349,7 +415,11 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         {shouldVirtualize ? (
-          <div ref={parentRef} className="overflow-auto" style={{ maxHeight: '70vh' }}>
+          <div
+            ref={parentRef}
+            className="overflow-auto"
+            style={{ maxHeight: '70vh' }}
+          >
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50/80 sticky top-0 z-10">
                 <InventoryTableHeader
@@ -361,26 +431,39 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {filteredPieces.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                    <td
+                      colSpan={11}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
                       No pieces found
                     </td>
                   </tr>
                 ) : (
                   <>
                     {virtualItems.length > 0 && virtualItems[0].start > 0 && (
-                      <tr style={{ height: virtualItems[0].start }}><td colSpan={11} /></tr>
+                      <tr style={{ height: virtualItems[0].start }}>
+                        <td colSpan={11} />
+                      </tr>
                     )}
                     {virtualItems.map((virtualRow) => (
                       <InventoryTableRow
                         key={filteredPieces[virtualRow.index].id}
                         piece={filteredPieces[virtualRow.index]}
-                        isSelected={selectedIds.has(filteredPieces[virtualRow.index].id)}
+                        isSelected={selectedIds.has(
+                          filteredPieces[virtualRow.index].id,
+                        )}
                         onSelect={handleSelectPiece}
                         style={{ height: ROW_HEIGHT }}
                       />
                     ))}
                     {virtualItems.length > 0 && (
-                      <tr style={{ height: virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end || 0) }}>
+                      <tr
+                        style={{
+                          height:
+                            virtualizer.getTotalSize() -
+                            (virtualItems[virtualItems.length - 1]?.end || 0),
+                        }}
+                      >
                         <td colSpan={11} />
                       </tr>
                     )}
@@ -401,7 +484,10 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
             <tbody className="divide-y divide-gray-100 bg-white">
               {filteredPieces.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={11}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     No pieces found
                   </td>
                 </tr>
@@ -423,7 +509,11 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
   )
 }
 
-function InventoryTableHeader({ allSelected, someSelected, onSelectAll }: {
+function InventoryTableHeader({
+  allSelected,
+  someSelected,
+  onSelectAll,
+}: {
   allSelected: boolean
   someSelected: boolean
   onSelectAll: (checked: boolean) => void
@@ -434,26 +524,51 @@ function InventoryTableHeader({ allSelected, someSelected, onSelectAll }: {
         <input
           type="checkbox"
           checked={allSelected}
-          ref={input => { if (input) input.indeterminate = someSelected }}
+          ref={(input) => {
+            if (input) input.indeterminate = someSelected
+          }}
           onChange={(e) => onSelectAll(e.target.checked)}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
       </th>
       <th className="w-14 px-2 py-3" />
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Name</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Stock</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Price</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">COGS</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Margin</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Category</th>
-      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Created</th>
-      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Actions</th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Name
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Status
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Stock
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Price
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        COGS
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Margin
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Category
+      </th>
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Created
+      </th>
+      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+        Actions
+      </th>
     </tr>
   )
 }
 
-function InventoryTableRow({ piece, isSelected, onSelect, style }: {
+function InventoryTableRow({
+  piece,
+  isSelected,
+  onSelect,
+  style,
+}: {
   piece: PieceWithExtras
   isSelected: boolean
   onSelect: (pieceId: string, checked: boolean) => void
@@ -467,18 +582,27 @@ function InventoryTableRow({ piece, isSelected, onSelect, style }: {
   const hasLowStockThreshold = piece.lowStockThreshold != null
   const stockValue = piece.stock
   const isOutOfStock = stockValue === 0
-  const isLowStock = hasLowStockThreshold && stockValue != null && stockValue <= piece.lowStockThreshold! && stockValue > 0
+  const isLowStock =
+    hasLowStockThreshold &&
+    stockValue != null &&
+    stockValue <= piece.lowStockThreshold! &&
+    stockValue > 0
 
   return (
     <tr
       className={cn(
         'transition-colors',
-        isSelected ? 'bg-blue-50/60' :
-        isOutOfStock ? 'bg-red-50/30' :
-        isLowStock ? 'bg-amber-50/30' :
-        marginHealth === 'negative' ? 'bg-red-50/40' :
-        marginHealth === 'low' ? 'bg-orange-50/40' :
-        'hover:bg-gray-50/80'
+        isSelected
+          ? 'bg-blue-50/60'
+          : isOutOfStock
+            ? 'bg-red-50/30'
+            : isLowStock
+              ? 'bg-amber-50/30'
+              : marginHealth === 'negative'
+                ? 'bg-red-50/40'
+                : marginHealth === 'low'
+                  ? 'bg-orange-50/40'
+                  : 'hover:bg-gray-50/80',
       )}
       style={style}
     >
@@ -493,7 +617,11 @@ function InventoryTableRow({ piece, isSelected, onSelect, style }: {
       <td className="w-14 px-2 py-2">
         <Link href={`/dashboard/inventory/${piece.id}`}>
           {piece.thumbnailUrl ? (
-            <img src={piece.thumbnailUrl} alt={piece.name} className="h-10 w-10 rounded-lg object-cover" />
+            <img
+              src={piece.thumbnailUrl}
+              alt={piece.name}
+              className="h-10 w-10 rounded-lg object-cover"
+            />
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
               <Package className="h-5 w-5 text-gray-400" />
@@ -504,14 +632,34 @@ function InventoryTableRow({ piece, isSelected, onSelect, style }: {
       <td className="whitespace-nowrap px-6 py-4">
         <Link href={`/dashboard/inventory/${piece.id}`} className="block group">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600">{piece.name}</span>
-            {isOutOfStock && <span title="Out of stock"><Package className="h-4 w-4 text-red-500" /></span>}
-            {isLowStock && <span title="Low stock"><Package className="h-4 w-4 text-amber-500" /></span>}
-            {marginHealth === 'negative' && <span title="Below cost"><AlertTriangle className="h-4 w-4 text-red-500" /></span>}
-            {marginHealth === 'low' && <span title="Low margin"><TrendingDown className="h-4 w-4 text-orange-500" /></span>}
+            <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+              {piece.name}
+            </span>
+            {isOutOfStock && (
+              <span title="Out of stock">
+                <Package className="h-4 w-4 text-red-500" />
+              </span>
+            )}
+            {isLowStock && (
+              <span title="Low stock">
+                <Package className="h-4 w-4 text-amber-500" />
+              </span>
+            )}
+            {marginHealth === 'negative' && (
+              <span title="Below cost">
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+              </span>
+            )}
+            {marginHealth === 'low' && (
+              <span title="Low margin">
+                <TrendingDown className="h-4 w-4 text-orange-500" />
+              </span>
+            )}
           </div>
           {piece.description && (
-            <p className="text-sm text-gray-500 truncate max-w-xs">{piece.description}</p>
+            <p className="text-sm text-gray-500 truncate max-w-xs">
+              {piece.description}
+            </p>
           )}
         </Link>
       </td>
@@ -534,8 +682,12 @@ function InventoryTableRow({ piece, isSelected, onSelect, style }: {
           <span className="text-xs text-gray-400">No COGS</span>
         )}
       </td>
-      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{piece.category}</td>
-      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{formatDate(piece.createdAt)}</td>
+      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+        {piece.category}
+      </td>
+      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+        {formatDate(piece.createdAt)}
+      </td>
       <td className="whitespace-nowrap px-6 py-4 text-right">
         <DeletePieceButton pieceId={piece.id} pieceName={piece.name} />
       </td>
@@ -547,7 +699,12 @@ function InventoryTableRow({ piece, isSelected, onSelect, style }: {
 // Website Tab
 // ============================================================================
 
-function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
+function WebsiteTab({
+  pieces,
+  collections,
+  pieceCollectionsMap,
+  tenantSlug,
+}: {
   pieces: PieceWithExtras[]
   collections: CollectionInfo[]
   pieceCollectionsMap: Record<string, { id: string; name: string }[]>
@@ -557,29 +714,45 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null)
-  const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState<string | null>(null)
-  const [togglingFeatured, setTogglingFeatured] = useState<Set<string>>(new Set())
-  const [updatingCollections, setUpdatingCollections] = useState<Set<string>>(new Set())
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(
+    null,
+  )
+  const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState<
+    string | null
+  >(null)
+  const [togglingFeatured, setTogglingFeatured] = useState<Set<string>>(
+    new Set(),
+  )
+  const [updatingCollections, setUpdatingCollections] = useState<Set<string>>(
+    new Set(),
+  )
   const [collectionInput, setCollectionInput] = useState('')
   const [creatingCollection, setCreatingCollection] = useState(false)
-  const [localCollectionsMap, setLocalCollectionsMap] = useState(pieceCollectionsMap)
+  const [localCollectionsMap, setLocalCollectionsMap] =
+    useState(pieceCollectionsMap)
 
   const filteredPieces = useMemo(() => {
     if (statusFilter === 'all') return pieces
-    return pieces.filter(p => p.status === statusFilter)
+    return pieces.filter((p) => p.status === statusFilter)
   }, [pieces, statusFilter])
 
-  const stats = useMemo(() => ({
-    total: pieces.length,
-    available: pieces.filter(p => p.status === 'available').length,
-    reserved: pieces.filter(p => p.status === 'reserved').length,
-    sold: pieces.filter(p => p.status === 'sold').length,
-    draft: pieces.filter(p => p.status === 'draft').length,
-  }), [pieces])
+  const stats = useMemo(
+    () => ({
+      total: pieces.length,
+      available: pieces.filter((p) => p.status === 'available').length,
+      reserved: pieces.filter((p) => p.status === 'reserved').length,
+      sold: pieces.filter((p) => p.status === 'sold').length,
+      draft: pieces.filter((p) => p.status === 'draft').length,
+    }),
+    [pieces],
+  )
 
   const toggleSelectAll = () => {
-    setSelectedIds(selectedIds.size === filteredPieces.length ? new Set() : new Set(filteredPieces.map(p => p.id)))
+    setSelectedIds(
+      selectedIds.size === filteredPieces.length
+        ? new Set()
+        : new Set(filteredPieces.map((p) => p.id)),
+    )
   }
 
   const toggleSelect = (id: string) => {
@@ -589,11 +762,12 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
   }
 
   const updateStatus = async (pieceId: string, newStatus: PieceStatus) => {
-    const idsToUpdate = selectedIds.has(pieceId) && selectedIds.size > 1
-      ? Array.from(selectedIds)
-      : [pieceId]
+    const idsToUpdate =
+      selectedIds.has(pieceId) && selectedIds.size > 1
+        ? Array.from(selectedIds)
+        : [pieceId]
 
-    idsToUpdate.forEach(id => setUpdatingIds(prev => new Set(prev).add(id)))
+    idsToUpdate.forEach((id) => setUpdatingIds((prev) => new Set(prev).add(id)))
     setStatusDropdownOpen(null)
 
     try {
@@ -617,16 +791,18 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
     } catch (err: any) {
       alert(`Failed to update: ${err.message}`)
     } finally {
-      idsToUpdate.forEach(id => setUpdatingIds(prev => {
-        const next = new Set(prev)
-        next.delete(id)
-        return next
-      }))
+      idsToUpdate.forEach((id) =>
+        setUpdatingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        }),
+      )
     }
   }
 
   const toggleFeatured = async (pieceId: string, currentFeatured: boolean) => {
-    setTogglingFeatured(prev => new Set(prev).add(pieceId))
+    setTogglingFeatured((prev) => new Set(prev).add(pieceId))
     try {
       const response = await fetch(`/api/pieces/${pieceId}`, {
         method: 'PATCH',
@@ -638,7 +814,7 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
     } catch (err: any) {
       alert(`Failed to update: ${err.message}`)
     } finally {
-      setTogglingFeatured(prev => {
+      setTogglingFeatured((prev) => {
         const next = new Set(prev)
         next.delete(pieceId)
         return next
@@ -649,24 +825,31 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
   const filteredCollections = useMemo(() => {
     if (!collectionInput.trim()) return collections
     const search = collectionInput.toLowerCase()
-    return collections.filter(c => c.name.toLowerCase().includes(search))
+    return collections.filter((c) => c.name.toLowerCase().includes(search))
   }, [collections, collectionInput])
 
   const exactCollectionMatch = collections.find(
-    c => c.name.toLowerCase() === collectionInput.trim().toLowerCase()
+    (c) => c.name.toLowerCase() === collectionInput.trim().toLowerCase(),
   )
 
-  const createCollectionAndAdd = async (pieceId: string, collectionName: string) => {
-    const idsToUpdate = selectedIds.has(pieceId) && selectedIds.size > 1
-      ? Array.from(selectedIds)
-      : [pieceId]
+  const createCollectionAndAdd = async (
+    pieceId: string,
+    collectionName: string,
+  ) => {
+    const idsToUpdate =
+      selectedIds.has(pieceId) && selectedIds.size > 1
+        ? Array.from(selectedIds)
+        : [pieceId]
 
     setCreatingCollection(true)
     try {
       const response = await fetch('/api/pieces/bulk-collection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pieceIds: idsToUpdate, newCollectionName: collectionName.trim() }),
+        body: JSON.stringify({
+          pieceIds: idsToUpdate,
+          newCollectionName: collectionName.trim(),
+        }),
       })
       if (!response.ok) throw new Error('Failed to create collection')
       setCollectionInput('')
@@ -680,25 +863,35 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
     }
   }
 
-  const toggleCollection = async (pieceId: string, collectionId: string, isCurrentlyIn: boolean) => {
-    const idsToUpdate = selectedIds.has(pieceId) && selectedIds.size > 1
-      ? Array.from(selectedIds)
-      : [pieceId]
+  const toggleCollection = async (
+    pieceId: string,
+    collectionId: string,
+    isCurrentlyIn: boolean,
+  ) => {
+    const idsToUpdate =
+      selectedIds.has(pieceId) && selectedIds.size > 1
+        ? Array.from(selectedIds)
+        : [pieceId]
 
-    idsToUpdate.forEach(id => {
-      setUpdatingCollections(prev => new Set(prev).add(`${id}-${collectionId}`))
+    idsToUpdate.forEach((id) => {
+      setUpdatingCollections((prev) =>
+        new Set(prev).add(`${id}-${collectionId}`),
+      )
     })
 
     // Optimistic update
-    setLocalCollectionsMap(prev => {
+    setLocalCollectionsMap((prev) => {
       const updated = { ...prev }
-      const collection = collections.find(c => c.id === collectionId)
-      idsToUpdate.forEach(id => {
+      const collection = collections.find((c) => c.id === collectionId)
+      idsToUpdate.forEach((id) => {
         const current = updated[id] || []
         if (isCurrentlyIn) {
-          updated[id] = current.filter(c => c.id !== collectionId)
-        } else if (collection && !current.some(c => c.id === collectionId)) {
-          updated[id] = [...current, { id: collection.id, name: collection.name }]
+          updated[id] = current.filter((c) => c.id !== collectionId)
+        } else if (collection && !current.some((c) => c.id === collectionId)) {
+          updated[id] = [
+            ...current,
+            { id: collection.id, name: collection.name },
+          ]
         }
       })
       return updated
@@ -721,7 +914,10 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
           const response = await fetch(`/api/pieces/${id}/collections`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ collectionId, action: isCurrentlyIn ? 'remove' : 'add' }),
+            body: JSON.stringify({
+              collectionId,
+              action: isCurrentlyIn ? 'remove' : 'add',
+            }),
           })
           if (!response.ok) {
             setLocalCollectionsMap(pieceCollectionsMap)
@@ -734,8 +930,8 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
     } catch (err: any) {
       alert(`Failed to update collections: ${err.message}`)
     } finally {
-      idsToUpdate.forEach(id => {
-        setUpdatingCollections(prev => {
+      idsToUpdate.forEach((id) => {
+        setUpdatingCollections((prev) => {
           const next = new Set(prev)
           next.delete(`${id}-${collectionId}`)
           return next
@@ -761,20 +957,23 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
       {/* Status Filter Pills */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
-          {statusFilters.map(filter => (
+          {statusFilters.map((filter) => (
             <button
+              type="button"
               key={filter.value}
               onClick={() => setStatusFilter(filter.value)}
               className={cn(
                 'rounded-full px-4 py-1.5 text-sm font-medium transition-all',
                 statusFilter === filter.value
                   ? 'bg-gray-900 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
               )}
             >
               {filter.label}
               {filter.value !== 'all' && (
-                <span className="ml-1.5 opacity-60">{stats[filter.value as keyof typeof stats]}</span>
+                <span className="ml-1.5 opacity-60">
+                  {stats[filter.value as keyof typeof stats]}
+                </span>
               )}
             </button>
           ))}
@@ -782,8 +981,14 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
 
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-2 border border-blue-100">
-            <span className="text-sm font-medium text-blue-700">{selectedIds.size} selected</span>
-            <button onClick={() => setSelectedIds(new Set())} className="text-xs text-blue-600 hover:underline">
+            <span className="text-sm font-medium text-blue-700">
+              {selectedIds.size} selected
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="text-xs text-blue-600 hover:underline"
+            >
               Clear
             </button>
           </div>
@@ -807,30 +1012,47 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
               <th className="w-12 px-4 py-3">
                 <input
                   type="checkbox"
-                  checked={selectedIds.size === filteredPieces.length && filteredPieces.length > 0}
+                  checked={
+                    selectedIds.size === filteredPieces.length &&
+                    filteredPieces.length > 0
+                  }
                   onChange={toggleSelectAll}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Product</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Price</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Collections</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Price
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Collections
+              </th>
               <th className="w-12 px-4 py-3 text-center">
                 <Star className="h-4 w-4 mx-auto text-gray-400" />
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Status
+              </th>
               <th className="w-20 px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {filteredPieces.map(piece => {
+            {filteredPieces.map((piece) => {
               const status = statusConfig[piece.status]
-              const StatusIcon = status.icon
+              const _StatusIcon = status.icon
               const isUpdating = updatingIds.has(piece.id)
               const isSelected = selectedIds.has(piece.id)
 
               return (
-                <tr key={piece.id} className={cn('transition-colors', isSelected ? 'bg-blue-50/50' : 'hover:bg-gray-50')}>
+                <tr
+                  key={piece.id}
+                  className={cn(
+                    'transition-colors',
+                    isSelected ? 'bg-blue-50/50' : 'hover:bg-gray-50',
+                  )}
+                >
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
@@ -843,20 +1065,31 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
                     <div className="flex items-center gap-3">
                       <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                         {piece.thumbnailUrl ? (
-                          <Image src={piece.thumbnailUrl} alt={piece.name} fill className="object-cover" />
+                          <Image
+                            src={piece.thumbnailUrl}
+                            alt={piece.name}
+                            fill
+                            className="object-cover"
+                          />
                         ) : (
                           <Package className="h-full w-full p-2.5 text-gray-400" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-900">{piece.name}</p>
-                        <p className="truncate text-xs text-gray-500">{piece.category}</p>
+                        <p className="truncate text-sm font-medium text-gray-900">
+                          {piece.name}
+                        </p>
+                        <p className="truncate text-xs text-gray-500">
+                          {piece.category}
+                        </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-sm font-medium text-gray-900">
-                      {piece.price ? formatCurrency(piece.price, piece.currency) : '—'}
+                      {piece.price
+                        ? formatCurrency(piece.price, piece.currency)
+                        : '—'}
                     </p>
                   </td>
                   <td className="px-4 py-3">
@@ -865,12 +1098,25 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
                       localCollectionsMap={localCollectionsMap}
                       collections={filteredCollections}
                       isOpen={collectionsDropdownOpen === piece.id}
-                      onToggle={() => setCollectionsDropdownOpen(collectionsDropdownOpen === piece.id ? null : piece.id)}
-                      onClose={() => { setCollectionsDropdownOpen(null); setCollectionInput('') }}
+                      onToggle={() =>
+                        setCollectionsDropdownOpen(
+                          collectionsDropdownOpen === piece.id
+                            ? null
+                            : piece.id,
+                        )
+                      }
+                      onClose={() => {
+                        setCollectionsDropdownOpen(null)
+                        setCollectionInput('')
+                      }}
                       collectionInput={collectionInput}
                       onInputChange={setCollectionInput}
-                      onCreateCollection={(name) => createCollectionAndAdd(piece.id, name)}
-                      onToggleCollection={(collId, isIn) => toggleCollection(piece.id, collId, isIn)}
+                      onCreateCollection={(name) =>
+                        createCollectionAndAdd(piece.id, name)
+                      }
+                      onToggleCollection={(collId, isIn) =>
+                        toggleCollection(piece.id, collId, isIn)
+                      }
                       updatingCollections={updatingCollections}
                       creatingCollection={creatingCollection}
                       exactCollectionMatch={exactCollectionMatch}
@@ -878,14 +1124,25 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
+                      type="button"
                       onClick={() => toggleFeatured(piece.id, piece.isFeatured)}
                       disabled={togglingFeatured.has(piece.id)}
-                      className={cn('transition-colors', togglingFeatured.has(piece.id) && 'opacity-50')}
+                      className={cn(
+                        'transition-colors',
+                        togglingFeatured.has(piece.id) && 'opacity-50',
+                      )}
                     >
                       {togglingFeatured.has(piece.id) ? (
                         <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                       ) : (
-                        <Star className={cn('h-5 w-5', piece.isFeatured ? 'fill-amber-400 text-amber-400' : 'text-gray-300 hover:text-amber-400')} />
+                        <Star
+                          className={cn(
+                            'h-5 w-5',
+                            piece.isFeatured
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-gray-300 hover:text-amber-400',
+                          )}
+                        />
                       )}
                     </button>
                   </td>
@@ -893,9 +1150,15 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
                     <StatusDropdown
                       piece={piece}
                       isOpen={statusDropdownOpen === piece.id}
-                      onToggle={() => setStatusDropdownOpen(statusDropdownOpen === piece.id ? null : piece.id)}
+                      onToggle={() =>
+                        setStatusDropdownOpen(
+                          statusDropdownOpen === piece.id ? null : piece.id,
+                        )
+                      }
                       onClose={() => setStatusDropdownOpen(null)}
-                      onUpdateStatus={(status) => updateStatus(piece.id, status)}
+                      onUpdateStatus={(status) =>
+                        updateStatus(piece.id, status)
+                      }
                       isUpdating={isUpdating}
                     />
                   </td>
@@ -923,7 +1186,7 @@ function WebsiteTab({ pieces, collections, pieceCollectionsMap, tenantSlug }: {
 
 function CollectionsTab({ collections }: { collections: Collection[] }) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [_loading, _setLoading] = useState(false)
 
   const togglePublished = async (id: string, currentState: boolean) => {
     try {
@@ -968,7 +1231,9 @@ function CollectionsTab({ collections }: { collections: Collection[] }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{collections.length} collection{collections.length !== 1 ? 's' : ''}</p>
+        <p className="text-sm text-gray-500">
+          {collections.length} collection{collections.length !== 1 ? 's' : ''}
+        </p>
         <Link
           href="/dashboard/collections/new"
           className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
@@ -992,9 +1257,12 @@ function CollectionsTab({ collections }: { collections: Collection[] }) {
             <div className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-gray-900 truncate">{collection.name}</h3>
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {collection.name}
+                  </h3>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    {collection.pieceIds.length} product{collection.pieceIds.length !== 1 ? 's' : ''}
+                    {collection.pieceIds.length} product
+                    {collection.pieceIds.length !== 1 ? 's' : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1010,7 +1278,9 @@ function CollectionsTab({ collections }: { collections: Collection[] }) {
               </div>
 
               {collection.description && (
-                <p className="mt-2 text-sm text-gray-500 line-clamp-2">{collection.description}</p>
+                <p className="mt-2 text-sm text-gray-500 line-clamp-2">
+                  {collection.description}
+                </p>
               )}
 
               <div className="mt-4 flex items-center gap-2 pt-4 border-t border-gray-100">
@@ -1022,24 +1292,47 @@ function CollectionsTab({ collections }: { collections: Collection[] }) {
                   Edit
                 </Link>
                 <button
-                  onClick={() => togglePublished(collection.id, collection.isPublished)}
+                  type="button"
+                  onClick={() =>
+                    togglePublished(collection.id, collection.isPublished)
+                  }
                   className={cn(
                     'p-2 rounded-lg transition-colors',
-                    collection.isPublished ? 'text-emerald-600 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'
+                    collection.isPublished
+                      ? 'text-emerald-600 hover:bg-emerald-50'
+                      : 'text-gray-400 hover:bg-gray-100',
                   )}
                 >
-                  {collection.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  {collection.isPublished ? (
+                    <Eye className="h-4 w-4" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" />
+                  )}
                 </button>
                 <button
-                  onClick={() => toggleFeatured(collection.id, collection.isFeatured || false)}
+                  type="button"
+                  onClick={() =>
+                    toggleFeatured(
+                      collection.id,
+                      collection.isFeatured || false,
+                    )
+                  }
                   className={cn(
                     'p-2 rounded-lg transition-colors',
-                    collection.isFeatured ? 'text-amber-500 hover:bg-amber-50' : 'text-gray-400 hover:bg-gray-100'
+                    collection.isFeatured
+                      ? 'text-amber-500 hover:bg-amber-50'
+                      : 'text-gray-400 hover:bg-gray-100',
                   )}
                 >
-                  <Star className={cn('h-4 w-4', collection.isFeatured && 'fill-amber-500')} />
+                  <Star
+                    className={cn(
+                      'h-4 w-4',
+                      collection.isFeatured && 'fill-amber-500',
+                    )}
+                  />
                 </button>
                 <button
+                  type="button"
                   onClick={() => deleteCollection(collection.id)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
@@ -1076,7 +1369,10 @@ function EmptyState({ type }: { type: 'pieces' | 'website' | 'collections' }) {
       icon: FolderOpen,
       title: 'No collections yet',
       description: 'Create collections to group and showcase your products.',
-      action: { label: 'Create Collection', href: '/dashboard/collections/new' },
+      action: {
+        label: 'Create Collection',
+        href: '/dashboard/collections/new',
+      },
     },
   }
 
@@ -1098,7 +1394,15 @@ function EmptyState({ type }: { type: 'pieces' | 'website' | 'collections' }) {
   )
 }
 
-function StatCard({ label, value, color }: { label: string; value: number; color?: 'emerald' | 'amber' | 'blue' }) {
+function StatCard({
+  label,
+  value,
+  color,
+}: {
+  label: string
+  value: number
+  color?: 'emerald' | 'amber' | 'blue'
+}) {
   const colors = {
     emerald: 'border-emerald-100 bg-emerald-50/50 text-emerald-700',
     amber: 'border-amber-100 bg-amber-50/50 text-amber-700',
@@ -1106,12 +1410,23 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   }
 
   return (
-    <div className={cn(
-      'rounded-xl border p-4 shadow-sm',
-      color ? colors[color] : 'border-gray-200 bg-white'
-    )}>
-      <p className={cn('text-sm font-medium', color ? '' : 'text-gray-500')}>{label}</p>
-      <p className={cn('mt-1 text-3xl font-bold tabular-nums', color ? '' : 'text-gray-900')}>{value}</p>
+    <div
+      className={cn(
+        'rounded-xl border p-4 shadow-sm',
+        color ? colors[color] : 'border-gray-200 bg-white',
+      )}
+    >
+      <p className={cn('text-sm font-medium', color ? '' : 'text-gray-500')}>
+        {label}
+      </p>
+      <p
+        className={cn(
+          'mt-1 text-3xl font-bold tabular-nums',
+          color ? '' : 'text-gray-900',
+        )}
+      >
+        {value}
+      </p>
     </div>
   )
 }
@@ -1125,13 +1440,24 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={cn('inline-flex rounded-full px-2.5 py-1 text-xs font-semibold', colors[status] || colors.draft)}>
+    <span
+      className={cn(
+        'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+        colors[status] || colors.draft,
+      )}
+    >
       {status}
     </span>
   )
 }
 
-function StockBadge({ stock, threshold }: { stock?: number; threshold?: number | null }) {
+function StockBadge({
+  stock,
+  threshold,
+}: {
+  stock?: number
+  threshold?: number | null
+}) {
   if (stock === undefined || stock === null) {
     return <span className="text-xs text-gray-400">Unlimited</span>
   }
@@ -1160,12 +1486,20 @@ function StockBadge({ stock, threshold }: { stock?: number; threshold?: number |
   return (
     <span className="text-sm text-gray-900">
       {stock}
-      {hasThreshold && <span className="ml-1 text-xs text-gray-400">/{threshold}</span>}
+      {hasThreshold && (
+        <span className="ml-1 text-xs text-gray-400">/{threshold}</span>
+      )}
     </span>
   )
 }
 
-function MarginBadge({ marginPercent, health }: { marginPercent: number; health: MarginHealth }) {
+function MarginBadge({
+  marginPercent,
+  health,
+}: {
+  marginPercent: number
+  health: MarginHealth
+}) {
   const styles: Record<MarginHealth, string> = {
     healthy: 'bg-emerald-50 text-emerald-700',
     warning: 'bg-yellow-50 text-yellow-700',
@@ -1183,14 +1517,26 @@ function MarginBadge({ marginPercent, health }: { marginPercent: number; health:
   }
 
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold', styles[health])}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold',
+        styles[health],
+      )}
+    >
       {icons[health]}
       {marginPercent.toFixed(1)}%
     </span>
   )
 }
 
-function StatusDropdown({ piece, isOpen, onToggle, onClose, onUpdateStatus, isUpdating }: {
+function StatusDropdown({
+  piece,
+  isOpen,
+  onToggle,
+  onClose,
+  onUpdateStatus,
+  isUpdating,
+}: {
   piece: PieceWithExtras
   isOpen: boolean
   onToggle: () => void
@@ -1204,6 +1550,7 @@ function StatusDropdown({ piece, isOpen, onToggle, onClose, onUpdateStatus, isUp
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={onToggle}
         disabled={isUpdating}
         className={cn(
@@ -1211,38 +1558,58 @@ function StatusDropdown({ piece, isOpen, onToggle, onClose, onUpdateStatus, isUp
           status.bgColor,
           status.color,
           'hover:ring-2 hover:ring-offset-1',
-          isUpdating && 'opacity-50'
+          isUpdating && 'opacity-50',
         )}
       >
-        {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <StatusIcon className="h-3 w-3" />}
+        {isUpdating ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <StatusIcon className="h-3 w-3" />
+        )}
         {status.label}
         <ChevronDown className="h-3 w-3" />
       </button>
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-10" onClick={onClose} />
+          <div
+            className="fixed inset-0 z-10"
+            onClick={onClose}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                onClose()
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close menu"
+          />
           <div className="absolute left-0 z-20 mt-1 w-40 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
-            {(['available', 'reserved', 'sold', 'draft'] as PieceStatus[]).map(s => {
-              const cfg = statusConfig[s]
-              const Icon = cfg.icon
-              const isActive = piece.status === s
+            {(['available', 'reserved', 'sold', 'draft'] as PieceStatus[]).map(
+              (s) => {
+                const cfg = statusConfig[s]
+                const Icon = cfg.icon
+                const isActive = piece.status === s
 
-              return (
-                <button
-                  key={s}
-                  onClick={() => onUpdateStatus(s)}
-                  className={cn(
-                    'flex w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors',
-                    isActive ? `${cfg.bgColor} ${cfg.color}` : 'text-gray-700 hover:bg-gray-50'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {cfg.label}
-                  {isActive && <Check className="ml-auto h-4 w-4" />}
-                </button>
-              )
-            })}
+                return (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => onUpdateStatus(s)}
+                    className={cn(
+                      'flex w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors',
+                      isActive
+                        ? `${cfg.bgColor} ${cfg.color}`
+                        : 'text-gray-700 hover:bg-gray-50',
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {cfg.label}
+                    {isActive && <Check className="ml-auto h-4 w-4" />}
+                  </button>
+                )
+              },
+            )}
           </div>
         </>
       )}
@@ -1283,7 +1650,11 @@ function CollectionDropdown({
 
   return (
     <div className="relative">
-      <button onClick={onToggle} className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+      >
         {pieceCollections.length === 0 ? (
           <span className="flex items-center gap-1 text-gray-400 hover:text-gray-600">
             <FolderOpen className="h-4 w-4" />
@@ -1291,13 +1662,18 @@ function CollectionDropdown({
           </span>
         ) : (
           <div className="flex flex-wrap items-center gap-1">
-            {pieceCollections.slice(0, 2).map(c => (
-              <span key={c.id} className="inline-flex rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
+            {pieceCollections.slice(0, 2).map((c) => (
+              <span
+                key={c.id}
+                className="inline-flex rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700"
+              >
                 {c.name}
               </span>
             ))}
             {pieceCollections.length > 2 && (
-              <span className="text-xs text-gray-500">+{pieceCollections.length - 2}</span>
+              <span className="text-xs text-gray-500">
+                +{pieceCollections.length - 2}
+              </span>
             )}
           </div>
         )}
@@ -1305,8 +1681,24 @@ function CollectionDropdown({
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-10" onClick={onClose} />
-          <div className="absolute left-0 z-20 mt-1 w-64 rounded-xl border border-gray-200 bg-white shadow-lg" onClick={e => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={onClose}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                onClose()
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close menu"
+          />
+          <div
+            className="absolute left-0 z-20 mt-1 w-64 rounded-xl border border-gray-200 bg-white shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="presentation"
+          >
             <div className="p-2">
               <input
                 type="text"
@@ -1315,22 +1707,30 @@ function CollectionDropdown({
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   e.stopPropagation()
-                  if (e.key === 'Enter' && collectionInput.trim() && !exactCollectionMatch) {
+                  if (
+                    e.key === 'Enter' &&
+                    collectionInput.trim() &&
+                    !exactCollectionMatch
+                  ) {
                     onCreateCollection(collectionInput)
                   }
                 }}
                 placeholder="Type collection name..."
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
-                autoFocus
               />
 
               {collectionInput.trim() && !exactCollectionMatch && (
                 <button
+                  type="button"
                   onClick={() => onCreateCollection(collectionInput)}
                   disabled={creatingCollection}
                   className="mt-2 flex w-full items-center gap-2 rounded-lg bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
                 >
-                  {creatingCollection ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {creatingCollection ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
                   Create "{collectionInput.trim()}"
                 </button>
               )}
@@ -1341,23 +1741,36 @@ function CollectionDropdown({
                     {collectionInput.trim() ? 'Matching' : 'Existing'}
                   </p>
                   <div className="max-h-40 overflow-y-auto">
-                    {collections.map(collection => {
-                      const isIn = pieceCollections.some(c => c.id === collection.id)
-                      const isUpdating = updatingCollections.has(`${pieceId}-${collection.id}`)
+                    {collections.map((collection) => {
+                      const isIn = pieceCollections.some(
+                        (c) => c.id === collection.id,
+                      )
+                      const isUpdating = updatingCollections.has(
+                        `${pieceId}-${collection.id}`,
+                      )
                       return (
                         <button
+                          type="button"
                           key={collection.id}
-                          onClick={() => onToggleCollection(collection.id, isIn)}
+                          onClick={() =>
+                            onToggleCollection(collection.id, isIn)
+                          }
                           disabled={isUpdating}
                           className={cn(
                             'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors',
-                            isIn ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50'
+                            isIn
+                              ? 'bg-purple-50 text-purple-700'
+                              : 'text-gray-700 hover:bg-gray-50',
                           )}
                         >
-                          <div className={cn(
-                            'flex h-4 w-4 items-center justify-center rounded border',
-                            isIn ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
-                          )}>
+                          <div
+                            className={cn(
+                              'flex h-4 w-4 items-center justify-center rounded border',
+                              isIn
+                                ? 'border-purple-600 bg-purple-600'
+                                : 'border-gray-300',
+                            )}
+                          >
                             {isUpdating ? (
                               <Loader2 className="h-3 w-3 animate-spin text-white" />
                             ) : isIn ? (
@@ -1373,7 +1786,9 @@ function CollectionDropdown({
               )}
 
               {collections.length === 0 && !collectionInput.trim() && (
-                <p className="mt-2 px-2 py-2 text-sm text-gray-500">No collections yet. Type to create one.</p>
+                <p className="mt-2 px-2 py-2 text-sm text-gray-500">
+                  No collections yet. Type to create one.
+                </p>
               )}
             </div>
           </div>

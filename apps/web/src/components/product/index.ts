@@ -1,2 +1,5 @@
-export { PersonalizationForm, default as PersonalizationFormDefault } from './PersonalizationForm'
+export {
+  default as PersonalizationFormDefault,
+  PersonalizationForm,
+} from './PersonalizationForm'
 export { ProductGallery } from './ProductGallery'

@@ -1,9 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { BarChart3, Calendar, TrendingUp, Package, RefreshCw, Globe } from 'lucide-react'
+import {
+  BarChart3,
+  Calendar,
+  Globe,
+  Package,
+  RefreshCw,
+  TrendingUp,
+} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { FunnelChart } from '@/components/analytics/FunnelChart'
-import { TrafficSourceChart, type SourceStats } from '@/components/analytics/TrafficSourceChart'
+import {
+  type SourceStats,
+  TrafficSourceChart,
+} from '@/components/analytics/TrafficSourceChart'
 
 interface FunnelData {
   viewProduct: number
@@ -71,14 +81,16 @@ export default function AnalyticsPage() {
           }
           startDate = new Date(customStart)
           break
-        case '30d':
         default:
           startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000)
       }
 
       const params = new URLSearchParams({
         startDate: startDate.toISOString(),
-        endDate: datePreset === 'custom' ? new Date(customEnd).toISOString() : endDate.toISOString(),
+        endDate:
+          datePreset === 'custom'
+            ? new Date(customEnd).toISOString()
+            : endDate.toISOString(),
       })
 
       // Fetch funnel and source data in parallel
@@ -114,9 +126,13 @@ export default function AnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-sm text-gray-500 mt-1">Track your store&apos;s conversion funnel</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Track your store&apos;s conversion funnel
+          </p>
         </div>
         <button
+          type="button"
+          type="button"
           onClick={fetchAnalytics}
           disabled={isLoading}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -134,6 +150,8 @@ export default function AnalyticsPage() {
           <div className="flex flex-wrap gap-2">
             {(['7d', '30d', '90d'] as const).map((preset) => (
               <button
+                type="button"
+                type="button"
                 key={preset}
                 onClick={() => setDatePreset(preset)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
@@ -142,10 +160,16 @@ export default function AnalyticsPage() {
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {preset === '7d' ? 'Last 7 days' : preset === '30d' ? 'Last 30 days' : 'Last 90 days'}
+                {preset === '7d'
+                  ? 'Last 7 days'
+                  : preset === '30d'
+                    ? 'Last 30 days'
+                    : 'Last 90 days'}
               </button>
             ))}
             <button
+              type="button"
+              type="button"
               onClick={() => setDatePreset('custom')}
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                 datePreset === 'custom'
@@ -191,7 +215,9 @@ export default function AnalyticsPage() {
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             <BarChart3 className="h-5 w-5 text-gray-600" />
-            <h2 className="text-base font-semibold text-gray-900">Conversion Funnel</h2>
+            <h2 className="text-base font-semibold text-gray-900">
+              Conversion Funnel
+            </h2>
           </div>
           <div className="p-6">
             <FunnelChart data={data?.funnel || null} isLoading={isLoading} />
@@ -202,10 +228,15 @@ export default function AnalyticsPage() {
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             <Globe className="h-5 w-5 text-gray-600" />
-            <h2 className="text-base font-semibold text-gray-900">Traffic Sources</h2>
+            <h2 className="text-base font-semibold text-gray-900">
+              Traffic Sources
+            </h2>
           </div>
           <div className="p-6">
-            <TrafficSourceChart data={sourceData?.sources || null} isLoading={isLoading} />
+            <TrafficSourceChart
+              data={sourceData?.sources || null}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </div>
@@ -214,18 +245,26 @@ export default function AnalyticsPage() {
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <TrendingUp className="h-5 w-5 text-gray-600" />
-          <h2 className="text-base font-semibold text-gray-900">Top Products by Conversion</h2>
+          <h2 className="text-base font-semibold text-gray-900">
+            Top Products by Conversion
+          </h2>
         </div>
         <div className="divide-y divide-gray-100">
           {isLoading ? (
             <div className="p-6 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse h-12 bg-gray-100 rounded-lg" />
+                <div
+                  key={i}
+                  className="animate-pulse h-12 bg-gray-100 rounded-lg"
+                />
               ))}
             </div>
           ) : data?.topProducts && data.topProducts.length > 0 ? (
             data.topProducts.map((product, index) => (
-              <div key={product.productId} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors">
+              <div
+                key={product.productId}
+                className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
+              >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-600 font-semibold">
                   #{index + 1}
                 </div>
@@ -237,10 +276,15 @@ export default function AnalyticsPage() {
                     {product.views} views, {product.purchases} purchases
                   </p>
                 </div>
-                <div className={`text-lg font-bold ${
-                  product.conversionRate >= 5 ? 'text-emerald-600' :
-                  product.conversionRate >= 2 ? 'text-amber-600' : 'text-gray-600'
-                }`}>
+                <div
+                  className={`text-lg font-bold ${
+                    product.conversionRate >= 5
+                      ? 'text-emerald-600'
+                      : product.conversionRate >= 2
+                        ? 'text-amber-600'
+                        : 'text-gray-600'
+                  }`}
+                >
                   {product.conversionRate}%
                 </div>
               </div>
@@ -248,8 +292,13 @@ export default function AnalyticsPage() {
           ) : (
             <div className="px-6 py-12 text-center">
               <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p className="text-sm font-medium text-gray-600">No product data yet</p>
-              <p className="text-xs text-gray-400 mt-1">Product conversion data will appear as customers interact with your store</p>
+              <p className="text-sm font-medium text-gray-600">
+                No product data yet
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Product conversion data will appear as customers interact with
+                your store
+              </p>
             </div>
           )}
         </div>
@@ -260,11 +309,14 @@ export default function AnalyticsPage() {
         <div className="flex gap-3">
           <BarChart3 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-blue-900">How the funnel works</p>
+            <p className="text-sm font-medium text-blue-900">
+              How the funnel works
+            </p>
             <p className="text-sm text-blue-700 mt-1">
-              The conversion funnel tracks customer journey from viewing a product, adding to cart,
-              starting checkout, and completing a purchase. A healthy e-commerce conversion rate is
-              typically 1-3% from view to purchase.
+              The conversion funnel tracks customer journey from viewing a
+              product, adding to cart, starting checkout, and completing a
+              purchase. A healthy e-commerce conversion rate is typically 1-3%
+              from view to purchase.
             </p>
           </div>
         </div>

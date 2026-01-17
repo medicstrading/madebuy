@@ -14,11 +14,7 @@ export function CTASection({ settings, tenant, tenantSlug }: SectionProps) {
         <h2 className="text-3xl md:text-4xl font-serif text-gray-900 mb-4">
           {title}
         </h2>
-        {subtitle && (
-          <p className="text-lg text-gray-600 mb-8">
-            {subtitle}
-          </p>
-        )}
+        {subtitle && <p className="text-lg text-gray-600 mb-8">{subtitle}</p>}
         <Link
           href={buttonUrl}
           className="inline-flex items-center px-8 py-4 rounded-lg font-medium text-white transition-all duration-200 hover:scale-105"
@@ -39,9 +35,7 @@ export function CTASection({ settings, tenant, tenantSlug }: SectionProps) {
             background: `linear-gradient(135deg, ${tenant.primaryColor || '#1a1a1a'}, ${tenant.accentColor || '#3b82f6'})`,
           }}
         >
-          <h2 className="text-3xl md:text-4xl font-serif mb-4">
-            {title}
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-serif mb-4">{title}</h2>
           {subtitle && (
             <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
               {subtitle}
@@ -67,9 +61,7 @@ export function CTASection({ settings, tenant, tenantSlug }: SectionProps) {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 text-center text-white">
-        <h2 className="text-3xl md:text-4xl font-serif mb-4">
-          {title}
-        </h2>
+        <h2 className="text-3xl md:text-4xl font-serif mb-4">{title}</h2>
         {subtitle && (
           <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
             {subtitle}

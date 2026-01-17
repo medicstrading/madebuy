@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { marketplace } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/marketplace/etsy/listings
@@ -8,7 +8,7 @@ import { marketplace } from '@madebuy/db'
  * List all Etsy listings for the current tenant
  * Note: Etsy integration is coming soon, this returns existing DB records only
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Check Etsy connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'etsy',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'Etsy not connected' }, { status: 400 })
     }
@@ -29,7 +32,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ listings })
   } catch (error) {
     console.error('Error fetching Etsy listings:', error)
-    return NextResponse.json({ error: 'Failed to fetch listings' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch listings' },
+      { status: 500 },
+    )
   }
 }
 
@@ -38,9 +44,9 @@ export async function GET(request: NextRequest) {
  *
  * Create a new Etsy listing - Coming Soon
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   return NextResponse.json(
     { error: 'Etsy listing creation coming soon' },
-    { status: 501 }
+    { status: 501 },
   )
 }

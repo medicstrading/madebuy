@@ -8,7 +8,7 @@
  * - TikTok, LinkedIn, YouTube, Twitter, Threads, Pinterest, Reddit, Mastodon
  */
 
-import type { SocialPlatform, PlatformResult } from '@madebuy/shared'
+import type { PlatformResult, SocialPlatform } from '@madebuy/shared'
 
 // =============================================================================
 // Types
@@ -259,7 +259,9 @@ export class LateClient {
     this.apiKey = apiKey || process.env.LATE_API_KEY || ''
 
     if (!this.apiKey) {
-      throw new Error('Late API key is required. Set LATE_API_KEY environment variable.')
+      throw new Error(
+        'Late API key is required. Set LATE_API_KEY environment variable.',
+      )
     }
   }
 
@@ -271,7 +273,10 @@ export class LateClient {
    * Get all profiles
    */
   async getProfiles(): Promise<LateProfilesResponse> {
-    const response = await this.request<void, LateProfilesAPIResponse>('GET', '/profiles')
+    const response = await this.request<void, LateProfilesAPIResponse>(
+      'GET',
+      '/profiles',
+    )
     return response
   }
 
@@ -280,7 +285,8 @@ export class LateClient {
    */
   async getDefaultProfileId(): Promise<string> {
     const data = await this.getProfiles()
-    const defaultProfile = data.profiles.find(p => p.isDefault) || data.profiles[0]
+    const defaultProfile =
+      data.profiles.find((p) => p.isDefault) || data.profiles[0]
 
     if (!defaultProfile) {
       throw new Error('No profiles found in Late.dev account')
@@ -297,7 +303,10 @@ export class LateClient {
    * Get all connected accounts
    */
   async getAccounts(): Promise<LateAccountsResponse> {
-    const response = await this.request<void, LateAccountsAPIResponse>('GET', '/accounts')
+    const response = await this.request<void, LateAccountsAPIResponse>(
+      'GET',
+      '/accounts',
+    )
     return response
   }
 
@@ -306,7 +315,7 @@ export class LateClient {
    */
   async getAccountsByPlatform(platform: string): Promise<LateAccount[]> {
     const data = await this.getAccounts()
-    return data.accounts.filter(acc => acc.platform === platform)
+    return data.accounts.filter((acc) => acc.platform === platform)
   }
 
   /**
@@ -322,7 +331,7 @@ export class LateClient {
     // Build query parameters - conditionally include redirect_url if defined
     const params = new URLSearchParams({
       profileId,
-      ...(redirect_url && { redirect_url })
+      ...(redirect_url && { redirect_url }),
     })
 
     // Use GET request with query params, not POST with body
@@ -331,13 +340,14 @@ export class LateClient {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`
-      }
+        Authorization: `Bearer ${this.apiKey}`,
+      },
     })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}`
+      const errorMessage =
+        errorData.message || errorData.error || `HTTP ${response.status}`
       throw new Error(errorMessage)
     }
 
@@ -361,23 +371,29 @@ export class LateClient {
    */
   async createPost(post: LatePost): Promise<LatePostResponse> {
     try {
-      const response = await this.request<LateCreatePostAPIRequest, LateCreatePostAPIResponse>('POST', '/posts', post)
+      const response = await this.request<
+        LateCreatePostAPIRequest,
+        LateCreatePostAPIResponse
+      >('POST', '/posts', post)
 
       return {
         success: true,
         postId: response.id,
         scheduledId: response.scheduledId,
-        platformPosts: response.platformPosts
+        platformPosts: response.platformPosts,
       }
     } catch (error) {
       // Extract the most detailed error message available (sanitized for client)
-      const errorMessage = error instanceof Error
-        ? error.message
-        : (typeof error === 'string' ? error : 'Failed to publish via Late.dev')
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : 'Failed to publish via Late.dev'
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       }
     }
   }
@@ -390,28 +406,35 @@ export class LateClient {
     const post: LatePost = {
       content: request.caption,
       scheduledFor: request.scheduledFor?.toISOString(),
-      platforms: request.platforms.map(platform => ({
+      platforms: request.platforms.map((platform) => ({
         platform: platform as LatePlatformType,
-        accountId: '' // Caller needs to provide account IDs via createPost instead
+        accountId: '', // Caller needs to provide account IDs via createPost instead
       })),
-      mediaItems: request.mediaUrls?.map(url => ({
+      mediaItems: request.mediaUrls?.map((url) => ({
         url,
-        type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as 'image' | 'video'
-      }))
+        type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as
+          | 'image'
+          | 'video',
+      })),
     }
 
     const result = await this.createPost(post)
 
     return {
       id: result.postId || '',
-      status: result.success ? (request.scheduledFor ? 'scheduled' : 'published') : 'failed',
-      results: result.platformPosts?.map(pp => ({
-        platform: pp.platform as SocialPlatform,
-        status: pp.error ? 'failed' as const : 'success' as const,
-        postId: pp.platformPostId,
-        postUrl: pp.platformPostUrl || pp.permalink,
-        error: pp.error
-      })) || []
+      status: result.success
+        ? request.scheduledFor
+          ? 'scheduled'
+          : 'published'
+        : 'failed',
+      results:
+        result.platformPosts?.map((pp) => ({
+          platform: pp.platform as SocialPlatform,
+          status: pp.error ? ('failed' as const) : ('success' as const),
+          postId: pp.platformPostId,
+          postUrl: pp.platformPostUrl || pp.permalink,
+          error: pp.error,
+        })) || [],
     }
   }
 
@@ -419,7 +442,10 @@ export class LateClient {
    * Upload media to Late.dev
    * Returns URL that can be used in post.mediaItems
    */
-  async uploadMedia(file: File | Blob, type: 'image' | 'video'): Promise<string> {
+  async uploadMedia(
+    file: File | Blob,
+    type: 'image' | 'video',
+  ): Promise<string> {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', type)
@@ -427,17 +453,17 @@ export class LateClient {
     const response = await fetch(`${this.baseUrl}/media`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`
+        Authorization: `Bearer ${this.apiKey}`,
       },
-      body: formData
+      body: formData,
     })
 
     if (!response.ok) {
-      const error = await response.json() as LateAPIError
+      const error = (await response.json()) as LateAPIError
       throw new Error(error.message || 'Failed to upload media')
     }
 
-    const data = await response.json() as LateUploadMediaAPIResponse
+    const data = (await response.json()) as LateUploadMediaAPIResponse
     return data.url
   }
 
@@ -445,7 +471,10 @@ export class LateClient {
    * Get post status
    */
   async getPost(postId: string): Promise<LateGetPostAPIResponse> {
-    return await this.request<void, LateGetPostAPIResponse>('GET', `/posts/${postId}`)
+    return await this.request<void, LateGetPostAPIResponse>(
+      'GET',
+      `/posts/${postId}`,
+    )
   }
 
   /**
@@ -463,13 +492,14 @@ export class LateClient {
     return {
       id: post.id,
       status: post.status || 'published',
-      results: post.platformPosts?.map(pp => ({
-        platform: pp.platform as SocialPlatform,
-        status: pp.error ? 'failed' as const : 'success' as const,
-        postId: pp.platformPostId,
-        postUrl: pp.platformPostUrl || pp.permalink,
-        error: pp.error
-      })) || []
+      results:
+        post.platformPosts?.map((pp) => ({
+          platform: pp.platform as SocialPlatform,
+          status: pp.error ? ('failed' as const) : ('success' as const),
+          postId: pp.platformPostId,
+          postUrl: pp.platformPostUrl || pp.permalink,
+          error: pp.error,
+        })) || [],
     }
   }
 
@@ -488,8 +518,13 @@ export class LateClient {
    * Get OAuth authorization URL for a platform
    * @deprecated Use getConnectUrl instead
    */
-  async getOAuthUrl(request: LateOAuthUrlRequest): Promise<LateOAuthUrlResponse> {
-    const authUrl = await this.getConnectUrl(request.platform, request.redirectUri)
+  async getOAuthUrl(
+    request: LateOAuthUrlRequest,
+  ): Promise<LateOAuthUrlResponse> {
+    const authUrl = await this.getConnectUrl(
+      request.platform,
+      request.redirectUri,
+    )
     return { authUrl }
   }
 
@@ -497,8 +532,14 @@ export class LateClient {
    * Exchange OAuth code for access token
    * Note: Late.dev handles this internally, tokens are stored in your Late.dev account
    */
-  async getOAuthToken(request: LateOAuthTokenRequest): Promise<LateOAuthTokenResponse> {
-    return await this.request<LateOAuthTokenRequest, LateOAuthTokenAPIResponse>('POST', '/oauth/token', request)
+  async getOAuthToken(
+    request: LateOAuthTokenRequest,
+  ): Promise<LateOAuthTokenResponse> {
+    return await this.request<LateOAuthTokenRequest, LateOAuthTokenAPIResponse>(
+      'POST',
+      '/oauth/token',
+      request,
+    )
   }
 
   // ===========================================================================
@@ -508,19 +549,19 @@ export class LateClient {
   private async request<TRequest = void, TResponse = unknown>(
     method: string,
     endpoint: string,
-    data?: TRequest
+    data?: TRequest,
   ): Promise<TResponse> {
     const url = `${this.baseUrl}${endpoint}`
 
     const headers: Record<string, string> = {
-      'Authorization': `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
     }
 
     const options: RequestInit = {
       method,
       headers,
-      cache: 'no-store' // Disable Next.js fetch caching for real-time data
+      cache: 'no-store', // Disable Next.js fetch caching for real-time data
     }
 
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
@@ -544,12 +585,13 @@ export class LateClient {
       }
 
       // Extract error message from various possible fields (sanitized - no sensitive data)
-      const errorMessage = errorData.message ||
-                          errorData.error ||
-                          errorData.details ||
-                          errorData.error_description ||
-                          (typeof errorData === 'string' ? errorData : null) ||
-                          `Late.dev API error: HTTP ${response.status}`
+      const errorMessage =
+        errorData.message ||
+        errorData.error ||
+        errorData.details ||
+        errorData.error_description ||
+        (typeof errorData === 'string' ? errorData : null) ||
+        `Late.dev API error: HTTP ${response.status}`
 
       throw new Error(errorMessage)
     }
@@ -559,7 +601,7 @@ export class LateClient {
       return {} as TResponse
     }
 
-    return await response.json() as TResponse
+    return (await response.json()) as TResponse
   }
 }
 
@@ -581,7 +623,7 @@ export const lateClient = new Proxy({} as LateClient, {
   get(_, prop) {
     const client = getLateClient()
     return client[prop as keyof LateClient]
-  }
+  },
 })
 
 // =============================================================================
@@ -594,20 +636,22 @@ export const lateClient = new Proxy({} as LateClient, {
 export async function publishToLate(
   content: string,
   platforms: Array<{ platform: string; accountId: string }>,
-  mediaUrls?: string[]
+  mediaUrls?: string[],
 ): Promise<LatePostResponse> {
   const client = getLateClient()
 
   const post: LatePost = {
     content,
-    platforms: platforms.map(p => ({
+    platforms: platforms.map((p) => ({
       platform: p.platform as LatePlatformType,
-      accountId: p.accountId
+      accountId: p.accountId,
     })),
-    mediaItems: mediaUrls?.map(url => ({
+    mediaItems: mediaUrls?.map((url) => ({
       url,
-      type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as 'image' | 'video'
-    }))
+      type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as
+        | 'image'
+        | 'video',
+    })),
   }
 
   return await client.createPost(post)
@@ -620,21 +664,23 @@ export async function scheduleToLate(
   content: string,
   scheduledFor: Date,
   platforms: Array<{ platform: string; accountId: string }>,
-  mediaUrls?: string[]
+  mediaUrls?: string[],
 ): Promise<LatePostResponse> {
   const client = getLateClient()
 
   const post: LatePost = {
     content,
     scheduledFor: scheduledFor.toISOString(),
-    platforms: platforms.map(p => ({
+    platforms: platforms.map((p) => ({
       platform: p.platform as LatePlatformType,
-      accountId: p.accountId
+      accountId: p.accountId,
     })),
-    mediaItems: mediaUrls?.map(url => ({
+    mediaItems: mediaUrls?.map((url) => ({
       url,
-      type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as 'image' | 'video'
-    }))
+      type: (url.match(/\.(mp4|mov|avi)$/i) ? 'video' : 'image') as
+        | 'image'
+        | 'video',
+    })),
   }
 
   return await client.createPost(post)

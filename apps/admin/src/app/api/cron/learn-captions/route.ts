@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
-import { getDatabase, captionStyles } from '@madebuy/db'
-import type { SocialPlatform, PublishRecord } from '@madebuy/shared'
+import { timingSafeEqual } from 'node:crypto'
+import { captionStyles, getDatabase } from '@madebuy/db'
+import type { PublishRecord, SocialPlatform } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -42,12 +42,15 @@ interface LearnResult {
 /**
  * Get recently published posts with successful platform results
  */
-async function getRecentlyPublishedPosts(daysAgo: number = 7): Promise<PublishRecord[]> {
+async function getRecentlyPublishedPosts(
+  daysAgo: number = 7,
+): Promise<PublishRecord[]> {
   const db = await getDatabase()
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysAgo)
 
-  const results = await db.collection('publish_records')
+  const results = await db
+    .collection('publish_records')
     .find({
       status: 'published',
       publishedAt: { $gte: cutoffDate },
@@ -66,13 +69,13 @@ async function getRecentlyPublishedPosts(daysAgo: number = 7): Promise<PublishRe
 async function isAlreadyLearned(
   tenantId: string,
   platform: SocialPlatform,
-  publishRecordId: string
+  publishRecordId: string,
 ): Promise<boolean> {
   const profile = await captionStyles.getCaptionStyleProfile(tenantId, platform)
   if (!profile) return false
 
   return profile.learnedExamples.some(
-    (ex) => ex.publishRecordId === publishRecordId
+    (ex) => ex.publishRecordId === publishRecordId,
   )
 }
 
@@ -130,14 +133,14 @@ export async function GET(request: NextRequest) {
           // Check if profile exists for this platform
           let profile = await captionStyles.getCaptionStyleProfile(
             post.tenantId,
-            platform
+            platform,
           )
 
           // If no profile, create one with defaults
           if (!profile) {
             profile = await captionStyles.createCaptionStyleProfile(
               post.tenantId,
-              { platform }
+              { platform },
             )
           }
 
@@ -146,14 +149,14 @@ export async function GET(request: NextRequest) {
             post.tenantId,
             platform,
             caption,
-            post.id
+            post.id,
           )
 
           // Prune to keep only latest 10
           await captionStyles.pruneLearnedExamples(post.tenantId, platform, 10)
 
           console.log(
-            `[CRON] Learned caption for tenant ${post.tenantId}, platform ${platform}`
+            `[CRON] Learned caption for tenant ${post.tenantId}, platform ${platform}`,
           )
 
           results.push({
@@ -167,7 +170,7 @@ export async function GET(request: NextRequest) {
             error instanceof Error ? error.message : 'Unknown error'
           console.error(
             `[CRON] Error learning caption for tenant ${post.tenantId}:`,
-            error
+            error,
           )
 
           results.push({
@@ -181,7 +184,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(
-      `[CRON] Caption learning complete: ${learned} learned, ${skipped} skipped`
+      `[CRON] Caption learning complete: ${learned} learned, ${skipped} skipped`,
     )
 
     return NextResponse.json({
@@ -199,7 +202,7 @@ export async function GET(request: NextRequest) {
           error instanceof Error ? error.message : 'Failed to process learning',
         success: false,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

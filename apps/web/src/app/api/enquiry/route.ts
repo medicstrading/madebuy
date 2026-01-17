@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { enquiries, tracking, tenants } from '@madebuy/db'
+import { enquiries, tenants, tracking } from '@madebuy/db'
 import type { CreateEnquiryInput } from '@madebuy/shared'
+import { cookies } from 'next/headers'
+import { type NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 const ATTRIBUTION_COOKIE = 'mb_attribution'
@@ -27,7 +27,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { tenantId, name, email, message, pieceId, pieceName, source, sourceDomain, turnstileToken } = body
+    const {
+      tenantId,
+      name,
+      email,
+      message,
+      pieceId,
+      pieceName,
+      source,
+      sourceDomain,
+      turnstileToken,
+    } = body
 
     // Validate input types to prevent NoSQL injection
     if (
@@ -40,35 +50,38 @@ export async function POST(request: NextRequest) {
       (source !== undefined && typeof source !== 'string') ||
       (sourceDomain !== undefined && typeof sourceDomain !== 'string')
     ) {
-      return NextResponse.json(
-        { error: 'Invalid input type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input type' }, { status: 400 })
     }
 
     // Verify Turnstile token (skip in development if no key configured)
-    if (process.env.NODE_ENV === 'production' || process.env.TURNSTILE_SECRET_KEY) {
+    if (
+      process.env.NODE_ENV === 'production' ||
+      process.env.TURNSTILE_SECRET_KEY
+    ) {
       if (!turnstileToken) {
         return NextResponse.json(
           { error: 'CAPTCHA verification required' },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
-      const turnstileVerify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          secret: process.env.TURNSTILE_SECRET_KEY || '',
-          response: turnstileToken,
-        }),
-      })
+      const turnstileVerify = await fetch(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            secret: process.env.TURNSTILE_SECRET_KEY || '',
+            response: turnstileToken,
+          }),
+        },
+      )
 
       const turnstileResult = await turnstileVerify.json()
       if (!turnstileResult.success) {
         return NextResponse.json(
           { error: 'CAPTCHA verification failed' },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -77,7 +90,7 @@ export async function POST(request: NextRequest) {
     if (!tenantId || !name || !email || !message) {
       return NextResponse.json(
         { error: 'Missing required fields: tenantId, name, email, message' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -85,12 +98,14 @@ export async function POST(request: NextRequest) {
     if (!isValidEmail(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate tenant exists before creating enquiry
-    const tenant = await tenants.getTenantById(tenantId) || await tenants.getTenantBySlug(tenantId)
+    const tenant =
+      (await tenants.getTenantById(tenantId)) ||
+      (await tenants.getTenantBySlug(tenantId))
     if (!tenant) {
       return NextResponse.json({ error: 'Invalid tenant' }, { status: 400 })
     }
@@ -143,7 +158,7 @@ export async function POST(request: NextRequest) {
       trafficSource,
       request.nextUrl.pathname,
       sessionId || 'unknown',
-      pieceId
+      pieceId,
     )
 
     return NextResponse.json({ enquiry }, { status: 201 })
@@ -151,7 +166,7 @@ export async function POST(request: NextRequest) {
     console.error('Enquiry submission error:', error)
     return NextResponse.json(
       { error: 'Failed to submit enquiry' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

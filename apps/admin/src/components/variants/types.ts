@@ -3,7 +3,7 @@
  * Types for the variant matrix UI components
  */
 
-import type { ProductVariant, MediaItem } from '@madebuy/shared'
+import type { MediaItem, ProductVariant } from '@madebuy/shared'
 
 /**
  * Variant Attribute - defines a single attribute type (e.g., Size, Color)
@@ -75,7 +75,11 @@ export interface AttributePreset {
  */
 export type BulkEditAction =
   | { type: 'setPrice'; value: number }
-  | { type: 'adjustPrice'; value: number; mode: 'add' | 'subtract' | 'percentage' }
+  | {
+      type: 'adjustPrice'
+      value: number
+      mode: 'add' | 'subtract' | 'percentage'
+    }
   | { type: 'setStock'; value: number }
   | { type: 'adjustStock'; value: number; mode: 'add' | 'subtract' }
   | { type: 'setAvailability'; value: boolean }
@@ -137,7 +141,10 @@ export interface VariantMatrixProps {
   variants: EditableVariant[]
   attributes: VariantAttribute[]
   selectedIds: Set<string>
-  onVariantChange: (variantId: string, updates: Partial<EditableVariant>) => void
+  onVariantChange: (
+    variantId: string,
+    updates: Partial<EditableVariant>,
+  ) => void
   onSelectionChange: (selectedIds: Set<string>) => void
   onDeleteVariants: (variantIds: string[]) => void
   errors: Map<string, string>

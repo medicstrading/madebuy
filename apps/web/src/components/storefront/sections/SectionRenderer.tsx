@@ -1,27 +1,32 @@
 'use client'
 
-import type { PageSection, PageSectionSettings } from '@madebuy/shared'
-import type { Tenant, PieceWithMedia, Collection, BlogPost, MediaItem } from '@madebuy/shared'
-
+import type {
+  BlogPost,
+  Collection,
+  PageSection,
+  PageSectionSettings,
+  PieceWithMedia,
+  Tenant,
+} from '@madebuy/shared'
+import { AboutSection } from './AboutSection'
+import { BlogPreview } from './BlogPreview'
+import { CollectionsShowcase } from './CollectionsShowcase'
+import { ContactSection } from './ContactSection'
+import { CTASection } from './CTASection'
+import { CustomOrderCTA } from './CustomOrderCTA'
+import { FAQSection } from './FAQSection'
+import { FeatureCards } from './FeatureCards'
+import { GalleryMasonry } from './GalleryMasonry'
+import { HeroSimple } from './HeroSimple'
 // Section component imports
 import { HeroSlider } from './HeroSlider'
-import { HeroSimple } from './HeroSimple'
-import { FeatureCards } from './FeatureCards'
-import { ProductGrid } from './ProductGrid'
-import { ProductFeatured } from './ProductFeatured'
-import { CollectionsShowcase } from './CollectionsShowcase'
-import { BlogPreview } from './BlogPreview'
-import { Testimonials } from './Testimonials'
-import { CTASection } from './CTASection'
-import { TextImage } from './TextImage'
-import { GalleryMasonry } from './GalleryMasonry'
-import { FAQSection } from './FAQSection'
-import { AboutSection } from './AboutSection'
-import { ContactSection } from './ContactSection'
-import { CustomOrderCTA } from './CustomOrderCTA'
 import { NewsletterSignup } from './NewsletterSignup'
-import { Spacer } from './Spacer'
+import { ProductFeatured } from './ProductFeatured'
+import { ProductGrid } from './ProductGrid'
 import { ReviewsSection } from './ReviewsSection'
+import { Spacer } from './Spacer'
+import { Testimonials } from './Testimonials'
+import { TextImage } from './TextImage'
 
 // Section component props interface
 export interface SectionProps {
@@ -40,19 +45,19 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   'feature-cards': FeatureCards,
   'product-grid': ProductGrid,
   'product-featured': ProductFeatured,
-  'collections': CollectionsShowcase,
+  collections: CollectionsShowcase,
   'blog-preview': BlogPreview,
-  'testimonials': Testimonials,
-  'cta': CTASection,
+  testimonials: Testimonials,
+  cta: CTASection,
   'text-image': TextImage,
-  'gallery': GalleryMasonry,
-  'faq': FAQSection,
-  'about': AboutSection,
-  'contact': ContactSection,
+  gallery: GalleryMasonry,
+  faq: FAQSection,
+  about: AboutSection,
+  contact: ContactSection,
   'custom-order': CustomOrderCTA,
-  'newsletter': NewsletterSignup,
-  'spacer': Spacer,
-  'reviews': ReviewsSection,
+  newsletter: NewsletterSignup,
+  spacer: Spacer,
+  reviews: ReviewsSection,
 }
 
 // Padding size map
@@ -96,15 +101,21 @@ export function SectionRenderer({
   }
 
   const { settings } = section
-  const paddingTop = settings.paddingTop ? PADDING_MAP[settings.paddingTop] : PADDING_MAP.medium
-  const paddingBottom = settings.paddingBottom ? PADDING_MAP[settings.paddingBottom] : PADDING_MAP.medium
+  const paddingTop = settings.paddingTop
+    ? PADDING_MAP[settings.paddingTop]
+    : PADDING_MAP.medium
+  const paddingBottom = settings.paddingBottom
+    ? PADDING_MAP[settings.paddingBottom]
+    : PADDING_MAP.medium
 
   const classes = [
     'relative',
     !settings.fullWidth && 'w-full',
     paddingTop,
     paddingBottom,
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <section
@@ -144,12 +155,12 @@ export function SectionList({
 }) {
   // Sort sections by order and filter enabled ones
   const sortedSections = [...sections]
-    .filter(s => s.enabled)
+    .filter((s) => s.enabled)
     .sort((a, b) => a.order - b.order)
 
   return (
     <>
-      {sortedSections.map(section => (
+      {sortedSections.map((section) => (
         <SectionRenderer
           key={section.id}
           section={section}

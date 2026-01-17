@@ -1,11 +1,11 @@
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { bundles } from '@madebuy/db'
-import { getTenantBySlug } from '@/lib/tenant'
-import { AddBundleToCartButton } from '@/components/bundles/AddBundleToCartButton'
-import { Package, Percent, ChevronRight, ImageIcon, Check } from 'lucide-react'
-import Image from 'next/image'
+import { Check, ChevronRight, ImageIcon, Package, Percent } from 'lucide-react'
 import type { Metadata } from 'next'
+import Image from 'next/image'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { AddBundleToCartButton } from '@/components/bundles/AddBundleToCartButton'
+import { getTenantBySlug } from '@/lib/tenant'
 
 interface BundlePageProps {
   params: Promise<{
@@ -21,18 +21,23 @@ function formatPrice(cents: number): string {
   }).format(cents / 100)
 }
 
-export async function generateMetadata({ params }: BundlePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: BundlePageProps): Promise<Metadata> {
   const { tenant: tenantSlug, slug } = await params
 
   const tenant = await getTenantBySlug(tenantSlug)
   if (!tenant) return { title: 'Bundle Not Found' }
 
   const bundle = await bundles.getBundleWithPiecesBySlug(tenant.id, slug)
-  if (!bundle || bundle.status !== 'active') return { title: 'Bundle Not Found' }
+  if (!bundle || bundle.status !== 'active')
+    return { title: 'Bundle Not Found' }
 
   return {
     title: `${bundle.name} | ${tenant.businessName}`,
-    description: bundle.description || `Save ${bundle.discountPercent}% with this bundle of ${bundle.pieceDetails.length} products`,
+    description:
+      bundle.description ||
+      `Save ${bundle.discountPercent}% with this bundle of ${bundle.pieceDetails.length} products`,
   }
 }
 
@@ -62,7 +67,10 @@ export default async function BundlePage({ params }: BundlePageProps) {
               Shop
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <Link href={`/${tenantSlug}/bundles`} className="hover:text-gray-900">
+            <Link
+              href={`/${tenantSlug}/bundles`}
+              className="hover:text-gray-900"
+            >
               Bundles
             </Link>
             <ChevronRight className="h-4 w-4" />
@@ -130,9 +138,13 @@ export default async function BundlePage({ params }: BundlePageProps) {
           {/* Bundle Details */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{bundle.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {bundle.name}
+              </h1>
               {bundle.description && (
-                <p className="mt-3 text-gray-600 text-lg">{bundle.description}</p>
+                <p className="mt-3 text-gray-600 text-lg">
+                  {bundle.description}
+                </p>
               )}
             </div>
 
@@ -156,7 +168,8 @@ export default async function BundlePage({ params }: BundlePageProps) {
                     Save {bundle.discountPercent}%
                   </span>
                   <span className="text-green-600 font-medium">
-                    ({formatPrice(bundle.originalPrice - bundle.bundlePrice)} savings)
+                    ({formatPrice(bundle.originalPrice - bundle.bundlePrice)}{' '}
+                    savings)
                   </span>
                 </div>
               )}
@@ -202,9 +215,13 @@ export default async function BundlePage({ params }: BundlePageProps) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{piece.name}</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {piece.name}
+                      </p>
                       <p className="text-sm text-gray-500">
-                        {piece.price ? formatPrice(piece.price) : 'Price varies'}
+                        {piece.price
+                          ? formatPrice(piece.price)
+                          : 'Price varies'}
                         {piece.quantity > 1 && ` x ${piece.quantity}`}
                       </p>
                     </div>
@@ -220,11 +237,15 @@ export default async function BundlePage({ params }: BundlePageProps) {
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Individual total</span>
-                  <span className="line-through">{formatPrice(bundle.originalPrice)}</span>
+                  <span className="line-through">
+                    {formatPrice(bundle.originalPrice)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm font-medium text-green-600 mt-1">
                   <span>Bundle savings</span>
-                  <span>-{formatPrice(bundle.originalPrice - bundle.bundlePrice)}</span>
+                  <span>
+                    -{formatPrice(bundle.originalPrice - bundle.bundlePrice)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 mt-2">
                   <span>Bundle price</span>

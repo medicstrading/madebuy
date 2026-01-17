@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import type { DomainStatus } from '@madebuy/shared'
 import {
-  Loader2,
-  Globe,
-  ExternalLink,
-  CheckCircle2,
   AlertCircle,
   ArrowLeft,
   ArrowRight,
-  ShoppingBag,
+  CheckCircle2,
+  ExternalLink,
+  Globe,
   Link2,
+  Loader2,
+  ShoppingBag,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { DnsInstructions } from '@/components/domain/DnsInstructions'
 import { DomainStatusBadge } from '@/components/domain/DomainStatusBadge'
-import type { DomainStatus } from '@madebuy/shared'
 
 type Step = 'choice' | 'new-domain' | 'existing-domain' | 'verify' | 'complete'
 
@@ -99,7 +99,7 @@ export default function DomainOnboardingPage() {
       } else {
         setError(data.error || 'Failed to save domain')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to save domain')
     } finally {
       setIsSaving(false)
@@ -120,9 +120,11 @@ export default function DomainOnboardingPage() {
       if (response.ok && data.verified) {
         setStep('complete')
       } else {
-        setError(data.message || 'Verification failed. DNS records not found yet.')
+        setError(
+          data.message || 'Verification failed. DNS records not found yet.',
+        )
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to verify domain')
     } finally {
       setIsVerifying(false)
@@ -153,7 +155,7 @@ export default function DomainOnboardingPage() {
         body: JSON.stringify({ onboardingStep: 'location' }),
       })
       router.push('/dashboard/onboarding/location')
-    } catch (err) {
+    } catch (_err) {
       router.push('/dashboard/onboarding/location')
     }
   }
@@ -172,6 +174,7 @@ export default function DomainOnboardingPage() {
     <div className="max-w-2xl mx-auto py-8 px-4">
       {/* Back button */}
       <button
+        type="button"
         onClick={() => router.push('/dashboard/onboarding')}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
       >
@@ -215,6 +218,7 @@ export default function DomainOnboardingPage() {
             {domainData?.hasCustomDomainFeature ? (
               <>
                 <button
+                  type="button"
                   onClick={() => setStep('new-domain')}
                   className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
                 >
@@ -226,13 +230,15 @@ export default function DomainOnboardingPage() {
                       I need to buy a domain
                     </h3>
                     <p className="text-sm text-gray-600">
-                      We&apos;ll help you register a new domain through Cloudflare
+                      We&apos;ll help you register a new domain through
+                      Cloudflare
                     </p>
                   </div>
                   <ArrowRight className="h-5 w-5 text-gray-400" />
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setStep('existing-domain')}
                   className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
                 >
@@ -260,6 +266,7 @@ export default function DomainOnboardingPage() {
             )}
 
             <button
+              type="button"
               onClick={handleSkipDomain}
               className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all text-left"
             >
@@ -302,8 +309,8 @@ export default function DomainOnboardingPage() {
                   Buy from Cloudflare Registrar
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  Cloudflare offers domains at cost with no markup, plus automatic
-                  DNS setup and SSL.
+                  Cloudflare offers domains at cost with no markup, plus
+                  automatic DNS setup and SSL.
                 </p>
                 <a
                   href="https://dash.cloudflare.com/?to=/:account/domains/register"
@@ -320,7 +327,9 @@ export default function DomainOnboardingPage() {
             <hr className="border-gray-200" />
 
             <div className="text-sm text-gray-600">
-              <p className="font-medium text-gray-900 mb-2">After purchasing:</p>
+              <p className="font-medium text-gray-900 mb-2">
+                After purchasing:
+              </p>
               <ol className="list-decimal list-inside space-y-1">
                 <li>Complete the purchase on Cloudflare</li>
                 <li>Return here and enter your new domain</li>
@@ -342,6 +351,7 @@ export default function DomainOnboardingPage() {
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
               />
               <button
+                type="button"
                 onClick={handleSetDomain}
                 disabled={isSaving || !newDomain.trim()}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
@@ -350,12 +360,11 @@ export default function DomainOnboardingPage() {
                 Continue
               </button>
             </div>
-            {error && (
-              <p className="mt-2 text-sm text-red-600">{error}</p>
-            )}
+            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           </div>
 
           <button
+            type="button"
             onClick={() => setStep('choice')}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
@@ -389,6 +398,7 @@ export default function DomainOnboardingPage() {
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
               />
               <button
+                type="button"
                 onClick={handleSetDomain}
                 disabled={isSaving || !newDomain.trim()}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
@@ -400,12 +410,11 @@ export default function DomainOnboardingPage() {
             <p className="mt-2 text-sm text-gray-500">
               Enter without http:// or www (e.g., myshop.com.au)
             </p>
-            {error && (
-              <p className="mt-2 text-sm text-red-600">{error}</p>
-            )}
+            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           </div>
 
           <button
+            type="button"
             onClick={() => setStep('choice')}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
@@ -447,6 +456,7 @@ export default function DomainOnboardingPage() {
 
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={handleVerify}
               disabled={isVerifying}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
@@ -455,6 +465,7 @@ export default function DomainOnboardingPage() {
               Verify DNS Records
             </button>
             <button
+              type="button"
               onClick={handleSkipDomain}
               className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
             >
@@ -498,6 +509,7 @@ export default function DomainOnboardingPage() {
           )}
 
           <button
+            type="button"
             onClick={handleContinue}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white font-medium hover:bg-blue-700"
           >

@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import type {
+  PersonalizationConfig,
+  PersonalizationValue,
+  PieceWithMedia,
+  ProductWithMedia,
+} from '@madebuy/shared'
+import { AlertCircle, Check, Clock, ShoppingCart } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { MiniCartPreview } from '@/components/cart/MiniCartPreview'
 import { useCart } from '@/contexts/CartContext'
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { MiniCartPreview } from '@/components/cart/MiniCartPreview'
 import { PersonalizationForm } from './PersonalizationForm'
-import type { ProductWithMedia, PieceWithMedia, PersonalizationValue, PersonalizationConfig } from '@madebuy/shared'
-import { ShoppingCart, Check, Clock, AlertCircle } from 'lucide-react'
 
 interface ProductAddToCartProps {
   product: ProductWithMedia | PieceWithMedia
@@ -29,18 +34,25 @@ export function ProductAddToCart({
   const [showPreview, setShowPreview] = useState(false)
 
   // Personalization state
-  const [personalizationValues, setPersonalizationValues] = useState<PersonalizationValue[]>([])
+  const [personalizationValues, setPersonalizationValues] = useState<
+    PersonalizationValue[]
+  >([])
   const [personalizationTotal, setPersonalizationTotal] = useState(0)
   const [personalizationValid, setPersonalizationValid] = useState(
-    !personalization?.enabled || personalization.fields.every(f => !f.required)
+    !personalization?.enabled ||
+      personalization.fields.every((f) => !f.required),
   )
 
-  const hasPersonalization = personalization?.enabled && personalization.fields.length > 0
+  const hasPersonalization =
+    personalization?.enabled && personalization.fields.length > 0
 
-  const handleValuesChange = useCallback((values: PersonalizationValue[], totalAdjustment: number) => {
-    setPersonalizationValues(values)
-    setPersonalizationTotal(totalAdjustment)
-  }, [])
+  const handleValuesChange = useCallback(
+    (values: PersonalizationValue[], totalAdjustment: number) => {
+      setPersonalizationValues(values)
+      setPersonalizationTotal(totalAdjustment)
+    },
+    [],
+  )
 
   const handleValidationChange = useCallback((isValid: boolean) => {
     setPersonalizationValid(isValid)
@@ -65,7 +77,8 @@ export function ProductAddToCart({
     setShowPreview(false)
   }, [])
 
-  const canAddToCart = !disabled && (!hasPersonalization || personalizationValid)
+  const canAddToCart =
+    !disabled && (!hasPersonalization || personalizationValid)
 
   // Calculate total price including personalization
   const displayPrice = (product.price || 0) + personalizationTotal
@@ -80,7 +93,9 @@ export function ProductAddToCart({
           </h3>
 
           {personalization.instructions && (
-            <p className="text-sm text-gray-600 mb-4">{personalization.instructions}</p>
+            <p className="text-sm text-gray-600 mb-4">
+              {personalization.instructions}
+            </p>
           )}
 
           <PersonalizationForm
@@ -94,15 +109,18 @@ export function ProductAddToCart({
           />
 
           {/* Processing time notice */}
-          {personalization.processingDays && personalization.processingDays > 0 && (
-            <div className="mt-4 flex items-start gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-              <Clock className="h-5 w-5 flex-shrink-0 mt-0.5" />
-              <p>
-                Personalized items require an additional {personalization.processingDays} day
-                {personalization.processingDays > 1 ? 's' : ''} for processing.
-              </p>
-            </div>
-          )}
+          {personalization.processingDays &&
+            personalization.processingDays > 0 && (
+              <div className="mt-4 flex items-start gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+                <Clock className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <p>
+                  Personalized items require an additional{' '}
+                  {personalization.processingDays} day
+                  {personalization.processingDays > 1 ? 's' : ''} for
+                  processing.
+                </p>
+              </div>
+            )}
 
           {/* Price adjustment display */}
           {personalizationTotal > 0 && (
@@ -120,7 +138,10 @@ export function ProductAddToCart({
       {hasPersonalization && !personalizationValid && (
         <div className="flex items-start gap-2 rounded-md bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <p>Please complete all required personalization fields before adding to cart.</p>
+          <p>
+            Please complete all required personalization fields before adding to
+            cart.
+          </p>
         </div>
       )}
 
@@ -138,6 +159,7 @@ export function ProductAddToCart({
 
       {/* Add to Cart Button */}
       <button
+        type="button"
         onClick={handleAddToCart}
         disabled={!canAddToCart || added}
         className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${

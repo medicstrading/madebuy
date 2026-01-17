@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { marketplace } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/marketplace/etsy
@@ -14,7 +14,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'etsy',
+    )
 
     if (!connection) {
       return NextResponse.json({
@@ -41,7 +44,7 @@ export async function GET() {
     console.error('Error fetching Etsy connection:', error)
     return NextResponse.json(
       { error: 'Failed to fetch connection status' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -58,10 +61,16 @@ export async function DELETE() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'etsy',
+    )
 
     if (!connection) {
-      return NextResponse.json({ error: 'No Etsy connection found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'No Etsy connection found' },
+        { status: 404 },
+      )
     }
 
     // Revoke the connection (soft delete)
@@ -72,7 +81,7 @@ export async function DELETE() {
     console.error('Error disconnecting Etsy:', error)
     return NextResponse.json(
       { error: 'Failed to disconnect Etsy' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -96,10 +105,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'etsy',
+    )
 
     if (!connection) {
-      return NextResponse.json({ error: 'No Etsy connection found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'No Etsy connection found' },
+        { status: 404 },
+      )
     }
 
     await marketplace.updateConnection(tenant.id, connection.id, { enabled })
@@ -109,7 +124,7 @@ export async function PATCH(request: NextRequest) {
     console.error('Error updating Etsy connection:', error)
     return NextResponse.json(
       { error: 'Failed to update Etsy connection' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,9 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import type { SocialPlatform, MediaItem, BlogPublishConfig, CaptionStyleOptions } from '@madebuy/shared'
-import { Instagram, Facebook, Youtube, Sparkles, Send, Calendar, FileText, Settings2 } from 'lucide-react'
+import type {
+  BlogPublishConfig,
+  CaptionStyleOptions,
+  MediaItem,
+  RecurrenceIntervalUnit,
+  SocialPlatform,
+} from '@madebuy/shared'
+import {
+  Calendar,
+  Facebook,
+  FileText,
+  Instagram,
+  Repeat,
+  Send,
+  Settings2,
+  Sparkles,
+  Youtube,
+} from 'lucide-react'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { CaptionStyleOnboardingModal } from '../caption/CaptionStyleOnboardingModal'
 
 interface PublishComposerProps {
@@ -16,24 +32,51 @@ const platformConfig = {
   instagram: { name: 'Instagram', icon: Instagram, color: 'text-pink-600' },
   facebook: { name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
   tiktok: { name: 'TikTok', icon: () => <span>🎵</span>, color: 'text-black' },
-  pinterest: { name: 'Pinterest', icon: () => <span>📌</span>, color: 'text-red-600' },
+  pinterest: {
+    name: 'Pinterest',
+    icon: () => <span>📌</span>,
+    color: 'text-red-600',
+  },
   youtube: { name: 'YouTube', icon: Youtube, color: 'text-red-600' },
-  'website-blog': { name: 'Website Blog', icon: FileText, color: 'text-gray-700' },
+  'website-blog': {
+    name: 'Website Blog',
+    icon: FileText,
+    color: 'text-gray-700',
+  },
 }
 
-export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }: PublishComposerProps) {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([])
+export function PublishComposer({
+  tenantId,
+  connectedPlatforms,
+  availableMedia,
+}: PublishComposerProps) {
+  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(
+    [],
+  )
   const [selectedMedia, setSelectedMedia] = useState<string[]>([])
   const [caption, setCaption] = useState('')
   const [generatingCaption, setGeneratingCaption] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [scheduledFor, setScheduledFor] = useState<Date | null>(null)
 
+  // Recurrence state
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false)
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1)
+  const [recurrenceUnit, setRecurrenceUnit] =
+    useState<RecurrenceIntervalUnit>('days')
+  const [recurrenceTotalOccurrences, setRecurrenceTotalOccurrences] =
+    useState(3)
+
   // Caption style onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingPlatform, setOnboardingPlatform] = useState<SocialPlatform | null>(null)
-  const [platformStyleStatus, setPlatformStyleStatus] = useState<Record<SocialPlatform, boolean>>({} as Record<SocialPlatform, boolean>)
-  const [captionPlatform, setCaptionPlatform] = useState<SocialPlatform | null>(null)
+  const [onboardingPlatform, setOnboardingPlatform] =
+    useState<SocialPlatform | null>(null)
+  const [platformStyleStatus, setPlatformStyleStatus] = useState<
+    Record<SocialPlatform, boolean>
+  >({} as Record<SocialPlatform, boolean>)
+  const [captionPlatform, setCaptionPlatform] = useState<SocialPlatform | null>(
+    null,
+  )
 
   // Blog-specific fields
   const [blogTitle, setBlogTitle] = useState('')
@@ -48,7 +91,10 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
   // Check style profile status for connected platforms
   useEffect(() => {
     const checkStyleProfiles = async () => {
-      const statuses: Record<SocialPlatform, boolean> = {} as Record<SocialPlatform, boolean>
+      const statuses: Record<SocialPlatform, boolean> = {} as Record<
+        SocialPlatform,
+        boolean
+      >
       for (const platform of connectedPlatforms) {
         try {
           const response = await fetch(`/api/caption-styles/${platform}`)
@@ -66,18 +112,18 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
   }, [connectedPlatforms])
 
   const togglePlatform = (platform: SocialPlatform) => {
-    setSelectedPlatforms(prev =>
+    setSelectedPlatforms((prev) =>
       prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
+        ? prev.filter((p) => p !== platform)
+        : [...prev, platform],
     )
   }
 
   const toggleMedia = (mediaId: string) => {
-    setSelectedMedia(prev =>
+    setSelectedMedia((prev) =>
       prev.includes(mediaId)
-        ? prev.filter(id => id !== mediaId)
-        : [...prev, mediaId]
+        ? prev.filter((id) => id !== mediaId)
+        : [...prev, mediaId],
     )
   }
 
@@ -88,7 +134,8 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
     }
 
     // Determine which platform to use for caption style
-    const targetPlatform = captionPlatform || selectedPlatforms[0] || connectedPlatforms[0]
+    const targetPlatform =
+      captionPlatform || selectedPlatforms[0] || connectedPlatforms[0]
 
     // Check if style profile exists for this platform
     if (targetPlatform && !platformStyleStatus[targetPlatform]) {
@@ -129,16 +176,22 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
     }
   }
 
-  const handleOnboardingComplete = async (style: CaptionStyleOptions, examples: string[]) => {
+  const handleOnboardingComplete = async (
+    style: CaptionStyleOptions,
+    examples: string[],
+  ) => {
     if (!onboardingPlatform) return
 
     try {
       // Create style profile
-      const createResponse = await fetch(`/api/caption-styles/${onboardingPlatform}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ style, examplePosts: examples }),
-      })
+      const createResponse = await fetch(
+        `/api/caption-styles/${onboardingPlatform}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ style, examplePosts: examples }),
+        },
+      )
 
       if (!createResponse.ok) {
         throw new Error('Failed to create style profile')
@@ -150,7 +203,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
       })
 
       // Update local state
-      setPlatformStyleStatus(prev => ({
+      setPlatformStyleStatus((prev) => ({
         ...prev,
         [onboardingPlatform]: true,
       }))
@@ -203,6 +256,17 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
           }
         : undefined
 
+      // Build recurrence config if enabled and scheduled
+      const recurrence =
+        recurrenceEnabled && scheduledFor
+          ? {
+              enabled: true,
+              intervalValue: recurrenceInterval,
+              intervalUnit: recurrenceUnit,
+              totalOccurrences: recurrenceTotalOccurrences,
+            }
+          : undefined
+
       // Create publish record
       const createResponse = await fetch('/api/publish', {
         method: 'POST',
@@ -213,6 +277,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
           mediaIds: selectedMedia,
           scheduledFor: scheduledFor?.toISOString(),
           blogConfig,
+          recurrence,
         }),
       })
 
@@ -224,9 +289,12 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
 
       // If not scheduled, publish immediately
       if (!scheduledFor) {
-        const executeResponse = await fetch(`/api/publish/${publishRecord.id}/execute`, {
-          method: 'POST',
-        })
+        const executeResponse = await fetch(
+          `/api/publish/${publishRecord.id}/execute`,
+          {
+            method: 'POST',
+          },
+        )
 
         if (!executeResponse.ok) {
           throw new Error('Failed to publish')
@@ -239,6 +307,10 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
       setCaption('')
       setScheduledFor(null)
       setCaptionPlatform(null)
+      setRecurrenceEnabled(false)
+      setRecurrenceInterval(1)
+      setRecurrenceUnit('days')
+      setRecurrenceTotalOccurrences(3)
 
       // Reset blog fields
       setBlogTitle('')
@@ -248,7 +320,11 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
       setBlogMetaTitle('')
       setBlogMetaDescription('')
 
-      alert(scheduledFor ? 'Post scheduled successfully!' : 'Published successfully!')
+      alert(
+        scheduledFor
+          ? 'Post scheduled successfully!'
+          : 'Published successfully!',
+      )
     } catch (error) {
       console.error('Publish error:', error)
       alert('Failed to publish. Please try again.')
@@ -258,7 +334,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
   }
 
   // Get social platforms (excluding blog)
-  const socialPlatforms = connectedPlatforms.filter(p => p !== 'website-blog')
+  const socialPlatforms = connectedPlatforms.filter((p) => p !== 'website-blog')
 
   return (
     <>
@@ -279,12 +355,17 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
         {/* Left Column - Media Selection */}
         <div className="lg:col-span-2">
           <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">Select Media</h2>
-            <p className="text-sm text-gray-600">Choose images or videos to share</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Select Media
+            </h2>
+            <p className="text-sm text-gray-600">
+              Choose images or videos to share
+            </p>
 
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-              {availableMedia.map(media => (
+              {availableMedia.map((media) => (
                 <button
+                  type="button"
                   key={media.id}
                   onClick={() => toggleMedia(media.id)}
                   className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
@@ -294,7 +375,9 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                   }`}
                 >
                   <Image
-                    src={media.variants.thumb?.url || media.variants.original.url}
+                    src={
+                      media.variants.thumb?.url || media.variants.original.url
+                    }
                     alt={media.altText || 'Media'}
                     fill
                     className="object-cover"
@@ -326,11 +409,15 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                 {socialPlatforms.length > 1 && (
                   <select
                     value={captionPlatform || ''}
-                    onChange={(e) => setCaptionPlatform(e.target.value as SocialPlatform || null)}
+                    onChange={(e) =>
+                      setCaptionPlatform(
+                        (e.target.value as SocialPlatform) || null,
+                      )
+                    }
                     className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="">Auto-detect style</option>
-                    {socialPlatforms.map(platform => (
+                    {socialPlatforms.map((platform) => (
                       <option key={platform} value={platform}>
                         {platformConfig[platform].name} style
                       </option>
@@ -338,6 +425,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                   </select>
                 )}
                 <button
+                  type="button"
                   onClick={handleGenerateCaption}
                   disabled={generatingCaption || selectedMedia.length === 0}
                   className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -351,7 +439,9 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
             {/* Style status indicator */}
             {(captionPlatform || selectedPlatforms[0]) && (
               <div className="mt-2 flex items-center gap-2 text-sm">
-                {platformStyleStatus[captionPlatform || selectedPlatforms[0]] ? (
+                {platformStyleStatus[
+                  captionPlatform || selectedPlatforms[0]
+                ] ? (
                   <span className="text-green-600 flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                     Style profile active
@@ -390,7 +480,9 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
             <div className="mt-6 rounded-lg bg-white p-6 shadow-sm border-2 border-blue-200">
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="h-5 w-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Blog Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Blog Settings
+                </h2>
               </div>
 
               <div className="space-y-4">
@@ -451,6 +543,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                     />
                     <button
                       type="button"
+                      type="button"
                       onClick={() => {
                         const tag = blogTagInput.trim()
                         if (tag && !blogTags.includes(tag)) {
@@ -472,7 +565,10 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                         {tag}
                         <button
                           type="button"
-                          onClick={() => setBlogTags(blogTags.filter(t => t !== tag))}
+                          type="button"
+                          onClick={() =>
+                            setBlogTags(blogTags.filter((t) => t !== tag))
+                          }
                           className="hover:text-red-600"
                         >
                           ×
@@ -537,7 +633,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
               <p className="text-sm text-gray-600">Where to publish</p>
 
               <div className="mt-4 space-y-2">
-                {connectedPlatforms.map(platform => {
+                {connectedPlatforms.map((platform) => {
                   const config = platformConfig[platform]
                   const Icon = config.icon
                   const isSelected = selectedPlatforms.includes(platform)
@@ -545,6 +641,7 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
 
                   return (
                     <button
+                      type="button"
                       key={platform}
                       onClick={() => togglePlatform(platform)}
                       className={`flex w-full items-center gap-3 rounded-lg border-2 p-3 transition-all ${
@@ -556,7 +653,9 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                       <div className={`${config.color}`}>
                         <Icon className="h-5 w-5" />
                       </div>
-                      <span className="font-medium text-gray-900">{config.name}</span>
+                      <span className="font-medium text-gray-900">
+                        {config.name}
+                      </span>
                       {platform !== 'website-blog' && (
                         <span
                           className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
@@ -580,7 +679,10 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                 {connectedPlatforms.length === 0 && (
                   <p className="text-sm text-gray-500">
                     No platforms connected.{' '}
-                    <a href="/dashboard/connections" className="text-blue-600 hover:underline">
+                    <a
+                      href="/dashboard/connections"
+                      className="text-blue-600 hover:underline"
+                    >
                       Connect accounts
                     </a>
                   </p>
@@ -591,7 +693,9 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
             {/* Scheduling */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">Schedule</h2>
-              <p className="text-sm text-gray-600">Publish now or schedule for later</p>
+              <p className="text-sm text-gray-600">
+                Publish now or schedule for later
+              </p>
 
               <div className="mt-4">
                 <label className="flex items-center gap-2">
@@ -606,26 +710,139 @@ export function PublishComposer({ tenantId, connectedPlatforms, availableMedia }
                         setScheduledFor(tomorrow)
                       } else {
                         setScheduledFor(null)
+                        setRecurrenceEnabled(false)
                       }
                     }}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">Schedule for later</span>
+                  <span className="text-sm text-gray-700">
+                    Schedule for later
+                  </span>
                 </label>
 
                 {scheduledFor && (
-                  <input
-                    type="datetime-local"
-                    value={scheduledFor.toISOString().slice(0, 16)}
-                    onChange={(e) => setScheduledFor(new Date(e.target.value))}
-                    className="mt-3 w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <>
+                    <input
+                      type="datetime-local"
+                      value={scheduledFor.toISOString().slice(0, 16)}
+                      onChange={(e) =>
+                        setScheduledFor(new Date(e.target.value))
+                      }
+                      className="mt-3 w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">AEST timezone</p>
+
+                    {/* Scheduled indicator */}
+                    <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                      Scheduled for {scheduledFor.toLocaleDateString()} at{' '}
+                      {scheduledFor.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+
+                    {/* Recurrence Toggle */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <button
+                        type="button"
+                        type="button"
+                        onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all w-full ${
+                          recurrenceEnabled
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        <Repeat
+                          className={`h-4 w-4 ${recurrenceEnabled ? 'animate-spin-slow' : ''}`}
+                        />
+                        Repeat this post
+                      </button>
+
+                      {/* Recurrence Options */}
+                      {recurrenceEnabled && (
+                        <div className="mt-4 space-y-3 animate-in fade-in duration-200">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Every</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={30}
+                              value={recurrenceInterval}
+                              onChange={(e) =>
+                                setRecurrenceInterval(
+                                  Math.min(
+                                    30,
+                                    Math.max(
+                                      1,
+                                      parseInt(e.target.value, 10) || 1,
+                                    ),
+                                  ),
+                                )
+                              }
+                              className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            />
+                            <select
+                              value={recurrenceUnit}
+                              onChange={(e) =>
+                                setRecurrenceUnit(
+                                  e.target.value as RecurrenceIntervalUnit,
+                                )
+                              }
+                              className="px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            >
+                              <option value="hours">hour(s)</option>
+                              <option value="days">day(s)</option>
+                              <option value="weeks">week(s)</option>
+                            </select>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">
+                              Total posts:
+                            </span>
+                            <input
+                              type="number"
+                              min={2}
+                              max={30}
+                              value={recurrenceTotalOccurrences}
+                              onChange={(e) =>
+                                setRecurrenceTotalOccurrences(
+                                  Math.min(
+                                    30,
+                                    Math.max(
+                                      2,
+                                      parseInt(e.target.value, 10) || 2,
+                                    ),
+                                  ),
+                                )
+                              }
+                              className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            />
+                          </div>
+
+                          {/* Recurrence Summary */}
+                          <div className="p-3 bg-purple-50 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-purple-700">
+                              <Sparkles className="h-4 w-4" />
+                              <span className="font-medium">
+                                Will post {recurrenceTotalOccurrences} times,
+                                every {recurrenceInterval} {recurrenceUnit}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
 
             {/* Publish Button */}
             <button
+              type="button"
               onClick={handlePublish}
               disabled={
                 publishing ||

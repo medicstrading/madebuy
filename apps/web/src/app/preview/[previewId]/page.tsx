@@ -1,10 +1,8 @@
-import { notFound } from 'next/navigation'
 import { previews } from '@madebuy/db'
 import type { ExtractedDesign, NavItem } from '@madebuy/shared'
 import { TYPOGRAPHY_PRESETS } from '@madebuy/shared'
-import Image from 'next/image'
-import Link from 'next/link'
-import { ShoppingBag, Menu, ChevronRight, Star, Mail } from 'lucide-react'
+import { ChevronRight, Mail, ShoppingBag, Star } from 'lucide-react'
+import { notFound } from 'next/navigation'
 
 interface PreviewPageProps {
   params: { previewId: string }
@@ -43,17 +41,20 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
   return (
     <div
       className="min-h-screen bg-white"
-      style={{
-        '--primary-color': primaryColor,
-        '--accent-color': accentColor,
-        fontFamily: typography?.body?.fontFamily || 'system-ui, sans-serif',
-      } as React.CSSProperties}
+      style={
+        {
+          '--primary-color': primaryColor,
+          '--accent-color': accentColor,
+          fontFamily: typography?.body?.fontFamily || 'system-ui, sans-serif',
+        } as React.CSSProperties
+      }
     >
       {/* Preview Banner */}
       <div className="bg-yellow-100 border-b border-yellow-300 px-4 py-2 text-center text-sm">
         <span className="text-yellow-800">
-          <strong>Preview Mode</strong> — This is how your imported design will look.
-          Imported from: <span className="font-mono text-xs">{sourceUrl}</span>
+          <strong>Preview Mode</strong> — This is how your imported design will
+          look. Imported from:{' '}
+          <span className="font-mono text-xs">{sourceUrl}</span>
         </span>
       </div>
 
@@ -75,7 +76,7 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
         />
 
         {/* Features/Info Section */}
-        {detectedSections.some(s => s.type === 'features') && (
+        {detectedSections.some((s) => s.type === 'features') && (
           <PreviewFeatures primaryColor={primaryColor} />
         )}
 
@@ -87,7 +88,7 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
         />
 
         {/* Testimonials */}
-        {detectedSections.some(s => s.type === 'testimonials') && (
+        {detectedSections.some((s) => s.type === 'testimonials') && (
           <PreviewTestimonials primaryColor={primaryColor} />
         )}
 
@@ -121,7 +122,9 @@ function PreviewHeader({
   design: ExtractedDesign
   primaryColor: string
   navItems: NavItem[]
-  typography: typeof TYPOGRAPHY_PRESETS[keyof typeof TYPOGRAPHY_PRESETS] | undefined
+  typography:
+    | (typeof TYPOGRAPHY_PRESETS)[keyof typeof TYPOGRAPHY_PRESETS]
+    | undefined
 }) {
   return (
     <header className="border-b bg-white sticky top-0 z-40">
@@ -166,7 +169,9 @@ function PreviewHeader({
                 <span className="text-sm font-medium text-gray-700">Home</span>
                 <span className="text-sm font-medium text-gray-700">Shop</span>
                 <span className="text-sm font-medium text-gray-700">About</span>
-                <span className="text-sm font-medium text-gray-700">Contact</span>
+                <span className="text-sm font-medium text-gray-700">
+                  Contact
+                </span>
               </>
             )}
           </nav>
@@ -193,7 +198,9 @@ function PreviewHero({
 }: {
   design: ExtractedDesign
   primaryColor: string
-  typography: typeof TYPOGRAPHY_PRESETS[keyof typeof TYPOGRAPHY_PRESETS] | undefined
+  typography:
+    | (typeof TYPOGRAPHY_PRESETS)[keyof typeof TYPOGRAPHY_PRESETS]
+    | undefined
 }) {
   return (
     <section className="relative bg-gradient-to-br from-gray-50 to-gray-100 py-20 lg:py-32">
@@ -219,7 +226,9 @@ function PreviewHero({
             >
               Shop Now
             </button>
-            <button className="px-6 py-3 rounded-lg border border-gray-300 font-medium hover:bg-gray-50">
+            <button
+              className="px-6 py-3 rounded-lg border border-gray-300 font-medium hover:bg-gray-50"
+            >
               Learn More
             </button>
           </div>
@@ -232,7 +241,10 @@ function PreviewHero({
 function PreviewFeatures({ primaryColor }: { primaryColor: string }) {
   const features = [
     { title: 'Handcrafted', desc: 'Made with care and attention to detail' },
-    { title: 'Unique Designs', desc: 'One-of-a-kind pieces you won\'t find elsewhere' },
+    {
+      title: 'Unique Designs',
+      desc: "One-of-a-kind pieces you won't find elsewhere",
+    },
     { title: 'Fast Shipping', desc: 'Quick and secure delivery to your door' },
   ]
 
@@ -246,7 +258,10 @@ function PreviewFeatures({ primaryColor }: { primaryColor: string }) {
                 className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
                 style={{ backgroundColor: `${primaryColor}20` }}
               >
-                <ChevronRight className="w-6 h-6" style={{ color: primaryColor }} />
+                <ChevronRight
+                  className="w-6 h-6"
+                  style={{ color: primaryColor }}
+                />
               </div>
               <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
               <p className="text-gray-600">{feature.desc}</p>
@@ -265,7 +280,9 @@ function PreviewProducts({
 }: {
   primaryColor: string
   accentColor: string
-  typography: typeof TYPOGRAPHY_PRESETS[keyof typeof TYPOGRAPHY_PRESETS] | undefined
+  typography:
+    | (typeof TYPOGRAPHY_PRESETS)[keyof typeof TYPOGRAPHY_PRESETS]
+    | undefined
 }) {
   // Placeholder products
   const products = [
@@ -286,7 +303,10 @@ function PreviewProducts({
         </h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product, i) => (
-            <div key={i} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div
+              key={i}
+              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            >
               <div className="aspect-square bg-gray-200 flex items-center justify-center">
                 <span className="text-gray-400 text-sm">Product Image</span>
               </div>
@@ -319,17 +339,23 @@ function PreviewTestimonials({ primaryColor }: { primaryColor: string }) {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center mb-12">What Customers Say</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">
+          What Customers Say
+        </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-gray-50 rounded-lg p-6">
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star
+                    key={s}
+                    className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                  />
                 ))}
               </div>
               <p className="text-gray-600 mb-4">
-                &ldquo;Beautiful craftsmanship and excellent quality. I&apos;ll definitely be ordering again!&rdquo;
+                &ldquo;Beautiful craftsmanship and excellent quality. I&apos;ll
+                definitely be ordering again!&rdquo;
               </p>
               <p className="font-medium">— Happy Customer</p>
             </div>
@@ -342,16 +368,14 @@ function PreviewTestimonials({ primaryColor }: { primaryColor: string }) {
 
 function PreviewCTA({ primaryColor }: { primaryColor: string }) {
   return (
-    <section
-      className="py-16"
-      style={{ backgroundColor: primaryColor }}
-    >
+    <section className="py-16" style={{ backgroundColor: primaryColor }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl font-bold text-white mb-4">
           Join Our Newsletter
         </h2>
         <p className="text-white/80 mb-6 max-w-lg mx-auto">
-          Subscribe for updates on new products, exclusive offers, and behind-the-scenes content.
+          Subscribe for updates on new products, exclusive offers, and
+          behind-the-scenes content.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
@@ -359,7 +383,9 @@ function PreviewCTA({ primaryColor }: { primaryColor: string }) {
             placeholder="Enter your email"
             className="flex-1 px-4 py-3 rounded-lg"
           />
-          <button className="px-6 py-3 bg-white rounded-lg font-medium hover:bg-gray-100">
+          <button
+            className="px-6 py-3 bg-white rounded-lg font-medium hover:bg-gray-100"
+          >
             Subscribe
           </button>
         </div>
@@ -382,7 +408,10 @@ function PreviewFooter({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
-            <div className="text-xl font-bold mb-4" style={{ color: primaryColor }}>
+            <div
+              className="text-xl font-bold mb-4"
+              style={{ color: primaryColor }}
+            >
               Your Brand
             </div>
             <p className="text-gray-400 text-sm">
@@ -393,9 +422,9 @@ function PreviewFooter({
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-gray-400 text-sm">
               {navItems.length > 0 ? (
-                navItems.slice(0, 4).map((item, i) => (
-                  <li key={i}>{item.label}</li>
-                ))
+                navItems
+                  .slice(0, 4)
+                  .map((item, i) => <li key={i}>{item.label}</li>)
               ) : (
                 <>
                   <li>Home</li>
@@ -445,7 +474,9 @@ function DesignInfoPanel({ design }: { design: ExtractedDesign }) {
                   className="w-4 h-4 rounded border"
                   style={{ backgroundColor: design.colors.primary }}
                 />
-                <span className="text-xs font-mono">{design.colors.primary}</span>
+                <span className="text-xs font-mono">
+                  {design.colors.primary}
+                </span>
               </div>
             )}
             {design.colors.accent && (
@@ -454,7 +485,9 @@ function DesignInfoPanel({ design }: { design: ExtractedDesign }) {
                   className="w-4 h-4 rounded border"
                   style={{ backgroundColor: design.colors.accent }}
                 />
-                <span className="text-xs font-mono">{design.colors.accent}</span>
+                <span className="text-xs font-mono">
+                  {design.colors.accent}
+                </span>
               </div>
             )}
           </div>
@@ -464,7 +497,10 @@ function DesignInfoPanel({ design }: { design: ExtractedDesign }) {
         <div>
           <div className="text-gray-500 text-xs mb-1">Typography</div>
           <div className="text-xs">
-            Preset: <span className="font-medium capitalize">{design.typography.matchedPreset}</span>
+            Preset:{' '}
+            <span className="font-medium capitalize">
+              {design.typography.matchedPreset}
+            </span>
           </div>
           {design.typography.detectedFonts.length > 0 && (
             <div className="text-xs text-gray-600">
@@ -495,7 +531,9 @@ function DesignInfoPanel({ design }: { design: ExtractedDesign }) {
         <div>
           <div className="text-gray-500 text-xs mb-1">Recommended Template</div>
           <div className="text-xs">
-            <span className="font-medium capitalize">{design.templateMatch.recommended.replace('-', ' ')}</span>
+            <span className="font-medium capitalize">
+              {design.templateMatch.recommended.replace('-', ' ')}
+            </span>
             <span className="text-gray-500 ml-1">
               ({Math.round(design.templateMatch.confidence * 100)}% confidence)
             </span>

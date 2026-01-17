@@ -1,7 +1,7 @@
 'use client'
 
-import { CheckCircle2, Clock, AlertCircle } from 'lucide-react'
 import type { DomainStatus } from '@madebuy/shared'
+import { AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 
 interface DomainStatusBadgeProps {
   status: DomainStatus
@@ -29,7 +29,10 @@ const STATUS_CONFIG = {
   },
 }
 
-export function DomainStatusBadge({ status, className = '' }: DomainStatusBadgeProps) {
+export function DomainStatusBadge({
+  status,
+  className = '',
+}: DomainStatusBadgeProps) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.none
   const Icon = config.icon
 

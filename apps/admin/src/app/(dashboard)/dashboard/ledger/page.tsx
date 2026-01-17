@@ -1,13 +1,28 @@
-import { requireTenant } from '@/lib/session'
 import { transactions } from '@madebuy/db'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { BookOpen, ArrowUpRight, ArrowDownRight, RefreshCw, DollarSign } from 'lucide-react'
+import type {
+  TransactionFilters,
+  TransactionStatus,
+  TransactionType,
+} from '@madebuy/shared'
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  BookOpen,
+  DollarSign,
+  RefreshCw,
+} from 'lucide-react'
 import Link from 'next/link'
-import type { TransactionType, TransactionStatus, TransactionFilters } from '@madebuy/shared'
+import { requireTenant } from '@/lib/session'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { DateFilter } from './DateFilter'
 
 interface PageProps {
-  searchParams: { page?: string; startDate?: string; endDate?: string; type?: string }
+  searchParams: {
+    page?: string
+    startDate?: string
+    endDate?: string
+    type?: string
+  }
 }
 
 const PAGE_SIZE = 50
@@ -43,9 +58,9 @@ export default async function LedgerPage({ searchParams }: PageProps) {
       limit: PAGE_SIZE,
       offset,
       sortBy: 'createdAt',
-      sortOrder: 'desc'
+      sortOrder: 'desc',
     }),
-    transactions.countTransactions(tenant.id, filters)
+    transactions.countTransactions(tenant.id, filters),
   ])
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -53,13 +68,19 @@ export default async function LedgerPage({ searchParams }: PageProps) {
   // Calculate running balance for each transaction
   // Start from the most recent and work backwards
   // We need the total balance and subtract as we go back in time
-  const transactionsWithBalance = calculateRunningBalance(allTransactions, balance.totalNet, offset)
+  const transactionsWithBalance = calculateRunningBalance(
+    allTransactions,
+    balance.totalNet,
+    offset,
+  )
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Transaction Ledger</h1>
-        <p className="mt-2 text-gray-600">View all financial transactions and your running balance</p>
+        <p className="mt-2 text-gray-600">
+          View all financial transactions and your running balance
+        </p>
       </div>
 
       {/* Date Filter */}
@@ -102,7 +123,9 @@ export default async function LedgerPage({ searchParams }: PageProps) {
       {allTransactions.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No transactions yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No transactions yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
             Your transaction history will appear here when you receive orders.
           </p>
@@ -162,17 +185,35 @@ export default async function LedgerPage({ searchParams }: PageProps) {
                       )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
-                      <span className={tx.type === 'refund' || tx.type === 'payout' ? 'text-red-600' : 'text-gray-900'}>
-                        {tx.type === 'refund' || tx.type === 'payout' ? '-' : ''}
+                      <span
+                        className={
+                          tx.type === 'refund' || tx.type === 'payout'
+                            ? 'text-red-600'
+                            : 'text-gray-900'
+                        }
+                      >
+                        {tx.type === 'refund' || tx.type === 'payout'
+                          ? '-'
+                          : ''}
                         {formatCurrency(tx.grossAmount, tx.currency)}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-500">
-                      {tx.stripeFee > 0 ? formatCurrency(tx.stripeFee, tx.currency) : '-'}
+                      {tx.stripeFee > 0
+                        ? formatCurrency(tx.stripeFee, tx.currency)
+                        : '-'}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <span className={tx.type === 'refund' || tx.type === 'payout' ? 'text-red-600' : 'text-green-600'}>
-                        {tx.type === 'refund' || tx.type === 'payout' ? '-' : '+'}
+                      <span
+                        className={
+                          tx.type === 'refund' || tx.type === 'payout'
+                            ? 'text-red-600'
+                            : 'text-green-600'
+                        }
+                      >
+                        {tx.type === 'refund' || tx.type === 'payout'
+                          ? '-'
+                          : '+'}
                         {formatCurrency(Math.abs(tx.netAmount), tx.currency)}
                       </span>
                     </td>
@@ -235,7 +276,7 @@ function calculateRunningBalance(
     status: TransactionStatus
   }>,
   currentBalance: number,
-  offset: number
+  _offset: number,
 ): TransactionWithBalance[] {
   // For the first page, start with current balance
   // For subsequent pages, we need to calculate back from the current balance
@@ -255,7 +296,7 @@ function calculateRunningBalance(
     if (tx.status === 'completed') {
       result.push({
         ...tx,
-        runningBalance: balance
+        runningBalance: balance,
       })
 
       // Go back in time by subtracting this transaction's effect
@@ -268,7 +309,7 @@ function calculateRunningBalance(
       // Pending/failed transactions don't affect running balance
       result.push({
         ...tx,
-        runningBalance: balance
+        runningBalance: balance,
       })
     }
   }
@@ -282,7 +323,7 @@ function getDefaultDescription(type: TransactionType): string {
     refund: 'Order refund',
     payout: 'Payout to bank',
     fee: 'Platform fee',
-    subscription: 'Subscription payment'
+    subscription: 'Subscription payment',
   }
   return descriptions[type]
 }
@@ -292,7 +333,7 @@ function BalanceCard({
   value,
   currency,
   icon: Icon,
-  color
+  color,
 }: {
   title: string
   value: number
@@ -342,7 +383,9 @@ function TransactionTypeBadge({ type }: { type: TransactionType }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[type]}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[type]}`}
+    >
       {labels[type]}
     </span>
   )
@@ -357,7 +400,9 @@ function TransactionStatusBadge({ status }: { status: TransactionStatus }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${colors[status]}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${colors[status]}`}
+    >
       {status}
     </span>
   )
@@ -369,7 +414,7 @@ function Pagination({
   totalCount,
   offset,
   pageSize,
-  searchParams
+  searchParams,
 }: {
   page: number
   totalPages: number
@@ -391,7 +436,8 @@ function Pagination({
   return (
     <div className="mt-4 flex items-center justify-between">
       <p className="text-sm text-gray-500">
-        Showing {offset + 1} to {Math.min(offset + pageSize, totalCount)} of {totalCount} transactions
+        Showing {offset + 1} to {Math.min(offset + pageSize, totalCount)} of{' '}
+        {totalCount} transactions
       </p>
       <div className="flex gap-2">
         {page > 1 && (

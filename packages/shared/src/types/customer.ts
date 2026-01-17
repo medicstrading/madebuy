@@ -82,7 +82,11 @@ export interface CustomerSegment {
 }
 
 export interface SegmentRule {
-  field: 'totalSpent' | 'totalOrders' | 'daysSinceLastOrder' | 'acquisitionSource'
+  field:
+    | 'totalSpent'
+    | 'totalOrders'
+    | 'daysSinceLastOrder'
+    | 'acquisitionSource'
   operator: 'gt' | 'lt' | 'eq' | 'contains'
   value: string | number
 }
@@ -104,7 +108,13 @@ export interface CustomerListOptions {
   search?: string
   tag?: string
   emailSubscribed?: boolean
-  sortBy?: 'name' | 'email' | 'createdAt' | 'totalSpent' | 'lastOrderAt' | 'totalOrders'
+  sortBy?:
+    | 'name'
+    | 'email'
+    | 'createdAt'
+    | 'totalSpent'
+    | 'lastOrderAt'
+    | 'totalOrders'
   sortOrder?: 'asc' | 'desc'
 }
 

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { captionStyles } from '@madebuy/db'
 import type { SocialPlatform } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 const VALID_PLATFORMS: SocialPlatform[] = [
   'instagram',
@@ -21,8 +21,8 @@ function isValidPlatform(platform: string): platform is SocialPlatform {
  * Mark onboarding as complete for a platform
  */
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -36,11 +36,14 @@ export async function POST(
     }
 
     // Check profile exists
-    const profile = await captionStyles.getCaptionStyleProfile(tenant.id, platform)
+    const profile = await captionStyles.getCaptionStyleProfile(
+      tenant.id,
+      platform,
+    )
     if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found. Complete onboarding first.' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -51,7 +54,7 @@ export async function POST(
     console.error('Error completing onboarding:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,30 +38,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(
         new URL(
           `${baseRedirectPath}?error=${encodeURIComponent(errorMessage)}`,
-          request.url
-        )
+          request.url,
+        ),
       )
     }
 
     // Handle Late.dev success callback
     if (connected) {
-      console.log(`Late OAuth success: ${connected} connected`, { profileId, username })
+      console.log(`Late OAuth success: ${connected} connected`, {
+        profileId,
+        username,
+      })
 
       return NextResponse.redirect(
         new URL(
           `${baseRedirectPath}?success=${encodeURIComponent(connected)}&username=${encodeURIComponent(username || '')}`,
-          request.url
-        )
+          request.url,
+        ),
       )
     }
 
     // No recognized params - unexpected callback state
-    console.error('Late callback received with unrecognized params:', Object.fromEntries(searchParams))
+    console.error(
+      'Late callback received with unrecognized params:',
+      Object.fromEntries(searchParams),
+    )
     return NextResponse.redirect(
       new URL(
         `${baseRedirectPath}?error=${encodeURIComponent('Invalid callback state')}`,
-        request.url
-      )
+        request.url,
+      ),
     )
   } catch (error: unknown) {
     const errorMessage =
@@ -70,8 +76,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(
       new URL(
         `${baseRedirectPath}?error=${encodeURIComponent(errorMessage)}`,
-        request.url
-      )
+        request.url,
+      ),
     )
   }
 }

@@ -1,28 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import type {
+  BlogPost,
+  Newsletter,
+  NewsletterStats,
+  PublishRecord,
+} from '@madebuy/shared'
 import {
-  Share2,
+  ArrowRight,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Edit,
+  ExternalLink,
+  Eye,
   FileText,
+  Instagram,
   Newspaper,
   Plus,
-  Instagram,
-  TrendingUp,
-  Calendar,
-  Eye,
-  Edit,
-  Clock,
-  Settings,
-  Trash2,
   Send,
-  CheckCircle,
-  ExternalLink,
+  Settings,
+  Share2,
   Sparkles,
+  Trash2,
+  TrendingUp,
   Zap,
-  ArrowRight,
 } from 'lucide-react'
-import type { PublishRecord, BlogPost, Newsletter, NewsletterStats } from '@madebuy/shared'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 type TabId = 'social' | 'blog' | 'newsletters'
 
@@ -92,7 +97,7 @@ export function ContentPageClient({
   blogStats,
 }: ContentPageClientProps) {
   const [activeTab, setActiveTab] = useState<TabId>('social')
-  const activeConfig = tabs.find(t => t.id === activeTab)!
+  const _activeConfig = tabs.find((t) => t.id === activeTab)!
 
   return (
     <div className="space-y-6">
@@ -116,50 +121,65 @@ export function ContentPageClient({
 
           return (
             <button
+              type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
                 relative group text-left p-5 rounded-2xl border-2 transition-all duration-200
-                ${isActive
-                  ? `bg-white ${tab.activeBorder} shadow-lg shadow-gray-200/50 scale-[1.02]`
-                  : 'bg-white/60 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-md'
+                ${
+                  isActive
+                    ? `bg-white ${tab.activeBorder} shadow-lg shadow-gray-200/50 scale-[1.02]`
+                    : 'bg-white/60 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-md'
                 }
               `}
             >
               {/* Active indicator glow */}
               {isActive && (
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${tab.gradient} opacity-5`} />
+                <div
+                  className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${tab.gradient} opacity-5`}
+                />
               )}
 
               <div className="relative flex items-start gap-4">
                 {/* Icon */}
-                <div className={`
+                <div
+                  className={`
                   flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
                   transition-transform duration-200 group-hover:scale-110
                   ${isActive ? tab.iconBg : 'bg-gray-100'}
-                `}>
-                  <Icon className={`h-6 w-6 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                `}
+                >
+                  <Icon
+                    className={`h-6 w-6 ${isActive ? 'text-white' : 'text-gray-500'}`}
+                  />
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className={`font-semibold ${isActive ? 'text-gray-900' : 'text-gray-700'}`}>
+                    <h3
+                      className={`font-semibold ${isActive ? 'text-gray-900' : 'text-gray-700'}`}
+                    >
                       {tab.label}
                     </h3>
                     {badgeCount > 0 && (
-                      <span className={`
+                      <span
+                        className={`
                         px-2 py-0.5 text-xs font-medium rounded-full
-                        ${isActive
-                          ? 'bg-gradient-to-r ' + tab.gradient + ' text-white'
-                          : 'bg-gray-100 text-gray-600'
+                        ${
+                          isActive
+                            ? `bg-gradient-to-r ${tab.gradient} text-white`
+                            : 'bg-gray-100 text-gray-600'
                         }
-                      `}>
+                      `}
+                      >
                         {badgeCount} {badgeLabel}
                       </span>
                     )}
                   </div>
-                  <p className={`text-sm mt-0.5 ${isActive ? 'text-gray-600' : 'text-gray-500'}`}>
+                  <p
+                    className={`text-sm mt-0.5 ${isActive ? 'text-gray-600' : 'text-gray-500'}`}
+                  >
                     {tab.description}
                   </p>
                 </div>
@@ -172,7 +192,9 @@ export function ContentPageClient({
 
               {/* Bottom gradient bar for active */}
               {isActive && (
-                <div className={`absolute bottom-0 left-4 right-4 h-1 rounded-full bg-gradient-to-r ${tab.gradient}`} />
+                <div
+                  className={`absolute bottom-0 left-4 right-4 h-1 rounded-full bg-gradient-to-r ${tab.gradient}`}
+                />
               )}
             </button>
           )
@@ -191,9 +213,7 @@ export function ContentPageClient({
         {activeTab === 'blog' && (
           <BlogTab posts={blogPosts} stats={blogStats} />
         )}
-        {activeTab === 'newsletters' && (
-          <NewslettersTab />
-        )}
+        {activeTab === 'newsletters' && <NewslettersTab />}
       </div>
     </div>
   )
@@ -228,12 +248,17 @@ function SocialTab({
         <div className="relative">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-medium text-white/90 uppercase tracking-wider">Social Publishing</span>
+            <span className="text-sm font-medium text-white/90 uppercase tracking-wider">
+              Social Publishing
+            </span>
           </div>
 
-          <h2 className="text-3xl font-bold mb-2">Share your creations with the world</h2>
+          <h2 className="text-3xl font-bold mb-2">
+            Share your creations with the world
+          </h2>
           <p className="text-white/80 mb-6 max-w-xl">
-            Create beautiful posts, schedule them for the perfect time, and reach your audience across Instagram, Facebook, and more.
+            Create beautiful posts, schedule them for the perfect time, and
+            reach your audience across Instagram, Facebook, and more.
           </p>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -295,7 +320,8 @@ function SocialTab({
           </div>
           <h3 className="text-lg font-semibold text-gray-900">No posts yet</h3>
           <p className="mt-2 text-gray-600 max-w-sm mx-auto">
-            Create your first social media post to share your work with your followers.
+            Create your first social media post to share your work with your
+            followers.
           </p>
         </div>
       ) : (
@@ -322,18 +348,22 @@ function SocialTab({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {records.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50/50 transition-colors">
+                <tr
+                  key={record.id}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 line-clamp-2 max-w-md font-medium">
                       {record.caption}
                     </div>
                     <div className="mt-1 text-xs text-gray-500">
-                      {record.mediaIds.length} media &middot; {record.hashtags.length} hashtags
+                      {record.mediaIds.length} media &middot;{' '}
+                      {record.hashtags.length} hashtags
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex gap-1.5">
-                      {record.platforms.map(platform => (
+                      {record.platforms.map((platform) => (
                         <PlatformIcon key={platform} platform={platform} />
                       ))}
                     </div>
@@ -375,19 +405,37 @@ function SocialStatCard({
   highlight?: boolean
 }) {
   const colors = {
-    slate: { bg: 'bg-slate-50', icon: 'text-slate-500', border: 'border-slate-200' },
-    green: { bg: 'bg-emerald-50', icon: 'text-emerald-600', border: 'border-emerald-200' },
-    blue: { bg: 'bg-blue-50', icon: 'text-blue-600', border: 'border-blue-200' },
-    amber: { bg: 'bg-amber-50', icon: 'text-amber-600', border: 'border-amber-200' },
+    slate: {
+      bg: 'bg-slate-50',
+      icon: 'text-slate-500',
+      border: 'border-slate-200',
+    },
+    green: {
+      bg: 'bg-emerald-50',
+      icon: 'text-emerald-600',
+      border: 'border-emerald-200',
+    },
+    blue: {
+      bg: 'bg-blue-50',
+      icon: 'text-blue-600',
+      border: 'border-blue-200',
+    },
+    amber: {
+      bg: 'bg-amber-50',
+      icon: 'text-amber-600',
+      border: 'border-amber-200',
+    },
   }
 
   const c = colors[color]
 
   return (
-    <div className={`
+    <div
+      className={`
       rounded-xl p-4 border transition-all duration-200
       ${highlight ? `${c.bg} ${c.border} shadow-sm` : 'bg-white border-gray-200'}
-    `}>
+    `}
+    >
       <div className="flex items-center gap-3">
         <div className={`rounded-lg p-2 ${c.bg}`}>
           <Icon className={`h-5 w-5 ${c.icon}`} />
@@ -410,7 +458,12 @@ function BlogTab({
   stats,
 }: {
   posts: BlogPost[]
-  stats: { total: number; published: number; drafts: number; totalViews: number }
+  stats: {
+    total: number
+    published: number
+    drafts: number
+    totalViews: number
+  }
 }) {
   return (
     <div className="space-y-6">
@@ -418,7 +471,9 @@ function BlogTab({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Blog Posts</h2>
-          <p className="text-gray-500 text-sm">Create and manage your blog content</p>
+          <p className="text-gray-500 text-sm">
+            Create and manage your blog content
+          </p>
         </div>
         <Link
           href="/dashboard/blog/new"
@@ -432,7 +487,12 @@ function BlogTab({
       {/* Stats Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <BlogStatCard title="Total Posts" value={stats.total} icon={FileText} />
-        <BlogStatCard title="Published" value={stats.published} icon={CheckCircle} accent />
+        <BlogStatCard
+          title="Published"
+          value={stats.published}
+          icon={CheckCircle}
+          accent
+        />
         <BlogStatCard title="Drafts" value={stats.drafts} icon={Clock} />
         <BlogStatCard title="Total Views" value={stats.totalViews} icon={Eye} />
       </div>
@@ -443,9 +503,12 @@ function BlogTab({
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto mb-4">
             <FileText className="h-8 w-8 text-blue-500" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">No blog posts yet</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            No blog posts yet
+          </h3>
           <p className="mt-2 text-gray-600 max-w-sm mx-auto">
-            Create your first blog post to share stories, tips, or showcase your work.
+            Create your first blog post to share stories, tips, or showcase your
+            work.
           </p>
           <Link
             href="/dashboard/blog/new"
@@ -482,12 +545,19 @@ function BlogTab({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {posts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50/50 transition-colors">
+                <tr
+                  key={post.id}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{post.title}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {post.title}
+                      </div>
                       {post.excerpt && (
-                        <div className="text-xs text-gray-500 line-clamp-1 mt-1">{post.excerpt}</div>
+                        <div className="text-xs text-gray-500 line-clamp-1 mt-1">
+                          {post.excerpt}
+                        </div>
                       )}
                     </div>
                   </td>
@@ -550,17 +620,25 @@ function BlogStatCard({
   accent?: boolean
 }) {
   return (
-    <div className={`
+    <div
+      className={`
       rounded-xl p-4 border transition-all
       ${accent ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'}
-    `}>
+    `}
+    >
       <div className="flex items-center gap-3">
-        <div className={`rounded-lg p-2 ${accent ? 'bg-blue-100' : 'bg-gray-100'}`}>
-          <Icon className={`h-5 w-5 ${accent ? 'text-blue-600' : 'text-gray-500'}`} />
+        <div
+          className={`rounded-lg p-2 ${accent ? 'bg-blue-100' : 'bg-gray-100'}`}
+        >
+          <Icon
+            className={`h-5 w-5 ${accent ? 'text-blue-600' : 'text-gray-500'}`}
+          />
         </div>
         <div>
           <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {value.toLocaleString()}
+          </p>
         </div>
       </div>
     </div>
@@ -580,7 +658,7 @@ function NewslettersTab() {
   useEffect(() => {
     fetchNewsletters()
     fetchStats()
-  }, [])
+  }, [fetchNewsletters, fetchStats])
 
   async function fetchNewsletters() {
     try {
@@ -605,7 +683,12 @@ function NewslettersTab() {
   }
 
   async function sendNewsletter(id: string) {
-    if (!confirm('Are you sure you want to send this newsletter? This action cannot be undone.')) return
+    if (
+      !confirm(
+        'Are you sure you want to send this newsletter? This action cannot be undone.',
+      )
+    )
+      return
 
     setSending(id)
     try {
@@ -650,7 +733,9 @@ function NewslettersTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Newsletters</h2>
-          <p className="text-gray-500 text-sm">Create and send email campaigns</p>
+          <p className="text-gray-500 text-sm">
+            Create and send email campaigns
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -674,7 +759,11 @@ function NewslettersTab() {
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <NewsletterStatCard title="Total" value={stats.total} />
-          <NewsletterStatCard title="Drafts" value={stats.drafts} color="amber" />
+          <NewsletterStatCard
+            title="Drafts"
+            value={stats.drafts}
+            color="amber"
+          />
           <NewsletterStatCard title="Sent" value={stats.sent} color="green" />
           <div className="rounded-xl bg-white p-4 border border-gray-200">
             <p className="text-sm text-gray-500">Last Sent</p>
@@ -692,7 +781,9 @@ function NewslettersTab() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mx-auto mb-4">
               <Newspaper className="h-8 w-8 text-violet-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No newsletters yet</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No newsletters yet
+            </h3>
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">
               Create your first newsletter to engage with your subscribers.
             </p>
@@ -707,7 +798,10 @@ function NewslettersTab() {
         ) : (
           <div className="divide-y divide-gray-100">
             {newsletters.map((newsletter) => (
-              <div key={newsletter.id} className="p-5 hover:bg-gray-50/50 transition-colors">
+              <div
+                key={newsletter.id}
+                className="p-5 hover:bg-gray-50/50 transition-colors"
+              >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
@@ -747,6 +841,7 @@ function NewslettersTab() {
                           <Edit className="h-4 w-4" />
                         </Link>
                         <button
+                          type="button"
                           onClick={() => sendNewsletter(newsletter.id)}
                           disabled={sending === newsletter.id}
                           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
@@ -758,6 +853,7 @@ function NewslettersTab() {
                       </>
                     )}
                     <button
+                      type="button"
                       onClick={() => deleteNewsletter(newsletter.id)}
                       className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete"
@@ -784,7 +880,12 @@ function NewsletterStatCard({
   value: number
   color?: 'amber' | 'green'
 }) {
-  const valueColor = color === 'amber' ? 'text-amber-600' : color === 'green' ? 'text-emerald-600' : 'text-gray-900'
+  const valueColor =
+    color === 'amber'
+      ? 'text-amber-600'
+      : color === 'green'
+        ? 'text-emerald-600'
+        : 'text-gray-900'
 
   return (
     <div className="rounded-xl bg-white p-4 border border-gray-200">
@@ -808,7 +909,9 @@ function PublishStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${styles[status as keyof typeof styles] || styles.draft}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${styles[status as keyof typeof styles] || styles.draft}`}
+    >
       {status === 'published' && <CheckCircle className="h-3.5 w-3.5" />}
       {status === 'scheduled' && <Calendar className="h-3.5 w-3.5" />}
       {status}
@@ -823,7 +926,9 @@ function BlogStatusBadge({ status }: { status: 'draft' | 'published' }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${styles[status]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${styles[status]}`}
+    >
       {status === 'published' && <CheckCircle className="h-3.5 w-3.5" />}
       {status}
     </span>
@@ -832,7 +937,8 @@ function BlogStatusBadge({ status }: { status: 'draft' | 'published' }) {
 
 function PlatformIcon({ platform }: { platform: string }) {
   const styles = {
-    instagram: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white',
+    instagram:
+      'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white',
     facebook: 'bg-blue-600 text-white',
     tiktok: 'bg-gray-900 text-white',
     pinterest: 'bg-red-600 text-white',
@@ -840,7 +946,9 @@ function PlatformIcon({ platform }: { platform: string }) {
   }
 
   return (
-    <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold shadow-sm ${styles[platform as keyof typeof styles] || 'bg-gray-200 text-gray-600'}`}>
+    <span
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold shadow-sm ${styles[platform as keyof typeof styles] || 'bg-gray-200 text-gray-600'}`}
+    >
       {platform[0].toUpperCase()}
     </span>
   )

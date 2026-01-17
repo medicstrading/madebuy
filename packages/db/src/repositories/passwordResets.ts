@@ -34,7 +34,7 @@ export async function createPasswordResetToken(
   email: string,
   tenantId: string,
   token: string,
-  expiryMinutes = 60
+  expiryMinutes = 60,
 ): Promise<PasswordReset> {
   const db = await getDatabase()
 
@@ -56,9 +56,13 @@ export async function createPasswordResetToken(
 /**
  * Get password reset by token
  */
-export async function getPasswordResetByToken(token: string): Promise<PasswordReset | null> {
+export async function getPasswordResetByToken(
+  token: string,
+): Promise<PasswordReset | null> {
   const db = await getDatabase()
-  return (await db.collection('password_resets').findOne({ token })) as PasswordReset | null
+  return (await db
+    .collection('password_resets')
+    .findOne({ token })) as PasswordReset | null
 }
 
 /**
@@ -66,7 +70,9 @@ export async function getPasswordResetByToken(token: string): Promise<PasswordRe
  * Returns the tenant ID if valid, null if invalid/expired
  * Uses findOneAndUpdate for atomic check-and-consume to prevent race conditions
  */
-export async function validateAndConsumeToken(token: string): Promise<string | null> {
+export async function validateAndConsumeToken(
+  token: string,
+): Promise<string | null> {
   const db = await getDatabase()
 
   // Atomic find and update to prevent race conditions
@@ -78,7 +84,7 @@ export async function validateAndConsumeToken(token: string): Promise<string | n
       expiresAt: { $gt: new Date() },
     },
     { $set: { used: true } },
-    { returnDocument: 'before' }
+    { returnDocument: 'before' },
   )
 
   if (!result) {

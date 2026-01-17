@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Clock, FileText } from 'lucide-react'
+import { Clock, FileText, X } from 'lucide-react'
 import type { WizardDraft } from './types'
 import { STEP_LABELS } from './types'
 
@@ -23,7 +23,10 @@ export function DraftRecoveryModal({
 
   const pieceName = draft.state.piece?.name || 'Untitled'
   const currentStep = STEP_LABELS[draft.state.currentStep]
-  const stepNumber = ['item', 'media', 'marketplace', 'social', 'complete'].indexOf(draft.state.currentStep) + 1
+  const stepNumber =
+    ['item', 'media', 'marketplace', 'social', 'complete'].indexOf(
+      draft.state.currentStep,
+    ) + 1
   const lastUpdated = new Date(draft.lastUpdated)
   const timeAgo = getTimeAgo(lastUpdated)
 
@@ -39,6 +42,7 @@ export function DraftRecoveryModal({
       <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl mx-4">
         {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
         >
@@ -52,10 +56,10 @@ export function DraftRecoveryModal({
 
         {/* Content */}
         <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-gray-900">Continue your draft?</h3>
-          <p className="mt-2 text-gray-600">
-            You have an unfinished item
-          </p>
+          <h3 className="text-xl font-bold text-gray-900">
+            Continue your draft?
+          </h3>
+          <p className="mt-2 text-gray-600">You have an unfinished item</p>
         </div>
 
         {/* Draft info */}
@@ -85,12 +89,14 @@ export function DraftRecoveryModal({
         {/* Actions */}
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={onDiscard}
             className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Start Fresh
           </button>
           <button
+            type="button"
             onClick={onContinue}
             className="flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 font-medium text-white hover:from-purple-700 hover:to-blue-700 transition-all"
           >

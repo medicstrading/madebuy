@@ -5,25 +5,25 @@
  * Handles connections, listings, and order imports.
  */
 
+import type {
+  CreateMarketplaceConnectionInput,
+  CreateMarketplaceListingInput,
+  CreateMarketplaceOrderInput,
+  MarketplaceConnection,
+  MarketplaceConnectionStatus,
+  MarketplaceListing,
+  MarketplaceListingFilters,
+  MarketplaceListingStatus,
+  MarketplaceOAuthState,
+  MarketplaceOrder,
+  MarketplaceOrderFilters,
+  MarketplacePlatform,
+  UpdateMarketplaceConnectionInput,
+  UpdateMarketplaceListingInput,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import { encryptIfConfigured, decryptIfConfigured } from '../lib/crypto'
-import type {
-  MarketplacePlatform,
-  MarketplaceConnection,
-  MarketplaceListing,
-  MarketplaceOrder,
-  MarketplaceConnectionStatus,
-  MarketplaceListingStatus,
-  CreateMarketplaceConnectionInput,
-  UpdateMarketplaceConnectionInput,
-  CreateMarketplaceListingInput,
-  UpdateMarketplaceListingInput,
-  CreateMarketplaceOrderInput,
-  MarketplaceListingFilters,
-  MarketplaceOrderFilters,
-  MarketplaceOAuthState,
-} from '@madebuy/shared'
+import { decryptIfConfigured, encryptIfConfigured } from '../lib/crypto'
 
 const CONNECTIONS_COLLECTION = 'marketplace_connections'
 const LISTINGS_COLLECTION = 'marketplace_listings'
@@ -39,7 +39,7 @@ const OAUTH_STATE_COLLECTION = 'marketplace_oauth_states'
  */
 export async function createConnection(
   tenantId: string,
-  input: CreateMarketplaceConnectionInput
+  input: CreateMarketplaceConnectionInput,
 ): Promise<MarketplaceConnection> {
   const db = await getDatabase()
 
@@ -79,7 +79,7 @@ export async function createConnection(
  * Decrypt tokens in a connection object
  */
 function decryptConnectionTokens(
-  connection: MarketplaceConnection
+  connection: MarketplaceConnection,
 ): MarketplaceConnection {
   return {
     ...connection,
@@ -95,7 +95,7 @@ function decryptConnectionTokens(
  */
 export async function getConnection(
   tenantId: string,
-  connectionId: string
+  connectionId: string,
 ): Promise<MarketplaceConnection | null> {
   const db = await getDatabase()
   const connection = (await db.collection(CONNECTIONS_COLLECTION).findOne({
@@ -112,7 +112,7 @@ export async function getConnection(
  */
 export async function getConnectionByMarketplace(
   tenantId: string,
-  marketplace: MarketplacePlatform
+  marketplace: MarketplacePlatform,
 ): Promise<MarketplaceConnection | null> {
   const db = await getDatabase()
   const connection = (await db.collection(CONNECTIONS_COLLECTION).findOne({
@@ -129,7 +129,7 @@ export async function getConnectionByMarketplace(
  * Get all connections for a tenant
  */
 export async function listConnections(
-  tenantId: string
+  tenantId: string,
 ): Promise<MarketplaceConnection[]> {
   const db = await getDatabase()
   const connections = (await db
@@ -147,7 +147,7 @@ export async function listConnections(
 export async function updateConnection(
   tenantId: string,
   connectionId: string,
-  updates: UpdateMarketplaceConnectionInput
+  updates: UpdateMarketplaceConnectionInput,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(CONNECTIONS_COLLECTION).updateOne(
@@ -157,7 +157,7 @@ export async function updateConnection(
         ...updates,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -168,7 +168,7 @@ export async function updateConnectionStatus(
   tenantId: string,
   connectionId: string,
   status: MarketplaceConnectionStatus,
-  error?: string
+  error?: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(CONNECTIONS_COLLECTION).updateOne(
@@ -179,7 +179,7 @@ export async function updateConnectionStatus(
         lastError: error,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -191,7 +191,7 @@ export async function updateConnectionTokens(
   connectionId: string,
   accessToken: string,
   refreshToken?: string,
-  expiresAt?: Date
+  expiresAt?: Date,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -212,7 +212,7 @@ export async function updateConnectionTokens(
         lastError: undefined,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -221,7 +221,7 @@ export async function updateConnectionTokens(
  */
 export async function deleteConnection(
   tenantId: string,
-  connectionId: string
+  connectionId: string,
 ): Promise<void> {
   const db = await getDatabase()
   // Soft delete by setting status to revoked
@@ -234,7 +234,7 @@ export async function deleteConnection(
         refreshToken: '',
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -242,7 +242,7 @@ export async function deleteConnection(
  * Get connections with expiring tokens (for refresh job)
  */
 export async function getConnectionsNeedingRefresh(
-  withinMinutes: number = 30
+  withinMinutes: number = 30,
 ): Promise<MarketplaceConnection[]> {
   const db = await getDatabase()
   const cutoff = new Date(Date.now() + withinMinutes * 60 * 1000)
@@ -265,7 +265,9 @@ export async function getConnectionsNeedingRefresh(
 /**
  * Save OAuth state for verification
  */
-export async function saveOAuthState(state: MarketplaceOAuthState): Promise<void> {
+export async function saveOAuthState(
+  state: MarketplaceOAuthState,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection(OAUTH_STATE_COLLECTION).insertOne({
     ...state,
@@ -277,7 +279,7 @@ export async function saveOAuthState(state: MarketplaceOAuthState): Promise<void
  * Verify and consume OAuth state
  */
 export async function verifyOAuthState(
-  nonce: string
+  nonce: string,
 ): Promise<MarketplaceOAuthState | null> {
   const db = await getDatabase()
   const state = await db.collection(OAUTH_STATE_COLLECTION).findOneAndDelete({
@@ -306,7 +308,7 @@ export async function cleanupExpiredOAuthStates(): Promise<void> {
  */
 export async function createListing(
   tenantId: string,
-  input: CreateMarketplaceListingInput
+  input: CreateMarketplaceListingInput,
 ): Promise<MarketplaceListing> {
   const db = await getDatabase()
 
@@ -332,7 +334,7 @@ export async function createListing(
  */
 export async function getListing(
   tenantId: string,
-  listingId: string
+  listingId: string,
 ): Promise<MarketplaceListing | null> {
   const db = await getDatabase()
   return (await db.collection(LISTINGS_COLLECTION).findOne({
@@ -347,7 +349,7 @@ export async function getListing(
 export async function getListingByPiece(
   tenantId: string,
   pieceId: string,
-  marketplace: MarketplacePlatform
+  marketplace: MarketplacePlatform,
 ): Promise<MarketplaceListing | null> {
   const db = await getDatabase()
   return (await db.collection(LISTINGS_COLLECTION).findOne({
@@ -363,7 +365,7 @@ export async function getListingByPiece(
 export async function getListingByExternalId(
   tenantId: string,
   marketplace: MarketplacePlatform,
-  externalListingId: string
+  externalListingId: string,
 ): Promise<MarketplaceListing | null> {
   const db = await getDatabase()
   return (await db.collection(LISTINGS_COLLECTION).findOne({
@@ -378,7 +380,7 @@ export async function getListingByExternalId(
  */
 export async function listListings(
   tenantId: string,
-  filters?: MarketplaceListingFilters
+  filters?: MarketplaceListingFilters,
 ): Promise<MarketplaceListing[]> {
   const db = await getDatabase()
 
@@ -408,7 +410,7 @@ export async function listListings(
  */
 export async function getActiveListingsForPiece(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<MarketplaceListing[]> {
   const db = await getDatabase()
   return (await db
@@ -427,7 +429,7 @@ export async function getActiveListingsForPiece(
 export async function updateListing(
   tenantId: string,
   listingId: string,
-  updates: UpdateMarketplaceListingInput
+  updates: UpdateMarketplaceListingInput,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(LISTINGS_COLLECTION).updateOne(
@@ -437,7 +439,7 @@ export async function updateListing(
         ...updates,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -448,7 +450,7 @@ export async function updateListingStatus(
   tenantId: string,
   listingId: string,
   status: MarketplaceListingStatus,
-  error?: string
+  error?: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(LISTINGS_COLLECTION).updateOne(
@@ -460,7 +462,7 @@ export async function updateListingStatus(
         lastSyncedAt: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -471,7 +473,7 @@ export async function markListingSynced(
   tenantId: string,
   listingId: string,
   price?: number,
-  quantity?: number
+  quantity?: number,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(LISTINGS_COLLECTION).updateOne(
@@ -484,7 +486,7 @@ export async function markListingSynced(
         syncError: undefined,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -493,7 +495,7 @@ export async function markListingSynced(
  */
 export async function deleteListing(
   tenantId: string,
-  listingId: string
+  listingId: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(LISTINGS_COLLECTION).deleteOne({
@@ -508,7 +510,7 @@ export async function deleteListing(
 export async function getListingsNeedingSync(
   tenantId: string,
   marketplace: MarketplacePlatform,
-  olderThanMinutes: number = 15
+  olderThanMinutes: number = 15,
 ): Promise<MarketplaceListing[]> {
   const db = await getDatabase()
   const cutoff = new Date(Date.now() - olderThanMinutes * 60 * 1000)
@@ -536,7 +538,7 @@ export async function getListingsNeedingSync(
  */
 export async function createOrder(
   tenantId: string,
-  input: CreateMarketplaceOrderInput
+  input: CreateMarketplaceOrderInput,
 ): Promise<MarketplaceOrder> {
   const db = await getDatabase()
 
@@ -573,7 +575,7 @@ export async function createOrder(
  */
 export async function getOrder(
   tenantId: string,
-  orderId: string
+  orderId: string,
 ): Promise<MarketplaceOrder | null> {
   const db = await getDatabase()
   return (await db.collection(ORDERS_COLLECTION).findOne({
@@ -588,7 +590,7 @@ export async function getOrder(
 export async function getOrderByExternalId(
   tenantId: string,
   marketplace: MarketplacePlatform,
-  externalOrderId: string
+  externalOrderId: string,
 ): Promise<MarketplaceOrder | null> {
   const db = await getDatabase()
   return (await db.collection(ORDERS_COLLECTION).findOne({
@@ -604,7 +606,7 @@ export async function getOrderByExternalId(
 export async function isOrderImported(
   tenantId: string,
   marketplace: MarketplacePlatform,
-  externalOrderId: string
+  externalOrderId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
   const count = await db.collection(ORDERS_COLLECTION).countDocuments({
@@ -620,7 +622,7 @@ export async function isOrderImported(
  */
 export async function listOrders(
   tenantId: string,
-  filters?: MarketplaceOrderFilters
+  filters?: MarketplaceOrderFilters,
 ): Promise<MarketplaceOrder[]> {
   const db = await getDatabase()
 
@@ -637,10 +639,10 @@ export async function listOrders(
   if (filters?.fromDate || filters?.toDate) {
     query.orderDate = {}
     if (filters.fromDate) {
-      (query.orderDate as Record<string, Date>).$gte = filters.fromDate
+      ;(query.orderDate as Record<string, Date>).$gte = filters.fromDate
     }
     if (filters.toDate) {
-      (query.orderDate as Record<string, Date>).$lte = filters.toDate
+      ;(query.orderDate as Record<string, Date>).$lte = filters.toDate
     }
   }
 
@@ -658,7 +660,7 @@ export async function updateOrderStatus(
   tenantId: string,
   orderId: string,
   status: MarketplaceOrder['status'],
-  shippedAt?: Date
+  shippedAt?: Date,
 ): Promise<void> {
   const db = await getDatabase()
   const updates: Record<string, unknown> = {
@@ -669,10 +671,9 @@ export async function updateOrderStatus(
     updates.shippedAt = shippedAt
   }
 
-  await db.collection(ORDERS_COLLECTION).updateOne(
-    { tenantId, id: orderId },
-    { $set: updates }
-  )
+  await db
+    .collection(ORDERS_COLLECTION)
+    .updateOne({ tenantId, id: orderId }, { $set: updates })
 }
 
 /**
@@ -681,7 +682,7 @@ export async function updateOrderStatus(
 export async function linkOrderToMadeBuyOrder(
   tenantId: string,
   marketplaceOrderId: string,
-  madeBuyOrderId: string
+  madeBuyOrderId: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(ORDERS_COLLECTION).updateOne(
@@ -691,7 +692,7 @@ export async function linkOrderToMadeBuyOrder(
         linkedOrderId: madeBuyOrderId,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -701,7 +702,7 @@ export async function linkOrderToMadeBuyOrder(
 export async function getRecentOrders(
   tenantId: string,
   marketplace: MarketplacePlatform,
-  daysAgo: number = 7
+  daysAgo: number = 7,
 ): Promise<MarketplaceOrder[]> {
   const db = await getDatabase()
   const cutoff = new Date()
@@ -727,7 +728,7 @@ export async function getRecentOrders(
  */
 export async function getMarketplaceStats(
   tenantId: string,
-  marketplace?: MarketplacePlatform
+  marketplace?: MarketplacePlatform,
 ): Promise<{
   totalListings: number
   activeListings: number
@@ -745,24 +746,29 @@ export async function getMarketplaceStats(
     orderQuery.marketplace = marketplace
   }
 
-  const [totalListings, activeListings, totalOrders, pendingOrders, revenueResult] =
-    await Promise.all([
-      db.collection(LISTINGS_COLLECTION).countDocuments(listingQuery),
-      db
-        .collection(LISTINGS_COLLECTION)
-        .countDocuments({ ...listingQuery, status: 'active' }),
-      db.collection(ORDERS_COLLECTION).countDocuments(orderQuery),
-      db
-        .collection(ORDERS_COLLECTION)
-        .countDocuments({ ...orderQuery, status: 'pending' }),
-      db
-        .collection(ORDERS_COLLECTION)
-        .aggregate([
-          { $match: { ...orderQuery, paymentStatus: 'paid' } },
-          { $group: { _id: null, total: { $sum: '$total' } } },
-        ])
-        .toArray(),
-    ])
+  const [
+    totalListings,
+    activeListings,
+    totalOrders,
+    pendingOrders,
+    revenueResult,
+  ] = await Promise.all([
+    db.collection(LISTINGS_COLLECTION).countDocuments(listingQuery),
+    db
+      .collection(LISTINGS_COLLECTION)
+      .countDocuments({ ...listingQuery, status: 'active' }),
+    db.collection(ORDERS_COLLECTION).countDocuments(orderQuery),
+    db
+      .collection(ORDERS_COLLECTION)
+      .countDocuments({ ...orderQuery, status: 'pending' }),
+    db
+      .collection(ORDERS_COLLECTION)
+      .aggregate([
+        { $match: { ...orderQuery, paymentStatus: 'paid' } },
+        { $group: { _id: null, total: { $sum: '$total' } } },
+      ])
+      .toArray(),
+  ])
 
   return {
     totalListings,

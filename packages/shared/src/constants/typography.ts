@@ -90,7 +90,9 @@ export const TYPOGRAPHY_PRESETS: Record<TypographyPreset, TypographyConfig> = {
   },
 }
 
-export function getTypographyConfig(preset: TypographyPreset = 'modern'): TypographyConfig {
+export function getTypographyConfig(
+  preset: TypographyPreset = 'modern',
+): TypographyConfig {
   return TYPOGRAPHY_PRESETS[preset] || TYPOGRAPHY_PRESETS.modern
 }
 
@@ -99,14 +101,18 @@ export function getGoogleFontsUrl(preset: TypographyPreset = 'modern'): string {
   const fonts = new Set<string>()
 
   // Add heading font with weights
-  fonts.add(`${config.heading.googleFont}:wght@${config.heading.weights.join(';')}`)
+  fonts.add(
+    `${config.heading.googleFont}:wght@${config.heading.weights.join(';')}`,
+  )
 
   // Add body font with weights if different from heading
   if (config.body.googleFont !== config.heading.googleFont) {
     fonts.add(`${config.body.googleFont}:wght@${config.body.weights.join(';')}`)
   }
 
-  return `https://fonts.googleapis.com/css2?${Array.from(fonts).map(f => `family=${f}`).join('&')}&display=swap`
+  return `https://fonts.googleapis.com/css2?${Array.from(fonts)
+    .map((f) => `family=${f}`)
+    .join('&')}&display=swap`
 }
 
 export function getDefaultWebsiteDesign() {

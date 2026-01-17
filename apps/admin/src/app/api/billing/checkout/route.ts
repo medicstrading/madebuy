@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
-import { getCurrentTenant } from '@/lib/session'
 import { tenants } from '@madebuy/db'
 import type { Plan } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import { getCurrentTenant } from '@/lib/session'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -16,7 +16,7 @@ const STRIPE_PRICE_IDS: Partial<Record<Plan, string>> = {
   studio: process.env.STRIPE_PRICE_STUDIO_MONTHLY,
 }
 
-const PLAN_TO_DISPLAY_NAME: Record<Plan, string> = {
+const _PLAN_TO_DISPLAY_NAME: Record<Plan, string> = {
   free: 'Starter',
   maker: 'Maker',
   professional: 'Professional',
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (!planId || !['maker', 'professional', 'studio'].includes(planId)) {
       return NextResponse.json(
         { error: 'Invalid plan selected' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (planId === 'free') {
       return NextResponse.json(
         { error: 'Use the cancel subscription endpoint to downgrade to free' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -57,8 +57,10 @@ export async function POST(request: NextRequest) {
     const priceId = STRIPE_PRICE_IDS[planId as Plan]
     if (!priceId) {
       return NextResponse.json(
-        { error: 'Subscription pricing not configured. Please contact support.' },
-        { status: 500 }
+        {
+          error: 'Subscription pricing not configured. Please contact support.',
+        },
+        { status: 500 },
       )
     }
 
@@ -119,8 +121,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Billing checkout error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create checkout session' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create checkout session',
+      },
+      { status: 500 },
     )
   }
 }

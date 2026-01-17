@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
 import {
-  X,
   DollarSign,
-  Package,
   Eye,
   Hash,
-  Scale,
-  Plus,
   Minus,
+  Package,
   Percent,
+  Plus,
+  Scale,
+  X,
 } from 'lucide-react'
-import type { VariantQuickEditProps, BulkEditAction } from './types'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { BulkEditAction, VariantQuickEditProps } from './types'
 
 type EditTab = 'price' | 'stock' | 'availability' | 'sku' | 'weight'
 
@@ -50,7 +50,9 @@ export function VariantQuickEdit({
   // Stock state
   const [stockMode, setStockMode] = useState<'set' | 'adjust'>('set')
   const [stockValue, setStockValue] = useState('')
-  const [stockAdjustMode, setStockAdjustMode] = useState<'add' | 'subtract'>('add')
+  const [stockAdjustMode, setStockAdjustMode] = useState<'add' | 'subtract'>(
+    'add',
+  )
 
   // Availability state
   const [availabilityValue, setAvailabilityValue] = useState(true)
@@ -103,27 +105,37 @@ export function VariantQuickEdit({
     let action: BulkEditAction | null = null
 
     switch (activeTab) {
-      case 'price':
+      case 'price': {
         const price = parseFloat(priceValue)
-        if (!isNaN(price)) {
+        if (!Number.isNaN(price)) {
           if (priceMode === 'set') {
             action = { type: 'setPrice', value: price }
           } else {
-            action = { type: 'adjustPrice', value: price, mode: priceAdjustMode }
+            action = {
+              type: 'adjustPrice',
+              value: price,
+              mode: priceAdjustMode,
+            }
           }
         }
         break
+      }
 
-      case 'stock':
+      case 'stock': {
         const stock = parseInt(stockValue, 10)
-        if (!isNaN(stock)) {
+        if (!Number.isNaN(stock)) {
           if (stockMode === 'set') {
             action = { type: 'setStock', value: stock }
           } else {
-            action = { type: 'adjustStock', value: stock, mode: stockAdjustMode }
+            action = {
+              type: 'adjustStock',
+              value: stock,
+              mode: stockAdjustMode,
+            }
           }
         }
         break
+      }
 
       case 'availability':
         action = { type: 'setAvailability', value: availabilityValue }
@@ -135,12 +147,13 @@ export function VariantQuickEdit({
         }
         break
 
-      case 'weight':
+      case 'weight': {
         const weight = parseFloat(weightValue)
-        if (!isNaN(weight) && weight >= 0) {
+        if (!Number.isNaN(weight) && weight >= 0) {
           action = { type: 'setWeight', value: weight }
         }
         break
+      }
     }
 
     if (action) {
@@ -175,11 +188,15 @@ export function VariantQuickEdit({
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-          <h2 id="quick-edit-title" className="text-lg font-semibold text-gray-900">
+          <h2
+            id="quick-edit-title"
+            className="text-lg font-semibold text-gray-900"
+          >
             Bulk Edit {selectedVariants.length} Variant
             {selectedVariants.length !== 1 ? 's' : ''}
           </h2>
           <button
+            type="button"
             type="button"
             onClick={onClose}
             className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
@@ -195,6 +212,7 @@ export function VariantQuickEdit({
             const Icon = tab.icon
             return (
               <button
+                type="button"
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
@@ -219,6 +237,7 @@ export function VariantQuickEdit({
               <div className="flex rounded-lg border border-gray-200 p-1">
                 <button
                   type="button"
+                  type="button"
                   onClick={() => setPriceMode('set')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
                     priceMode === 'set'
@@ -229,6 +248,7 @@ export function VariantQuickEdit({
                   Set Price
                 </button>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => setPriceMode('adjust')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
@@ -245,6 +265,7 @@ export function VariantQuickEdit({
                 <div className="flex rounded-lg border border-gray-200 p-1">
                   <button
                     type="button"
+                    type="button"
                     onClick={() => setPriceAdjustMode('add')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       priceAdjustMode === 'add'
@@ -257,6 +278,7 @@ export function VariantQuickEdit({
                   </button>
                   <button
                     type="button"
+                    type="button"
                     onClick={() => setPriceAdjustMode('subtract')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       priceAdjustMode === 'subtract'
@@ -268,6 +290,7 @@ export function VariantQuickEdit({
                     Subtract
                   </button>
                   <button
+                    type="button"
                     type="button"
                     onClick={() => setPriceAdjustMode('percentage')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
@@ -292,7 +315,9 @@ export function VariantQuickEdit({
                   type="number"
                   value={priceValue}
                   onChange={(e) => setPriceValue(e.target.value)}
-                  placeholder={priceMode === 'set' ? 'Enter price' : 'Enter amount'}
+                  placeholder={
+                    priceMode === 'set' ? 'Enter price' : 'Enter amount'
+                  }
                   step="0.01"
                   min="0"
                   className="w-full rounded-lg border border-gray-300 py-2 pl-8 pr-3 text-lg focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -303,10 +328,10 @@ export function VariantQuickEdit({
                 {priceMode === 'set'
                   ? 'Set the price for all selected variants'
                   : priceAdjustMode === 'percentage'
-                  ? 'Adjust prices by percentage (positive = increase, negative = decrease)'
-                  : priceAdjustMode === 'add'
-                  ? 'Add this amount to current prices'
-                  : 'Subtract this amount from current prices'}
+                    ? 'Adjust prices by percentage (positive = increase, negative = decrease)'
+                    : priceAdjustMode === 'add'
+                      ? 'Add this amount to current prices'
+                      : 'Subtract this amount from current prices'}
               </p>
             </div>
           )}
@@ -316,6 +341,7 @@ export function VariantQuickEdit({
             <div className="space-y-4">
               <div className="flex rounded-lg border border-gray-200 p-1">
                 <button
+                  type="button"
                   type="button"
                   onClick={() => setStockMode('set')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
@@ -327,6 +353,7 @@ export function VariantQuickEdit({
                   Set Stock
                 </button>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => setStockMode('adjust')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
@@ -343,6 +370,7 @@ export function VariantQuickEdit({
                 <div className="flex rounded-lg border border-gray-200 p-1">
                   <button
                     type="button"
+                    type="button"
                     onClick={() => setStockAdjustMode('add')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       stockAdjustMode === 'add'
@@ -354,6 +382,7 @@ export function VariantQuickEdit({
                     Add Stock
                   </button>
                   <button
+                    type="button"
                     type="button"
                     onClick={() => setStockAdjustMode('subtract')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
@@ -372,7 +401,9 @@ export function VariantQuickEdit({
                 type="number"
                 value={stockValue}
                 onChange={(e) => setStockValue(e.target.value)}
-                placeholder={stockMode === 'set' ? 'Enter quantity' : 'Enter amount'}
+                placeholder={
+                  stockMode === 'set' ? 'Enter quantity' : 'Enter amount'
+                }
                 step="1"
                 min="0"
                 className="w-full rounded-lg border border-gray-300 py-2 px-3 text-lg focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -382,8 +413,8 @@ export function VariantQuickEdit({
                 {stockMode === 'set'
                   ? 'Set the stock quantity for all selected variants'
                   : stockAdjustMode === 'add'
-                  ? 'Add this quantity to current stock levels'
-                  : 'Remove this quantity from current stock levels'}
+                    ? 'Add this quantity to current stock levels'
+                    : 'Remove this quantity from current stock levels'}
               </p>
             </div>
           )}
@@ -393,6 +424,7 @@ export function VariantQuickEdit({
             <div className="space-y-4">
               <div className="flex rounded-lg border border-gray-200 p-1">
                 <button
+                  type="button"
                   type="button"
                   onClick={() => setAvailabilityValue(true)}
                   className={`flex-1 rounded-md py-3 text-sm font-medium transition-colors ${
@@ -404,6 +436,7 @@ export function VariantQuickEdit({
                   Available
                 </button>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => setAvailabilityValue(false)}
                   className={`flex-1 rounded-md py-3 text-sm font-medium transition-colors ${
@@ -445,7 +478,9 @@ export function VariantQuickEdit({
               </div>
 
               <div className="rounded-lg bg-gray-50 p-3">
-                <p className="text-xs font-medium text-gray-700 mb-2">Preview:</p>
+                <p className="text-xs font-medium text-gray-700 mb-2">
+                  Preview:
+                </p>
                 <div className="space-y-1">
                   {selectedVariants.slice(0, 3).map((variant, index) => {
                     const optionParts = Object.values(variant.options)
@@ -453,14 +488,17 @@ export function VariantQuickEdit({
                         v
                           .toUpperCase()
                           .replace(/[^A-Z0-9]/g, '')
-                          .substring(0, 4)
+                          .substring(0, 4),
                       )
                       .join('-')
                     const preview = skuPrefix
                       ? `${skuPrefix}-${optionParts}-${String(index + 1).padStart(3, '0')}`
                       : `${optionParts}-${String(index + 1).padStart(3, '0')}`
                     return (
-                      <code key={variant.id} className="block text-xs text-gray-600">
+                      <code
+                        key={variant.id}
+                        className="block text-xs text-gray-600"
+                      >
                         {preview}
                       </code>
                     )
@@ -498,8 +536,8 @@ export function VariantQuickEdit({
               </div>
 
               <p className="text-sm text-gray-500">
-                Set the weight in grams for all selected variants. Used for shipping
-                calculations.
+                Set the weight in grams for all selected variants. Used for
+                shipping calculations.
               </p>
             </div>
           )}
@@ -509,12 +547,14 @@ export function VariantQuickEdit({
         <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-4 py-3">
           <button
             type="button"
+            type="button"
             onClick={onClose}
             className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
+            type="button"
             type="button"
             onClick={handleApply}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"

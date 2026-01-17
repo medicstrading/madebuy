@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { orders, reviews, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * POST /api/reviews/verify-purchase
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (!tenantId || !pieceId || !email) {
       return NextResponse.json(
         { error: 'tenantId, pieceId, and email are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const order = await orders.findDeliveredOrderWithProduct(
       tenantId,
       email,
-      pieceId
+      pieceId,
     )
 
     if (!order) {
@@ -59,7 +59,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if customer has already reviewed this product for this order
-    const alreadyReviewed = await reviews.hasReviewedOrder(tenantId, order.id, pieceId)
+    const alreadyReviewed = await reviews.hasReviewedOrder(
+      tenantId,
+      order.id,
+      pieceId,
+    )
 
     if (alreadyReviewed) {
       return NextResponse.json({
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
     console.error('Error verifying purchase:', error)
     return NextResponse.json(
       { error: 'Failed to verify purchase' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

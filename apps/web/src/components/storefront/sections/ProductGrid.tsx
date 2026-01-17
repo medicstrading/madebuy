@@ -1,10 +1,10 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { ImageIcon, ShoppingCart } from 'lucide-react'
-import type { SectionProps } from './SectionRenderer'
 import type { PieceWithMedia } from '@madebuy/shared'
+import { ImageIcon } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import type { SectionProps } from './SectionRenderer'
 
 const COLUMNS_MAP = {
   2: 'grid-cols-1 sm:grid-cols-2',
@@ -13,7 +13,12 @@ const COLUMNS_MAP = {
   5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
 }
 
-export function ProductGrid({ settings, tenant, tenantSlug, pieces }: SectionProps) {
+export function ProductGrid({
+  settings,
+  tenant,
+  tenantSlug,
+  pieces,
+}: SectionProps) {
   const title = settings.title || 'Our Products'
   const subtitle = settings.subtitle
   const columns = (settings.columns || 4) as 2 | 3 | 4 | 5
@@ -28,7 +33,8 @@ export function ProductGrid({ settings, tenant, tenantSlug, pieces }: SectionPro
   // Filter by category if specified
   if (filterByCategory) {
     displayPieces = displayPieces.filter(
-      (piece) => piece.category?.toLowerCase() === filterByCategory.toLowerCase()
+      (piece) =>
+        piece.category?.toLowerCase() === filterByCategory.toLowerCase(),
     )
   }
 
@@ -114,7 +120,8 @@ function ProductCard({
 }: ProductCardProps) {
   // Get primary image URL from PieceWithMedia
   const primaryMedia = piece.primaryImage || piece.allImages?.[0]
-  const imageUrl = primaryMedia?.variants?.large?.url || primaryMedia?.variants?.original?.url
+  const imageUrl =
+    primaryMedia?.variants?.large?.url || primaryMedia?.variants?.original?.url
 
   const href = `/${tenantSlug}/${piece.websiteSlug || piece.id}`
 
@@ -162,7 +169,10 @@ function ProductCard({
           {/* Materials info */}
           {(piece.metals?.length || piece.stones?.length) && (
             <p className="text-sm text-gray-500 mb-3 truncate">
-              {piece.metals && piece.metals.length > 0 && piece.stones && piece.stones.length > 0
+              {piece.metals &&
+              piece.metals.length > 0 &&
+              piece.stones &&
+              piece.stones.length > 0
                 ? `${piece.metals.join(', ')} • ${piece.stones.join(', ')}`
                 : piece.metals?.join(', ') || piece.stones?.join(', ')}
             </p>
@@ -175,7 +185,9 @@ function ProductCard({
                 {piece.price ? (
                   `$${piece.price.toFixed(2)}`
                 ) : (
-                  <span className="text-sm font-normal text-gray-500">Price on request</span>
+                  <span className="text-sm font-normal text-gray-500">
+                    Price on request
+                  </span>
                 )}
               </span>
             </div>

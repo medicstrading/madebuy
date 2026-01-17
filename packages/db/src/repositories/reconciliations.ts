@@ -1,17 +1,14 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
+  AddReconciliationItemInput,
+  CreateReconciliationInput,
   InventoryReconciliation,
   ReconciliationItem,
-  ReconciliationStatus,
-  CreateReconciliationInput,
-  AddReconciliationItemInput,
-  UpdateReconciliationItemInput,
-  ReconciliationFilters,
   ReconciliationListOptions,
-  Material,
-  Piece,
+  ReconciliationStatus,
+  UpdateReconciliationItemInput,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 import * as materials from './materials'
 import * as pieces from './pieces'
 
@@ -28,7 +25,7 @@ export interface ReconciliationListResult {
  */
 export async function createReconciliation(
   tenantId: string,
-  input?: CreateReconciliationInput
+  input?: CreateReconciliationInput,
 ): Promise<InventoryReconciliation> {
   const db = await getDatabase()
 
@@ -55,10 +52,12 @@ export async function createReconciliation(
  */
 export async function getReconciliation(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<InventoryReconciliation | null> {
   const db = await getDatabase()
-  return await db.collection('inventory_reconciliations').findOne({ tenantId, id }) as InventoryReconciliation | null
+  return (await db
+    .collection('inventory_reconciliations')
+    .findOne({ tenantId, id })) as InventoryReconciliation | null
 }
 
 /**
@@ -66,7 +65,7 @@ export async function getReconciliation(
  */
 export async function listReconciliations(
   tenantId: string,
-  options?: ReconciliationListOptions
+  options?: ReconciliationListOptions,
 ): Promise<ReconciliationListResult> {
   const db = await getDatabase()
 
@@ -79,10 +78,12 @@ export async function listReconciliations(
   if (options?.dateFrom || options?.dateTo) {
     query.reconciliationDate = {}
     if (options.dateFrom) {
-      (query.reconciliationDate as Record<string, unknown>).$gte = options.dateFrom
+      ;(query.reconciliationDate as Record<string, unknown>).$gte =
+        options.dateFrom
     }
     if (options.dateTo) {
-      (query.reconciliationDate as Record<string, unknown>).$lte = options.dateTo
+      ;(query.reconciliationDate as Record<string, unknown>).$lte =
+        options.dateTo
     }
   }
 
@@ -96,10 +97,13 @@ export async function listReconciliations(
   const page = Math.max(1, Math.floor(skip / limit) + 1)
 
   // Get total count
-  const total = await db.collection('inventory_reconciliations').countDocuments(query)
+  const total = await db
+    .collection('inventory_reconciliations')
+    .countDocuments(query)
 
   // Get paginated results
-  const results = await db.collection('inventory_reconciliations')
+  const results = await db
+    .collection('inventory_reconciliations')
     .find(query)
     .sort({ reconciliationDate: -1 })
     .skip(skip)
@@ -121,7 +125,7 @@ export async function listReconciliations(
 export async function addItem(
   tenantId: string,
   reconciliationId: string,
-  input: AddReconciliationItemInput
+  input: AddReconciliationItemInput,
 ): Promise<ReconciliationItem> {
   const db = await getDatabase()
 
@@ -132,12 +136,14 @@ export async function addItem(
   }
 
   if (reconciliation.status !== 'in_progress') {
-    throw new Error('Cannot add items to a completed or cancelled reconciliation')
+    throw new Error(
+      'Cannot add items to a completed or cancelled reconciliation',
+    )
   }
 
   // Check if item already exists
   const existingItem = reconciliation.items.find(
-    i => i.itemType === input.itemType && i.itemId === input.itemId
+    (i) => i.itemType === input.itemType && i.itemId === input.itemId,
   )
   if (existingItem) {
     throw new Error('Item already added to this reconciliation')
@@ -187,7 +193,7 @@ export async function addItem(
       $push: { items: item } as any,
       $inc: { totalItemsCounted: 1 },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 
   return item
@@ -198,9 +204,9 @@ export async function addItem(
  */
 export async function addAllMaterials(
   tenantId: string,
-  reconciliationId: string
+  reconciliationId: string,
 ): Promise<number> {
-  const db = await getDatabase()
+  const _db = await getDatabase()
 
   // Get all materials
   const result = await materials.listMaterials(tenantId, {}, { limit: 500 })
@@ -228,7 +234,7 @@ export async function updateItem(
   tenantId: string,
   reconciliationId: string,
   itemId: string,
-  input: UpdateReconciliationItemInput
+  input: UpdateReconciliationItemInput,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -239,11 +245,13 @@ export async function updateItem(
   }
 
   if (reconciliation.status !== 'in_progress') {
-    throw new Error('Cannot update items in a completed or cancelled reconciliation')
+    throw new Error(
+      'Cannot update items in a completed or cancelled reconciliation',
+    )
   }
 
   // Find the item
-  const itemIndex = reconciliation.items.findIndex(i => i.id === itemId)
+  const itemIndex = reconciliation.items.findIndex((i) => i.id === itemId)
   if (itemIndex === -1) {
     throw new Error(`Item ${itemId} not found in reconciliation`)
   }
@@ -269,7 +277,7 @@ export async function updateItem(
         [`items.${itemIndex}.countedAt`]: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   // Recalculate totals
@@ -281,7 +289,7 @@ export async function updateItem(
  */
 async function recalculateTotals(
   tenantId: string,
-  reconciliationId: string
+  reconciliationId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -306,7 +314,7 @@ async function recalculateTotals(
         totalAdjustmentValue,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -315,7 +323,7 @@ async function recalculateTotals(
  */
 export async function completeReconciliation(
   tenantId: string,
-  reconciliationId: string
+  reconciliationId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -339,7 +347,7 @@ export async function completeReconciliation(
         tenantId,
         item.itemId,
         item.discrepancy,
-        'reconciliation'
+        'reconciliation',
       )
     } else {
       // Set piece stock to actual quantity
@@ -358,7 +366,7 @@ export async function completeReconciliation(
         completedAt: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -367,7 +375,7 @@ export async function completeReconciliation(
  */
 export async function cancelReconciliation(
   tenantId: string,
-  reconciliationId: string
+  reconciliationId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -389,7 +397,7 @@ export async function cancelReconciliation(
         status: 'cancelled' as ReconciliationStatus,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -398,7 +406,7 @@ export async function cancelReconciliation(
  */
 export async function deleteReconciliation(
   tenantId: string,
-  reconciliationId: string
+  reconciliationId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -411,19 +419,21 @@ export async function deleteReconciliation(
     throw new Error('Cannot delete a completed reconciliation')
   }
 
-  await db.collection('inventory_reconciliations').deleteOne({ tenantId, id: reconciliationId })
+  await db
+    .collection('inventory_reconciliations')
+    .deleteOne({ tenantId, id: reconciliationId })
 }
 
 /**
  * Get the most recent in-progress reconciliation (if any)
  */
 export async function getActiveReconciliation(
-  tenantId: string
+  tenantId: string,
 ): Promise<InventoryReconciliation | null> {
   const db = await getDatabase()
 
-  return await db.collection('inventory_reconciliations').findOne({
+  return (await db.collection('inventory_reconciliations').findOne({
     tenantId,
     status: 'in_progress',
-  }) as InventoryReconciliation | null
+  })) as InventoryReconciliation | null
 }

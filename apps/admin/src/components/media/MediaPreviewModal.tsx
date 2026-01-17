@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { MediaItem } from '@madebuy/shared'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface MediaPreviewModalProps {
   item: MediaItem
@@ -53,21 +53,35 @@ export function MediaPreviewModal({
     if (item.type === 'video' && videoRef.current) {
       videoRef.current.play().catch(() => {})
     }
-  }, [item])
+  }, [item.type])
 
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose()
-    }
-  }, [onClose])
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        onClose()
+      }
+    },
+    [onClose],
+  )
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
       onClick={handleBackdropClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          if (e.target === e.currentTarget) {
+            onClose()
+          }
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
       {/* Close button */}
       <button
+        type="button"
         onClick={onClose}
         className="absolute top-4 right-4 z-10 p-2 text-white/70 hover:text-white transition-colors"
       >
@@ -77,7 +91,11 @@ export function MediaPreviewModal({
       {/* Navigation arrows */}
       {hasPrev && onPrev && (
         <button
-          onClick={(e) => { e.stopPropagation(); onPrev() }}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onPrev()
+          }}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
         >
           <ChevronLeft className="h-8 w-8" />
@@ -86,7 +104,11 @@ export function MediaPreviewModal({
 
       {hasNext && onNext && (
         <button
-          onClick={(e) => { e.stopPropagation(); onNext() }}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onNext()
+          }}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
         >
           <ChevronRight className="h-8 w-8" />
@@ -94,7 +116,12 @@ export function MediaPreviewModal({
       )}
 
       {/* Content */}
-      <div className="max-w-5xl max-h-[90vh] w-full mx-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="max-w-6xl max-h-[90vh] w-full mx-4"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        role="presentation"
+      >
         {item.type === 'image' ? (
           <img
             src={item.variants.large?.url || item.variants.original.url}

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
+import { timingSafeEqual } from 'node:crypto'
 import { marketplace } from '@madebuy/db'
 import type { MarketplaceConnection } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
     console.log('[CRON] Starting marketplace token refresh...')
 
     // Get connections needing refresh (expiring within 30 minutes)
-    const connectionsNeedingRefresh = await marketplace.getConnectionsNeedingRefresh(30)
+    const connectionsNeedingRefresh =
+      await marketplace.getConnectionsNeedingRefresh(30)
 
     if (connectionsNeedingRefresh.length === 0) {
       console.log('[CRON] No tokens need refreshing')
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(
-      `[CRON] Found ${connectionsNeedingRefresh.length} connections needing token refresh`
+      `[CRON] Found ${connectionsNeedingRefresh.length} connections needing token refresh`,
     )
 
     const results: RefreshResult[] = []
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
     const failed = results.filter((r) => !r.success).length
 
     console.log(
-      `[CRON] Token refresh completed: ${succeeded} successful, ${failed} failed`
+      `[CRON] Token refresh completed: ${succeeded} successful, ${failed} failed`,
     )
 
     return NextResponse.json({
@@ -115,10 +116,11 @@ export async function GET(request: NextRequest) {
     console.error('[CRON] Token refresh error:', error)
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to refresh tokens',
+        error:
+          error instanceof Error ? error.message : 'Failed to refresh tokens',
         success: false,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -127,7 +129,7 @@ export async function GET(request: NextRequest) {
  * Refresh eBay OAuth token
  */
 async function refreshEbayToken(
-  connection: MarketplaceConnection
+  connection: MarketplaceConnection,
 ): Promise<RefreshResult> {
   const baseResult = {
     tenantId: connection.tenantId,
@@ -141,7 +143,7 @@ async function refreshEbayToken(
         connection.tenantId,
         connection.id,
         'expired',
-        'No refresh token available'
+        'No refresh token available',
       )
       return {
         ...baseResult,
@@ -167,7 +169,7 @@ async function refreshEbayToken(
     }
 
     const credentials = Buffer.from(
-      `${EBAY_CLIENT_ID}:${EBAY_CLIENT_SECRET}`
+      `${EBAY_CLIENT_ID}:${EBAY_CLIENT_SECRET}`,
     ).toString('base64')
 
     const response = await fetch(EBAY_TOKEN_URL, {
@@ -186,7 +188,7 @@ async function refreshEbayToken(
       const errorData = await response.text()
       console.error(
         `[CRON] eBay token refresh failed for ${connection.id}:`,
-        errorData
+        errorData,
       )
 
       // Check if refresh token is invalid
@@ -195,7 +197,7 @@ async function refreshEbayToken(
           connection.tenantId,
           connection.id,
           'expired',
-          'Refresh token expired or invalid'
+          'Refresh token expired or invalid',
         )
       }
 
@@ -217,7 +219,7 @@ async function refreshEbayToken(
       connection.id,
       tokenData.access_token,
       tokenData.refresh_token || connection.refreshToken,
-      expiresAt
+      expiresAt,
     )
 
     console.log(`[CRON] Refreshed eBay token for connection ${connection.id}`)
@@ -227,7 +229,10 @@ async function refreshEbayToken(
       success: true,
     }
   } catch (error) {
-    console.error(`[CRON] Error refreshing eBay token for ${connection.id}:`, error)
+    console.error(
+      `[CRON] Error refreshing eBay token for ${connection.id}:`,
+      error,
+    )
     return {
       ...baseResult,
       success: false,
@@ -240,7 +245,7 @@ async function refreshEbayToken(
  * Refresh Etsy OAuth token
  */
 async function refreshEtsyToken(
-  connection: MarketplaceConnection
+  connection: MarketplaceConnection,
 ): Promise<RefreshResult> {
   const baseResult = {
     tenantId: connection.tenantId,
@@ -254,7 +259,7 @@ async function refreshEtsyToken(
         connection.tenantId,
         connection.id,
         'expired',
-        'No refresh token available'
+        'No refresh token available',
       )
       return {
         ...baseResult,
@@ -290,7 +295,7 @@ async function refreshEtsyToken(
       const errorData = await response.text()
       console.error(
         `[CRON] Etsy token refresh failed for ${connection.id}:`,
-        errorData
+        errorData,
       )
 
       if (response.status === 400 || response.status === 401) {
@@ -298,7 +303,7 @@ async function refreshEtsyToken(
           connection.tenantId,
           connection.id,
           'expired',
-          'Refresh token expired or invalid'
+          'Refresh token expired or invalid',
         )
       }
 
@@ -320,7 +325,7 @@ async function refreshEtsyToken(
       connection.id,
       tokenData.access_token,
       tokenData.refresh_token || connection.refreshToken,
-      expiresAt
+      expiresAt,
     )
 
     console.log(`[CRON] Refreshed Etsy token for connection ${connection.id}`)
@@ -330,7 +335,10 @@ async function refreshEtsyToken(
       success: true,
     }
   } catch (error) {
-    console.error(`[CRON] Error refreshing Etsy token for ${connection.id}:`, error)
+    console.error(
+      `[CRON] Error refreshing Etsy token for ${connection.id}:`,
+      error,
+    )
     return {
       ...baseResult,
       success: false,

@@ -4,10 +4,10 @@
  * POST /api/pieces/[id]/variants - Create single variant or bulk create variants
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { pieces, variants } from '@madebuy/db'
 import type { CreateVariantInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 // Import error classes and validators from the variants namespace
 const {
@@ -37,7 +37,7 @@ function errorResponse(
   message: string,
   code: string,
   status: number,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): NextResponse<ErrorResponse> {
   return NextResponse.json({ error: message, code, details }, { status })
 }
@@ -60,11 +60,7 @@ function handleVariantError(error: unknown): NextResponse<ErrorResponse> {
 
   // Unknown error
   console.error('[variants API] Unexpected error:', error)
-  return errorResponse(
-    'An unexpected error occurred',
-    'INTERNAL_ERROR',
-    500
-  )
+  return errorResponse('An unexpected error occurred', 'INTERNAL_ERROR', 500)
 }
 
 /**
@@ -72,7 +68,7 @@ function handleVariantError(error: unknown): NextResponse<ErrorResponse> {
  * @returns Array of validation errors, empty if all valid
  */
 function validateVariantInputs(
-  data: unknown[]
+  data: unknown[],
 ): { index: number; errors: string[] }[] {
   const results: { index: number; errors: string[] }[] = []
 
@@ -92,14 +88,24 @@ function validateVariantInputs(
     if (typeof v.sku !== 'string' || v.sku.length < 3 || v.sku.length > 50) {
       errors.push('SKU must be a string between 3-50 characters')
     } else if (!/^[A-Za-z0-9_-]+$/.test(v.sku)) {
-      errors.push('SKU must contain only alphanumeric characters, dashes, and underscores')
+      errors.push(
+        'SKU must contain only alphanumeric characters, dashes, and underscores',
+      )
     }
 
-    if (typeof v.stock !== 'number' || !Number.isInteger(v.stock) || v.stock < 0) {
+    if (
+      typeof v.stock !== 'number' ||
+      !Number.isInteger(v.stock) ||
+      v.stock < 0
+    ) {
       errors.push('Stock must be a non-negative integer')
     }
 
-    if (!v.attributes || typeof v.attributes !== 'object' || Object.keys(v.attributes).length === 0) {
+    if (
+      !v.attributes ||
+      typeof v.attributes !== 'object' ||
+      Object.keys(v.attributes).length === 0
+    ) {
       errors.push('Attributes must be a non-empty object')
     }
 
@@ -159,7 +165,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const includeDeleted = searchParams.get('includeDeleted') === 'true'
 
     // Get variants
-    const variantList = await variants.getVariants(tenant.id, pieceId, includeDeleted)
+    const variantList = await variants.getVariants(
+      tenant.id,
+      pieceId,
+      includeDeleted,
+    )
 
     // Also get total stock for convenience
     const totalStock = await variants.getTotalStock(tenant.id, pieceId)
@@ -204,12 +214,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         return errorResponse(
           'Piece has no variations defined',
           'NO_VARIATIONS',
-          400
+          400,
         )
       }
 
-      const basePrice = typeof body.basePrice === 'number' ? body.basePrice : (piece.price || 0)
-      const baseSku = typeof body.baseSku === 'string' ? body.baseSku : piece.name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '')
+      const basePrice =
+        typeof body.basePrice === 'number' ? body.basePrice : piece.price || 0
+      const baseSku =
+        typeof body.baseSku === 'string'
+          ? body.baseSku
+          : piece.name
+              .substring(0, 3)
+              .toUpperCase()
+              .replace(/[^A-Z]/g, '')
 
       // Delete existing variants first if requested
       if (body.replaceExisting === true) {
@@ -220,19 +237,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const generated = variants.generateCombinations(
         piece.variations,
         basePrice,
-        baseSku
+        baseSku,
       )
 
       if (generated.length === 0) {
         return errorResponse(
           'No variant combinations could be generated',
           'NO_COMBINATIONS',
-          400
+          400,
         )
       }
 
       // Bulk create
-      const created = await variants.bulkCreateVariants(tenant.id, pieceId, generated)
+      const created = await variants.bulkCreateVariants(
+        tenant.id,
+        pieceId,
+        generated,
+      )
 
       return NextResponse.json(
         {
@@ -240,7 +261,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           count: created.length,
           message: `Generated ${created.length} variant combinations`,
         },
-        { status: 201 }
+        { status: 201 },
       )
     }
 
@@ -249,7 +270,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const variantInputs = body.variants as unknown[]
 
       if (variantInputs.length === 0) {
-        return errorResponse('Variants array cannot be empty', 'EMPTY_VARIANTS', 400)
+        return errorResponse(
+          'Variants array cannot be empty',
+          'EMPTY_VARIANTS',
+          400,
+        )
       }
 
       // Validate all inputs
@@ -259,7 +284,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           'Validation failed for some variants',
           'VALIDATION_ERROR',
           400,
-          { validationErrors }
+          { validationErrors },
         )
       }
 
@@ -272,7 +297,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const created = await variants.bulkCreateVariants(
         tenant.id,
         pieceId,
-        variantInputs as CreateVariantInput[]
+        variantInputs as CreateVariantInput[],
       )
 
       return NextResponse.json(
@@ -281,7 +306,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           count: created.length,
           message: `Created ${created.length} variants`,
         },
-        { status: 201 }
+        { status: 201 },
       )
     }
 
@@ -290,7 +315,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return errorResponse(
         'Invalid variant data. Required: sku (3-50 alphanumeric), stock (non-negative integer), attributes (non-empty object)',
         'VALIDATION_ERROR',
-        400
+        400,
       )
     }
 
@@ -301,7 +326,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         variant: created,
         message: 'Variant created successfully',
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
     console.error('[variants POST] Error:', error)

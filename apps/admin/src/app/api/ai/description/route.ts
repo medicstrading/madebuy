@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
+import { type NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { getCurrentTenant } from '@/lib/session'
 
 // Lazy initialization
 let openaiClient: OpenAI | null = null
@@ -28,7 +28,10 @@ function checkRateLimit(tenantId: string): boolean {
   const entry = rateLimit.requests.get(tenantId)
 
   if (!entry || now > entry.resetAt) {
-    rateLimit.requests.set(tenantId, { count: 1, resetAt: now + rateLimit.windowMs })
+    rateLimit.requests.set(tenantId, {
+      count: 1,
+      resetAt: now + rateLimit.windowMs,
+    })
     return true
   }
 
@@ -52,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (!checkRateLimit(tenant.id)) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Please wait a moment.' },
-        { status: 429 }
+        { status: 429 },
       )
     }
 
@@ -97,16 +100,19 @@ Just provide the description text, no quotes or labels.`
   } catch (error) {
     console.error('Error generating description:', error)
 
-    if (error instanceof Error && error.message === 'OPENAI_API_KEY not configured') {
+    if (
+      error instanceof Error &&
+      error.message === 'OPENAI_API_KEY not configured'
+    ) {
       return NextResponse.json(
         { error: 'AI features not configured' },
-        { status: 503 }
+        { status: 503 },
       )
     }
 
     return NextResponse.json(
       { error: 'Failed to generate description' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

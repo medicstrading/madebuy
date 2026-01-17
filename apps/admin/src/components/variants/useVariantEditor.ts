@@ -1,23 +1,23 @@
 'use client'
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import type {
-  VariantAttribute,
-  VariantAttributeValue,
-  EditableVariant,
-  VariantEditorState,
-  VariantEditorSnapshot,
-  BulkEditAction,
-  VariantSummaryStats,
-  SkuValidationResult,
-} from './types'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  calculateCombinations,
   generateId,
   generateSku,
-  calculateCombinations,
-  MAX_COMBINATIONS_HARD_LIMIT,
   LOW_STOCK_DEFAULT_THRESHOLD,
+  MAX_COMBINATIONS_HARD_LIMIT,
 } from './constants'
+import type {
+  BulkEditAction,
+  EditableVariant,
+  SkuValidationResult,
+  VariantAttribute,
+  VariantAttributeValue,
+  VariantEditorSnapshot,
+  VariantEditorState,
+  VariantSummaryStats,
+} from './types'
 
 interface UseVariantEditorOptions {
   initialAttributes?: VariantAttribute[]
@@ -44,9 +44,17 @@ interface UseVariantEditorReturn {
   updateAttributeName: (attributeId: string, name: string) => void
   addAttributeValue: (attributeId: string, value: string) => void
   removeAttributeValue: (attributeId: string, valueId: string) => void
-  updateAttributeValue: (attributeId: string, valueId: string, value: string) => void
+  updateAttributeValue: (
+    attributeId: string,
+    valueId: string,
+    value: string,
+  ) => void
   reorderAttributes: (fromIndex: number, toIndex: number) => void
-  reorderAttributeValues: (attributeId: string, fromIndex: number, toIndex: number) => void
+  reorderAttributeValues: (
+    attributeId: string,
+    fromIndex: number,
+    toIndex: number,
+  ) => void
   applyPreset: (preset: { name: string; values: string[] }[]) => void
 
   // Variant operations
@@ -79,7 +87,7 @@ interface UseVariantEditorReturn {
 }
 
 export function useVariantEditor(
-  options: UseVariantEditorOptions = {}
+  options: UseVariantEditorOptions = {},
 ): UseVariantEditorReturn {
   const {
     initialAttributes = [],
@@ -111,11 +119,14 @@ export function useVariantEditor(
   }, [state.isDirty, onDirtyChange])
 
   // Create snapshot for undo
-  const createSnapshot = useCallback((): VariantEditorSnapshot => ({
-    attributes: JSON.parse(JSON.stringify(state.attributes)),
-    variants: JSON.parse(JSON.stringify(state.variants)),
-    timestamp: Date.now(),
-  }), [state.attributes, state.variants])
+  const createSnapshot = useCallback(
+    (): VariantEditorSnapshot => ({
+      attributes: JSON.parse(JSON.stringify(state.attributes)),
+      variants: JSON.parse(JSON.stringify(state.variants)),
+      timestamp: Date.now(),
+    }),
+    [state.attributes, state.variants],
+  )
 
   // Push to undo stack
   const pushUndo = useCallback(() => {
@@ -128,69 +139,86 @@ export function useVariantEditor(
   }, [createSnapshot])
 
   // Attribute operations
-  const addAttribute = useCallback((name = 'New Attribute') => {
-    pushUndo()
-    setState((prev) => {
-      const newAttribute: VariantAttribute = {
-        id: generateId(),
-        name,
-        values: [],
-      }
-      return {
-        ...prev,
-        attributes: [...prev.attributes, newAttribute],
-      }
-    })
-  }, [pushUndo])
-
-  const removeAttribute = useCallback((attributeId: string) => {
-    pushUndo()
-    setState((prev) => ({
-      ...prev,
-      attributes: prev.attributes.filter((a) => a.id !== attributeId),
-    }))
-  }, [pushUndo])
-
-  const updateAttributeName = useCallback((attributeId: string, name: string) => {
-    pushUndo()
-    setState((prev) => ({
-      ...prev,
-      attributes: prev.attributes.map((a) =>
-        a.id === attributeId ? { ...a, name } : a
-      ),
-    }))
-  }, [pushUndo])
-
-  const addAttributeValue = useCallback((attributeId: string, value: string) => {
-    if (!value.trim()) return
-    pushUndo()
-    setState((prev) => ({
-      ...prev,
-      attributes: prev.attributes.map((a) => {
-        if (a.id !== attributeId) return a
-        // Check for duplicate
-        if (a.values.some((v) => v.value.toLowerCase() === value.toLowerCase())) {
-          return a
-        }
-        const newValue: VariantAttributeValue = {
+  const addAttribute = useCallback(
+    (name = 'New Attribute') => {
+      pushUndo()
+      setState((prev) => {
+        const newAttribute: VariantAttribute = {
           id: generateId(),
-          value: value.trim(),
+          name,
+          values: [],
         }
-        return { ...a, values: [...a.values, newValue] }
-      }),
-    }))
-  }, [pushUndo])
+        return {
+          ...prev,
+          attributes: [...prev.attributes, newAttribute],
+        }
+      })
+    },
+    [pushUndo],
+  )
 
-  const removeAttributeValue = useCallback((attributeId: string, valueId: string) => {
-    pushUndo()
-    setState((prev) => ({
-      ...prev,
-      attributes: prev.attributes.map((a) => {
-        if (a.id !== attributeId) return a
-        return { ...a, values: a.values.filter((v) => v.id !== valueId) }
-      }),
-    }))
-  }, [pushUndo])
+  const removeAttribute = useCallback(
+    (attributeId: string) => {
+      pushUndo()
+      setState((prev) => ({
+        ...prev,
+        attributes: prev.attributes.filter((a) => a.id !== attributeId),
+      }))
+    },
+    [pushUndo],
+  )
+
+  const updateAttributeName = useCallback(
+    (attributeId: string, name: string) => {
+      pushUndo()
+      setState((prev) => ({
+        ...prev,
+        attributes: prev.attributes.map((a) =>
+          a.id === attributeId ? { ...a, name } : a,
+        ),
+      }))
+    },
+    [pushUndo],
+  )
+
+  const addAttributeValue = useCallback(
+    (attributeId: string, value: string) => {
+      if (!value.trim()) return
+      pushUndo()
+      setState((prev) => ({
+        ...prev,
+        attributes: prev.attributes.map((a) => {
+          if (a.id !== attributeId) return a
+          // Check for duplicate
+          if (
+            a.values.some((v) => v.value.toLowerCase() === value.toLowerCase())
+          ) {
+            return a
+          }
+          const newValue: VariantAttributeValue = {
+            id: generateId(),
+            value: value.trim(),
+          }
+          return { ...a, values: [...a.values, newValue] }
+        }),
+      }))
+    },
+    [pushUndo],
+  )
+
+  const removeAttributeValue = useCallback(
+    (attributeId: string, valueId: string) => {
+      pushUndo()
+      setState((prev) => ({
+        ...prev,
+        attributes: prev.attributes.map((a) => {
+          if (a.id !== attributeId) return a
+          return { ...a, values: a.values.filter((v) => v.id !== valueId) }
+        }),
+      }))
+    },
+    [pushUndo],
+  )
 
   const updateAttributeValue = useCallback(
     (attributeId: string, valueId: string, value: string) => {
@@ -203,24 +231,27 @@ export function useVariantEditor(
           return {
             ...a,
             values: a.values.map((v) =>
-              v.id === valueId ? { ...v, value: value.trim() } : v
+              v.id === valueId ? { ...v, value: value.trim() } : v,
             ),
           }
         }),
       }))
     },
-    [pushUndo]
+    [pushUndo],
   )
 
-  const reorderAttributes = useCallback((fromIndex: number, toIndex: number) => {
-    pushUndo()
-    setState((prev) => {
-      const newAttributes = [...prev.attributes]
-      const [moved] = newAttributes.splice(fromIndex, 1)
-      newAttributes.splice(toIndex, 0, moved)
-      return { ...prev, attributes: newAttributes }
-    })
-  }, [pushUndo])
+  const reorderAttributes = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      pushUndo()
+      setState((prev) => {
+        const newAttributes = [...prev.attributes]
+        const [moved] = newAttributes.splice(fromIndex, 1)
+        newAttributes.splice(toIndex, 0, moved)
+        return { ...prev, attributes: newAttributes }
+      })
+    },
+    [pushUndo],
+  )
 
   const reorderAttributeValues = useCallback(
     (attributeId: string, fromIndex: number, toIndex: number) => {
@@ -236,7 +267,7 @@ export function useVariantEditor(
         }),
       }))
     },
-    [pushUndo]
+    [pushUndo],
   )
 
   const applyPreset = useCallback(
@@ -255,12 +286,14 @@ export function useVariantEditor(
         attributes: [...prev.attributes, ...newAttributes],
       }))
     },
-    [pushUndo]
+    [pushUndo],
   )
 
   // Generate variant combinations
   const generateVariants = useCallback(async (): Promise<boolean> => {
-    const attributesWithValues = state.attributes.filter((a) => a.values.length > 0)
+    const attributesWithValues = state.attributes.filter(
+      (a) => a.values.length > 0,
+    )
 
     if (attributesWithValues.length === 0) {
       setState((prev) => ({ ...prev, variants: [] }))
@@ -272,7 +305,10 @@ export function useVariantEditor(
       setState((prev) => ({
         ...prev,
         errors: new Map([
-          ['global', `Too many combinations (${combinationCount}). Maximum is ${MAX_COMBINATIONS_HARD_LIMIT}.`],
+          [
+            'global',
+            `Too many combinations (${combinationCount}). Maximum is ${MAX_COMBINATIONS_HARD_LIMIT}.`,
+          ],
         ]),
       }))
       return false
@@ -284,44 +320,47 @@ export function useVariantEditor(
       pushUndo()
 
       // Generate all combinations using cartesian product
-      const combinations: Record<string, string>[] = attributesWithValues.reduce(
-        (acc, attr) => {
-          if (acc.length === 0) {
-            return attr.values.map((v) => ({ [attr.name]: v.value }))
-          }
-          return acc.flatMap((combo) =>
-            attr.values.map((v) => ({ ...combo, [attr.name]: v.value }))
-          )
-        },
-        [] as Record<string, string>[]
-      )
+      const combinations: Record<string, string>[] =
+        attributesWithValues.reduce(
+          (acc, attr) => {
+            if (acc.length === 0) {
+              return attr.values.map((v) => ({ [attr.name]: v.value }))
+            }
+            return acc.flatMap((combo) =>
+              attr.values.map((v) => ({ ...combo, [attr.name]: v.value })),
+            )
+          },
+          [] as Record<string, string>[],
+        )
 
       // Create variants from combinations, preserving existing data where possible
       const existingVariantMap = new Map(
-        state.variants.map((v) => [JSON.stringify(v.options), v])
+        state.variants.map((v) => [JSON.stringify(v.options), v]),
       )
 
-      const newVariants: EditableVariant[] = combinations.map((options, index) => {
-        const key = JSON.stringify(options)
-        const existing = existingVariantMap.get(key)
+      const newVariants: EditableVariant[] = combinations.map(
+        (options, index) => {
+          const key = JSON.stringify(options)
+          const existing = existingVariantMap.get(key)
 
-        if (existing) {
-          return existing
-        }
+          if (existing) {
+            return existing
+          }
 
-        return {
-          id: generateId(),
-          options,
-          sku: generateSku(productCode, options, index + 1),
-          price: undefined,
-          stock: undefined,
-          isAvailable: true,
-          compareAtPrice: undefined,
-          weight: undefined,
-          mediaId: undefined,
-          lowStockThreshold: LOW_STOCK_DEFAULT_THRESHOLD,
-        }
-      })
+          return {
+            id: generateId(),
+            options,
+            sku: generateSku(productCode, options, index + 1),
+            price: undefined,
+            stock: undefined,
+            isAvailable: true,
+            compareAtPrice: undefined,
+            weight: undefined,
+            mediaId: undefined,
+            lowStockThreshold: LOW_STOCK_DEFAULT_THRESHOLD,
+          }
+        },
+      )
 
       setState((prev) => ({
         ...prev,
@@ -349,31 +388,34 @@ export function useVariantEditor(
       setState((prev) => ({
         ...prev,
         variants: prev.variants.map((v) =>
-          v.id === variantId ? { ...v, ...updates } : v
+          v.id === variantId ? { ...v, ...updates } : v,
         ),
         isDirty: true,
       }))
     },
-    []
+    [],
   )
 
-  const deleteVariants = useCallback((variantIds: string[]) => {
-    pushUndo()
-    const idsSet = new Set(variantIds)
-    setState((prev) => ({
-      ...prev,
-      variants: prev.variants.filter((v) => !idsSet.has(v.id)),
-      selectedVariantIds: new Set(
-        [...prev.selectedVariantIds].filter((id) => !idsSet.has(id))
-      ),
-    }))
-  }, [pushUndo])
+  const deleteVariants = useCallback(
+    (variantIds: string[]) => {
+      pushUndo()
+      const idsSet = new Set(variantIds)
+      setState((prev) => ({
+        ...prev,
+        variants: prev.variants.filter((v) => !idsSet.has(v.id)),
+        selectedVariantIds: new Set(
+          [...prev.selectedVariantIds].filter((id) => !idsSet.has(id)),
+        ),
+      }))
+    },
+    [pushUndo],
+  )
 
   const toggleVariantAvailability = useCallback((variantId: string) => {
     setState((prev) => ({
       ...prev,
       variants: prev.variants.map((v) =>
-        v.id === variantId ? { ...v, isAvailable: !v.isAvailable } : v
+        v.id === variantId ? { ...v, isAvailable: !v.isAvailable } : v,
       ),
       isDirty: true,
     }))
@@ -406,68 +448,71 @@ export function useVariantEditor(
   }, [])
 
   // Bulk operations
-  const applyBulkEdit = useCallback((action: BulkEditAction) => {
-    pushUndo()
-    setState((prev) => {
-      const selectedIds = prev.selectedVariantIds
-      if (selectedIds.size === 0) return prev
+  const applyBulkEdit = useCallback(
+    (action: BulkEditAction) => {
+      pushUndo()
+      setState((prev) => {
+        const selectedIds = prev.selectedVariantIds
+        if (selectedIds.size === 0) return prev
 
-      const updatedVariants = prev.variants.map((variant) => {
-        if (!selectedIds.has(variant.id)) return variant
+        const updatedVariants = prev.variants.map((variant) => {
+          if (!selectedIds.has(variant.id)) return variant
 
-        switch (action.type) {
-          case 'setPrice':
-            return { ...variant, price: action.value }
+          switch (action.type) {
+            case 'setPrice':
+              return { ...variant, price: action.value }
 
-          case 'adjustPrice': {
-            const currentPrice = variant.price || 0
-            let newPrice = currentPrice
-            if (action.mode === 'add') {
-              newPrice = currentPrice + action.value
-            } else if (action.mode === 'subtract') {
-              newPrice = Math.max(0, currentPrice - action.value)
-            } else if (action.mode === 'percentage') {
-              newPrice = currentPrice * (1 + action.value / 100)
+            case 'adjustPrice': {
+              const currentPrice = variant.price || 0
+              let newPrice = currentPrice
+              if (action.mode === 'add') {
+                newPrice = currentPrice + action.value
+              } else if (action.mode === 'subtract') {
+                newPrice = Math.max(0, currentPrice - action.value)
+              } else if (action.mode === 'percentage') {
+                newPrice = currentPrice * (1 + action.value / 100)
+              }
+              return { ...variant, price: Math.round(newPrice * 100) / 100 }
             }
-            return { ...variant, price: Math.round(newPrice * 100) / 100 }
-          }
 
-          case 'setStock':
-            return { ...variant, stock: action.value }
+            case 'setStock':
+              return { ...variant, stock: action.value }
 
-          case 'adjustStock': {
-            const currentStock = variant.stock || 0
-            let newStock = currentStock
-            if (action.mode === 'add') {
-              newStock = currentStock + action.value
-            } else {
-              newStock = Math.max(0, currentStock - action.value)
+            case 'adjustStock': {
+              const currentStock = variant.stock || 0
+              let newStock = currentStock
+              if (action.mode === 'add') {
+                newStock = currentStock + action.value
+              } else {
+                newStock = Math.max(0, currentStock - action.value)
+              }
+              return { ...variant, stock: newStock }
             }
-            return { ...variant, stock: newStock }
-          }
 
-          case 'setAvailability':
-            return { ...variant, isAvailable: action.value }
+            case 'setAvailability':
+              return { ...variant, isAvailable: action.value }
 
-          case 'generateSkus': {
-            const index = prev.variants.findIndex((v) => v.id === variant.id)
-            return {
-              ...variant,
-              sku: generateSku(action.prefix, variant.options, index + 1),
+            case 'generateSkus': {
+              const index = prev.variants.findIndex((v) => v.id === variant.id)
+              return {
+                ...variant,
+                sku: generateSku(action.prefix, variant.options, index + 1),
+              }
             }
+
+            case 'setWeight':
+              return { ...variant, weight: action.value }
+
+            default:
+              return variant
           }
+        })
 
-          case 'setWeight':
-            return { ...variant, weight: action.value }
-
-          default:
-            return variant
-        }
+        return { ...prev, variants: updatedVariants, isDirty: true }
       })
-
-      return { ...prev, variants: updatedVariants, isDirty: true }
-    })
-  }, [pushUndo])
+    },
+    [pushUndo],
+  )
 
   // Undo/Redo
   const canUndo = state.undoStack.length > 0
@@ -517,7 +562,7 @@ export function useVariantEditor(
           try {
             // Check for duplicate in current variants
             const isDuplicateLocal = state.variants.some(
-              (v) => v.id !== variantId && v.sku === sku
+              (v) => v.id !== variantId && v.sku === sku,
             )
 
             if (isDuplicateLocal) {
@@ -532,7 +577,7 @@ export function useVariantEditor(
             // Check via API if pieceId is available
             if (pieceId && sku) {
               const response = await fetch(
-                `/api/pieces/${pieceId}/variants/validate-sku?sku=${encodeURIComponent(sku)}&variantId=${variantId}`
+                `/api/pieces/${pieceId}/variants/validate-sku?sku=${encodeURIComponent(sku)}&variantId=${variantId}`,
               )
               if (response.ok) {
                 const result = await response.json()
@@ -559,7 +604,7 @@ export function useVariantEditor(
         skuValidationTimers.current.set(variantId, timer)
       })
     },
-    [state.variants, pieceId]
+    [state.variants, pieceId],
   )
 
   const validateAll = useCallback((): boolean => {
@@ -572,13 +617,16 @@ export function useVariantEditor(
       }
 
       // Stock validation
-      if (variant.stock !== undefined && (variant.stock < 0 || !Number.isInteger(variant.stock))) {
+      if (
+        variant.stock !== undefined &&
+        (variant.stock < 0 || !Number.isInteger(variant.stock))
+      ) {
         newErrors.set(variant.id, 'Stock must be a non-negative integer')
       }
 
       // SKU uniqueness check
       const duplicateSku = state.variants.find(
-        (v) => v.id !== variant.id && v.sku && v.sku === variant.sku
+        (v) => v.id !== variant.id && v.sku && v.sku === variant.sku,
       )
       if (duplicateSku) {
         newErrors.set(variant.id, 'Duplicate SKU')
@@ -648,17 +696,20 @@ export function useVariantEditor(
   const stats: VariantSummaryStats = useMemo(() => {
     const variants = state.variants
     const inStock = variants.filter(
-      (v) => v.isAvailable && v.stock !== undefined && v.stock > (v.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD)
+      (v) =>
+        v.isAvailable &&
+        v.stock !== undefined &&
+        v.stock > (v.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD),
     ).length
     const lowStock = variants.filter(
       (v) =>
         v.isAvailable &&
         v.stock !== undefined &&
         v.stock > 0 &&
-        v.stock <= (v.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD)
+        v.stock <= (v.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD),
     ).length
     const outOfStock = variants.filter(
-      (v) => v.isAvailable && v.stock !== undefined && v.stock === 0
+      (v) => v.isAvailable && v.stock !== undefined && v.stock === 0,
     ).length
     const unavailable = variants.filter((v) => !v.isAvailable).length
 
@@ -683,7 +734,10 @@ export function useVariantEditor(
         min: prices.length > 0 ? Math.min(...prices) : 0,
         max: prices.length > 0 ? Math.max(...prices) : 0,
       },
-      totalInventoryValue: stocks.reduce((sum, s) => sum + s.stock * s.price, 0),
+      totalInventoryValue: stocks.reduce(
+        (sum, s) => sum + s.stock * s.price,
+        0,
+      ),
       totalInventoryCount: stocks.reduce((sum, s) => sum + s.stock, 0),
     }
   }, [state.variants])

@@ -1,21 +1,21 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  Transaction,
   CreateTransactionInput,
+  QuarterlyGSTReport,
+  TenantBalance,
+  Transaction,
   TransactionFilters,
   TransactionListOptions,
-  TenantBalance,
   TransactionSummary,
-  QuarterlyGSTReport,
 } from '@madebuy/shared'
 import { parseQuarter } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 /**
  * Create a new transaction record
  */
 export async function createTransaction(
-  data: CreateTransactionInput
+  data: CreateTransactionInput,
 ): Promise<Transaction> {
   const db = await getDatabase()
 
@@ -52,20 +52,24 @@ export async function createTransaction(
  */
 export async function getTransaction(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Transaction | null> {
   const db = await getDatabase()
-  return await db.collection('transactions').findOne({ tenantId, id }) as Transaction | null
+  return (await db
+    .collection('transactions')
+    .findOne({ tenantId, id })) as Transaction | null
 }
 
 /**
  * Get transaction by Stripe payment intent ID
  */
 export async function getTransactionByPaymentIntent(
-  stripePaymentIntentId: string
+  stripePaymentIntentId: string,
 ): Promise<Transaction | null> {
   const db = await getDatabase()
-  return await db.collection('transactions').findOne({ stripePaymentIntentId }) as Transaction | null
+  return (await db
+    .collection('transactions')
+    .findOne({ stripePaymentIntentId })) as Transaction | null
 }
 
 /**
@@ -73,10 +77,11 @@ export async function getTransactionByPaymentIntent(
  */
 export async function getTransactionsByOrder(
   tenantId: string,
-  orderId: string
+  orderId: string,
 ): Promise<Transaction[]> {
   const db = await getDatabase()
-  const results = await db.collection('transactions')
+  const results = await db
+    .collection('transactions')
     .find({ tenantId, orderId })
     .sort({ createdAt: -1 })
     .toArray()
@@ -88,7 +93,7 @@ export async function getTransactionsByOrder(
  */
 export async function listTransactions(
   tenantId: string,
-  options?: TransactionListOptions
+  options?: TransactionListOptions,
 ): Promise<Transaction[]> {
   const db = await getDatabase()
 
@@ -119,7 +124,8 @@ export async function listTransactions(
   const sortField = options?.sortBy || 'createdAt'
   const sortOrder = options?.sortOrder === 'asc' ? 1 : -1
 
-  let cursor = db.collection('transactions')
+  let cursor = db
+    .collection('transactions')
     .find(query)
     .sort({ [sortField]: sortOrder })
 
@@ -139,7 +145,7 @@ export async function listTransactions(
 export async function updateTransactionStatus(
   id: string,
   status: Transaction['status'],
-  completedAt?: Date
+  completedAt?: Date,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -152,10 +158,7 @@ export async function updateTransactionStatus(
     updates.completedAt = completedAt
   }
 
-  await db.collection('transactions').updateOne(
-    { id },
-    { $set: updates }
-  )
+  await db.collection('transactions').updateOne({ id }, { $set: updates })
 }
 
 /**
@@ -164,7 +167,7 @@ export async function updateTransactionStatus(
  */
 export async function getTenantBalance(
   tenantId: string,
-  filters?: TransactionFilters
+  filters?: TransactionFilters,
 ): Promise<TenantBalance> {
   const db = await getDatabase()
 
@@ -178,43 +181,53 @@ export async function getTenantBalance(
   }
 
   if (filters?.type) {
-    matchQuery.type = Array.isArray(filters.type) ? { $in: filters.type } : filters.type
+    matchQuery.type = Array.isArray(filters.type)
+      ? { $in: filters.type }
+      : filters.type
   }
 
-  const result = await db.collection('transactions').aggregate([
-    { $match: matchQuery },
-    {
-      $group: {
-        _id: null,
-        totalGross: { $sum: '$grossAmount' },
-        totalStripeFees: { $sum: '$stripeFee' },
-        totalPlatformFees: { $sum: '$platformFee' },
-        totalNet: { $sum: '$netAmount' },
-        // Sum GST collected (from sales only)
-        totalGst: {
-          $sum: {
-            $cond: [
-              { $and: [{ $eq: ['$type', 'sale'] }, { $gt: ['$gstAmount', 0] }] },
-              '$gstAmount',
-              0
-            ]
-          }
+  const result = await db
+    .collection('transactions')
+    .aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: null,
+          totalGross: { $sum: '$grossAmount' },
+          totalStripeFees: { $sum: '$stripeFee' },
+          totalPlatformFees: { $sum: '$platformFee' },
+          totalNet: { $sum: '$netAmount' },
+          // Sum GST collected (from sales only)
+          totalGst: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'sale'] },
+                    { $gt: ['$gstAmount', 0] },
+                  ],
+                },
+                '$gstAmount',
+                0,
+              ],
+            },
+          },
+          // Sum payouts (negative for balance calculation)
+          totalPayouts: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'payout'] }, '$netAmount', 0],
+            },
+          },
+          // Sum refunds (negative for balance calculation)
+          totalRefunds: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'refund'] }, '$grossAmount', 0],
+            },
+          },
         },
-        // Sum payouts (negative for balance calculation)
-        totalPayouts: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'payout'] }, '$netAmount', 0]
-          }
-        },
-        // Sum refunds (negative for balance calculation)
-        totalRefunds: {
-          $sum: {
-            $cond: [{ $eq: ['$type', 'refund'] }, '$grossAmount', 0]
-          }
-        },
-      }
-    }
-  ]).toArray()
+      },
+    ])
+    .toArray()
 
   const data = result[0] || {
     totalGross: 0,
@@ -248,65 +261,74 @@ export async function getTenantBalance(
 export async function getTransactionSummary(
   tenantId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<TransactionSummary> {
   const db = await getDatabase()
 
-  const salesResult = await db.collection('transactions').aggregate([
-    {
-      $match: {
-        tenantId,
-        type: 'sale',
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: 1 },
-        gross: { $sum: '$grossAmount' },
-        fees: { $sum: { $add: ['$stripeFee', '$platformFee'] } },
-        net: { $sum: '$netAmount' },
-      }
-    }
-  ]).toArray()
+  const salesResult = await db
+    .collection('transactions')
+    .aggregate([
+      {
+        $match: {
+          tenantId,
+          type: 'sale',
+          status: 'completed',
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          gross: { $sum: '$grossAmount' },
+          fees: { $sum: { $add: ['$stripeFee', '$platformFee'] } },
+          net: { $sum: '$netAmount' },
+        },
+      },
+    ])
+    .toArray()
 
-  const refundsResult = await db.collection('transactions').aggregate([
-    {
-      $match: {
-        tenantId,
-        type: 'refund',
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: 1 },
-        amount: { $sum: '$grossAmount' },
-      }
-    }
-  ]).toArray()
+  const refundsResult = await db
+    .collection('transactions')
+    .aggregate([
+      {
+        $match: {
+          tenantId,
+          type: 'refund',
+          status: 'completed',
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          amount: { $sum: '$grossAmount' },
+        },
+      },
+    ])
+    .toArray()
 
-  const payoutsResult = await db.collection('transactions').aggregate([
-    {
-      $match: {
-        tenantId,
-        type: 'payout',
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: 1 },
-        amount: { $sum: '$netAmount' },
-      }
-    }
-  ]).toArray()
+  const payoutsResult = await db
+    .collection('transactions')
+    .aggregate([
+      {
+        $match: {
+          tenantId,
+          type: 'payout',
+          status: 'completed',
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          amount: { $sum: '$netAmount' },
+        },
+      },
+    ])
+    .toArray()
 
   const sales = salesResult[0] || { count: 0, gross: 0, fees: 0, net: 0 }
   const refunds = refundsResult[0] || { count: 0, amount: 0 }
@@ -338,14 +360,16 @@ export async function getTransactionSummary(
  */
 export async function countTransactions(
   tenantId: string,
-  filters?: TransactionFilters
+  filters?: TransactionFilters,
 ): Promise<number> {
   const db = await getDatabase()
 
   const query: any = { tenantId }
 
   if (filters?.type) {
-    query.type = Array.isArray(filters.type) ? { $in: filters.type } : filters.type
+    query.type = Array.isArray(filters.type)
+      ? { $in: filters.type }
+      : filters.type
   }
 
   if (filters?.status) {
@@ -370,7 +394,7 @@ export async function deleteTransaction(id: string): Promise<void> {
 export async function getQuarterlyGSTReport(
   tenantId: string,
   quarterString: string,
-  gstRate = 10
+  gstRate = 10,
 ): Promise<QuarterlyGSTReport | null> {
   const parsed = parseQuarter(quarterString)
   if (!parsed) return null
@@ -379,51 +403,62 @@ export async function getQuarterlyGSTReport(
   const db = await getDatabase()
 
   // Get GST collected from sales
-  const salesResult = await db.collection('transactions').aggregate([
-    {
-      $match: {
-        tenantId,
-        type: 'sale',
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: 1 },
-        gross: { $sum: '$grossAmount' },
-        gstCollected: {
-          $sum: { $ifNull: ['$gstAmount', 0] }
+  const salesResult = await db
+    .collection('transactions')
+    .aggregate([
+      {
+        $match: {
+          tenantId,
+          type: 'sale',
+          status: 'completed',
+          createdAt: { $gte: startDate, $lte: endDate },
         },
-        net: { $sum: '$netAmount' },
-      }
-    }
-  ]).toArray()
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          gross: { $sum: '$grossAmount' },
+          gstCollected: {
+            $sum: { $ifNull: ['$gstAmount', 0] },
+          },
+          net: { $sum: '$netAmount' },
+        },
+      },
+    ])
+    .toArray()
 
   // Get GST paid on refunds
-  const refundsResult = await db.collection('transactions').aggregate([
-    {
-      $match: {
-        tenantId,
-        type: 'refund',
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: 1 },
-        total: { $sum: '$grossAmount' },
-        gstPaid: {
-          $sum: { $ifNull: ['$gstAmount', 0] }
+  const refundsResult = await db
+    .collection('transactions')
+    .aggregate([
+      {
+        $match: {
+          tenantId,
+          type: 'refund',
+          status: 'completed',
+          createdAt: { $gte: startDate, $lte: endDate },
         },
-      }
-    }
-  ]).toArray()
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          total: { $sum: '$grossAmount' },
+          gstPaid: {
+            $sum: { $ifNull: ['$gstAmount', 0] },
+          },
+        },
+      },
+    ])
+    .toArray()
 
-  const sales = salesResult[0] || { count: 0, gross: 0, gstCollected: 0, net: 0 }
+  const sales = salesResult[0] || {
+    count: 0,
+    gross: 0,
+    gstCollected: 0,
+    net: 0,
+  }
   const refunds = refundsResult[0] || { count: 0, total: 0, gstPaid: 0 }
 
   // Calculate net sales after GST

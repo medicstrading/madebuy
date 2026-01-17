@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 /**
  * Page Object for the Tenant Storefront homepage
@@ -41,35 +41,45 @@ export class StorefrontPage {
     this.tenantSlug = tenantSlug
 
     // Header
-    this.logo = page.locator('[data-testid="store-logo"]')
+    this.logo = page
+      .locator('[data-testid="store-logo"]')
       .or(page.getByRole('link', { name: /home/i }).first())
-    this.searchInput = page.getByPlaceholder(/search/i)
+    this.searchInput = page
+      .getByPlaceholder(/search/i)
       .or(page.getByRole('searchbox'))
-    this.cartIcon = page.getByRole('link', { name: /cart|bag/i })
+    this.cartIcon = page
+      .getByRole('link', { name: /cart|bag/i })
       .or(page.locator('[data-testid="cart-icon"]'))
-    this.cartBadge = page.locator('[data-testid="cart-badge"]')
+    this.cartBadge = page
+      .locator('[data-testid="cart-badge"]')
       .or(page.locator('.cart-badge'))
     this.menuButton = page.getByRole('button', { name: /menu/i })
     this.navigation = page.getByRole('navigation')
 
     // Product listing
-    this.productGrid = page.locator('[data-testid="product-grid"]')
+    this.productGrid = page
+      .locator('[data-testid="product-grid"]')
       .or(page.locator('.product-grid'))
       .or(page.locator('main'))
-    this.productCards = page.locator('[data-testid="product-card"]')
+    this.productCards = page
+      .locator('[data-testid="product-card"]')
       .or(page.locator('.product-card'))
       .or(page.locator('article').filter({ has: page.locator('img') }))
-    this.categoryLinks = page.getByRole('link').filter({ hasText: /category|collection/i })
+    this.categoryLinks = page
+      .getByRole('link')
+      .filter({ hasText: /category|collection/i })
     this.collectionLinks = page.locator('[data-testid="collection-link"]')
 
     // Filters
-    this.sortDropdown = page.getByRole('combobox', { name: /sort/i })
+    this.sortDropdown = page
+      .getByRole('combobox', { name: /sort/i })
       .or(page.locator('[data-testid="sort-dropdown"]'))
     this.priceFilter = page.locator('[data-testid="price-filter"]')
     this.categoryFilter = page.locator('[data-testid="category-filter"]')
 
     // States
-    this.loadingSpinner = page.locator('[data-testid="loading"]')
+    this.loadingSpinner = page
+      .locator('[data-testid="loading"]')
       .or(page.getByRole('progressbar'))
     this.emptyState = page.getByText(/no products|coming soon|empty/i)
     this.errorState = page.getByText(/error|something went wrong/i)
@@ -77,7 +87,8 @@ export class StorefrontPage {
     // Footer
     this.footer = page.getByRole('contentinfo').or(page.locator('footer'))
     this.contactLink = page.getByRole('link', { name: /contact/i })
-    this.socialLinks = page.locator('[data-testid="social-links"]')
+    this.socialLinks = page
+      .locator('[data-testid="social-links"]')
       .or(page.locator('footer').getByRole('link'))
   }
 
@@ -179,7 +190,9 @@ export class StorefrontPage {
   /**
    * Sort products by option
    */
-  async sortBy(option: 'price-low' | 'price-high' | 'newest' | 'popular'): Promise<void> {
+  async sortBy(
+    option: 'price-low' | 'price-high' | 'newest' | 'popular',
+  ): Promise<void> {
     if (await this.sortDropdown.isVisible()) {
       await this.sortDropdown.selectOption(option)
       await this.page.waitForTimeout(500)
@@ -200,7 +213,10 @@ export class StorefrontPage {
     await this.page.waitForTimeout(1000)
     // Wait for either products or empty state
     await Promise.race([
-      this.productCards.first().waitFor({ timeout: 10000 }).catch(() => {}),
+      this.productCards
+        .first()
+        .waitFor({ timeout: 10000 })
+        .catch(() => {}),
       this.emptyState.waitFor({ timeout: 10000 }).catch(() => {}),
     ])
   }
@@ -212,7 +228,9 @@ export class StorefrontPage {
     const names: string[] = []
     const count = await this.productCards.count()
     for (let i = 0; i < count; i++) {
-      const name = await this.productCards.nth(i).locator('h2, h3, [class*="name"], [class*="title"]')
+      const name = await this.productCards
+        .nth(i)
+        .locator('h2, h3, [class*="name"], [class*="title"]')
         .first()
         .textContent()
         .catch(() => null)

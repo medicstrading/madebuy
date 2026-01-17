@@ -1,5 +1,5 @@
-import { requireTenant } from '@/lib/session'
 import { ConnectionsPage } from '@/components/connections/ConnectionsPage'
+import { requireTenant } from '@/lib/session'
 
 export const metadata = {
   title: 'Connections - MadeBuy Admin',

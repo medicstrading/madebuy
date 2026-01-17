@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import Image from 'next/image'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 import type { SectionProps } from './SectionRenderer'
 
 export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
@@ -38,15 +38,24 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
 
   const displayImages = images.slice(0, 12)
 
-  const columnsClass = {
-    2: 'columns-1 sm:columns-2',
-    3: 'columns-1 sm:columns-2 lg:columns-3',
-    4: 'columns-1 sm:columns-2 lg:columns-4',
-  }[columns] || 'columns-1 sm:columns-2 lg:columns-3'
+  const columnsClass =
+    {
+      2: 'columns-1 sm:columns-2',
+      3: 'columns-1 sm:columns-2 lg:columns-3',
+      4: 'columns-1 sm:columns-2 lg:columns-4',
+    }[columns] || 'columns-1 sm:columns-2 lg:columns-3'
 
   const closeLightbox = () => setLightboxIndex(null)
-  const prevImage = () => setLightboxIndex((prev) => (prev !== null ? (prev - 1 + displayImages.length) % displayImages.length : null))
-  const nextImage = () => setLightboxIndex((prev) => (prev !== null ? (prev + 1) % displayImages.length : null))
+  const prevImage = () =>
+    setLightboxIndex((prev) =>
+      prev !== null
+        ? (prev - 1 + displayImages.length) % displayImages.length
+        : null,
+    )
+  const nextImage = () =>
+    setLightboxIndex((prev) =>
+      prev !== null ? (prev + 1) % displayImages.length : null,
+    )
 
   return (
     <div className="max-w-7xl mx-auto px-6">
@@ -72,6 +81,15 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
               key={index}
               className="mb-4 break-inside-avoid cursor-pointer group"
               onClick={() => setLightboxIndex(index)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setLightboxIndex(index)
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`View ${image.alt}`}
             >
               <div className="relative overflow-hidden rounded-lg">
                 <Image
@@ -93,6 +111,15 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
               key={index}
               className="aspect-square relative overflow-hidden rounded-lg cursor-pointer group"
               onClick={() => setLightboxIndex(index)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setLightboxIndex(index)
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`View ${image.alt}`}
             >
               <Image
                 src={image.url}
@@ -114,6 +141,15 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
                 key={index}
                 className="flex-shrink-0 w-80 aspect-[4/3] relative overflow-hidden rounded-lg cursor-pointer group"
                 onClick={() => setLightboxIndex(index)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setLightboxIndex(index)
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${image.alt}`}
               >
                 <Image
                   src={image.url}
@@ -134,6 +170,14 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={closeLightbox}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              closeLightbox()
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Close lightbox"
         >
           <button
             onClick={closeLightbox}
@@ -146,14 +190,20 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
           {displayImages.length > 1 && (
             <>
               <button
-                onClick={(e) => { e.stopPropagation(); prevImage() }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  prevImage()
+                }}
                 className="absolute left-4 text-white/80 hover:text-white z-10"
                 aria-label="Previous"
               >
                 <ChevronLeft className="w-10 h-10" />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); nextImage() }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  nextImage()
+                }}
                 className="absolute right-4 text-white/80 hover:text-white z-10"
                 aria-label="Next"
               >
@@ -165,6 +215,8 @@ export function GalleryMasonry({ settings, tenant, pieces }: SectionProps) {
           <div
             className="relative max-w-5xl max-h-[90vh] mx-4"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="presentation"
           >
             <Image
               src={displayImages[lightboxIndex].url}

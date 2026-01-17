@@ -1,10 +1,10 @@
 'use client'
 
 import {
-  ShippingQuote,
-  formatShippingPrice,
   formatDeliveryDays,
   formatDeliveryEstimate,
+  formatShippingPrice,
+  type ShippingQuote,
 } from '@/lib/checkout/shipping'
 
 interface ShippingOptionProps {
@@ -76,7 +76,12 @@ export function ShippingOption({
         `}
       >
         {isLocalPickup ? (
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -91,7 +96,12 @@ export function ShippingOption({
             />
           </svg>
         ) : (
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -162,7 +172,11 @@ export function ShippingOption({
           `}
         >
           {selected && (
-            <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 12 12">
+            <svg
+              className="h-3 w-3 text-white"
+              fill="currentColor"
+              viewBox="0 0 12 12"
+            >
               <path d="M10.28 2.28L4 8.56 1.72 6.28a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l7-7a.75.75 0 00-1.06-1.06z" />
             </svg>
           )}

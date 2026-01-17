@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { AlertTriangle, ArrowRight, Package, X } from 'lucide-react'
 import Link from 'next/link'
-import { AlertTriangle, X, Package, ArrowRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface StockAlert {
   pieceId: string
@@ -27,7 +27,11 @@ const DISMISSED_KEY = 'madebuy_dismissed_stock_alerts'
 
 export function LowStockAlerts() {
   const [alerts, setAlerts] = useState<StockAlert[]>([])
-  const [summary, setSummary] = useState({ outOfStock: 0, lowStock: 0, total: 0 })
+  const [summary, setSummary] = useState({
+    outOfStock: 0,
+    lowStock: 0,
+    total: 0,
+  })
   const [loading, setLoading] = useState(true)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
 
@@ -43,7 +47,7 @@ export function LowStockAlerts() {
     }
 
     fetchAlerts()
-  }, [])
+  }, [fetchAlerts])
 
   async function fetchAlerts() {
     try {
@@ -77,15 +81,21 @@ export function LowStockAlerts() {
   }
 
   // Filter out dismissed alerts
-  const visibleAlerts = alerts.filter(a => !dismissed.has(getAlertKey(a)))
-  const outOfStockAlerts = visibleAlerts.filter(a => a.alertType === 'out_of_stock')
-  const lowStockAlerts = visibleAlerts.filter(a => a.alertType === 'low_stock')
+  const visibleAlerts = alerts.filter((a) => !dismissed.has(getAlertKey(a)))
+  const outOfStockAlerts = visibleAlerts.filter(
+    (a) => a.alertType === 'out_of_stock',
+  )
+  const lowStockAlerts = visibleAlerts.filter(
+    (a) => a.alertType === 'low_stock',
+  )
 
   if (loading) {
     return (
       <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-base font-semibold text-gray-900">Stock Alerts</h2>
+          <h2 className="text-base font-semibold text-gray-900">
+            Stock Alerts
+          </h2>
         </div>
         <div className="p-6 flex items-center justify-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
@@ -102,7 +112,9 @@ export function LowStockAlerts() {
     <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900">Stock Alerts</h2>
+          <h2 className="text-base font-semibold text-gray-900">
+            Stock Alerts
+          </h2>
           <div className="flex items-center gap-2">
             {summary.outOfStock > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
@@ -144,7 +156,9 @@ export function LowStockAlerts() {
               </Link>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 {alert.variantOptions && (
-                  <span className="truncate">{formatVariant(alert.variantOptions)}</span>
+                  <span className="truncate">
+                    {formatVariant(alert.variantOptions)}
+                  </span>
                 )}
                 {alert.sku && <span>SKU: {alert.sku}</span>}
               </div>
@@ -153,6 +167,7 @@ export function LowStockAlerts() {
               Out of stock
             </span>
             <button
+              type="button"
               onClick={() => dismissAlert(getAlertKey(alert))}
               className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               title="Dismiss"
@@ -180,7 +195,9 @@ export function LowStockAlerts() {
               </Link>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 {alert.variantOptions && (
-                  <span className="truncate">{formatVariant(alert.variantOptions)}</span>
+                  <span className="truncate">
+                    {formatVariant(alert.variantOptions)}
+                  </span>
                 )}
                 {alert.sku && <span>SKU: {alert.sku}</span>}
               </div>
@@ -189,6 +206,7 @@ export function LowStockAlerts() {
               {alert.stock} left
             </span>
             <button
+              type="button"
               onClick={() => dismissAlert(getAlertKey(alert))}
               className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               title="Dismiss"

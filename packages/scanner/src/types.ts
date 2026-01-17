@@ -164,12 +164,19 @@ export enum ScanErrorCode {
 }
 
 export const ERROR_MESSAGES: Record<ScanErrorCode, string> = {
-  [ScanErrorCode.FETCH_FAILED]: "We couldn't access this website. Please check the URL and try again.",
-  [ScanErrorCode.TIMEOUT]: 'The website took too long to respond. Try again or start fresh.',
-  [ScanErrorCode.BLOCKED]: 'This website blocks automated access. You\'ll need to start fresh.',
-  [ScanErrorCode.INVALID_HTML]: "This doesn't appear to be a valid website. Check the URL.",
+  [ScanErrorCode.FETCH_FAILED]:
+    "We couldn't access this website. Please check the URL and try again.",
+  [ScanErrorCode.TIMEOUT]:
+    'The website took too long to respond. Try again or start fresh.',
+  [ScanErrorCode.BLOCKED]:
+    "This website blocks automated access. You'll need to start fresh.",
+  [ScanErrorCode.INVALID_HTML]:
+    "This doesn't appear to be a valid website. Check the URL.",
   [ScanErrorCode.NO_CONTENT]: 'The website returned an empty page.',
-  [ScanErrorCode.NO_COLORS_FOUND]: "We couldn't detect brand colors. Default colors will be used.",
-  [ScanErrorCode.NO_FONTS_FOUND]: 'We couldn\'t detect fonts. Using Modern typography preset.',
-  [ScanErrorCode.LOGO_DOWNLOAD_FAILED]: "Found a logo but couldn't download it. You can upload one later.",
+  [ScanErrorCode.NO_COLORS_FOUND]:
+    "We couldn't detect brand colors. Default colors will be used.",
+  [ScanErrorCode.NO_FONTS_FOUND]:
+    "We couldn't detect fonts. Using Modern typography preset.",
+  [ScanErrorCode.LOGO_DOWNLOAD_FAILED]:
+    "Found a logo but couldn't download it. You can upload one later.",
 }

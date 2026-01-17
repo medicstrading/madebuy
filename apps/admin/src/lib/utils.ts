@@ -1,6 +1,6 @@
+import type { RegionalSettings } from '@madebuy/shared'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import type { RegionalSettings } from '@madebuy/shared'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -36,9 +36,13 @@ export function formatDate(date: Date | string): string {
   }).format(d)
 }
 
-export function formatDateTime(date: Date | string, includeTimezone = false): string {
+export function formatDateTime(
+  date: Date | string,
+  includeTimezone = false,
+): string {
   const d = typeof date === 'string' ? new Date(date) : date
-  const { locale, customLocale, timezone, customTimezone } = getRegionalContext()
+  const { locale, customLocale, timezone, customTimezone } =
+    getRegionalContext()
   const tz = customTimezone || timezone
 
   return new Intl.DateTimeFormat(customLocale || locale, {
@@ -54,7 +58,8 @@ export function formatDateTime(date: Date | string, includeTimezone = false): st
 
 export function formatTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
-  const { locale, customLocale, timezone, customTimezone } = getRegionalContext()
+  const { locale, customLocale, timezone, customTimezone } =
+    getRegionalContext()
   const tz = customTimezone || timezone
 
   return new Intl.DateTimeFormat(customLocale || locale, {
@@ -64,8 +69,12 @@ export function formatTime(date: Date | string): string {
   }).format(d)
 }
 
-export function formatCurrency(amount: number, currencyOverride?: string): string {
-  const { locale, customLocale, currency, customCurrency } = getRegionalContext()
+export function formatCurrency(
+  amount: number,
+  currencyOverride?: string,
+): string {
+  const { locale, customLocale, currency, customCurrency } =
+    getRegionalContext()
   const curr = currencyOverride || customCurrency || currency
 
   return new Intl.NumberFormat(customLocale || locale, {
@@ -117,7 +126,11 @@ export function formatDistance(meters: number): string {
   return `${Math.round(meters)} m`
 }
 
-export function formatDimensions(lengthCm: number, widthCm: number, heightCm: number): string {
+export function formatDimensions(
+  lengthCm: number,
+  widthCm: number,
+  heightCm: number,
+): string {
   const { measurementSystem } = getRegionalContext()
 
   if (measurementSystem === 'imperial') {

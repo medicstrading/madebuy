@@ -1,8 +1,8 @@
-import { getCurrentTenant } from '@/lib/session'
 import { invoices } from '@madebuy/db'
-import { redirect } from 'next/navigation'
+import { ArrowLeft, CheckCircle, Clock, FileText, XCircle } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, FileText, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { getCurrentTenant } from '@/lib/session'
 import { formatDate } from '@/lib/utils'
 
 export default async function InvoiceHistoryPage() {
@@ -134,9 +134,9 @@ export default async function InvoiceHistoryPage() {
                     <tr
                       key={invoice.id}
                       className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() =>
+                      onClick={() => {
                         window.location.href = `/dashboard/materials/invoices/${invoice.id}`
-                      }
+                      }}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -191,8 +191,8 @@ export default async function InvoiceHistoryPage() {
                                   invoice.ocrConfidence >= 70
                                     ? 'bg-green-500'
                                     : invoice.ocrConfidence >= 50
-                                    ? 'bg-yellow-500'
-                                    : 'bg-red-500'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-red-500'
                                 }`}
                                 style={{ width: `${invoice.ocrConfidence}%` }}
                               />

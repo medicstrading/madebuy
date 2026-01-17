@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test'
-import { TestMaterial } from '../fixtures'
+import { expect, type Locator, type Page } from '@playwright/test'
+import type { TestMaterial } from '../fixtures'
 
 /**
  * Page Object for the Materials pages
@@ -41,14 +41,22 @@ export class MaterialsPage {
     this.page = page
 
     // List page
-    this.pageTitle = page.getByRole('heading', { name: /materials|supplies|inventory/i })
-    this.createButton = page.getByRole('link', { name: /add|create|new/i })
+    this.pageTitle = page.getByRole('heading', {
+      name: /materials|supplies|inventory/i,
+    })
+    this.createButton = page
+      .getByRole('link', { name: /add|create|new/i })
       .or(page.getByRole('button', { name: /add|create|new/i }))
     this.searchInput = page.getByPlaceholder(/search/i)
-    this.categoryFilter = page.getByRole('combobox', { name: /category|filter/i })
-    this.materialRows = page.locator('table tbody tr')
+    this.categoryFilter = page.getByRole('combobox', {
+      name: /category|filter/i,
+    })
+    this.materialRows = page
+      .locator('table tbody tr')
       .or(page.locator('[data-testid="material-row"]'))
-    this.emptyState = page.getByText(/no materials|no supplies|empty|get started/i)
+    this.emptyState = page.getByText(
+      /no materials|no supplies|empty|get started/i,
+    )
 
     // Create/Edit form
     this.nameInput = page.getByLabel(/name|material name/i)
@@ -64,12 +72,16 @@ export class MaterialsPage {
 
     // Stock tracking
     this.addStockButton = page.getByRole('button', { name: /add stock|\+/i })
-    this.removeStockButton = page.getByRole('button', { name: /remove stock|-/i })
+    this.removeStockButton = page.getByRole('button', {
+      name: /remove stock|-/i,
+    })
     this.stockAdjustmentInput = page.getByLabel(/adjustment|amount/i)
 
     // Confirmation dialog
     this.confirmDialog = page.getByRole('dialog')
-    this.confirmButton = page.getByRole('button', { name: /confirm|yes|delete/i })
+    this.confirmButton = page.getByRole('button', {
+      name: /confirm|yes|delete/i,
+    })
     this.cancelDialogButton = page.getByRole('button', { name: /cancel|no/i })
   }
 
@@ -134,26 +146,32 @@ export class MaterialsPage {
     if (material.name) {
       await this.nameInput.fill(material.name)
     }
-    if (material.description && await this.descriptionInput.isVisible()) {
+    if (material.description && (await this.descriptionInput.isVisible())) {
       await this.descriptionInput.fill(material.description)
     }
-    if (material.category && await this.categoryInput.isVisible()) {
+    if (material.category && (await this.categoryInput.isVisible())) {
       try {
         await this.categoryInput.selectOption({ label: material.category })
       } catch {
         await this.categoryInput.fill(material.category)
       }
     }
-    if (material.unit && await this.unitInput.isVisible()) {
+    if (material.unit && (await this.unitInput.isVisible())) {
       await this.unitInput.fill(material.unit)
     }
-    if (material.quantity !== undefined && await this.quantityInput.isVisible()) {
+    if (
+      material.quantity !== undefined &&
+      (await this.quantityInput.isVisible())
+    ) {
       await this.quantityInput.fill(material.quantity.toString())
     }
-    if (material.costPerUnit !== undefined && await this.costInput.isVisible()) {
+    if (
+      material.costPerUnit !== undefined &&
+      (await this.costInput.isVisible())
+    ) {
       await this.costInput.fill(material.costPerUnit.toString())
     }
-    if (material.supplier && await this.supplierInput.isVisible()) {
+    if (material.supplier && (await this.supplierInput.isVisible())) {
       await this.supplierInput.fill(material.supplier)
     }
   }
@@ -179,7 +197,8 @@ export class MaterialsPage {
    * Click on a material in the list to edit it
    */
   async clickMaterialByName(name: string): Promise<void> {
-    const materialLink = this.page.getByRole('link', { name: new RegExp(name, 'i') })
+    const materialLink = this.page
+      .getByRole('link', { name: new RegExp(name, 'i') })
       .or(this.page.getByText(name))
     await materialLink.first().click()
   }

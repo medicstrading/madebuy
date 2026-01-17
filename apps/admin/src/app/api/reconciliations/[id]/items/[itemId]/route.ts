@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { reconciliations } from '@madebuy/db'
 import type { UpdateReconciliationItemInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ id: string; itemId: string }>
@@ -20,13 +20,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Validate required fields
     if (data.actualQuantity === undefined || data.actualQuantity < 0) {
-      return NextResponse.json({ error: 'actualQuantity must be a non-negative number' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'actualQuantity must be a non-negative number' },
+        { status: 400 },
+      )
     }
 
     await reconciliations.updateItem(tenant.id, reconciliationId, itemId, data)
 
     // Return updated reconciliation
-    const reconciliation = await reconciliations.getReconciliation(tenant.id, reconciliationId)
+    const reconciliation = await reconciliations.getReconciliation(
+      tenant.id,
+      reconciliationId,
+    )
 
     return NextResponse.json({ reconciliation })
   } catch (error) {
@@ -41,6 +47,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { ArrowRight, ImageIcon, ShoppingBag, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { X, ShoppingBag, ArrowRight, ImageIcon } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { useEffect, useState } from 'react'
 import type { CartItem } from '@/contexts/CartContext'
+import { formatCurrency } from '@/lib/utils'
 
 interface MiniCartPreviewProps {
   items: CartItem[]
@@ -54,7 +54,11 @@ export function MiniCartPreview({
 
   // Get recently added item for highlight
   // Match by product ID (not cart item ID) since the preview uses the raw product ID
-  const recentlyAdded = items.find((item) => item.product.id === addedProductId || item.id.startsWith(addedProductId || ''))
+  const recentlyAdded = items.find(
+    (item) =>
+      item.product.id === addedProductId ||
+      item.id.startsWith(addedProductId || ''),
+  )
 
   // Show up to 3 items in preview
   const previewItems = items.slice(0, 3)
@@ -87,6 +91,7 @@ export function MiniCartPreview({
             <span className="font-medium text-gray-900">Added to Cart!</span>
           </div>
           <button
+            type="button"
             onClick={handleClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Close"
@@ -120,16 +125,19 @@ export function MiniCartPreview({
                 <p className="font-medium text-gray-900 truncate">
                   {recentlyAdded.product.name}
                 </p>
-                {recentlyAdded.personalization && recentlyAdded.personalization.length > 0 && (
-                  <p className="text-xs text-blue-600">Personalized</p>
-                )}
+                {recentlyAdded.personalization &&
+                  recentlyAdded.personalization.length > 0 && (
+                    <p className="text-xs text-blue-600">Personalized</p>
+                  )}
                 <p className="text-sm text-gray-500">
                   Qty: {recentlyAdded.quantity}
                 </p>
                 <p className="text-sm font-medium text-gray-900">
                   {formatCurrency(
-                    ((recentlyAdded.product.price || 0) + (recentlyAdded.personalizationTotal || 0)) * recentlyAdded.quantity,
-                    recentlyAdded.product.currency
+                    ((recentlyAdded.product.price || 0) +
+                      (recentlyAdded.personalizationTotal || 0)) *
+                      recentlyAdded.quantity,
+                    recentlyAdded.product.currency,
                   )}
                 </p>
               </div>
@@ -170,7 +178,9 @@ export function MiniCartPreview({
                       <p className="text-sm text-gray-700 truncate">
                         {item.product.name}
                       </p>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      <p className="text-xs text-gray-500">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                   </div>
                 ))}

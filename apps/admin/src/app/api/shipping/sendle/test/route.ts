@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
-import { createSendleClient } from '@madebuy/shipping'
 import type { SendleSettings } from '@madebuy/shared'
+import { createSendleClient } from '@madebuy/shipping'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
 
 /**
  * POST /api/shipping/sendle/test
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (!senderId) {
       return NextResponse.json(
         { error: 'Sender ID is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       if (!actualApiKey) {
         return NextResponse.json(
           { error: 'No API key found. Please enter a new API key.' },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     if (!actualApiKey) {
       return NextResponse.json(
         { error: 'API Key is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({
         success: false,
-        message: 'Invalid credentials. Please check your Sender ID and API Key.',
+        message:
+          'Invalid credentials. Please check your Sender ID and API Key.',
       })
     }
   } catch (error) {
@@ -97,14 +98,15 @@ export async function POST(request: NextRequest) {
       if (error.message.includes('fetch')) {
         return NextResponse.json({
           success: false,
-          message: 'Could not connect to Sendle. Please check your internet connection.',
+          message:
+            'Could not connect to Sendle. Please check your internet connection.',
         })
       }
     }
 
     return NextResponse.json(
       { error: 'Failed to test connection', success: false },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

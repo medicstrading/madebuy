@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import { BundleBuilder } from '@/components/bundles/BundleBuilder'
 
 export default function NewBundlePage() {
@@ -14,7 +14,9 @@ export default function NewBundlePage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Create Bundle</h1>
-          <p className="text-gray-500 mt-1">Combine products for a discounted price</p>
+          <p className="text-gray-500 mt-1">
+            Combine products for a discounted price
+          </p>
         </div>
       </div>
 

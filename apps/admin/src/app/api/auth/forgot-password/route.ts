@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
-import { tenants, passwordResets } from '@madebuy/db'
+import crypto from 'node:crypto'
+import { passwordResets, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { sendPasswordResetEmail } from '@/lib/email'
 import { rateLimit, rateLimiters } from '@/lib/rate-limit'
 
@@ -15,17 +15,14 @@ export async function POST(request: NextRequest) {
 
     // Validate email
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -38,7 +35,8 @@ export async function POST(request: NextRequest) {
       console.log(`Password reset requested for non-existent email: ${email}`)
       return NextResponse.json({
         success: true,
-        message: 'If an account with that email exists, we sent a password reset link.',
+        message:
+          'If an account with that email exists, we sent a password reset link.',
       })
     }
 
@@ -50,7 +48,7 @@ export async function POST(request: NextRequest) {
       tenant.email,
       tenant.id,
       resetToken,
-      60
+      60,
     )
 
     // Send password reset email
@@ -67,14 +65,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'If an account with that email exists, we sent a password reset link.',
+      message:
+        'If an account with that email exists, we sent a password reset link.',
     })
   } catch (error) {
     console.error('Password reset error:', error)
     // Generic error to prevent information leakage
     return NextResponse.json(
       { error: 'An error occurred. Please try again.' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

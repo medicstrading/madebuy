@@ -4,13 +4,12 @@
  */
 
 import type {
-  ParsedRow,
+  ColumnMapping,
   ImportError,
-  ImportWarning,
   ImportPreview,
   ImportSource,
-  ColumnMapping,
-  VALID_STATUSES,
+  ImportWarning,
+  ParsedRow,
 } from '@madebuy/shared'
 
 interface ParseResult {
@@ -29,7 +28,7 @@ export function parseCSV(content: string): {
   headers: string[]
   rows: string[][]
 } {
-  const lines = content.split(/\r?\n/).filter(line => line.trim())
+  const lines = content.split(/\r?\n/).filter((line) => line.trim())
   if (lines.length === 0) {
     return { headers: [], rows: [] }
   }
@@ -77,12 +76,12 @@ function parseCSVLine(line: string): string[] {
  * Detect the source platform from column headers
  */
 export function detectSource(headers: string[]): ImportSource {
-  const normalizedHeaders = headers.map(h => h.toLowerCase().trim())
+  const normalizedHeaders = headers.map((h) => h.toLowerCase().trim())
 
   // Shopify format detection
   if (
-    normalizedHeaders.includes('handle') &&
-    normalizedHeaders.includes('body (html)') ||
+    (normalizedHeaders.includes('handle') &&
+      normalizedHeaders.includes('body (html)')) ||
     normalizedHeaders.includes('variant sku')
   ) {
     return 'shopify'
@@ -99,8 +98,8 @@ export function detectSource(headers: string[]): ImportSource {
 
   // Etsy format detection
   if (
-    normalizedHeaders.includes('title') &&
-    normalizedHeaders.includes('listing_id') ||
+    (normalizedHeaders.includes('title') &&
+      normalizedHeaders.includes('listing_id')) ||
     normalizedHeaders.includes('quantity')
   ) {
     return 'etsy'
@@ -122,9 +121,9 @@ export function detectSource(headers: string[]): ImportSource {
  */
 export function suggestColumnMapping(
   headers: string[],
-  source: ImportSource
+  source: ImportSource,
 ): ColumnMapping {
-  const normalizedHeaders = headers.map(h => h.toLowerCase().trim())
+  const normalizedHeaders = headers.map((h) => h.toLowerCase().trim())
 
   // Platform-specific mappings
   const mappings: Record<ImportSource, Record<string, string>> = {
@@ -184,7 +183,7 @@ export function suggestColumnMapping(
   for (const [field, expectedColumn] of Object.entries(platformMapping)) {
     const index = normalizedHeaders.indexOf(expectedColumn)
     if (index !== -1) {
-      (result as Record<string, string>)[field] = headers[index]
+      ;(result as Record<string, string>)[field] = headers[index]
     }
   }
 
@@ -197,7 +196,7 @@ export function suggestColumnMapping(
 export function validateAndParse(
   headers: string[],
   rows: string[][],
-  mapping: ColumnMapping
+  mapping: ColumnMapping,
 ): ParseResult {
   const parsedRows: ParsedRow[] = []
   const errors: ImportError[] = []
@@ -221,7 +220,7 @@ export function validateAndParse(
     const rowNumber = i + 2 // Account for header row and 0-indexing
 
     // Skip empty rows
-    if (row.every(cell => !cell.trim())) {
+    if (row.every((cell) => !cell.trim())) {
       continue
     }
 
@@ -255,7 +254,7 @@ export function validateAndParse(
     // If no name but has imageUrl, this might be an additional image row
     if (!name && imageUrl) {
       // Check if we have a previous row with the same handle
-      const parentRow = parsedRows.find(r => r.handle === handle)
+      const parentRow = parsedRows.find((r) => r.handle === handle)
       if (parentRow) {
         // This is an additional image row, skip for now
         // Images will be collected during import
@@ -277,7 +276,7 @@ export function validateAndParse(
     const priceStr = getValue('price')
     if (priceStr) {
       const parsed = parseFloat(priceStr.replace(/[$,]/g, ''))
-      if (isNaN(parsed)) {
+      if (Number.isNaN(parsed)) {
         errors.push({
           row: rowNumber,
           column: mapping.price || 'price',
@@ -301,7 +300,7 @@ export function validateAndParse(
     const stockStr = getValue('stock')
     if (stockStr) {
       const parsed = parseInt(stockStr, 10)
-      if (isNaN(parsed)) {
+      if (Number.isNaN(parsed)) {
         warnings.push({
           row: rowNumber,
           column: mapping.stock || 'stock',
@@ -323,7 +322,10 @@ export function validateAndParse(
     let tags: string[] | undefined
     const tagsStr = getValue('tags')
     if (tagsStr) {
-      tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean)
+      tags = tagsStr
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
     }
 
     // Parse status
@@ -343,7 +345,7 @@ export function validateAndParse(
     const posStr = getValue('imagePosition')
     if (posStr) {
       const parsed = parseInt(posStr, 10)
-      if (!isNaN(parsed) && parsed > 0) {
+      if (!Number.isNaN(parsed) && parsed > 0) {
         imagePosition = parsed
       }
     }
@@ -401,7 +403,7 @@ export function generatePreview(result: ParseResult): ImportPreview {
 
   for (const rows of productsByHandle.values()) {
     productsDetected++
-    imagesDetected += rows.filter(r => r.imageUrl).length
+    imagesDetected += rows.filter((r) => r.imageUrl).length
   }
 
   return {

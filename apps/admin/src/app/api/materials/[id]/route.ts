@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { materials } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await requireTenant()
@@ -13,10 +13,7 @@ export async function DELETE(
     // Check if material exists
     const material = await materials.getMaterial(tenant.id, materialId)
     if (!material) {
-      return NextResponse.json(
-        { error: 'Material not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Material not found' }, { status: 404 })
     }
 
     // Delete the material
@@ -27,7 +24,7 @@ export async function DELETE(
     console.error('Delete material error:', error)
     return NextResponse.json(
       { error: 'Failed to delete material' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

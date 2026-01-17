@@ -3,7 +3,7 @@
  * Mocks Next.js environment, auth, and database dependencies
  */
 
-import { vi, beforeEach } from 'vitest'
+import { beforeEach, vi } from 'vitest'
 
 // Mock environment variables
 vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_mock')
@@ -93,7 +93,9 @@ beforeEach(() => {
 })
 
 // Export mock helpers
-export function mockCurrentTenant(tenant: any) {
+export function mockCurrentTenant(
+  tenant: Partial<{ id: string; email: string }> | null,
+) {
   const { getCurrentTenant } = require('@/lib/session')
   vi.mocked(getCurrentTenant).mockResolvedValue(tenant)
 }

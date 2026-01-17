@@ -1,25 +1,23 @@
 'use client'
 
-import { useMemo } from 'react'
-import type { Piece, Material, PieceMaterialUsage } from '@madebuy/shared'
+import type { Material, Piece } from '@madebuy/shared'
 import {
-  calculateCOGS,
+  type COGSBreakdown,
   calculateCOGSWithBreakdown,
   calculateProfitMargin,
-  suggestPrice,
   getMarginHealth,
+  suggestPrice,
   TARGET_MARGINS,
-  type COGSBreakdown,
 } from '@madebuy/shared'
 import {
-  Calculator,
-  TrendingUp,
-  TrendingDown,
   AlertTriangle,
-  Package,
-  DollarSign,
+  Calculator,
   Lightbulb,
+  Package,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react'
+import { useMemo } from 'react'
 
 interface ProfitMarginDisplayProps {
   piece: Piece
@@ -72,7 +70,8 @@ export function ProfitMarginDisplay({
   const marginHealth = getMarginHealth(profitMargin)
 
   // Gross profit
-  const grossProfit = priceCents > 0 && cogsCents > 0 ? priceCents - cogsCents : null
+  const grossProfit =
+    priceCents > 0 && cogsCents > 0 ? priceCents - cogsCents : null
 
   // Suggested prices for different margins
   const suggestedPrices = useMemo(() => {
@@ -127,14 +126,20 @@ export function ProfitMarginDisplay({
   const currentStyle = healthStyles[marginHealth]
 
   // No COGS data
-  if (cogsCents <= 0 && (!piece.materialsUsed || piece.materialsUsed.length === 0)) {
+  if (
+    cogsCents <= 0 &&
+    (!piece.materialsUsed || piece.materialsUsed.length === 0)
+  ) {
     return (
       <div className="rounded-lg bg-gray-50 border border-gray-200 p-6">
         <div className="flex items-center gap-3 text-gray-600">
           <Calculator className="h-6 w-6" />
           <div>
             <p className="font-medium">No COGS Data</p>
-            <p className="text-sm">Add materials to this piece to track costs and calculate profit margins.</p>
+            <p className="text-sm">
+              Add materials to this piece to track costs and calculate profit
+              margins.
+            </p>
           </div>
         </div>
       </div>
@@ -144,26 +149,36 @@ export function ProfitMarginDisplay({
   return (
     <div className="space-y-4">
       {/* Profit Margin Overview */}
-      <div className={`rounded-lg ${currentStyle.bg} ${currentStyle.border} border p-6`}>
+      <div
+        className={`rounded-lg ${currentStyle.bg} ${currentStyle.border} border p-6`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {currentStyle.icon}
             <div>
               <h3 className={`text-lg font-semibold ${currentStyle.text}`}>
-                Profit Margin: {profitMargin !== null ? `${profitMargin.toFixed(1)}%` : 'N/A'}
+                Profit Margin:{' '}
+                {profitMargin !== null ? `${profitMargin.toFixed(1)}%` : 'N/A'}
               </h3>
               <p className="text-sm text-gray-600">
-                {marginHealth === 'healthy' && 'Great margin - sustainable pricing'}
-                {marginHealth === 'warning' && 'Moderate margin - room for improvement'}
-                {marginHealth === 'low' && 'Low margin - consider raising price'}
-                {marginHealth === 'negative' && 'Selling below cost - price increase needed'}
-                {marginHealth === 'unknown' && 'Set price and materials to calculate'}
+                {marginHealth === 'healthy' &&
+                  'Great margin - sustainable pricing'}
+                {marginHealth === 'warning' &&
+                  'Moderate margin - room for improvement'}
+                {marginHealth === 'low' &&
+                  'Low margin - consider raising price'}
+                {marginHealth === 'negative' &&
+                  'Selling below cost - price increase needed'}
+                {marginHealth === 'unknown' &&
+                  'Set price and materials to calculate'}
               </p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-gray-900">
-              {grossProfit !== null ? `$${(grossProfit / 100).toFixed(2)}` : '-'}
+              {grossProfit !== null
+                ? `$${(grossProfit / 100).toFixed(2)}`
+                : '-'}
             </p>
             <p className="text-xs text-gray-500">gross profit per unit</p>
           </div>
@@ -181,11 +196,15 @@ export function ProfitMarginDisplay({
         {cogsBreakdown.materialCosts.length > 0 && (
           <div className="space-y-2 mb-4">
             {cogsBreakdown.materialCosts.map((item, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
+              <div
+                key={index}
+                className="flex items-center justify-between text-sm"
+              >
                 <div className="text-gray-600">
                   {item.materialName || `Material #${index + 1}`}
                   <span className="text-gray-400 ml-2">
-                    ({item.quantity} {item.unit} @ ${(item.costPerUnit / 100).toFixed(2)})
+                    ({item.quantity} {item.unit} @ $
+                    {(item.costPerUnit / 100).toFixed(2)})
                   </span>
                 </div>
                 <div className="font-medium text-gray-900">
@@ -201,7 +220,9 @@ export function ProfitMarginDisplay({
           <div className="mb-4 rounded bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              <span>Some materials not found in catalog. COGS may be incomplete.</span>
+              <span>
+                Some materials not found in catalog. COGS may be incomplete.
+              </span>
             </div>
           </div>
         )}
@@ -222,8 +243,12 @@ export function ProfitMarginDisplay({
           </div>
           <div className="flex items-center justify-between border-t border-gray-100 pt-2">
             <span className="font-medium text-gray-900">Gross Profit</span>
-            <span className={`font-bold ${grossProfit !== null && grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {grossProfit !== null ? `$${(grossProfit / 100).toFixed(2)}` : '-'}
+            <span
+              className={`font-bold ${grossProfit !== null && grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
+              {grossProfit !== null
+                ? `$${(grossProfit / 100).toFixed(2)}`
+                : '-'}
             </span>
           </div>
         </div>
@@ -277,18 +302,28 @@ interface PriceSuggestionProps {
   onClick?: (price: number) => void
 }
 
-function PriceSuggestion({ label, price, currentPrice, recommended, onClick }: PriceSuggestionProps) {
+function PriceSuggestion({
+  label,
+  price,
+  currentPrice,
+  recommended,
+  onClick,
+}: PriceSuggestionProps) {
   if (!price) return null
 
   const priceInDollars = price / 100
   const isCurrentPrice = Math.abs(currentPrice - price) < 100 // Within $1
 
   return (
-    <div className={`rounded-lg p-3 ${recommended ? 'bg-purple-100 border border-purple-300' : 'bg-white border border-purple-200'}`}>
+    <div
+      className={`rounded-lg p-3 ${recommended ? 'bg-purple-100 border border-purple-300' : 'bg-white border border-purple-200'}`}
+    >
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs font-medium text-purple-800">{label}</span>
         {recommended && (
-          <span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded">Recommended</span>
+          <span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded">
+            Recommended
+          </span>
         )}
       </div>
       <div className="flex items-center justify-between">
@@ -297,6 +332,7 @@ function PriceSuggestion({ label, price, currentPrice, recommended, onClick }: P
         </span>
         {onClick && !isCurrentPrice && (
           <button
+            type="button"
             onClick={() => onClick(priceInDollars)}
             className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700"
           >
@@ -345,7 +381,9 @@ export function ProfitMarginBadge({ piece }: { piece: Piece }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${styles[health]}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${styles[health]}`}
+    >
       {icons[health]}
       {margin.toFixed(1)}%
     </span>

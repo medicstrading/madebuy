@@ -4,12 +4,12 @@
  */
 
 export type DisputeStatus =
-  | 'needs_response'     // Evidence needed from seller
-  | 'under_review'       // Stripe/bank reviewing evidence
-  | 'won'                // Dispute resolved in seller's favor
-  | 'lost'               // Dispute resolved in customer's favor
-  | 'charge_refunded'    // Charge was refunded, dispute closed
-  | 'warning_closed'     // Early warning resolved
+  | 'needs_response' // Evidence needed from seller
+  | 'under_review' // Stripe/bank reviewing evidence
+  | 'won' // Dispute resolved in seller's favor
+  | 'lost' // Dispute resolved in customer's favor
+  | 'charge_refunded' // Charge was refunded, dispute closed
+  | 'warning_closed' // Early warning resolved
 
 export type DisputeReason =
   | 'bank_cannot_process'
@@ -29,25 +29,25 @@ export type DisputeReason =
 export interface Dispute {
   id: string
   tenantId: string
-  orderId?: string                // Linked order if we can identify it
-  stripeDisputeId: string         // Stripe dispute ID (dp_xxx)
-  stripeChargeId?: string         // Stripe charge ID (ch_xxx)
+  orderId?: string // Linked order if we can identify it
+  stripeDisputeId: string // Stripe dispute ID (dp_xxx)
+  stripeChargeId?: string // Stripe charge ID (ch_xxx)
 
   // Amount
-  amount: number                  // In cents
-  currency: string                // 'aud', 'usd', etc.
+  amount: number // In cents
+  currency: string // 'aud', 'usd', etc.
 
   // Status and reason
   status: DisputeStatus
   reason: DisputeReason
 
   // Evidence timeline
-  evidenceDueBy?: Date            // Deadline to submit evidence
+  evidenceDueBy?: Date // Deadline to submit evidence
 
   // Timestamps
   createdAt: Date
   updatedAt: Date
-  resolvedAt?: Date               // When dispute was closed (won/lost)
+  resolvedAt?: Date // When dispute was closed (won/lost)
 }
 
 export interface CreateDisputeInput {
@@ -88,6 +88,6 @@ export interface DisputeStats {
   won: number
   lost: number
   total: number
-  totalAmountDisputed: number     // Total disputed amount (cents)
+  totalAmountDisputed: number // Total disputed amount (cents)
   currency: string
 }

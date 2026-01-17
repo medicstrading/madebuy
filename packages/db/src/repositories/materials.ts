@@ -1,13 +1,20 @@
+import type {
+  CreateMaterialInput,
+  Material,
+  MaterialUsage,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { Material, MaterialUsage, CreateMaterialInput } from '@madebuy/shared'
 
 /** Escape special regex characters to prevent ReDoS attacks */
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-export async function createMaterial(tenantId: string, data: CreateMaterialInput): Promise<Material> {
+export async function createMaterial(
+  tenantId: string,
+  data: CreateMaterialInput,
+): Promise<Material> {
   const db = await getDatabase()
 
   const isLowStock = data.quantityInStock <= data.reorderPoint
@@ -36,9 +43,14 @@ export async function createMaterial(tenantId: string, data: CreateMaterialInput
   return material
 }
 
-export async function getMaterial(tenantId: string, id: string): Promise<Material | null> {
+export async function getMaterial(
+  tenantId: string,
+  id: string,
+): Promise<Material | null> {
   const db = await getDatabase()
-  return await db.collection('materials').findOne({ tenantId, id }) as Material | null
+  return (await db
+    .collection('materials')
+    .findOne({ tenantId, id })) as Material | null
 }
 
 export interface MaterialFilters {
@@ -66,7 +78,7 @@ export interface MaterialListResult {
 export async function listMaterials(
   tenantId: string,
   filters?: MaterialFilters,
-  options?: MaterialListOptions
+  options?: MaterialListOptions,
 ): Promise<MaterialListResult> {
   const db = await getDatabase()
 
@@ -107,10 +119,13 @@ export async function listMaterials(
   const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder }
 
   // Get total count
-  const total = await db.collection('materials').countDocuments(query as Record<string, unknown>)
+  const total = await db
+    .collection('materials')
+    .countDocuments(query as Record<string, unknown>)
 
   // Get paginated results
-  const results = await db.collection('materials')
+  const results = await db
+    .collection('materials')
     .find(query)
     .sort(sort)
     .skip(skip)
@@ -132,7 +147,7 @@ export async function listMaterials(
  */
 export async function listAllMaterials(
   tenantId: string,
-  filters?: { category?: string; isLowStock?: boolean }
+  filters?: { category?: string; isLowStock?: boolean },
 ): Promise<Material[]> {
   const result = await listMaterials(tenantId, filters, { limit: 500 })
   return result.materials
@@ -141,12 +156,15 @@ export async function listAllMaterials(
 export async function updateMaterial(
   tenantId: string,
   id: string,
-  updates: Partial<Omit<Material, 'id' | 'tenantId' | 'createdAt'>>
+  updates: Partial<Omit<Material, 'id' | 'tenantId' | 'createdAt'>>,
 ): Promise<void> {
   const db = await getDatabase()
 
   // Recalculate isLowStock if quantity or reorder point changed
-  if (updates.quantityInStock !== undefined || updates.reorderPoint !== undefined) {
+  if (
+    updates.quantityInStock !== undefined ||
+    updates.reorderPoint !== undefined
+  ) {
     const current = await getMaterial(tenantId, id)
     if (current) {
       const newQuantity = updates.quantityInStock ?? current.quantityInStock
@@ -161,12 +179,15 @@ export async function updateMaterial(
       $set: {
         ...updates,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
-export async function deleteMaterial(tenantId: string, id: string): Promise<void> {
+export async function deleteMaterial(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection('materials').deleteOne({ tenantId, id })
 }
@@ -177,7 +198,7 @@ export async function recordMaterialUsage(
   tenantId: string,
   pieceId: string,
   materialId: string,
-  quantityUsed: number
+  quantityUsed: number,
 ): Promise<MaterialUsage> {
   const db = await getDatabase()
 
@@ -208,33 +229,40 @@ export async function recordMaterialUsage(
     { tenantId, id: materialId },
     {
       $inc: { quantityInStock: -quantityUsed },
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 
   // Recalculate isLowStock
   const updatedMaterial = await getMaterial(tenantId, materialId)
   if (updatedMaterial) {
-    const isLowStock = updatedMaterial.quantityInStock <= updatedMaterial.reorderPoint
-    await db.collection('materials').updateOne(
-      { tenantId, id: materialId },
-      { $set: { isLowStock } }
-    )
+    const isLowStock =
+      updatedMaterial.quantityInStock <= updatedMaterial.reorderPoint
+    await db
+      .collection('materials')
+      .updateOne({ tenantId, id: materialId }, { $set: { isLowStock } })
   }
 
   return usage
 }
 
-export async function getMaterialUsageForPiece(tenantId: string, pieceId: string): Promise<MaterialUsage[]> {
+export async function getMaterialUsageForPiece(
+  tenantId: string,
+  pieceId: string,
+): Promise<MaterialUsage[]> {
   const db = await getDatabase()
-  const results = await db.collection('material_usages')
+  const results = await db
+    .collection('material_usages')
     .find({ tenantId, pieceId })
     .toArray()
 
   return results as unknown as MaterialUsage[]
 }
 
-export async function calculatePieceCOGS(tenantId: string, pieceId: string): Promise<number> {
+export async function calculatePieceCOGS(
+  tenantId: string,
+  pieceId: string,
+): Promise<number> {
   const usages = await getMaterialUsageForPiece(tenantId, pieceId)
   return usages.reduce((total, usage) => total + usage.totalCost, 0)
 }
@@ -245,19 +273,20 @@ export async function calculatePieceCOGS(tenantId: string, pieceId: string): Pro
  */
 export async function calculateBatchCOGS(
   tenantId: string,
-  pieceIds: string[]
+  pieceIds: string[],
 ): Promise<Map<string, number>> {
   if (pieceIds.length === 0) return new Map()
 
   const db = await getDatabase()
-  const results = await db.collection('material_usages')
+  const results = await db
+    .collection('material_usages')
     .aggregate([
       { $match: { tenantId, pieceId: { $in: pieceIds } } },
-      { $group: { _id: '$pieceId', total: { $sum: '$totalCost' } } }
+      { $group: { _id: '$pieceId', total: { $sum: '$totalCost' } } },
     ])
     .toArray()
 
-  return new Map(results.map(r => [r._id as string, r.total || 0]))
+  return new Map(results.map((r) => [r._id as string, r.total || 0]))
 }
 
 /**
@@ -269,7 +298,12 @@ export async function adjustStock(
   tenantId: string,
   materialId: string,
   adjustment: number,
-  reason: 'production' | 'production_reversal' | 'reconciliation' | 'manual' | 'restock'
+  reason:
+    | 'production'
+    | 'production_reversal'
+    | 'reconciliation'
+    | 'manual'
+    | 'restock',
 ): Promise<Material> {
   const db = await getDatabase()
 
@@ -281,7 +315,9 @@ export async function adjustStock(
 
   const newQuantity = material.quantityInStock + adjustment
   if (newQuantity < 0) {
-    throw new Error(`Cannot reduce stock below 0. Current: ${material.quantityInStock}, adjustment: ${adjustment}`)
+    throw new Error(
+      `Cannot reduce stock below 0. Current: ${material.quantityInStock}, adjustment: ${adjustment}`,
+    )
   }
 
   const isLowStock = newQuantity <= material.reorderPoint
@@ -297,10 +333,9 @@ export async function adjustStock(
     updateData.lastRestocked = new Date()
   }
 
-  await db.collection('materials').updateOne(
-    { tenantId, id: materialId },
-    { $set: updateData }
-  )
+  await db
+    .collection('materials')
+    .updateOne({ tenantId, id: materialId }, { $set: updateData })
 
   return {
     ...material,
@@ -315,7 +350,7 @@ export async function restockMaterialFromInvoice(
   materialId: string,
   invoiceId: string,
   quantityAdded: number,
-  costPerUnit?: number
+  costPerUnit?: number,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -324,27 +359,25 @@ export async function restockMaterialFromInvoice(
     $addToSet: { invoiceIds: invoiceId },
     $set: {
       lastRestocked: new Date(),
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   }
 
   // Update cost per unit if provided
   if (costPerUnit !== undefined && updateData.$set) {
-    (updateData.$set as Record<string, unknown>).costPerUnit = costPerUnit
+    ;(updateData.$set as Record<string, unknown>).costPerUnit = costPerUnit
   }
 
-  await db.collection('materials').updateOne(
-    { tenantId, id: materialId },
-    updateData
-  )
+  await db
+    .collection('materials')
+    .updateOne({ tenantId, id: materialId }, updateData)
 
   // Recalculate isLowStock
   const material = await getMaterial(tenantId, materialId)
   if (material) {
     const isLowStock = material.quantityInStock <= material.reorderPoint
-    await db.collection('materials').updateOne(
-      { tenantId, id: materialId },
-      { $set: { isLowStock } }
-    )
+    await db
+      .collection('materials')
+      .updateOne({ tenantId, id: materialId }, { $set: { isLowStock } })
   }
 }

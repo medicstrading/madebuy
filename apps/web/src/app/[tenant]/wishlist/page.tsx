@@ -1,11 +1,15 @@
-import { requireTenant } from '@/lib/tenant'
 import { pieces } from '@madebuy/db'
-import { populatePiecesWithMedia } from '@/lib/pieces'
-import Link from 'next/link'
 import { ArrowLeft, Heart } from 'lucide-react'
+import Link from 'next/link'
 import { WishlistContent } from '@/components/wishlist/WishlistContent'
+import { populatePiecesWithMedia } from '@/lib/pieces'
+import { requireTenant } from '@/lib/tenant'
 
-export async function generateMetadata({ params }: { params: { tenant: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return {
@@ -13,7 +17,11 @@ export async function generateMetadata({ params }: { params: { tenant: string } 
   }
 }
 
-export default async function WishlistPage({ params }: { params: { tenant: string } }) {
+export default async function WishlistPage({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   // Get all pieces so we can display wishlist items

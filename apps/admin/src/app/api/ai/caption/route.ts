@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { media, captionStyles } from '@madebuy/db'
-import { generateCaption } from '@madebuy/social'
+import { captionStyles, media } from '@madebuy/db'
 import type { SocialPlatform } from '@madebuy/shared'
+import { generateCaption } from '@madebuy/social'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,13 +27,16 @@ export async function POST(request: NextRequest) {
 
     // Get media files
     const mediaFiles = await Promise.all(
-      mediaIds.map((id: string) => media.getMedia(tenant.id, id))
+      mediaIds.map((id: string) => media.getMedia(tenant.id, id)),
     )
 
-    const validMediaFiles = mediaFiles.filter(m => m !== null)
+    const validMediaFiles = mediaFiles.filter((m) => m !== null)
 
     if (validMediaFiles.length === 0) {
-      return NextResponse.json({ error: 'No valid media found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'No valid media found' },
+        { status: 404 },
+      )
     }
 
     // Fetch style profile if platform is specified
@@ -41,14 +44,14 @@ export async function POST(request: NextRequest) {
     if (platform) {
       styleProfile = await captionStyles.getCaptionStyleProfile(
         tenant.id,
-        platform as SocialPlatform
+        platform as SocialPlatform,
       )
     }
 
     // Generate caption using AI with style profile
     const result = await generateCaption({
       mediaIds, // Required by interface but not used by implementation
-      imageUrls: validMediaFiles.map(m => m!.variants.original.url),
+      imageUrls: validMediaFiles.map((m) => m?.variants.original.url),
       productName: productName || tenant.businessName,
       productDescription,
       style: style || 'professional',
@@ -66,8 +69,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error generating caption:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

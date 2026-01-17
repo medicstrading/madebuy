@@ -1,5 +1,5 @@
-import { getDatabase } from '../client'
 import type { PieceStatus } from '@madebuy/shared'
+import { getDatabase } from '../client'
 
 /**
  * Bulk Operations Repository
@@ -18,7 +18,7 @@ export interface BulkOperationResult {
 export async function bulkUpdateStatus(
   tenantId: string,
   pieceIds: string[],
-  status: PieceStatus
+  status: PieceStatus,
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -29,7 +29,7 @@ export async function bulkUpdateStatus(
         status,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return {
@@ -43,7 +43,7 @@ export async function bulkUpdateStatus(
  */
 export async function bulkDelete(
   tenantId: string,
-  pieceIds: string[]
+  pieceIds: string[],
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -68,32 +68,39 @@ export async function bulkUpdatePrices(
     type: 'percentage' | 'fixed'
     value: number // Percentage (e.g., 10 for 10%) or fixed amount
     direction: 'increase' | 'decrease'
-  }
+  },
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
   // Fetch pieces to calculate new prices
-  const pieceDocs = await db.collection('pieces')
-    .find({ tenantId, id: { $in: pieceIds }, price: { $exists: true, $ne: null } })
+  const pieceDocs = await db
+    .collection('pieces')
+    .find({
+      tenantId,
+      id: { $in: pieceIds },
+      price: { $exists: true, $ne: null },
+    })
     .project({ id: 1, price: 1 })
     .toArray()
 
   const now = new Date()
 
   // Build bulk operations with calculated prices
-  const bulkOps = pieceDocs.map(piece => {
+  const bulkOps = pieceDocs.map((piece) => {
     const currentPrice = piece.price as number
     let newPrice: number
 
     if (adjustment.type === 'percentage') {
       const change = currentPrice * (adjustment.value / 100)
-      newPrice = adjustment.direction === 'increase'
-        ? currentPrice + change
-        : currentPrice - change
+      newPrice =
+        adjustment.direction === 'increase'
+          ? currentPrice + change
+          : currentPrice - change
     } else {
-      newPrice = adjustment.direction === 'increase'
-        ? currentPrice + adjustment.value
-        : currentPrice - adjustment.value
+      newPrice =
+        adjustment.direction === 'increase'
+          ? currentPrice + adjustment.value
+          : currentPrice - adjustment.value
     }
 
     // Ensure price doesn't go negative
@@ -108,7 +115,9 @@ export async function bulkUpdatePrices(
   })
 
   // Use bulkWrite for efficient batch updates (O(1) instead of O(n) DB calls)
-  const result = await db.collection('pieces').bulkWrite(bulkOps, { ordered: false })
+  const result = await db
+    .collection('pieces')
+    .bulkWrite(bulkOps, { ordered: false })
 
   return {
     success: true,
@@ -123,7 +132,7 @@ export async function bulkUpdatePrices(
 export async function bulkUpdateStock(
   tenantId: string,
   pieceIds: string[],
-  stock: number | 'unlimited'
+  stock: number | 'unlimited',
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -136,7 +145,7 @@ export async function bulkUpdateStock(
         stock: updateValue,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return {
@@ -151,7 +160,7 @@ export async function bulkUpdateStock(
 export async function bulkUpdateCategory(
   tenantId: string,
   pieceIds: string[],
-  category: string
+  category: string,
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -162,7 +171,7 @@ export async function bulkUpdateCategory(
         category,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return {
@@ -177,7 +186,7 @@ export async function bulkUpdateCategory(
 export async function bulkAddTags(
   tenantId: string,
   pieceIds: string[],
-  tags: string[]
+  tags: string[],
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -186,7 +195,7 @@ export async function bulkAddTags(
     {
       $addToSet: { tags: { $each: tags } },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 
   return {
@@ -201,7 +210,7 @@ export async function bulkAddTags(
 export async function bulkRemoveTags(
   tenantId: string,
   pieceIds: string[],
-  tags: string[]
+  tags: string[],
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -210,7 +219,7 @@ export async function bulkRemoveTags(
     {
       $pull: { tags: { $in: tags } } as any,
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 
   return {
@@ -225,7 +234,7 @@ export async function bulkRemoveTags(
 export async function bulkSetFeatured(
   tenantId: string,
   pieceIds: string[],
-  isFeatured: boolean
+  isFeatured: boolean,
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -236,7 +245,7 @@ export async function bulkSetFeatured(
         isFeatured,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return {
@@ -251,7 +260,7 @@ export async function bulkSetFeatured(
 export async function bulkSetPublished(
   tenantId: string,
   pieceIds: string[],
-  isPublished: boolean
+  isPublished: boolean,
 ): Promise<BulkOperationResult> {
   const db = await getDatabase()
 
@@ -262,7 +271,7 @@ export async function bulkSetPublished(
         isPublishedToWebsite: isPublished,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return {
@@ -276,7 +285,7 @@ export async function bulkSetPublished(
  */
 export async function exportPieces(
   tenantId: string,
-  pieceIds?: string[] // If not provided, export all
+  pieceIds?: string[], // If not provided, export all
 ): Promise<any[]> {
   const db = await getDatabase()
 
@@ -285,13 +294,14 @@ export async function exportPieces(
     query.id = { $in: pieceIds }
   }
 
-  const pieces = await db.collection('pieces')
+  const pieces = await db
+    .collection('pieces')
     .find(query)
     .sort({ createdAt: -1 })
     .toArray()
 
   // Transform to flat CSV-friendly format
-  return pieces.map(p => ({
+  return pieces.map((p) => ({
     id: p.id,
     name: p.name,
     slug: p.slug,
@@ -318,7 +328,7 @@ export async function exportPieces(
  */
 export async function getBulkStats(
   tenantId: string,
-  pieceIds: string[]
+  pieceIds: string[],
 ): Promise<{
   total: number
   byStatus: Record<string, number>
@@ -327,7 +337,8 @@ export async function getBulkStats(
 }> {
   const db = await getDatabase()
 
-  const pieces = await db.collection('pieces')
+  const pieces = await db
+    .collection('pieces')
     .find({ tenantId, id: { $in: pieceIds } })
     .toArray()
 
@@ -356,7 +367,10 @@ export async function getBulkStats(
     priceRange: {
       min: prices.length > 0 ? Math.min(...prices) : 0,
       max: prices.length > 0 ? Math.max(...prices) : 0,
-      avg: prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0,
+      avg:
+        prices.length > 0
+          ? prices.reduce((a, b) => a + b, 0) / prices.length
+          : 0,
     },
   }
 }

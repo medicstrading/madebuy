@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { ToastType } from '@/components/ui/Toast'
+import { useCallback, useState } from 'react'
+import type { ToastType } from '@/components/ui/Toast'
 
 interface Toast {
   id: string
@@ -21,10 +21,22 @@ export function useToast() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
-  const success = useCallback((message: string) => addToast(message, 'success'), [addToast])
-  const error = useCallback((message: string) => addToast(message, 'error'), [addToast])
-  const warning = useCallback((message: string) => addToast(message, 'warning'), [addToast])
-  const info = useCallback((message: string) => addToast(message, 'info'), [addToast])
+  const success = useCallback(
+    (message: string) => addToast(message, 'success'),
+    [addToast],
+  )
+  const error = useCallback(
+    (message: string) => addToast(message, 'error'),
+    [addToast],
+  )
+  const warning = useCallback(
+    (message: string) => addToast(message, 'warning'),
+    [addToast],
+  )
+  const info = useCallback(
+    (message: string) => addToast(message, 'info'),
+    [addToast],
+  )
 
   return {
     toasts,

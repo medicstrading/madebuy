@@ -21,7 +21,8 @@ export function HeroSimple({ settings, tenant, tenantSlug }: SectionProps) {
   const slide = settings.slides?.[0]
   const imageUrl = slide?.imageUrl || undefined
   const ctaText = settings.ctaButton?.text || slide?.ctaText || 'Shop Now'
-  const ctaUrl = settings.ctaButton?.url || slide?.ctaUrl || `/${tenantSlug}/shop`
+  const ctaUrl =
+    settings.ctaButton?.url || slide?.ctaUrl || `/${tenantSlug}/shop`
 
   return (
     <div className={`relative ${HEIGHT_MAP[height]} overflow-hidden`}>
@@ -77,9 +78,22 @@ export function HeroSimple({ settings, tenant, tenantSlug }: SectionProps) {
 
       {/* Scroll indicator for full-height heroes */}
       {height === 'full' && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
-          <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        <div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+          aria-hidden="true"
+        >
+          <svg
+            className="w-6 h-6 text-white/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
           </svg>
         </div>
       )}

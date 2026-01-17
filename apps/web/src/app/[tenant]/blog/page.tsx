@@ -1,14 +1,20 @@
-import { requireTenant } from '@/lib/tenant'
 import { blog, media } from '@madebuy/db'
-import Link from 'next/link'
+import { ArrowRight, Calendar, Clock } from 'lucide-react'
 import Image from 'next/image'
-import { Calendar, Clock, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+import { requireTenant } from '@/lib/tenant'
 import { formatDate } from '@/lib/utils'
 
-export async function generateMetadata({ params }: { params: { tenant: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
   const blogTitle = tenant.websiteDesign?.blog?.title || 'Blog'
-  const blogDescription = tenant.websiteDesign?.blog?.description || `Read the latest from ${tenant.businessName}`
+  const blogDescription =
+    tenant.websiteDesign?.blog?.description ||
+    `Read the latest from ${tenant.businessName}`
 
   return {
     title: `${blogTitle} - ${tenant.businessName}`,
@@ -16,7 +22,11 @@ export async function generateMetadata({ params }: { params: { tenant: string } 
   }
 }
 
-export default async function BlogIndexPage({ params }: { params: { tenant: string } }) {
+export default async function BlogIndexPage({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   // Check if blog is enabled
@@ -24,7 +34,9 @@ export default async function BlogIndexPage({ params }: { params: { tenant: stri
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Blog Not Available</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Blog Not Available
+          </h1>
           <p className="mt-2 text-gray-600">This blog is currently disabled.</p>
           <Link
             href={`/${params.tenant}`}
@@ -58,7 +70,10 @@ export default async function BlogIndexPage({ params }: { params: { tenant: stri
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href={`/${params.tenant}`} className="flex items-center gap-4">
+            <Link
+              href={`/${params.tenant}`}
+              className="flex items-center gap-4"
+            >
               {logoUrl && (
                 <div className="relative h-12 w-auto">
                   <Image
@@ -71,7 +86,9 @@ export default async function BlogIndexPage({ params }: { params: { tenant: stri
                 </div>
               )}
               <div className="flex flex-col">
-                <h1 className="text-2xl font-bold text-gray-900">{tenant.businessName}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {tenant.businessName}
+                </h1>
                 {tenant.description && (
                   <p className="text-sm text-gray-600">{tenant.description}</p>
                 )}
@@ -95,9 +112,7 @@ export default async function BlogIndexPage({ params }: { params: { tenant: stri
             {blogTitle}
           </h1>
           {blogDescription && (
-            <p className="text-xl text-gray-600 max-w-3xl">
-              {blogDescription}
-            </p>
+            <p className="text-xl text-gray-600 max-w-3xl">{blogDescription}</p>
           )}
         </div>
       </div>
@@ -106,7 +121,9 @@ export default async function BlogIndexPage({ params }: { params: { tenant: stri
       <div className="container mx-auto px-4 py-12">
         {posts.length === 0 ? (
           <div className="text-center py-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Posts Yet</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              No Posts Yet
+            </h2>
             <p className="text-gray-600">Check back soon for new content!</p>
           </div>
         ) : (

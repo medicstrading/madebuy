@@ -1,7 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ExternalLink, RefreshCw, Monitor, Smartphone, Tablet } from 'lucide-react'
+import {
+  ExternalLink,
+  Monitor,
+  RefreshCw,
+  Smartphone,
+  Tablet,
+} from 'lucide-react'
+import { useState } from 'react'
 
 interface PreviewPanelProps {
   tenantSlug?: string
@@ -25,7 +31,7 @@ export function PreviewPanel({ tenantSlug }: PreviewPanelProps) {
 
   const handleRefresh = () => {
     setLoading(true)
-    setRefreshKey(k => k + 1)
+    setRefreshKey((k) => k + 1)
   }
 
   return (
@@ -40,27 +46,36 @@ export function PreviewPanel({ tenantSlug }: PreviewPanelProps) {
           {/* Device Mode Buttons */}
           <div className="flex items-center bg-gray-100 rounded-lg p-1">
             <button
+              type="button"
               onClick={() => setDeviceMode('desktop')}
               className={`p-1.5 rounded ${
-                deviceMode === 'desktop' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                deviceMode === 'desktop'
+                  ? 'bg-white shadow-sm text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
               title="Desktop view"
             >
               <Monitor className="h-4 w-4" />
             </button>
             <button
+              type="button"
               onClick={() => setDeviceMode('tablet')}
               className={`p-1.5 rounded ${
-                deviceMode === 'tablet' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                deviceMode === 'tablet'
+                  ? 'bg-white shadow-sm text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
               title="Tablet view"
             >
               <Tablet className="h-4 w-4" />
             </button>
             <button
+              type="button"
               onClick={() => setDeviceMode('mobile')}
               className={`p-1.5 rounded ${
-                deviceMode === 'mobile' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                deviceMode === 'mobile'
+                  ? 'bg-white shadow-sm text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
               title="Mobile view"
             >
@@ -70,6 +85,7 @@ export function PreviewPanel({ tenantSlug }: PreviewPanelProps) {
 
           {/* Refresh Button */}
           <button
+            type="button"
             onClick={handleRefresh}
             className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
             title="Refresh preview"
@@ -97,7 +113,12 @@ export function PreviewPanel({ tenantSlug }: PreviewPanelProps) {
           style={{
             width: deviceWidths[deviceMode],
             maxWidth: '100%',
-            height: deviceMode === 'mobile' ? '667px' : deviceMode === 'tablet' ? '1024px' : '100%',
+            height:
+              deviceMode === 'mobile'
+                ? '667px'
+                : deviceMode === 'tablet'
+                  ? '1024px'
+                  : '100%',
             minHeight: '500px',
           }}
         >

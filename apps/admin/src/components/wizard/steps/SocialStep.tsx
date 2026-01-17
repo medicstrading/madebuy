@@ -1,9 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Instagram, Facebook, Youtube, ArrowLeft, Sparkles, Loader2, Calendar, Send, RefreshCw } from 'lucide-react'
+import type { MediaItem, SocialPlatform } from '@madebuy/shared'
+import {
+  ArrowLeft,
+  Calendar,
+  Facebook,
+  Instagram,
+  Loader2,
+  Send,
+  Sparkles,
+  Youtube,
+} from 'lucide-react'
 import Image from 'next/image'
-import type { SocialPlatform, MediaItem } from '@madebuy/shared'
+import { useEffect, useState } from 'react'
 import { FeatureGate, FeatureLockBadge } from '../FeatureGate'
 
 interface SocialStepProps {
@@ -30,11 +39,26 @@ interface SocialStepProps {
   loading: boolean
 }
 
-const PLATFORM_CONFIG: Record<string, { name: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
+const PLATFORM_CONFIG: Record<
+  string,
+  {
+    name: string
+    icon: React.ComponentType<{ className?: string }>
+    color: string
+  }
+> = {
   instagram: { name: 'Instagram', icon: Instagram, color: 'text-pink-600' },
   facebook: { name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-  tiktok: { name: 'TikTok', icon: () => <span className="text-lg">🎵</span>, color: 'text-black' },
-  pinterest: { name: 'Pinterest', icon: () => <span className="text-lg">📌</span>, color: 'text-red-600' },
+  tiktok: {
+    name: 'TikTok',
+    icon: () => <span className="text-lg">🎵</span>,
+    color: 'text-black',
+  },
+  pinterest: {
+    name: 'Pinterest',
+    icon: () => <span className="text-lg">📌</span>,
+    color: 'text-red-600',
+  },
   youtube: { name: 'YouTube', icon: Youtube, color: 'text-red-600' },
 }
 
@@ -51,30 +75,55 @@ export function SocialStep({
   onSkip,
   loading,
 }: SocialStepProps) {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(initialData.platforms)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(
+    initialData.platforms,
+  )
   const [caption, setCaption] = useState(initialData.caption)
-  const [scheduleTime, setScheduleTime] = useState<Date | null>(initialData.scheduleTime)
+  const [scheduleTime, setScheduleTime] = useState<Date | null>(
+    initialData.scheduleTime,
+  )
   const [selectedMediaIds, setSelectedMediaIds] = useState<string[]>(
     initialData.selectedMediaIds.length > 0
       ? initialData.selectedMediaIds
-      : mediaItems.slice(0, 1).map(m => m.id)
+      : mediaItems.slice(0, 1).map((m) => m.id),
   )
   const [generatingCaption, setGeneratingCaption] = useState(false)
-  const [isScheduled, setIsScheduled] = useState(initialData.scheduleTime !== null)
+  const [isScheduled, setIsScheduled] = useState(
+    initialData.scheduleTime !== null,
+  )
 
   // Check feature access
-  const hasSocialAccess = ['maker', 'professional', 'studio', 'pro', 'business'].includes(currentPlan)
-  const hasAiCaptions = ['professional', 'studio', 'pro', 'business'].includes(currentPlan)
+  const hasSocialAccess = [
+    'maker',
+    'professional',
+    'studio',
+    'pro',
+    'business',
+  ].includes(currentPlan)
+  const hasAiCaptions = ['professional', 'studio', 'pro', 'business'].includes(
+    currentPlan,
+  )
 
   // Filter to only social platforms (exclude blog)
-  const socialPlatforms = connectedPlatforms.filter(p => p !== 'website-blog')
+  const socialPlatforms = connectedPlatforms.filter((p) => p !== 'website-blog')
 
   // Auto-generate caption on mount if empty and has access
   useEffect(() => {
-    if (!caption && hasSocialAccess && hasAiCaptions && selectedMediaIds.length > 0) {
+    if (
+      !caption &&
+      hasSocialAccess &&
+      hasAiCaptions &&
+      selectedMediaIds.length > 0
+    ) {
       generateCaption()
     }
-  }, [])
+  }, [
+    caption,
+    generateCaption,
+    hasAiCaptions,
+    hasSocialAccess,
+    selectedMediaIds.length,
+  ])
 
   const generateCaption = async () => {
     setGeneratingCaption(true)
@@ -102,18 +151,18 @@ export function SocialStep({
   }
 
   const togglePlatform = (platform: SocialPlatform) => {
-    setSelectedPlatforms(prev =>
+    setSelectedPlatforms((prev) =>
       prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
+        ? prev.filter((p) => p !== platform)
+        : [...prev, platform],
     )
   }
 
   const toggleMedia = (mediaId: string) => {
-    setSelectedMediaIds(prev =>
+    setSelectedMediaIds((prev) =>
       prev.includes(mediaId)
-        ? prev.filter(id => id !== mediaId)
-        : [...prev, mediaId]
+        ? prev.filter((id) => id !== mediaId)
+        : [...prev, mediaId],
     )
   }
 
@@ -131,8 +180,12 @@ export function SocialStep({
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Announce your new item</h2>
-          <p className="mt-2 text-gray-600">Share to social media with one click</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Announce your new item
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Share to social media with one click
+          </p>
         </div>
 
         <FeatureGate
@@ -141,13 +194,12 @@ export function SocialStep({
           currentPlan={currentPlan}
           teaserTitle="Announce to the World"
           teaserDescription="Post to Instagram, Facebook, TikTok, and Pinterest directly from MadeBuy. Includes AI-generated captions that match your brand voice."
-        >
-          <></>
-        </FeatureGate>
+        ></FeatureGate>
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-4">
           <button
+            type="button"
             type="button"
             onClick={onBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -157,6 +209,7 @@ export function SocialStep({
           </button>
 
           <button
+            type="button"
             type="button"
             onClick={onSkip}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md transition-all"
@@ -171,15 +224,21 @@ export function SocialStep({
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Announce your new item</h2>
-        <p className="mt-2 text-gray-600">Share to social media with one click</p>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Announce your new item
+        </h2>
+        <p className="mt-2 text-gray-600">
+          Share to social media with one click
+        </p>
       </div>
 
       {/* Platform selection */}
       <div>
-        <p className="text-sm font-medium text-gray-700 mb-3">Select platforms</p>
+        <p className="text-sm font-medium text-gray-700 mb-3">
+          Select platforms
+        </p>
         <div className="flex flex-wrap gap-2">
-          {socialPlatforms.map(platform => {
+          {socialPlatforms.map((platform) => {
             const config = PLATFORM_CONFIG[platform]
             if (!config) return null
             const Icon = config.icon
@@ -187,6 +246,7 @@ export function SocialStep({
 
             return (
               <button
+                type="button"
                 key={platform}
                 type="button"
                 onClick={() => togglePlatform(platform)}
@@ -211,7 +271,10 @@ export function SocialStep({
         {socialPlatforms.length === 0 && (
           <p className="text-sm text-gray-500 mt-2">
             No social accounts connected.{' '}
-            <a href="/dashboard/connections" className="text-purple-600 hover:underline">
+            <a
+              href="/dashboard/connections"
+              className="text-purple-600 hover:underline"
+            >
               Connect accounts
             </a>
           </p>
@@ -225,6 +288,7 @@ export function SocialStep({
           <div className="flex items-center gap-2">
             {hasAiCaptions ? (
               <button
+                type="button"
                 type="button"
                 onClick={generateCaption}
                 disabled={generatingCaption || selectedMediaIds.length === 0}
@@ -260,7 +324,9 @@ export function SocialStep({
             className="w-full rounded-xl border-2 border-gray-200 p-4 focus:border-purple-500 focus:outline-none focus:ring-0 transition-colors resize-none"
           />
         )}
-        <p className="mt-1 text-right text-xs text-gray-500">{caption.length} characters</p>
+        <p className="mt-1 text-right text-xs text-gray-500">
+          {caption.length} characters
+        </p>
       </div>
 
       {/* Media selection */}
@@ -269,10 +335,11 @@ export function SocialStep({
           Photos to include ({selectedMediaIds.length} selected)
         </p>
         <div className="grid grid-cols-6 gap-2">
-          {mediaItems.map(media => {
+          {mediaItems.map((media) => {
             const isSelected = selectedMediaIds.includes(media.id)
             return (
               <button
+                type="button"
                 key={media.id}
                 type="button"
                 onClick={() => toggleMedia(media.id)}
@@ -319,8 +386,12 @@ export function SocialStep({
             className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
           <div>
-            <span className="font-medium text-gray-900">Schedule for later</span>
-            <p className="text-sm text-gray-500">Post at the best time for engagement</p>
+            <span className="font-medium text-gray-900">
+              Schedule for later
+            </span>
+            <p className="text-sm text-gray-500">
+              Post at the best time for engagement
+            </p>
           </div>
         </label>
 
@@ -340,6 +411,7 @@ export function SocialStep({
       <div className="flex items-center justify-between pt-4">
         <button
           type="button"
+          type="button"
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -350,12 +422,14 @@ export function SocialStep({
         <div className="flex items-center gap-3">
           <button
             type="button"
+            type="button"
             onClick={onSkip}
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             Skip social
           </button>
           <button
+            type="button"
             type="button"
             onClick={handleSubmit}
             disabled={loading}

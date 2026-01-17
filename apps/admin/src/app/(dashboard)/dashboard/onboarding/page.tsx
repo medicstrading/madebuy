@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Loader2, MapPin, Palette, CheckCircle2 } from 'lucide-react'
 import type { OnboardingStep } from '@madebuy/shared'
+import { CheckCircle2, Loader2, MapPin, Palette } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface TenantData {
   onboardingComplete?: boolean
@@ -63,7 +63,10 @@ export default function OnboardingPage() {
       await fetch('/api/tenant', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ onboardingComplete: true, onboardingStep: 'complete' }),
+        body: JSON.stringify({
+          onboardingComplete: true,
+          onboardingStep: 'complete',
+        }),
       })
       router.push('/dashboard')
     } catch (error) {
@@ -79,7 +82,9 @@ export default function OnboardingPage() {
     )
   }
 
-  const currentStepIndex = STEPS.findIndex((s) => s.id === tenant?.onboardingStep)
+  const currentStepIndex = STEPS.findIndex(
+    (s) => s.id === tenant?.onboardingStep,
+  )
 
   return (
     <div className="max-w-2xl mx-auto py-12 px-4">
@@ -102,8 +107,8 @@ export default function OnboardingPage() {
                 index < currentStepIndex
                   ? 'border-green-500 bg-green-500 text-white'
                   : index === currentStepIndex
-                  ? 'border-blue-500 bg-blue-500 text-white'
-                  : 'border-gray-300 bg-white text-gray-400'
+                    ? 'border-blue-500 bg-blue-500 text-white'
+                    : 'border-gray-300 bg-white text-gray-400'
               }`}
             >
               {index < currentStepIndex ? (
@@ -132,6 +137,7 @@ export default function OnboardingPage() {
 
           return (
             <button
+              type="button"
               key={step.id}
               onClick={() => router.push(step.href)}
               disabled={index > currentStepIndex}
@@ -139,8 +145,8 @@ export default function OnboardingPage() {
                 isComplete
                   ? 'border-green-200 bg-green-50'
                   : isCurrent
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
               }`}
             >
               <div
@@ -148,8 +154,8 @@ export default function OnboardingPage() {
                   isComplete
                     ? 'bg-green-100'
                     : isCurrent
-                    ? 'bg-blue-100'
-                    : 'bg-gray-100'
+                      ? 'bg-blue-100'
+                      : 'bg-gray-100'
                 }`}
               >
                 {isComplete ? (
@@ -168,8 +174,8 @@ export default function OnboardingPage() {
                     isComplete
                       ? 'text-green-800'
                       : isCurrent
-                      ? 'text-gray-900'
-                      : 'text-gray-500'
+                        ? 'text-gray-900'
+                        : 'text-gray-500'
                   }`}
                 >
                   {step.title}
@@ -179,8 +185,8 @@ export default function OnboardingPage() {
                     isComplete
                       ? 'text-green-600'
                       : isCurrent
-                      ? 'text-gray-600'
-                      : 'text-gray-400'
+                        ? 'text-gray-600'
+                        : 'text-gray-400'
                   }`}
                 >
                   {isComplete ? 'Completed' : step.description}
@@ -199,6 +205,7 @@ export default function OnboardingPage() {
       {/* Skip button */}
       <div className="text-center">
         <button
+          type="button"
           onClick={handleSkip}
           className="text-sm text-gray-500 hover:text-gray-700 underline"
         >

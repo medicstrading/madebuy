@@ -1,12 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, Layout, Store, Target, Camera, Newspaper, Check, Crown, AlertCircle } from 'lucide-react'
+import type { Tenant, WebsitePage, WebsiteTemplate } from '@madebuy/shared'
+import { getDefaultPages, TEMPLATE_DEFINITIONS } from '@madebuy/shared'
+import {
+  AlertCircle,
+  Camera,
+  Check,
+  Layout,
+  Loader2,
+  Newspaper,
+  Store,
+  Target,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
-import { DesignFeatureGate } from './DesignFeatureGate'
 import { canCustomizeLayout } from '@/lib/website-design'
-import type { Tenant, WebsiteTemplate, WebsitePage } from '@madebuy/shared'
-import { TEMPLATE_DEFINITIONS, getDefaultPages } from '@madebuy/shared'
+import { DesignFeatureGate } from './DesignFeatureGate'
 
 interface TemplatePickerTabProps {
   onTemplateChange?: () => void
@@ -25,7 +34,8 @@ const TEMPLATE_OPTIONS: TemplateOption[] = [
   {
     id: 'classic-store',
     name: 'Classic Store',
-    description: 'Full-featured e-commerce with hero, products, collections, blog, and testimonials',
+    description:
+      'Full-featured e-commerce with hero, products, collections, blog, and testimonials',
     icon: Store,
     features: TEMPLATE_DEFINITIONS['classic-store'].features,
     bestFor: TEMPLATE_DEFINITIONS['classic-store'].bestFor,
@@ -33,7 +43,8 @@ const TEMPLATE_OPTIONS: TemplateOption[] = [
   {
     id: 'landing-page',
     name: 'Landing Page',
-    description: 'Conversion-focused with hero, features, testimonials, and CTA. Products on separate page.',
+    description:
+      'Conversion-focused with hero, features, testimonials, and CTA. Products on separate page.',
     icon: Target,
     features: TEMPLATE_DEFINITIONS['landing-page'].features,
     bestFor: TEMPLATE_DEFINITIONS['landing-page'].bestFor,
@@ -41,29 +52,35 @@ const TEMPLATE_OPTIONS: TemplateOption[] = [
   {
     id: 'portfolio',
     name: 'Portfolio / Gallery',
-    description: 'Visual-first masonry layout, perfect for artists and photographers',
+    description:
+      'Visual-first masonry layout, perfect for artists and photographers',
     icon: Camera,
-    features: TEMPLATE_DEFINITIONS['portfolio'].features,
-    bestFor: TEMPLATE_DEFINITIONS['portfolio'].bestFor,
+    features: TEMPLATE_DEFINITIONS.portfolio.features,
+    bestFor: TEMPLATE_DEFINITIONS.portfolio.bestFor,
   },
   {
     id: 'magazine',
     name: 'Magazine / Editorial',
-    description: 'Blog-forward storytelling layout with featured articles and editorial feel',
+    description:
+      'Blog-forward storytelling layout with featured articles and editorial feel',
     icon: Newspaper,
-    features: TEMPLATE_DEFINITIONS['magazine'].features,
-    bestFor: TEMPLATE_DEFINITIONS['magazine'].bestFor,
+    features: TEMPLATE_DEFINITIONS.magazine.features,
+    bestFor: TEMPLATE_DEFINITIONS.magazine.bestFor,
   },
 ]
 
-export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) {
+export function TemplatePickerTab({
+  onTemplateChange,
+}: TemplatePickerTabProps) {
   const [tenant, setTenant] = useState<Tenant | null>(null)
-  const [selectedTemplate, setSelectedTemplate] = useState<WebsiteTemplate>('classic-store')
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<WebsiteTemplate>('classic-store')
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showResetWarning, setShowResetWarning] = useState(false)
-  const [pendingTemplate, setPendingTemplate] = useState<WebsiteTemplate | null>(null)
+  const [pendingTemplate, setPendingTemplate] =
+    useState<WebsiteTemplate | null>(null)
 
   // Load current template from API
   useEffect(() => {
@@ -79,12 +96,14 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
           } else if (data.websiteDesign?.layout) {
             // Map old layout to new template
             const layoutToTemplate: Record<string, WebsiteTemplate> = {
-              'grid': 'classic-store',
-              'minimal': 'landing-page',
-              'featured': 'portfolio',
-              'masonry': 'magazine',
+              grid: 'classic-store',
+              minimal: 'landing-page',
+              featured: 'portfolio',
+              masonry: 'magazine',
             }
-            setSelectedTemplate(layoutToTemplate[data.websiteDesign.layout] || 'classic-store')
+            setSelectedTemplate(
+              layoutToTemplate[data.websiteDesign.layout] || 'classic-store',
+            )
           }
         }
       } catch (error) {
@@ -99,7 +118,11 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
   const handleTemplateSelect = (templateId: WebsiteTemplate) => {
     // If changing templates and user already has custom pages, show warning
     const currentTemplate = tenant?.websiteDesign?.template
-    if (currentTemplate && currentTemplate !== templateId && tenant?.websiteDesign?.pages?.length) {
+    if (
+      currentTemplate &&
+      currentTemplate !== templateId &&
+      tenant?.websiteDesign?.pages?.length
+    ) {
       setPendingTemplate(templateId)
       setShowResetWarning(true)
     } else {
@@ -123,7 +146,10 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
     setPendingTemplate(null)
   }
 
-  const saveTemplate = async (template: WebsiteTemplate, resetPages: boolean = false) => {
+  const saveTemplate = async (
+    template: WebsiteTemplate,
+    resetPages: boolean = false,
+  ) => {
     setIsSaving(true)
     setIsSaved(false)
 
@@ -188,7 +214,9 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
         {/* Header */}
         <div className="flex items-center gap-2">
           <Layout className="h-5 w-5 text-gray-700" />
-          <h2 className="text-xl font-semibold text-gray-900">Website Template</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Website Template
+          </h2>
           <InfoTooltip content="Choose a template that best matches your business. Each template comes with pre-configured sections that you can customize in the Page Builder." />
         </div>
 
@@ -200,20 +228,25 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
                 <div className="rounded-full bg-amber-100 p-2">
                   <AlertCircle className="h-6 w-6 text-amber-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Reset Page Sections?</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Reset Page Sections?
+                </h3>
               </div>
               <p className="mb-6 text-gray-600">
-                Changing templates will reset your page sections to the new template&apos;s defaults.
-                Your current section customizations will be lost.
+                Changing templates will reset your page sections to the new
+                template&apos;s defaults. Your current section customizations
+                will be lost.
               </p>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={cancelTemplateChange}
                   className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={confirmTemplateChange}
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
@@ -229,10 +262,12 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
           {TEMPLATE_OPTIONS.map((template) => {
             const Icon = template.icon
             const isSelected = selectedTemplate === template.id
-            const isCurrentSaved = tenant.websiteDesign?.template === template.id
+            const isCurrentSaved =
+              tenant.websiteDesign?.template === template.id
 
             return (
               <button
+                type="button"
                 key={template.id}
                 onClick={() => handleTemplateSelect(template.id)}
                 className={`relative rounded-xl border-2 p-5 text-left transition-all ${
@@ -252,7 +287,9 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
                   {/* Icon */}
                   <div
                     className={`rounded-lg p-3 ${
-                      isSelected ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                      isSelected
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'bg-gray-100 text-gray-600'
                     }`}
                   >
                     <Icon className="h-6 w-6" />
@@ -261,13 +298,18 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
                   {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-gray-900">{template.name}</h3>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {template.name}
+                      </h3>
                     </div>
-                    <p className="mt-1 text-sm text-gray-600">{template.description}</p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      {template.description}
+                    </p>
 
                     {/* Best for */}
                     <p className="mt-2 text-xs text-gray-500">
-                      <span className="font-medium">Best for:</span> {template.bestFor}
+                      <span className="font-medium">Best for:</span>{' '}
+                      {template.bestFor}
                     </p>
 
                     {/* Features */}
@@ -297,7 +339,10 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
         <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
           <div>
             <p className="text-sm font-medium text-gray-700">
-              Selected: <span className="text-blue-600">{TEMPLATE_OPTIONS.find(t => t.id === selectedTemplate)?.name}</span>
+              Selected:{' '}
+              <span className="text-blue-600">
+                {TEMPLATE_OPTIONS.find((t) => t.id === selectedTemplate)?.name}
+              </span>
             </p>
             {tenant.websiteDesign?.template !== selectedTemplate && (
               <p className="text-xs text-gray-500">Unsaved changes</p>
@@ -305,11 +350,16 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
           </div>
           <div className="flex items-center gap-3">
             {isSaved && (
-              <p className="text-sm font-medium text-green-600">Template saved!</p>
+              <p className="text-sm font-medium text-green-600">
+                Template saved!
+              </p>
             )}
             <button
+              type="button"
               onClick={handleSave}
-              disabled={isSaving || tenant.websiteDesign?.template === selectedTemplate}
+              disabled={
+                isSaving || tenant.websiteDesign?.template === selectedTemplate
+              }
               className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? (
@@ -326,10 +376,14 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
 
         {/* Info Box */}
         <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-          <h3 className="mb-2 text-sm font-semibold text-blue-900">What&apos;s Next?</h3>
+          <h3 className="mb-2 text-sm font-semibold text-blue-900">
+            What&apos;s Next?
+          </h3>
           <p className="text-sm text-blue-800">
-            After selecting a template, head to the <strong>Page Builder</strong> tab to customize
-            your page sections. You can add, remove, and reorder sections to create your perfect layout.
+            After selecting a template, head to the{' '}
+            <strong>Page Builder</strong> tab to customize your page sections.
+            You can add, remove, and reorder sections to create your perfect
+            layout.
           </p>
         </div>
       </div>
@@ -338,8 +392,12 @@ export function TemplatePickerTab({ onTemplateChange }: TemplatePickerTabProps) 
 }
 
 // Simple template preview thumbnails
-function TemplatePreviewThumbnail({ templateId }: { templateId: WebsiteTemplate }) {
-  const baseStyles = "p-3 h-full"
+function TemplatePreviewThumbnail({
+  templateId,
+}: {
+  templateId: WebsiteTemplate
+}) {
+  const baseStyles = 'p-3 h-full'
 
   if (templateId === 'classic-store') {
     return (

@@ -7,7 +7,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  transpilePackages: ['@madebuy/shared', '@madebuy/db', '@madebuy/storage', '@madebuy/social', '@madebuy/shipping'],
+  transpilePackages: [
+    '@madebuy/shared',
+    '@madebuy/db',
+    '@madebuy/storage',
+    '@madebuy/social',
+    '@madebuy/shipping',
+  ],
 
   // Bundle optimization
   experimental: {
@@ -27,7 +33,7 @@ const nextConfig = {
       // Don't bundle server-only packages in client bundle
       config.resolve.alias = {
         ...config.resolve.alias,
-        'sharp': false,
+        sharp: false,
         'tesseract.js': false,
         'pdf-lib': false,
       }
@@ -48,10 +54,14 @@ const nextConfig = {
             value: 'on',
           },
           // Only enable HSTS in production (breaks HTTP dev servers)
-          ...(isProd ? [{
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          }] : []),
+          ...(isProd
+            ? [
+                {
+                  key: 'Strict-Transport-Security',
+                  value: 'max-age=31536000; includeSubDomains',
+                },
+              ]
+            : []),
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
@@ -89,10 +99,12 @@ const nextConfig = {
               "form-action 'self'",
               "frame-ancestors 'self'",
               // Only upgrade to HTTPS in production
-              ...(isProd ? ["upgrade-insecure-requests"] : []),
+              ...(isProd ? ['upgrade-insecure-requests'] : []),
               // CSP violation reporting
-              "report-uri /api/csp-report"
-            ].filter(Boolean).join('; '),
+              'report-uri /api/csp-report',
+            ]
+              .filter(Boolean)
+              .join('; '),
           },
         ],
       },

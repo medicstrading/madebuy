@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { DiscountCode, DiscountType } from '@madebuy/shared'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface DiscountFormProps {
   discount?: DiscountCode
@@ -18,7 +18,7 @@ interface DiscountFormState {
   maxDiscountAmount?: number
   maxUses?: number
   maxUsesPerCustomer?: number
-  startsAt?: string  // datetime-local string format
+  startsAt?: string // datetime-local string format
   expiresAt?: string // datetime-local string format
   isActive: boolean
 }
@@ -37,8 +37,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
     maxDiscountAmount: discount?.maxDiscountAmount,
     maxUses: discount?.maxUses,
     maxUsesPerCustomer: discount?.maxUsesPerCustomer,
-    startsAt: discount?.startsAt ? new Date(discount.startsAt).toISOString().slice(0, 16) : undefined,
-    expiresAt: discount?.expiresAt ? new Date(discount.expiresAt).toISOString().slice(0, 16) : undefined,
+    startsAt: discount?.startsAt
+      ? new Date(discount.startsAt).toISOString().slice(0, 16)
+      : undefined,
+    expiresAt: discount?.expiresAt
+      ? new Date(discount.expiresAt).toISOString().slice(0, 16)
+      : undefined,
     isActive: discount?.isActive ?? true,
   })
 
@@ -51,7 +55,9 @@ export function DiscountForm({ discount }: DiscountFormProps) {
       const payload = {
         ...formData,
         startsAt: formData.startsAt ? new Date(formData.startsAt) : undefined,
-        expiresAt: formData.expiresAt ? new Date(formData.expiresAt) : undefined,
+        expiresAt: formData.expiresAt
+          ? new Date(formData.expiresAt)
+          : undefined,
       }
 
       const res = await fetch(
@@ -60,7 +66,7 @@ export function DiscountForm({ discount }: DiscountFormProps) {
           method: discount ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-        }
+        },
       )
 
       if (!res.ok) {
@@ -86,7 +92,9 @@ export function DiscountForm({ discount }: DiscountFormProps) {
       )}
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
-        <h2 className="text-lg font-semibold text-gray-900">Discount Details</h2>
+        <h2 className="text-lg font-semibold text-gray-900">
+          Discount Details
+        </h2>
 
         {/* Code */}
         <div>
@@ -96,12 +104,16 @@ export function DiscountForm({ discount }: DiscountFormProps) {
           <input
             type="text"
             value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+            onChange={(e) =>
+              setFormData({ ...formData, code: e.target.value.toUpperCase() })
+            }
             placeholder="e.g., SUMMER20"
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
-          <p className="text-sm text-gray-500 mt-1">Customers will enter this code at checkout</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Customers will enter this code at checkout
+          </p>
         </div>
 
         {/* Description */}
@@ -112,7 +124,9 @@ export function DiscountForm({ discount }: DiscountFormProps) {
           <input
             type="text"
             value={formData.description || ''}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             placeholder="e.g., Summer sale 20% off"
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -126,7 +140,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             </label>
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as DiscountType })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  type: e.target.value as DiscountType,
+                })
+              }
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="percentage">Percentage</option>
@@ -136,12 +155,18 @@ export function DiscountForm({ discount }: DiscountFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {formData.type === 'percentage' ? 'Percentage (%)' : 'Amount ($)'} *
+              {formData.type === 'percentage' ? 'Percentage (%)' : 'Amount ($)'}{' '}
+              *
             </label>
             <input
               type="number"
               value={formData.value}
-              onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  value: parseFloat(e.target.value) || 0,
+                })
+              }
               min={0}
               max={formData.type === 'percentage' ? 100 : undefined}
               step={formData.type === 'percentage' ? 1 : 0.01}
@@ -161,7 +186,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             <input
               type="number"
               value={formData.minOrderAmount || ''}
-              onChange={(e) => setFormData({ ...formData, minOrderAmount: parseFloat(e.target.value) || undefined })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  minOrderAmount: parseFloat(e.target.value) || undefined,
+                })
+              }
               min={0}
               step={0.01}
               placeholder="No minimum"
@@ -176,7 +206,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
               <input
                 type="number"
                 value={formData.maxDiscountAmount || ''}
-                onChange={(e) => setFormData({ ...formData, maxDiscountAmount: parseFloat(e.target.value) || undefined })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    maxDiscountAmount: parseFloat(e.target.value) || undefined,
+                  })
+                }
                 min={0}
                 step={0.01}
                 placeholder="No cap"
@@ -199,7 +234,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             <input
               type="number"
               value={formData.maxUses || ''}
-              onChange={(e) => setFormData({ ...formData, maxUses: parseInt(e.target.value) || undefined })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  maxUses: parseInt(e.target.value, 10) || undefined,
+                })
+              }
               min={1}
               placeholder="Unlimited"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -212,7 +252,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             <input
               type="number"
               value={formData.maxUsesPerCustomer || ''}
-              onChange={(e) => setFormData({ ...formData, maxUsesPerCustomer: parseInt(e.target.value) || undefined })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  maxUsesPerCustomer: parseInt(e.target.value, 10) || undefined,
+                })
+              }
               min={1}
               placeholder="Unlimited"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -233,7 +278,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             <input
               type="datetime-local"
               value={formData.startsAt || ''}
-              onChange={(e) => setFormData({ ...formData, startsAt: e.target.value || undefined })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  startsAt: e.target.value || undefined,
+                })
+              }
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -244,7 +294,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             <input
               type="datetime-local"
               value={formData.expiresAt || ''}
-              onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value || undefined })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  expiresAt: e.target.value || undefined,
+                })
+              }
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -256,10 +311,15 @@ export function DiscountForm({ discount }: DiscountFormProps) {
             type="checkbox"
             id="isActive"
             checked={formData.isActive}
-            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+            onChange={(e) =>
+              setFormData({ ...formData, isActive: e.target.checked })
+            }
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-          <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="isActive"
+            className="text-sm font-medium text-gray-700"
+          >
             Discount is active and can be used by customers
           </label>
         </div>
@@ -269,17 +329,23 @@ export function DiscountForm({ discount }: DiscountFormProps) {
       <div className="flex items-center justify-end gap-3">
         <button
           type="button"
+          type="button"
           onClick={() => router.back()}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
+          type="button"
           type="submit"
           disabled={loading}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? 'Saving...' : discount ? 'Update Discount' : 'Create Discount'}
+          {loading
+            ? 'Saving...'
+            : discount
+              ? 'Update Discount'
+              : 'Create Discount'}
         </button>
       </div>
     </form>

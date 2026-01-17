@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Upload, History, FileText, Loader2, Trash2, Eye } from 'lucide-react'
-import { ImportWizard } from '@/components/import/ImportWizard'
 import type { ImportJob, ImportJobStatus } from '@madebuy/shared'
+import { Eye, FileText, History, Loader2, Trash2, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ImportWizard } from '@/components/import/ImportWizard'
 
-const STATUS_LABELS: Record<ImportJobStatus, { label: string; color: string }> = {
-  uploaded: { label: 'Uploaded', color: 'bg-gray-100 text-gray-700' },
-  validating: { label: 'Validating', color: 'bg-blue-100 text-blue-700' },
-  validated: { label: 'Ready', color: 'bg-green-100 text-green-700' },
-  processing: { label: 'Processing', color: 'bg-yellow-100 text-yellow-700' },
-  completed: { label: 'Completed', color: 'bg-green-100 text-green-700' },
-  failed: { label: 'Failed', color: 'bg-red-100 text-red-700' },
-  cancelled: { label: 'Cancelled', color: 'bg-gray-100 text-gray-700' },
-}
+const STATUS_LABELS: Record<ImportJobStatus, { label: string; color: string }> =
+  {
+    uploaded: { label: 'Uploaded', color: 'bg-gray-100 text-gray-700' },
+    validating: { label: 'Validating', color: 'bg-blue-100 text-blue-700' },
+    validated: { label: 'Ready', color: 'bg-green-100 text-green-700' },
+    processing: { label: 'Processing', color: 'bg-yellow-100 text-yellow-700' },
+    completed: { label: 'Completed', color: 'bg-green-100 text-green-700' },
+    failed: { label: 'Failed', color: 'bg-red-100 text-red-700' },
+    cancelled: { label: 'Cancelled', color: 'bg-gray-100 text-gray-700' },
+  }
 
 export default function ImportPage() {
   const [activeTab, setActiveTab] = useState<'new' | 'history'>('new')
@@ -77,6 +78,7 @@ export default function ImportPage() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex gap-8">
           <button
+            type="button"
             onClick={() => setActiveTab('new')}
             className={`flex items-center gap-2 border-b-2 py-3 text-sm font-medium transition-colors ${
               activeTab === 'new'
@@ -88,6 +90,7 @@ export default function ImportPage() {
             New Import
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('history')}
             className={`flex items-center gap-2 border-b-2 py-3 text-sm font-medium transition-colors ${
               activeTab === 'history'
@@ -123,6 +126,7 @@ export default function ImportPage() {
               <FileText className="mx-auto h-12 w-12 text-gray-300" />
               <p className="mt-4 text-gray-500">No imports yet</p>
               <button
+                type="button"
                 onClick={() => setActiveTab('new')}
                 className="mt-4 text-blue-600 hover:text-blue-700"
               >
@@ -179,20 +183,25 @@ export default function ImportPage() {
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {job.status === 'completed' && (
                             <span>
-                              {job.productsCreated} created, {job.productsUpdated} updated
-                              {job.productsSkipped > 0 && `, ${job.productsSkipped} skipped`}
+                              {job.productsCreated} created,{' '}
+                              {job.productsUpdated} updated
+                              {job.productsSkipped > 0 &&
+                                `, ${job.productsSkipped} skipped`}
                             </span>
                           )}
                           {job.status === 'failed' && job.errors.length > 0 && (
                             <span className="text-red-600">
-                              {job.errors.length} error{job.errors.length > 1 ? 's' : ''}
+                              {job.errors.length} error
+                              {job.errors.length > 1 ? 's' : ''}
                             </span>
                           )}
                           {['uploaded', 'validated'].includes(job.status) && (
                             <span className="text-gray-400">Pending</span>
                           )}
                           {job.status === 'processing' && (
-                            <span className="text-yellow-600">In progress...</span>
+                            <span className="text-yellow-600">
+                              In progress...
+                            </span>
                           )}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
@@ -201,6 +210,7 @@ export default function ImportPage() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
+                              type="button"
                               onClick={() => setSelectedJob(job)}
                               className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                               title="View details"
@@ -209,6 +219,7 @@ export default function ImportPage() {
                             </button>
                             {job.status !== 'processing' && (
                               <button
+                                type="button"
                                 onClick={() => handleDelete(job.id)}
                                 className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
                                 title="Delete"
@@ -237,6 +248,7 @@ export default function ImportPage() {
                 Import Details
               </h2>
               <button
+                type="button"
                 onClick={() => setSelectedJob(null)}
                 className="text-gray-400 hover:text-gray-600"
               >

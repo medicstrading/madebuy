@@ -1,10 +1,10 @@
-import { Collection, ObjectId } from 'mongodb'
-import { getDatabase } from '../client'
 import type {
-  ImportJob,
   CreateImportJobInput,
+  ImportJob,
   UpdateImportJobInput,
 } from '@madebuy/shared'
+import { type Collection, ObjectId } from 'mongodb'
+import { getDatabase } from '../client'
 
 interface ImportJobDocument extends Omit<ImportJob, 'id'> {
   _id: ObjectId
@@ -26,7 +26,9 @@ function toImportJob(doc: ImportJobDocument): ImportJob {
 /**
  * Create a new import job
  */
-export async function createImportJob(input: CreateImportJobInput): Promise<ImportJob> {
+export async function createImportJob(
+  input: CreateImportJobInput,
+): Promise<ImportJob> {
   const collection = await getCollection()
 
   const doc: Omit<ImportJobDocument, '_id'> = {
@@ -60,7 +62,10 @@ export async function createImportJob(input: CreateImportJobInput): Promise<Impo
 /**
  * Get an import job by ID
  */
-export async function getImportJob(tenantId: string, jobId: string): Promise<ImportJob | null> {
+export async function getImportJob(
+  tenantId: string,
+  jobId: string,
+): Promise<ImportJob | null> {
   if (!ObjectId.isValid(jobId)) return null
 
   const collection = await getCollection()
@@ -78,7 +83,7 @@ export async function getImportJob(tenantId: string, jobId: string): Promise<Imp
 export async function updateImportJob(
   tenantId: string,
   jobId: string,
-  updates: UpdateImportJobInput
+  updates: UpdateImportJobInput,
 ): Promise<ImportJob | null> {
   if (!ObjectId.isValid(jobId)) return null
 
@@ -92,7 +97,7 @@ export async function updateImportJob(
         updatedAt: new Date(),
       },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result ? toImportJob(result) : null
@@ -103,7 +108,7 @@ export async function updateImportJob(
  */
 export async function listImportJobs(
   tenantId: string,
-  options: { limit?: number; offset?: number } = {}
+  options: { limit?: number; offset?: number } = {},
 ): Promise<{ jobs: ImportJob[]; total: number }> {
   const collection = await getCollection()
   const { limit = 20, offset = 0 } = options
@@ -127,7 +132,10 @@ export async function listImportJobs(
 /**
  * Delete an import job
  */
-export async function deleteImportJob(tenantId: string, jobId: string): Promise<boolean> {
+export async function deleteImportJob(
+  tenantId: string,
+  jobId: string,
+): Promise<boolean> {
   if (!ObjectId.isValid(jobId)) return false
 
   const collection = await getCollection()
@@ -145,7 +153,7 @@ export async function deleteImportJob(tenantId: string, jobId: string): Promise<
 export async function addImportErrors(
   tenantId: string,
   jobId: string,
-  errors: ImportJob['errors']
+  errors: ImportJob['errors'],
 ): Promise<void> {
   if (!ObjectId.isValid(jobId)) return
 
@@ -155,7 +163,7 @@ export async function addImportErrors(
     {
       $push: { errors: { $each: errors } },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }
 
@@ -165,7 +173,7 @@ export async function addImportErrors(
 export async function addImportWarnings(
   tenantId: string,
   jobId: string,
-  warnings: ImportJob['warnings']
+  warnings: ImportJob['warnings'],
 ): Promise<void> {
   if (!ObjectId.isValid(jobId)) return
 
@@ -175,7 +183,7 @@ export async function addImportWarnings(
     {
       $push: { warnings: { $each: warnings } },
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }
 
@@ -190,7 +198,7 @@ export async function incrementImportCounts(
     productsUpdated?: number
     productsSkipped?: number
     imagesDownloaded?: number
-  }
+  },
 ): Promise<void> {
   if (!ObjectId.isValid(jobId)) return
 
@@ -208,7 +216,7 @@ export async function incrementImportCounts(
       {
         $inc,
         $set: { updatedAt: new Date() },
-      }
+      },
     )
   }
 }

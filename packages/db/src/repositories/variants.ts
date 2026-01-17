@@ -9,16 +9,16 @@
  * - Low stock alerts
  */
 
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  EnhancedProductVariant,
-  CreateVariantInput,
-  UpdateVariantInput,
   BulkStockUpdateItem,
+  CreateVariantInput,
+  EnhancedProductVariant,
   ProductVariation,
+  UpdateVariantInput,
   VariantCombination,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 const COLLECTION = 'variant_combinations'
 
@@ -33,7 +33,7 @@ export class VariantError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message)
     this.name = 'VariantError'
@@ -48,7 +48,7 @@ export class NotFoundError extends VariantError {
     super(
       `Variant not found with ${identifierType}: ${identifier}`,
       'VARIANT_NOT_FOUND',
-      { identifier, identifierType }
+      { identifier, identifierType },
     )
     this.name = 'NotFoundError'
   }
@@ -59,11 +59,7 @@ export class NotFoundError extends VariantError {
  */
 export class DuplicateSkuError extends VariantError {
   constructor(sku: string) {
-    super(
-      `SKU already exists: ${sku}`,
-      'DUPLICATE_SKU',
-      { sku }
-    )
+    super(`SKU already exists: ${sku}`, 'DUPLICATE_SKU', { sku })
     this.name = 'DuplicateSkuError'
   }
 }
@@ -73,11 +69,7 @@ export class DuplicateSkuError extends VariantError {
  */
 export class ValidationError extends VariantError {
   constructor(message: string, field?: string, value?: unknown) {
-    super(
-      message,
-      'VALIDATION_ERROR',
-      { field, value }
-    )
+    super(message, 'VALIDATION_ERROR', { field, value })
     this.name = 'ValidationError'
   }
 }
@@ -98,14 +90,18 @@ const SKU_REGEX = /^[A-Za-z0-9_-]{3,50}$/
  */
 export function validateSku(sku: string): void {
   if (!sku || typeof sku !== 'string') {
-    throw new ValidationError('SKU is required and must be a string', 'sku', sku)
+    throw new ValidationError(
+      'SKU is required and must be a string',
+      'sku',
+      sku,
+    )
   }
 
   if (!SKU_REGEX.test(sku)) {
     throw new ValidationError(
       'SKU must be 3-50 characters, alphanumeric with dashes and underscores only',
       'sku',
-      sku
+      sku,
     )
   }
 }
@@ -153,25 +149,43 @@ export function validateCreateInput(input: CreateVariantInput): void {
   validatePrice(input.compareAtPrice)
 
   if (!input.attributes || typeof input.attributes !== 'object') {
-    throw new ValidationError('Attributes must be an object', 'attributes', input.attributes)
+    throw new ValidationError(
+      'Attributes must be an object',
+      'attributes',
+      input.attributes,
+    )
   }
 
   if (Object.keys(input.attributes).length === 0) {
-    throw new ValidationError('Attributes cannot be empty', 'attributes', input.attributes)
+    throw new ValidationError(
+      'Attributes cannot be empty',
+      'attributes',
+      input.attributes,
+    )
   }
 
   if (input.weight !== undefined && input.weight !== null) {
     if (typeof input.weight !== 'number' || input.weight < 0) {
-      throw new ValidationError('Weight must be a non-negative number', 'weight', input.weight)
+      throw new ValidationError(
+        'Weight must be a non-negative number',
+        'weight',
+        input.weight,
+      )
     }
   }
 
-  if (input.lowStockThreshold !== undefined && input.lowStockThreshold !== null) {
-    if (typeof input.lowStockThreshold !== 'number' || input.lowStockThreshold < 0) {
+  if (
+    input.lowStockThreshold !== undefined &&
+    input.lowStockThreshold !== null
+  ) {
+    if (
+      typeof input.lowStockThreshold !== 'number' ||
+      input.lowStockThreshold < 0
+    ) {
       throw new ValidationError(
         'Low stock threshold must be a non-negative number',
         'lowStockThreshold',
-        input.lowStockThreshold
+        input.lowStockThreshold,
       )
     }
   }
@@ -200,16 +214,26 @@ export function validateUpdateInput(input: UpdateVariantInput): void {
 
   if (input.weight !== undefined && input.weight !== null) {
     if (typeof input.weight !== 'number' || input.weight < 0) {
-      throw new ValidationError('Weight must be a non-negative number', 'weight', input.weight)
+      throw new ValidationError(
+        'Weight must be a non-negative number',
+        'weight',
+        input.weight,
+      )
     }
   }
 
-  if (input.lowStockThreshold !== undefined && input.lowStockThreshold !== null) {
-    if (typeof input.lowStockThreshold !== 'number' || input.lowStockThreshold < 0) {
+  if (
+    input.lowStockThreshold !== undefined &&
+    input.lowStockThreshold !== null
+  ) {
+    if (
+      typeof input.lowStockThreshold !== 'number' ||
+      input.lowStockThreshold < 0
+    ) {
       throw new ValidationError(
         'Low stock threshold must be a non-negative number',
         'lowStockThreshold',
-        input.lowStockThreshold
+        input.lowStockThreshold,
       )
     }
   }
@@ -240,15 +264,23 @@ export function isValidVariantInput(data: unknown): data is CreateVariantInput {
   }
 
   if (input.compareAtPrice !== undefined && input.compareAtPrice !== null) {
-    if (typeof input.compareAtPrice !== 'number' || input.compareAtPrice < 0) return false
+    if (typeof input.compareAtPrice !== 'number' || input.compareAtPrice < 0)
+      return false
   }
 
   if (input.weight !== undefined && input.weight !== null) {
     if (typeof input.weight !== 'number' || input.weight < 0) return false
   }
 
-  if (input.lowStockThreshold !== undefined && input.lowStockThreshold !== null) {
-    if (typeof input.lowStockThreshold !== 'number' || input.lowStockThreshold < 0) return false
+  if (
+    input.lowStockThreshold !== undefined &&
+    input.lowStockThreshold !== null
+  ) {
+    if (
+      typeof input.lowStockThreshold !== 'number' ||
+      input.lowStockThreshold < 0
+    )
+      return false
   }
 
   return true
@@ -261,7 +293,8 @@ export function isValidVariantInput(data: unknown): data is CreateVariantInput {
 /**
  * Database document shape for variant (includes tenantId and _id)
  */
-interface VariantDocument extends Omit<EnhancedProductVariant, 'createdAt' | 'updatedAt'> {
+interface VariantDocument
+  extends Omit<EnhancedProductVariant, 'createdAt' | 'updatedAt'> {
   tenantId: string
   _id?: unknown
   createdAt: Date
@@ -290,7 +323,7 @@ function sanitizeVariant(doc: VariantDocument): EnhancedProductVariant {
 export async function getVariants(
   tenantId: string,
   pieceId: string,
-  includeDeleted = false
+  includeDeleted = false,
 ): Promise<EnhancedProductVariant[]> {
   const db = await getDatabase()
 
@@ -318,7 +351,7 @@ export async function getVariants(
 export async function getVariantById(
   tenantId: string,
   pieceId: string,
-  variantId: string
+  variantId: string,
 ): Promise<EnhancedProductVariant> {
   const db = await getDatabase()
 
@@ -344,7 +377,7 @@ export async function getVariantById(
  */
 export async function getVariantBySku(
   tenantId: string,
-  sku: string
+  sku: string,
 ): Promise<EnhancedProductVariant | null> {
   const db = await getDatabase()
 
@@ -372,7 +405,7 @@ export async function getVariantBySku(
 export async function createVariant(
   tenantId: string,
   pieceId: string,
-  data: CreateVariantInput
+  data: CreateVariantInput,
 ): Promise<EnhancedProductVariant> {
   // Validate input
   validateCreateInput(data)
@@ -407,7 +440,9 @@ export async function createVariant(
 
   await db.collection(COLLECTION).insertOne(newVariant)
 
-  console.log(`[variants] Created variant ${newVariant.id} (SKU: ${data.sku}) for piece ${pieceId}`)
+  console.log(
+    `[variants] Created variant ${newVariant.id} (SKU: ${data.sku}) for piece ${pieceId}`,
+  )
 
   return sanitizeVariant(newVariant as VariantDocument)
 }
@@ -426,7 +461,7 @@ export async function updateVariant(
   tenantId: string,
   pieceId: string,
   variantId: string,
-  data: UpdateVariantInput
+  data: UpdateVariantInput,
 ): Promise<EnhancedProductVariant> {
   // Validate input
   validateUpdateInput(data)
@@ -449,10 +484,9 @@ export async function updateVariant(
     updatedAt: new Date(),
   }
 
-  await db.collection(COLLECTION).updateOne(
-    { tenantId, pieceId, id: variantId },
-    { $set: updateData }
-  )
+  await db
+    .collection(COLLECTION)
+    .updateOne({ tenantId, pieceId, id: variantId }, { $set: updateData })
 
   console.log(`[variants] Updated variant ${variantId} for piece ${pieceId}`)
 
@@ -471,7 +505,7 @@ export async function deleteVariant(
   tenantId: string,
   pieceId: string,
   variantId: string,
-  hardDelete = false
+  hardDelete = false,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -493,7 +527,9 @@ export async function deleteVariant(
       pieceId,
       id: variantId,
     })
-    console.log(`[variants] Hard deleted variant ${variantId} for piece ${pieceId}`)
+    console.log(
+      `[variants] Hard deleted variant ${variantId} for piece ${pieceId}`,
+    )
   } else {
     await db.collection(COLLECTION).updateOne(
       { tenantId, pieceId, id: variantId },
@@ -503,9 +539,11 @@ export async function deleteVariant(
           isAvailable: false,
           updatedAt: new Date(),
         },
-      }
+      },
     )
-    console.log(`[variants] Soft deleted variant ${variantId} for piece ${pieceId}`)
+    console.log(
+      `[variants] Soft deleted variant ${variantId} for piece ${pieceId}`,
+    )
   }
 }
 
@@ -524,7 +562,7 @@ export async function deleteVariant(
 export async function bulkCreateVariants(
   tenantId: string,
   pieceId: string,
-  variants: CreateVariantInput[]
+  variants: CreateVariantInput[],
 ): Promise<EnhancedProductVariant[]> {
   if (variants.length === 0) return []
 
@@ -579,7 +617,9 @@ export async function bulkCreateVariants(
 
   await db.collection(COLLECTION).insertMany(newVariants)
 
-  console.log(`[variants] Bulk created ${newVariants.length} variants for piece ${pieceId}`)
+  console.log(
+    `[variants] Bulk created ${newVariants.length} variants for piece ${pieceId}`,
+  )
 
   return newVariants.map((doc) => sanitizeVariant(doc as VariantDocument))
 }
@@ -593,7 +633,7 @@ export async function bulkCreateVariants(
  */
 export async function bulkUpdateStock(
   tenantId: string,
-  updates: BulkStockUpdateItem[]
+  updates: BulkStockUpdateItem[],
 ): Promise<{ updated: number; failed: string[] }> {
   if (updates.length === 0) {
     return { updated: 0, failed: [] }
@@ -608,7 +648,7 @@ export async function bulkUpdateStock(
   const now = new Date()
 
   // Use bulkWrite for efficient batch updates (O(1) instead of O(n) DB calls)
-  const bulkOps = updates.map(update => ({
+  const bulkOps = updates.map((update) => ({
     updateOne: {
       filter: {
         tenantId,
@@ -625,12 +665,14 @@ export async function bulkUpdateStock(
     },
   }))
 
-  const result = await db.collection(COLLECTION).bulkWrite(bulkOps, { ordered: false })
+  const result = await db
+    .collection(COLLECTION)
+    .bulkWrite(bulkOps, { ordered: false })
 
   const updated = result.modifiedCount + result.upsertedCount
   const failed = updates
     .filter(() => !result.modifiedCount)
-    .map(u => u.variantId)
+    .map((u) => u.variantId)
     .slice(0, updates.length - updated)
 
   console.log(`[variants] Bulk stock update: ${updated} updated via bulkWrite`)
@@ -646,7 +688,7 @@ export async function bulkUpdateStock(
  */
 export async function deleteAllVariants(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<number> {
   const db = await getDatabase()
 
@@ -655,7 +697,9 @@ export async function deleteAllVariants(
     pieceId,
   })
 
-  console.log(`[variants] Deleted all ${result.deletedCount} variants for piece ${pieceId}`)
+  console.log(
+    `[variants] Deleted all ${result.deletedCount} variants for piece ${pieceId}`,
+  )
 
   return result.deletedCount
 }
@@ -672,7 +716,7 @@ export async function deleteAllVariants(
  */
 export async function getLowStockVariants(
   tenantId: string,
-  defaultThreshold = 5
+  defaultThreshold = 5,
 ): Promise<EnhancedProductVariant[]> {
   const db = await getDatabase()
 
@@ -708,7 +752,7 @@ export async function getLowStockVariants(
  * @param tenantId - Tenant identifier
  */
 export async function getOutOfStockVariants(
-  tenantId: string
+  tenantId: string,
 ): Promise<EnhancedProductVariant[]> {
   const db = await getDatabase()
 
@@ -729,7 +773,7 @@ export async function getOutOfStockVariants(
  */
 export async function getTotalStock(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<number> {
   const db = await getDatabase()
 
@@ -757,7 +801,7 @@ export async function getTotalStock(
 export async function isSkuUnique(
   tenantId: string,
   sku: string,
-  excludeVariantId?: string
+  excludeVariantId?: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -786,7 +830,7 @@ export async function isSkuUnique(
 export async function updateVariantStock(
   tenantId: string,
   variantId: string,
-  quantity: number
+  quantity: number,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -803,11 +847,11 @@ export async function updateVariantStock(
 
   const newStock = (current.stock || 0) + quantity
   if (newStock < 0) {
-    throw new ValidationError(
-      'Resulting stock would be negative',
-      'quantity',
-      { currentStock: current.stock, change: quantity, resultingStock: newStock }
-    )
+    throw new ValidationError('Resulting stock would be negative', 'quantity', {
+      currentStock: current.stock,
+      change: quantity,
+      resultingStock: newStock,
+    })
   }
 
   const result = await db.collection(COLLECTION).updateOne(
@@ -818,7 +862,7 @@ export async function updateVariantStock(
         isAvailable: newStock > 0,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return result.modifiedCount > 0
@@ -835,7 +879,7 @@ export async function updateVariantStock(
 export async function getVariantByOptions(
   tenantId: string,
   pieceId: string,
-  options: Record<string, string>
+  options: Record<string, string>,
 ): Promise<EnhancedProductVariant | null> {
   const db = await getDatabase()
 
@@ -870,7 +914,7 @@ export async function getVariantByOptions(
 export function generateCombinations(
   variations: ProductVariation[],
   basePrice: number,
-  baseSku: string
+  baseSku: string,
 ): CreateVariantInput[] {
   if (variations.length === 0) return []
 
@@ -880,7 +924,7 @@ export function generateCombinations(
     index: number,
     currentAttributes: Record<string, string>,
     priceAdjustment: number,
-    skuParts: string[]
+    skuParts: string[],
   ) {
     if (index === variations.length) {
       const sku = [baseSku, ...skuParts].filter(Boolean).join('-')
@@ -900,7 +944,7 @@ export function generateCombinations(
         index + 1,
         { ...currentAttributes, [variation.name]: option.value },
         priceAdjustment + (option.priceAdjustment || 0),
-        [...skuParts, option.sku || option.value.substring(0, 3).toUpperCase()]
+        [...skuParts, option.sku || option.value.substring(0, 3).toUpperCase()],
       )
     }
   }
@@ -920,7 +964,7 @@ export function generateCombinations(
  */
 export async function listVariants(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<VariantCombination[]> {
   const db = await getDatabase()
 
@@ -948,7 +992,7 @@ export async function listVariants(
 export async function getVariant(
   tenantId: string,
   pieceId: string,
-  variantId: string
+  variantId: string,
 ): Promise<VariantCombination | null> {
   const db = await getDatabase()
 
@@ -962,11 +1006,18 @@ export async function getVariant(
   if (!result) return null
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { tenantId: _tenantId, _id, ...variant } = result as Record<string, unknown>
+  const {
+    tenantId: _tenantId,
+    _id,
+    ...variant
+  } = result as Record<string, unknown>
   return {
     id: variant.id as string,
     pieceId: variant.pieceId as string,
-    options: (variant.attributes || variant.options || {}) as Record<string, string>,
+    options: (variant.attributes || variant.options || {}) as Record<
+      string,
+      string
+    >,
     sku: variant.sku as string,
     price: (variant.price as number) || 0,
     stock: (variant.stock as number) || 0,

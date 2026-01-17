@@ -1,8 +1,12 @@
 import type { CheerioAPI } from 'cheerio'
-import type { Element } from 'domhandler'
 import { colord, extend } from 'colord'
 import namesPlugin from 'colord/plugins/names'
-import type { ColorCandidate, ColorExtractionResult, ColorSource } from '../types'
+import type { Element } from 'domhandler'
+import type {
+  ColorCandidate,
+  ColorExtractionResult,
+  ColorSource,
+} from '../types'
 
 // Enable color name parsing (e.g., "red", "blue")
 extend([namesPlugin])
@@ -23,7 +27,7 @@ const SOURCE_PRIORITY: Record<ColorSource, number> = {
  */
 export function extractColors(
   $: CheerioAPI,
-  css: string[]
+  css: string[],
 ): ColorExtractionResult {
   const candidates: ColorCandidate[] = []
 
@@ -79,7 +83,10 @@ export function extractColors(
 
   // Find accent (different from primary)
   for (const candidate of grouped.slice(1)) {
-    if (candidate.hex !== primary && !areSimilarColors(candidate.hex, primary || '')) {
+    if (
+      candidate.hex !== primary &&
+      !areSimilarColors(candidate.hex, primary || '')
+    ) {
       accent = candidate.hex
       break
     }
@@ -175,7 +182,9 @@ function groupSimilarColors(candidates: ColorCandidate[]): ColorCandidate[] {
   const groups: ColorCandidate[] = []
 
   for (const candidate of candidates) {
-    const existingGroup = groups.find(g => areSimilarColors(g.hex, candidate.hex))
+    const existingGroup = groups.find((g) =>
+      areSimilarColors(g.hex, candidate.hex),
+    )
 
     if (existingGroup) {
       existingGroup.frequency += candidate.frequency
@@ -204,8 +213,9 @@ function extractCssVariables(css: string, candidates: ColorCandidate[]): void {
   ]
 
   for (const pattern of variablePatterns) {
-    let match
-    while ((match = pattern.exec(css)) !== null) {
+    let match: RegExpExecArray | null = null
+    match = pattern.exec(css)
+    while (match !== null) {
       const normalized = normalizeColor(match[1])
       if (normalized && isValidBrandColor(normalized)) {
         candidates.push({
@@ -215,6 +225,7 @@ function extractCssVariables(css: string, candidates: ColorCandidate[]): void {
           priority: SOURCE_PRIORITY['css-variable'],
         })
       }
+      match = pattern.exec(css)
     }
   }
 }
@@ -222,28 +233,36 @@ function extractCssVariables(css: string, candidates: ColorCandidate[]): void {
 /**
  * Extracts colors from button elements
  */
-function extractButtonColors($: CheerioAPI, css: string, candidates: ColorCandidate[]): void {
+function extractButtonColors(
+  $: CheerioAPI,
+  css: string,
+  candidates: ColorCandidate[],
+): void {
   // Check inline styles on buttons
-  $('button, .btn, [class*="button"], a.btn, input[type="submit"]').each((_: number, el: Element) => {
-    const style = $(el).attr('style') || ''
-    const bgMatch = style.match(/background(?:-color)?:\s*([^;]+)/i)
-    if (bgMatch) {
-      const normalized = normalizeColor(bgMatch[1])
-      if (normalized && isValidBrandColor(normalized)) {
-        candidates.push({
-          hex: normalized,
-          source: 'button-background',
-          frequency: 2,
-          priority: SOURCE_PRIORITY['button-background'],
-        })
+  $('button, .btn, [class*="button"], a.btn, input[type="submit"]').each(
+    (_: number, el: Element) => {
+      const style = $(el).attr('style') || ''
+      const bgMatch = style.match(/background(?:-color)?:\s*([^;]+)/i)
+      if (bgMatch) {
+        const normalized = normalizeColor(bgMatch[1])
+        if (normalized && isValidBrandColor(normalized)) {
+          candidates.push({
+            hex: normalized,
+            source: 'button-background',
+            frequency: 2,
+            priority: SOURCE_PRIORITY['button-background'],
+          })
+        }
       }
-    }
-  })
+    },
+  )
 
   // Check CSS for button selectors
-  const buttonCssPattern = /(?:button|\.btn|\.button)[^{]*\{[^}]*background(?:-color)?:\s*([^;}\n]+)/gi
-  let match
-  while ((match = buttonCssPattern.exec(css)) !== null) {
+  const buttonCssPattern =
+    /(?:button|\.btn|\.button)[^{]*\{[^}]*background(?:-color)?:\s*([^;}\n]+)/gi
+  let match: RegExpExecArray | null = null
+  match = buttonCssPattern.exec(css)
+  while (match !== null) {
     const normalized = normalizeColor(match[1])
     if (normalized && isValidBrandColor(normalized)) {
       candidates.push({
@@ -253,13 +272,18 @@ function extractButtonColors($: CheerioAPI, css: string, candidates: ColorCandid
         priority: SOURCE_PRIORITY['button-background'],
       })
     }
+    match = buttonCssPattern.exec(css)
   }
 }
 
 /**
  * Extracts colors from link elements
  */
-function extractLinkColors($: CheerioAPI, css: string, candidates: ColorCandidate[]): void {
+function extractLinkColors(
+  $: CheerioAPI,
+  css: string,
+  candidates: ColorCandidate[],
+): void {
   // Check CSS for link colors
   const linkCssPattern = /\ba\b[^{]*\{[^}]*color:\s*([^;}\n]+)/gi
   let match
@@ -276,46 +300,55 @@ function extractLinkColors($: CheerioAPI, css: string, candidates: ColorCandidat
   }
 
   // Check inline styles on links
-  $('a').slice(0, 20).each((_: number, el: Element) => {
-    const style = $(el).attr('style') || ''
-    const colorMatch = style.match(/(?:^|;)\s*color:\s*([^;]+)/i)
-    if (colorMatch) {
-      const normalized = normalizeColor(colorMatch[1])
-      if (normalized && isValidBrandColor(normalized)) {
-        candidates.push({
-          hex: normalized,
-          source: 'link-color',
-          frequency: 1,
-          priority: SOURCE_PRIORITY['link-color'],
-        })
+  $('a')
+    .slice(0, 20)
+    .each((_: number, el: Element) => {
+      const style = $(el).attr('style') || ''
+      const colorMatch = style.match(/(?:^|;)\s*color:\s*([^;]+)/i)
+      if (colorMatch) {
+        const normalized = normalizeColor(colorMatch[1])
+        if (normalized && isValidBrandColor(normalized)) {
+          candidates.push({
+            hex: normalized,
+            source: 'link-color',
+            frequency: 1,
+            priority: SOURCE_PRIORITY['link-color'],
+          })
+        }
       }
-    }
-  })
+    })
 }
 
 /**
  * Extracts colors from header/nav elements
  */
-function extractHeaderColors($: CheerioAPI, css: string, candidates: ColorCandidate[]): void {
+function extractHeaderColors(
+  $: CheerioAPI,
+  css: string,
+  candidates: ColorCandidate[],
+): void {
   // Check inline styles on header/nav
-  $('header, nav, [class*="header"], [class*="navbar"]').each((_: number, el: Element) => {
-    const style = $(el).attr('style') || ''
-    const bgMatch = style.match(/background(?:-color)?:\s*([^;]+)/i)
-    if (bgMatch) {
-      const normalized = normalizeColor(bgMatch[1])
-      if (normalized && isValidBrandColor(normalized)) {
-        candidates.push({
-          hex: normalized,
-          source: 'header-background',
-          frequency: 2,
-          priority: SOURCE_PRIORITY['header-background'],
-        })
+  $('header, nav, [class*="header"], [class*="navbar"]').each(
+    (_: number, el: Element) => {
+      const style = $(el).attr('style') || ''
+      const bgMatch = style.match(/background(?:-color)?:\s*([^;]+)/i)
+      if (bgMatch) {
+        const normalized = normalizeColor(bgMatch[1])
+        if (normalized && isValidBrandColor(normalized)) {
+          candidates.push({
+            hex: normalized,
+            source: 'header-background',
+            frequency: 2,
+            priority: SOURCE_PRIORITY['header-background'],
+          })
+        }
       }
-    }
-  })
+    },
+  )
 
   // Check CSS for header selectors
-  const headerCssPattern = /(?:header|nav|\.navbar|\.header)[^{]*\{[^}]*background(?:-color)?:\s*([^;}\n]+)/gi
+  const headerCssPattern =
+    /(?:header|nav|\.navbar|\.header)[^{]*\{[^}]*background(?:-color)?:\s*([^;}\n]+)/gi
   let match
   while ((match = headerCssPattern.exec(css)) !== null) {
     const normalized = normalizeColor(match[1])
@@ -333,7 +366,11 @@ function extractHeaderColors($: CheerioAPI, css: string, candidates: ColorCandid
 /**
  * Extracts colors from heading elements
  */
-function extractHeadingColors($: CheerioAPI, css: string, candidates: ColorCandidate[]): void {
+function extractHeadingColors(
+  _$: CheerioAPI,
+  css: string,
+  candidates: ColorCandidate[],
+): void {
   // Check CSS for heading colors
   const headingCssPattern = /h[1-3][^{]*\{[^}]*color:\s*([^;}\n]+)/gi
   let match
@@ -353,24 +390,31 @@ function extractHeadingColors($: CheerioAPI, css: string, candidates: ColorCandi
 /**
  * Extracts colors from any inline style attributes
  */
-function extractInlineStyleColors($: CheerioAPI, candidates: ColorCandidate[]): void {
-  $('[style]').slice(0, 50).each((_: number, el: Element) => {
-    const style = $(el).attr('style') || ''
+function extractInlineStyleColors(
+  $: CheerioAPI,
+  candidates: ColorCandidate[],
+): void {
+  $('[style]')
+    .slice(0, 50)
+    .each((_: number, el: Element) => {
+      const style = $(el).attr('style') || ''
 
-    // Extract all color values
-    const colorMatches = style.matchAll(/(?:background-color|color|border-color):\s*([^;]+)/gi)
-    for (const match of colorMatches) {
-      const normalized = normalizeColor(match[1])
-      if (normalized && isValidBrandColor(normalized)) {
-        candidates.push({
-          hex: normalized,
-          source: 'inline-style',
-          frequency: 1,
-          priority: SOURCE_PRIORITY['inline-style'],
-        })
+      // Extract all color values
+      const colorMatches = style.matchAll(
+        /(?:background-color|color|border-color):\s*([^;]+)/gi,
+      )
+      for (const match of colorMatches) {
+        const normalized = normalizeColor(match[1])
+        if (normalized && isValidBrandColor(normalized)) {
+          candidates.push({
+            hex: normalized,
+            source: 'inline-style',
+            frequency: 1,
+            priority: SOURCE_PRIORITY['inline-style'],
+          })
+        }
       }
-    }
-  })
+    })
 }
 
 /**
@@ -379,7 +423,7 @@ function extractInlineStyleColors($: CheerioAPI, candidates: ColorCandidate[]): 
 function extractInlineStyles($: CheerioAPI): string {
   let css = ''
   $('style').each((_: number, el: Element) => {
-    css += $(el).text() + '\n'
+    css += `${$(el).text()}\n`
   })
   return css
 }

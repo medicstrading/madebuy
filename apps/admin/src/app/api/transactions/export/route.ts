@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { transactions } from '@madebuy/db'
-import type { TransactionFilters, Transaction } from '@madebuy/shared'
+import type { Transaction, TransactionFilters } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/transactions/export
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       filters,
       limit: 10000, // Reasonable upper limit
       sortBy: 'createdAt',
-      sortOrder: 'desc'
+      sortOrder: 'desc',
     })
 
     if (allTransactions.length === 0) {
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         'Currency',
         'Status',
         'Stripe Payment ID',
-        'Transaction ID'
+        'Transaction ID',
       ].join(','),
       // Data rows
       ...allTransactions.map((tx: Transaction) => {
@@ -92,10 +92,10 @@ export async function GET(request: NextRequest) {
           tx.currency.toUpperCase(),
           tx.status,
           tx.stripePaymentIntentId || '',
-          tx.id
+          tx.id,
         ]
         return row.join(',')
-      })
+      }),
     ]
 
     const csv = csvRows.join('\n')
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     console.error('Error exporting transactions:', error)
     return NextResponse.json(
       { error: 'Failed to export transactions' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -154,7 +154,7 @@ function getDefaultDescription(type: string): string {
     refund: 'Order refund',
     payout: 'Payout to bank',
     fee: 'Platform fee',
-    subscription: 'Subscription payment'
+    subscription: 'Subscription payment',
   }
   return descriptions[type] || type
 }

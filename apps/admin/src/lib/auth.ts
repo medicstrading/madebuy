@@ -1,7 +1,7 @@
-import { NextAuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
+import { auditLog, tenants } from '@madebuy/db'
 import bcrypt from 'bcryptjs'
-import { tenants, auditLog } from '@madebuy/db'
+import type { NextAuthOptions } from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -20,41 +20,60 @@ export const authOptions: NextAuthOptions = {
 
         if (!tenant) {
           // Log failed login attempt (unknown email) - fire-and-forget for faster response
-          auditLog.logAuditEvent({
-            eventType: 'auth.login.failed',
-            actorEmail: credentials.email,
-            actorType: 'anonymous',
-            success: false,
-            errorMessage: 'Unknown email address',
-          }).catch(e => console.error('Audit log failed (login failure - unknown email):', e))
+          auditLog
+            .logAuditEvent({
+              eventType: 'auth.login.failed',
+              actorEmail: credentials.email,
+              actorType: 'anonymous',
+              success: false,
+              errorMessage: 'Unknown email address',
+            })
+            .catch((e) =>
+              console.error(
+                'Audit log failed (login failure - unknown email):',
+                e,
+              ),
+            )
           return null
         }
 
-        const isValid = await bcrypt.compare(credentials.password, tenant.passwordHash)
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          tenant.passwordHash,
+        )
 
         if (!isValid) {
           // Log failed login attempt (wrong password) - fire-and-forget for faster response
-          auditLog.logAuditEvent({
-            tenantId: tenant.id,
-            eventType: 'auth.login.failed',
-            actorId: tenant.id,
-            actorEmail: tenant.email,
-            actorType: 'tenant',
-            success: false,
-            errorMessage: 'Invalid password',
-          }).catch(e => console.error('Audit log failed (login failure - invalid password):', e))
+          auditLog
+            .logAuditEvent({
+              tenantId: tenant.id,
+              eventType: 'auth.login.failed',
+              actorId: tenant.id,
+              actorEmail: tenant.email,
+              actorType: 'tenant',
+              success: false,
+              errorMessage: 'Invalid password',
+            })
+            .catch((e) =>
+              console.error(
+                'Audit log failed (login failure - invalid password):',
+                e,
+              ),
+            )
           return null
         }
 
         // Log successful login - fire-and-forget for faster response
-        auditLog.logAuditEvent({
-          tenantId: tenant.id,
-          eventType: 'auth.login.success',
-          actorId: tenant.id,
-          actorEmail: tenant.email,
-          actorType: 'tenant',
-          success: true,
-        }).catch(e => console.error('Audit log failed (login success):', e))
+        auditLog
+          .logAuditEvent({
+            tenantId: tenant.id,
+            eventType: 'auth.login.success',
+            actorId: tenant.id,
+            actorEmail: tenant.email,
+            actorType: 'tenant',
+            success: true,
+          })
+          .catch((e) => console.error('Audit log failed (login success):', e))
 
         return {
           id: tenant.id,

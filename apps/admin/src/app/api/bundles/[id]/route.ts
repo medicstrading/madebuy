@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { bundles } from '@madebuy/db'
 import type { UpdateBundleInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -37,13 +37,16 @@ export async function GET(
     return NextResponse.json({ bundle })
   } catch (error) {
     console.error('Error fetching bundle:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -60,7 +63,7 @@ export async function PUT(
       if (data.pieces.length === 0) {
         return NextResponse.json(
           { error: 'Bundle must have at least one piece' },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
@@ -68,7 +71,7 @@ export async function PUT(
         if (!piece.pieceId || piece.quantity < 1) {
           return NextResponse.json(
             { error: 'Each piece must have a valid pieceId and quantity >= 1' },
-            { status: 400 }
+            { status: 400 },
           )
         }
       }
@@ -78,7 +81,7 @@ export async function PUT(
     if (data.bundlePrice !== undefined && data.bundlePrice < 0) {
       return NextResponse.json(
         { error: 'Bundle price cannot be negative' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -91,13 +94,16 @@ export async function PUT(
     return NextResponse.json({ bundle })
   } catch (error) {
     console.error('Error updating bundle:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -116,6 +122,9 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting bundle:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

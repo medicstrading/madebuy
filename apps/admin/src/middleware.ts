@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { timingSafeEqual } from 'node:crypto'
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { timingSafeEqual } from 'crypto'
-import { rateLimiters, rateLimit } from '@/lib/rate-limit'
+import { rateLimit, rateLimiters } from '@/lib/rate-limit'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -57,7 +57,10 @@ export async function middleware(request: NextRequest) {
   // Allow public routes first (no auth or rate limit needed)
   if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
     // Only rate limit login attempts (unauthenticated, critical path)
-    if (pathname === '/api/auth/callback/credentials' || pathname === '/api/auth/signin') {
+    if (
+      pathname === '/api/auth/callback/credentials' ||
+      pathname === '/api/auth/signin'
+    ) {
       const rateLimitResponse = await rateLimit(request, rateLimiters.auth)
       if (rateLimitResponse) return rateLimitResponse
     }
@@ -88,9 +91,10 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
     secureCookie: process.env.NODE_ENV === 'production',
     // NextAuth v4 uses 'next-auth.session-token' (NOT 'authjs.session-token' which is Auth.js v5)
-    cookieName: process.env.NODE_ENV === 'production'
-      ? '__Secure-next-auth.session-token'
-      : 'next-auth.session-token',
+    cookieName:
+      process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
   })
 
   // If authenticated with valid token, skip rate limiting entirely

@@ -1,9 +1,19 @@
+import type {
+  OnboardingStep,
+  PayPalConnectStatus,
+  StripeConnectStatus,
+  Tenant,
+  TenantPaymentConfig,
+} from '@madebuy/shared'
+import { DEFAULT_REGIONAL_SETTINGS } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import { DEFAULT_REGIONAL_SETTINGS } from '@madebuy/shared'
-import type { Tenant, StripeConnectStatus, PayPalConnectStatus, TenantPaymentConfig, OnboardingStep } from '@madebuy/shared'
 
-export async function createTenant(email: string, passwordHash: string, businessName: string): Promise<Tenant> {
+export async function createTenant(
+  email: string,
+  passwordHash: string,
+  businessName: string,
+): Promise<Tenant> {
   const db = await getDatabase()
 
   // Generate slug from business name or email
@@ -45,53 +55,65 @@ export async function createTenant(email: string, passwordHash: string, business
 
 export async function getTenantById(id: string): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({ id }) as Tenant | null
+  return (await db.collection('tenants').findOne({ id })) as Tenant | null
 }
 
 export async function getTenantByEmail(email: string): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({ email }) as Tenant | null
+  return (await db.collection('tenants').findOne({ email })) as Tenant | null
 }
 
-export async function getTenantByCustomDomain(domain: string): Promise<Tenant | null> {
+export async function getTenantByCustomDomain(
+  domain: string,
+): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({ customDomain: domain }) as Tenant | null
+  return (await db
+    .collection('tenants')
+    .findOne({ customDomain: domain })) as Tenant | null
 }
 
 export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({ slug }) as Tenant | null
+  return (await db.collection('tenants').findOne({ slug })) as Tenant | null
 }
 
-export async function getTenantByStripeAccountId(stripeAccountId: string): Promise<Tenant | null> {
+export async function getTenantByStripeAccountId(
+  stripeAccountId: string,
+): Promise<Tenant | null> {
   const db = await getDatabase()
   // Check new paymentConfig structure first, then legacy field
-  const tenant = await db.collection('tenants').findOne({
+  const tenant = (await db.collection('tenants').findOne({
     $or: [
       { 'paymentConfig.stripe.connectAccountId': stripeAccountId },
-      { stripeConnectAccountId: stripeAccountId } // Legacy field
-    ]
-  }) as Tenant | null
+      { stripeConnectAccountId: stripeAccountId }, // Legacy field
+    ],
+  })) as Tenant | null
   return tenant
 }
 
-export async function getTenantByPayPalMerchantId(merchantId: string): Promise<Tenant | null> {
+export async function getTenantByPayPalMerchantId(
+  merchantId: string,
+): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({
-    'paymentConfig.paypal.merchantId': merchantId
-  }) as Tenant | null
+  return (await db.collection('tenants').findOne({
+    'paymentConfig.paypal.merchantId': merchantId,
+  })) as Tenant | null
 }
 
-export async function getTenantByStripeCustomerId(stripeCustomerId: string): Promise<Tenant | null> {
+export async function getTenantByStripeCustomerId(
+  stripeCustomerId: string,
+): Promise<Tenant | null> {
   const db = await getDatabase()
-  return await db.collection('tenants').findOne({
-    stripeCustomerId
-  }) as Tenant | null
+  return (await db.collection('tenants').findOne({
+    stripeCustomerId,
+  })) as Tenant | null
 }
 
-export async function getTenantByDomain(domain: string): Promise<Tenant | null> {
+export async function getTenantByDomain(
+  domain: string,
+): Promise<Tenant | null> {
   // First try custom domain
-  let tenant = await getTenantByCustomDomain(domain)
+  const tenant = await getTenantByCustomDomain(domain)
   if (tenant) return tenant
 
   // Then try as slug (tenant ID)
@@ -100,7 +122,7 @@ export async function getTenantByDomain(domain: string): Promise<Tenant | null> 
 
 export async function updateTenant(
   id: string,
-  updates: Partial<Omit<Tenant, 'id' | 'createdAt'>>
+  updates: Partial<Omit<Tenant, 'id' | 'createdAt'>>,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
@@ -109,8 +131,8 @@ export async function updateTenant(
       $set: {
         ...updates,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -128,7 +150,7 @@ export async function updateMakerSettings(
     makerType?: Tenant['makerType']
     customCategories?: string[]
     customMaterialCategories?: string[]
-  }
+  },
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
@@ -137,8 +159,8 @@ export async function updateMakerSettings(
       $set: {
         ...settings,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -148,16 +170,17 @@ export async function updateMakerSettings(
 export async function addCustomCategory(
   id: string,
   category: string,
-  type: 'product' | 'material' = 'product'
+  type: 'product' | 'material' = 'product',
 ): Promise<void> {
   const db = await getDatabase()
-  const field = type === 'product' ? 'customCategories' : 'customMaterialCategories'
+  const field =
+    type === 'product' ? 'customCategories' : 'customMaterialCategories'
   await db.collection('tenants').updateOne(
     { id },
     {
       $addToSet: { [field]: category },
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -167,16 +190,17 @@ export async function addCustomCategory(
 export async function removeCustomCategory(
   id: string,
   category: string,
-  type: 'product' | 'material' = 'product'
+  type: 'product' | 'material' = 'product',
 ): Promise<void> {
   const db = await getDatabase()
-  const field = type === 'product' ? 'customCategories' : 'customMaterialCategories'
+  const field =
+    type === 'product' ? 'customCategories' : 'customMaterialCategories'
   await db.collection('tenants').updateOne(
     { id },
     {
       $pull: { [field]: category } as any,
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -185,25 +209,30 @@ export async function removeCustomCategory(
  */
 export async function getTenantsWithoutMakerType(): Promise<Tenant[]> {
   const db = await getDatabase()
-  const docs = await db.collection('tenants').find({
-    makerType: { $exists: false }
-  }).toArray()
+  const docs = await db
+    .collection('tenants')
+    .find({
+      makerType: { $exists: false },
+    })
+    .toArray()
   return docs as unknown as Tenant[]
 }
 
 /**
  * Migration: Set default maker type for existing tenants
  */
-export async function migrateToMakerType(defaultType: Tenant['makerType'] = 'jewelry'): Promise<number> {
+export async function migrateToMakerType(
+  defaultType: Tenant['makerType'] = 'jewelry',
+): Promise<number> {
   const db = await getDatabase()
   const result = await db.collection('tenants').updateMany(
     { makerType: { $exists: false } },
     {
       $set: {
         makerType: defaultType,
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
   return result.modifiedCount
 }
@@ -212,13 +241,16 @@ export async function migrateToMakerType(defaultType: Tenant['makerType'] = 'jew
  * Batch fetch tenants by IDs (for N+1 query optimization)
  * Returns a Map for O(1) lookup
  */
-export async function getTenantsByIds(tenantIds: string[]): Promise<Map<string, Tenant>> {
+export async function getTenantsByIds(
+  tenantIds: string[],
+): Promise<Map<string, Tenant>> {
   if (tenantIds.length === 0) return new Map()
 
   const db = await getDatabase()
   const uniqueIds = [...new Set(tenantIds)]
 
-  const tenantDocs = await db.collection('tenants')
+  const tenantDocs = await db
+    .collection('tenants')
     .find({ id: { $in: uniqueIds } })
     .project({
       id: 1,
@@ -230,7 +262,7 @@ export async function getTenantsByIds(tenantIds: string[]): Promise<Map<string, 
     })
     .toArray()
 
-  return new Map(tenantDocs.map(t => [t.id, t as unknown as Tenant]))
+  return new Map(tenantDocs.map((t) => [t.id, t as unknown as Tenant]))
 }
 
 // =============================================================================
@@ -242,7 +274,7 @@ export async function getTenantsByIds(tenantIds: string[]): Promise<Map<string, 
  */
 export async function updateStripeConnectStatus(
   tenantId: string,
-  stripeStatus: StripeConnectStatus
+  stripeStatus: StripeConnectStatus,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
@@ -251,8 +283,8 @@ export async function updateStripeConnectStatus(
       $set: {
         'paymentConfig.stripe': stripeStatus,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -261,7 +293,7 @@ export async function updateStripeConnectStatus(
  */
 export async function updatePayPalConnectStatus(
   tenantId: string,
-  paypalStatus: PayPalConnectStatus
+  paypalStatus: PayPalConnectStatus,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
@@ -270,8 +302,8 @@ export async function updatePayPalConnectStatus(
       $set: {
         'paymentConfig.paypal': paypalStatus,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -281,7 +313,7 @@ export async function updatePayPalConnectStatus(
 export async function updateEnabledPaymentMethods(
   tenantId: string,
   enabledMethods: TenantPaymentConfig['enabledMethods'],
-  defaultMethod?: TenantPaymentConfig['defaultMethod']
+  defaultMethod?: TenantPaymentConfig['defaultMethod'],
 ): Promise<void> {
   const db = await getDatabase()
   const update: Record<string, unknown> = {
@@ -291,10 +323,7 @@ export async function updateEnabledPaymentMethods(
   if (defaultMethod !== undefined) {
     update['paymentConfig.defaultMethod'] = defaultMethod
   }
-  await db.collection('tenants').updateOne(
-    { id: tenantId },
-    { $set: update }
-  )
+  await db.collection('tenants').updateOne({ id: tenantId }, { $set: update })
 }
 
 /**
@@ -302,7 +331,7 @@ export async function updateEnabledPaymentMethods(
  */
 export async function updateNoPaymentMessage(
   tenantId: string,
-  message: string
+  message: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
@@ -311,8 +340,8 @@ export async function updateNoPaymentMessage(
       $set: {
         'paymentConfig.noPaymentMessage': message,
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -327,11 +356,12 @@ export async function initializePaymentConfig(tenantId: string): Promise<void> {
       $set: {
         paymentConfig: {
           enabledMethods: [],
-          noPaymentMessage: 'This seller has not set up payments yet. Please contact them directly to arrange payment.',
+          noPaymentMessage:
+            'This seller has not set up payments yet. Please contact them directly to arrange payment.',
         },
         updatedAt: new Date(),
-      }
-    }
+      },
+    },
   )
 }
 
@@ -345,8 +375,8 @@ export async function removeStripeConnect(tenantId: string): Promise<void> {
     {
       $unset: { 'paymentConfig.stripe': '' },
       $pull: { 'paymentConfig.enabledMethods': 'stripe' } as any,
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -360,8 +390,8 @@ export async function removePayPalConnect(tenantId: string): Promise<void> {
     {
       $unset: { 'paymentConfig.paypal': '' },
       $pull: { 'paymentConfig.enabledMethods': 'paypal' } as any,
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -369,7 +399,10 @@ export async function removePayPalConnect(tenantId: string): Promise<void> {
 // USAGE TRACKING
 // =============================================================================
 
-type UsageField = 'storageUsedMB' | 'aiCaptionsUsedThisMonth' | 'ordersThisMonth'
+type UsageField =
+  | 'storageUsedMB'
+  | 'aiCaptionsUsedThisMonth'
+  | 'ordersThisMonth'
 
 /**
  * Increment a usage counter for a tenant
@@ -377,15 +410,15 @@ type UsageField = 'storageUsedMB' | 'aiCaptionsUsedThisMonth' | 'ordersThisMonth
 export async function incrementUsage(
   tenantId: string,
   field: UsageField,
-  amount = 1
+  amount = 1,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
     { id: tenantId },
     {
       $inc: { [`usage.${field}`]: amount },
-      $set: { updatedAt: new Date() }
-    }
+      $set: { updatedAt: new Date() },
+    },
   )
 }
 
@@ -395,23 +428,23 @@ export async function incrementUsage(
 export async function decrementUsage(
   tenantId: string,
   field: UsageField,
-  amount = 1
+  amount = 1,
 ): Promise<void> {
   const db = await getDatabase()
   // Use aggregation pipeline to ensure we don't go below 0
-  await db.collection('tenants').updateOne(
-    { id: tenantId },
-    [
-      {
-        $set: {
-          [`usage.${field}`]: {
-            $max: [0, { $subtract: [{ $ifNull: [`$usage.${field}`, 0] }, amount] }]
-          },
-          updatedAt: new Date()
-        }
-      }
-    ]
-  )
+  await db.collection('tenants').updateOne({ id: tenantId }, [
+    {
+      $set: {
+        [`usage.${field}`]: {
+          $max: [
+            0,
+            { $subtract: [{ $ifNull: [`$usage.${field}`, 0] }, amount] },
+          ],
+        },
+        updatedAt: new Date(),
+      },
+    },
+  ])
 }
 
 /**
@@ -426,9 +459,9 @@ export async function resetMonthlyUsage(tenantId: string): Promise<void> {
         'usage.aiCaptionsUsedThisMonth': 0,
         'usage.ordersThisMonth': 0,
         'usage.lastResetDate': new Date(),
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 
@@ -443,13 +476,16 @@ export async function getTenantsNeedingUsageReset(): Promise<Tenant[]> {
   const now = new Date()
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
-  const results = await db.collection('tenants').find({
-    $or: [
-      { 'usage.lastResetDate': { $lt: firstOfMonth } },
-      { 'usage.lastResetDate': { $exists: false } },
-      { usage: { $exists: false } }
-    ]
-  }).toArray()
+  const results = await db
+    .collection('tenants')
+    .find({
+      $or: [
+        { 'usage.lastResetDate': { $lt: firstOfMonth } },
+        { 'usage.lastResetDate': { $exists: false } },
+        { usage: { $exists: false } },
+      ],
+    })
+    .toArray()
 
   return results as unknown as Tenant[]
 }
@@ -467,11 +503,11 @@ export async function initializeUsage(tenantId: string): Promise<void> {
           storageUsedMB: 0,
           aiCaptionsUsedThisMonth: 0,
           ordersThisMonth: 0,
-          lastResetDate: new Date()
+          lastResetDate: new Date(),
         },
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 
@@ -498,7 +534,7 @@ export const listTenants = getAllTenants
  */
 export async function updateOnboardingStep(
   tenantId: string,
-  step: OnboardingStep
+  step: OnboardingStep,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('tenants').updateOne(
@@ -506,9 +542,9 @@ export async function updateOnboardingStep(
     {
       $set: {
         onboardingStep: step,
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 
@@ -523,9 +559,9 @@ export async function completeOnboarding(tenantId: string): Promise<void> {
       $set: {
         onboardingComplete: true,
         onboardingStep: 'complete',
-        updatedAt: new Date()
-      }
-    }
+        updatedAt: new Date(),
+      },
+    },
   )
 }
 

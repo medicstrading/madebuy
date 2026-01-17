@@ -1,17 +1,15 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  ProductionRun,
-  ProductionMaterialConsumption,
   CreateProductionRunInput,
-  ProductionRunFilters,
+  Material,
+  ProductionMaterialConsumption,
+  ProductionRun,
   ProductionRunListOptions,
   ProductionSummary,
-  Piece,
-  Material,
 } from '@madebuy/shared'
-import * as pieces from './pieces'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 import * as materials from './materials'
+import * as pieces from './pieces'
 
 export interface ProductionRunListResult {
   runs: ProductionRun[]
@@ -26,7 +24,7 @@ export interface ProductionRunListResult {
  */
 export async function createProductionRun(
   tenantId: string,
-  input: CreateProductionRunInput
+  input: CreateProductionRunInput,
 ): Promise<ProductionRun> {
   const db = await getDatabase()
 
@@ -37,16 +35,19 @@ export async function createProductionRun(
   }
 
   if (!piece.materialsUsed || piece.materialsUsed.length === 0) {
-    throw new Error(`Piece "${piece.name}" has no materials configured. Add materials to the piece first.`)
+    throw new Error(
+      `Piece "${piece.name}" has no materials configured. Add materials to the piece first.`,
+    )
   }
 
   // Get all materials in one query
-  const materialIds = piece.materialsUsed.map(m => m.materialId)
-  const materialsList = await db.collection('materials')
+  const materialIds = piece.materialsUsed.map((m) => m.materialId)
+  const materialsList = (await db
+    .collection('materials')
     .find({ tenantId, id: { $in: materialIds } })
-    .toArray() as unknown as Material[]
+    .toArray()) as unknown as Material[]
 
-  const materialsMap = new Map(materialsList.map(m => [m.id, m]))
+  const materialsMap = new Map(materialsList.map((m) => [m.id, m]))
 
   // Calculate material consumption and check stock availability
   const materialsConsumption: ProductionMaterialConsumption[] = []
@@ -61,7 +62,7 @@ export async function createProductionRun(
     const quantityNeeded = usage.quantity * input.quantityProduced
     if (material.quantityInStock < quantityNeeded) {
       insufficientStock.push(
-        `${material.name}: need ${quantityNeeded} ${material.unit}, have ${material.quantityInStock}`
+        `${material.name}: need ${quantityNeeded} ${material.unit}, have ${material.quantityInStock}`,
       )
     }
 
@@ -82,7 +83,10 @@ export async function createProductionRun(
   }
 
   // Calculate totals
-  const totalMaterialCost = materialsConsumption.reduce((sum, m) => sum + m.totalCost, 0)
+  const totalMaterialCost = materialsConsumption.reduce(
+    (sum, m) => sum + m.totalCost,
+    0,
+  )
   const costPerUnit = Math.round(totalMaterialCost / input.quantityProduced)
 
   // Get current piece stock
@@ -119,7 +123,7 @@ export async function createProductionRun(
       tenantId,
       consumption.materialId,
       -consumption.quantityUsed,
-      'production'
+      'production',
     )
   }
 
@@ -134,10 +138,12 @@ export async function createProductionRun(
  */
 export async function getProductionRun(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<ProductionRun | null> {
   const db = await getDatabase()
-  return await db.collection('production_runs').findOne({ tenantId, id }) as ProductionRun | null
+  return (await db
+    .collection('production_runs')
+    .findOne({ tenantId, id })) as ProductionRun | null
 }
 
 /**
@@ -145,7 +151,7 @@ export async function getProductionRun(
  */
 export async function listProductionRuns(
   tenantId: string,
-  options?: ProductionRunListOptions
+  options?: ProductionRunListOptions,
 ): Promise<ProductionRunListResult> {
   const db = await getDatabase()
 
@@ -158,15 +164,18 @@ export async function listProductionRuns(
   if (options?.dateFrom || options?.dateTo) {
     query.productionDate = {}
     if (options.dateFrom) {
-      (query.productionDate as Record<string, unknown>).$gte = options.dateFrom
+      ;(query.productionDate as Record<string, unknown>).$gte = options.dateFrom
     }
     if (options.dateTo) {
-      (query.productionDate as Record<string, unknown>).$lte = options.dateTo
+      ;(query.productionDate as Record<string, unknown>).$lte = options.dateTo
     }
   }
 
   // Pagination defaults
-  const page = Math.max(1, Math.floor((options?.offset || 0) / (options?.limit || 20)) + 1)
+  const page = Math.max(
+    1,
+    Math.floor((options?.offset || 0) / (options?.limit || 20)) + 1,
+  )
   const limit = Math.min(options?.limit || 20, 100)
   const skip = options?.offset || 0
 
@@ -179,7 +188,8 @@ export async function listProductionRuns(
   const total = await db.collection('production_runs').countDocuments(query)
 
   // Get paginated results
-  const results = await db.collection('production_runs')
+  const results = await db
+    .collection('production_runs')
     .find(query)
     .sort(sort)
     .skip(skip)
@@ -201,11 +211,12 @@ export async function listProductionRuns(
 export async function getProductionRunsForPiece(
   tenantId: string,
   pieceId: string,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<ProductionRun[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('production_runs')
+  const results = await db
+    .collection('production_runs')
     .find({ tenantId, pieceId })
     .sort({ productionDate: -1 })
     .limit(limit)
@@ -220,7 +231,7 @@ export async function getProductionRunsForPiece(
  */
 export async function deleteProductionRun(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -236,12 +247,16 @@ export async function deleteProductionRun(
       tenantId,
       consumption.materialId,
       consumption.quantityUsed, // Add back (positive)
-      'production_reversal'
+      'production_reversal',
     )
   }
 
   // Reverse piece stock change (subtract what was added)
-  await pieces.decrementStock(tenantId, productionRun.pieceId, productionRun.quantityProduced)
+  await pieces.decrementStock(
+    tenantId,
+    productionRun.pieceId,
+    productionRun.quantityProduced,
+  )
 
   // Delete the production run record
   await db.collection('production_runs').deleteOne({ tenantId, id })
@@ -253,18 +268,20 @@ export async function deleteProductionRun(
 export async function getProductionSummary(
   tenantId: string,
   dateFrom?: Date,
-  dateTo?: Date
+  dateTo?: Date,
 ): Promise<ProductionSummary> {
   const db = await getDatabase()
 
   const match: Record<string, unknown> = { tenantId }
   if (dateFrom || dateTo) {
     match.productionDate = {}
-    if (dateFrom) (match.productionDate as Record<string, unknown>).$gte = dateFrom
+    if (dateFrom)
+      (match.productionDate as Record<string, unknown>).$gte = dateFrom
     if (dateTo) (match.productionDate as Record<string, unknown>).$lte = dateTo
   }
 
-  const results = await db.collection('production_runs')
+  const results = await db
+    .collection('production_runs')
     .aggregate([
       { $match: match },
       {
@@ -273,8 +290,8 @@ export async function getProductionSummary(
           totalRuns: { $sum: 1 },
           totalQuantityProduced: { $sum: '$quantityProduced' },
           totalMaterialCost: { $sum: '$totalMaterialCost' },
-        }
-      }
+        },
+      },
     ])
     .toArray()
 
@@ -292,8 +309,9 @@ export async function getProductionSummary(
     totalRuns: data.totalRuns,
     totalQuantityProduced: data.totalQuantityProduced,
     totalMaterialCost: data.totalMaterialCost,
-    averageCostPerUnit: data.totalQuantityProduced > 0
-      ? Math.round(data.totalMaterialCost / data.totalQuantityProduced)
-      : 0,
+    averageCostPerUnit:
+      data.totalQuantityProduced > 0
+        ? Math.round(data.totalMaterialCost / data.totalQuantityProduced)
+        : 0,
   }
 }

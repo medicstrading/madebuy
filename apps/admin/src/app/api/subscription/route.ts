@@ -1,7 +1,7 @@
+import { PLAN_NAMES, PLAN_PRICES } from '@madebuy/shared/src/lib/subscription'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { getSubscriptionSummary } from '@/lib/subscription-check'
-import { PLAN_PRICES, PLAN_NAMES } from '@madebuy/shared/src/lib/subscription'
 
 /**
  * GET /api/subscription
@@ -28,7 +28,7 @@ export async function GET() {
     console.error('Error fetching subscription:', error)
     return NextResponse.json(
       { error: 'Failed to fetch subscription' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

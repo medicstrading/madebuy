@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { DiscountForm } from '@/components/discounts/DiscountForm'
 import type { DiscountCode } from '@madebuy/shared'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { DiscountForm } from '@/components/discounts/DiscountForm'
 
 export default function EditDiscountPage() {
   const params = useParams()
@@ -40,8 +40,13 @@ export default function EditDiscountPage() {
   if (!discount) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-lg font-medium text-gray-900">Discount not found</h2>
-        <Link href="/dashboard/discounts" className="text-blue-600 hover:underline mt-2 inline-block">
+        <h2 className="text-lg font-medium text-gray-900">
+          Discount not found
+        </h2>
+        <Link
+          href="/dashboard/discounts"
+          className="text-blue-600 hover:underline mt-2 inline-block"
+        >
           Back to discounts
         </Link>
       </div>
@@ -59,7 +64,9 @@ export default function EditDiscountPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Edit Discount</h1>
-          <p className="text-gray-500 mt-1">Update discount code: {discount.code}</p>
+          <p className="text-gray-500 mt-1">
+            Update discount code: {discount.code}
+          </p>
         </div>
       </div>
 

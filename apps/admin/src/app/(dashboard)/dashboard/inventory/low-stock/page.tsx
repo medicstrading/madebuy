@@ -1,8 +1,7 @@
-import { requireTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
-import { formatCurrency } from '@/lib/utils'
-import { AlertTriangle, Package, ArrowLeft, ExternalLink } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ExternalLink, Package } from 'lucide-react'
 import Link from 'next/link'
+import { requireTenant } from '@/lib/session'
 import { BulkThresholdUpdate } from './BulkThresholdUpdate'
 
 export const metadata = {
@@ -15,8 +14,8 @@ export default async function LowStockPage() {
   const lowStockPieces = await pieces.getLowStockPieces(tenant.id)
 
   // Group by stock status
-  const outOfStock = lowStockPieces.filter(p => p.stock === 0)
-  const lowStock = lowStockPieces.filter(p => p.stock > 0)
+  const outOfStock = lowStockPieces.filter((p) => p.stock === 0)
+  const lowStock = lowStockPieces.filter((p) => p.stock > 0)
 
   return (
     <div>
@@ -31,7 +30,9 @@ export default async function LowStockPage() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Low Stock Items</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Low Stock Items
+            </h1>
             <p className="mt-2 text-gray-600">
               Items that are at or below their restock threshold
             </p>
@@ -44,8 +45,12 @@ export default async function LowStockPage() {
         <div className="rounded-lg bg-white p-6 shadow-sm border-l-4 border-amber-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Low Stock</p>
-              <p className="text-3xl font-bold text-gray-900">{lowStockPieces.length}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Low Stock
+              </p>
+              <p className="text-3xl font-bold text-gray-900">
+                {lowStockPieces.length}
+              </p>
             </div>
             <Package className="h-10 w-10 text-amber-500" />
           </div>
@@ -55,7 +60,9 @@ export default async function LowStockPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Out of Stock</p>
-              <p className="text-3xl font-bold text-red-600">{outOfStock.length}</p>
+              <p className="text-3xl font-bold text-red-600">
+                {outOfStock.length}
+              </p>
             </div>
             <AlertTriangle className="h-10 w-10 text-red-500" />
           </div>
@@ -64,8 +71,12 @@ export default async function LowStockPage() {
         <div className="rounded-lg bg-white p-6 shadow-sm border-l-4 border-amber-400">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Below Threshold</p>
-              <p className="text-3xl font-bold text-amber-600">{lowStock.length}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Below Threshold
+              </p>
+              <p className="text-3xl font-bold text-amber-600">
+                {lowStock.length}
+              </p>
             </div>
             <Package className="h-10 w-10 text-amber-400" />
           </div>
@@ -75,7 +86,9 @@ export default async function LowStockPage() {
       {lowStockPieces.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center bg-white">
           <Package className="mx-auto h-12 w-12 text-green-500" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">All stocked up!</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            All stocked up!
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
             No items are currently below their restock threshold.
           </p>
@@ -123,7 +136,9 @@ export default async function LowStockPage() {
                     {outOfStock.map((piece) => (
                       <tr key={piece.id} className="hover:bg-gray-50">
                         <td className="whitespace-nowrap px-6 py-4">
-                          <div className="font-medium text-gray-900">{piece.name}</div>
+                          <div className="font-medium text-gray-900">
+                            {piece.name}
+                          </div>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                           {piece.category}
@@ -191,7 +206,9 @@ export default async function LowStockPage() {
                     {lowStock.map((piece) => (
                       <tr key={piece.id} className="hover:bg-gray-50">
                         <td className="whitespace-nowrap px-6 py-4">
-                          <div className="font-medium text-gray-900">{piece.name}</div>
+                          <div className="font-medium text-gray-900">
+                            {piece.name}
+                          </div>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                           {piece.category}
@@ -241,7 +258,9 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.draft}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${colors[status as keyof typeof colors] || colors.draft}`}
+    >
       {status}
     </span>
   )

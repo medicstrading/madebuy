@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { uploadToR2 } from '@madebuy/storage'
 import { imports } from '@madebuy/db'
+import { uploadToR2 } from '@madebuy/storage'
 import { nanoid } from 'nanoid'
-import { parseCSV, detectSource, suggestColumnMapping } from '@/lib/csv-parser'
+import { type NextRequest, NextResponse } from 'next/server'
+import { detectSource, parseCSV, suggestColumnMapping } from '@/lib/csv-parser'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * POST /api/import/upload
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (!isCSV) {
       return NextResponse.json(
         { error: 'Invalid file type. Please upload a CSV file' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: 'File too large. Maximum size is 10MB' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (headers.length === 0) {
       return NextResponse.json(
         { error: 'CSV file appears to be empty or invalid' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -100,11 +100,12 @@ export async function POST(request: NextRequest) {
         detectedColumns: headers,
         suggestedMapping: suggestColumnMapping(headers, detectedSource),
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
     console.error('Error uploading CSV:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     return NextResponse.json(
       {
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
         error: 'Failed to upload CSV',
         details: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

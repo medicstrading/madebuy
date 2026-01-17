@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 
 /**
  * Hook to warn users about unsaved changes when leaving the page.
@@ -20,16 +20,18 @@ export function useUnsavedChangesWarning(isDirty: boolean, message?: string) {
       // Standard way to trigger the browser's native "unsaved changes" dialog
       e.preventDefault()
       // For older browsers that respect returnValue
-      e.returnValue = message || 'You have unsaved changes. Are you sure you want to leave?'
+      e.returnValue =
+        message || 'You have unsaved changes. Are you sure you want to leave?'
       return e.returnValue
     },
-    [isDirty, message]
+    [isDirty, message],
   )
 
   useEffect(() => {
     if (isDirty) {
       window.addEventListener('beforeunload', handleBeforeUnload)
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+      return () =>
+        window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [isDirty, handleBeforeUnload])
 }

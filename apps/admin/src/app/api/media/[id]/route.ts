@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
 import { deleteFromR2 } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await requireTenant()
@@ -14,20 +14,17 @@ export async function DELETE(
     // Get media item to access R2 keys
     const mediaItem = await media.getMedia(tenant.id, mediaId)
     if (!mediaItem) {
-      return NextResponse.json(
-        { error: 'Media not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Media not found' }, { status: 404 })
     }
 
     // Delete all variants from R2
     const deletePromises = []
     for (const variant of Object.values(mediaItem.variants)) {
-      if (variant && variant.key) {
+      if (variant?.key) {
         deletePromises.push(
-          deleteFromR2(variant.key).catch(err => {
+          deleteFromR2(variant.key).catch((err) => {
             console.error(`Failed to delete R2 key ${variant.key}:`, err)
-          })
+          }),
         )
       }
     }
@@ -42,7 +39,7 @@ export async function DELETE(
     console.error('Delete media error:', error)
     return NextResponse.json(
       { error: 'Failed to delete media' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

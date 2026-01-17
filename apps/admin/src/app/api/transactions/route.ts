@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { transactions } from '@madebuy/db'
-import type { TransactionType, TransactionFilters } from '@madebuy/shared'
+import type { TransactionFilters, TransactionType } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 const PAGE_SIZE = 50
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching transactions:', error)
     return NextResponse.json(
       { error: 'Failed to fetch transactions' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

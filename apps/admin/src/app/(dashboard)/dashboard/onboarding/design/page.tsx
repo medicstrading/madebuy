@@ -1,25 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import type {
+  ExtractedDesign,
+  TypographyPreset,
+  WebsiteTemplate,
+} from '@madebuy/shared'
 import {
-  Loader2,
-  Palette,
-  Globe,
+  AlertCircle,
   ArrowRight,
   Check,
-  AlertCircle,
-  Sparkles,
-  Type,
-  Image as ImageIcon,
-  Monitor,
-  Tablet,
-  Smartphone,
-  Navigation,
-  Layout,
   ExternalLink,
+  Globe,
+  Image as ImageIcon,
+  Layout,
+  Loader2,
+  Monitor,
+  Navigation,
+  Palette,
+  Smartphone,
+  Sparkles,
+  Tablet,
+  Type,
 } from 'lucide-react'
-import type { ExtractedDesign, TypographyPreset, WebsiteTemplate } from '@madebuy/shared'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 type Step = 'choice' | 'url-input' | 'scanning' | 'preview'
 type DeviceView = 'desktop' | 'tablet' | 'mobile'
@@ -35,15 +39,15 @@ const TYPOGRAPHY_NAMES: Record<TypographyPreset, string> = {
 const TEMPLATE_NAMES: Record<WebsiteTemplate, string> = {
   'classic-store': 'Classic Store',
   'landing-page': 'Landing Page',
-  'portfolio': 'Portfolio',
-  'magazine': 'Magazine',
+  portfolio: 'Portfolio',
+  magazine: 'Magazine',
 }
 
 export default function DesignImportPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('choice')
   const [url, setUrl] = useState('')
-  const [isScanning, setIsScanning] = useState(false)
+  const [_isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [design, setDesign] = useState<ExtractedDesign | null>(null)
   const [isApplying, setIsApplying] = useState(false)
@@ -67,7 +71,7 @@ export default function DesignImportPage() {
     // Add protocol if missing
     let scanUrl = url.trim()
     if (!scanUrl.startsWith('http://') && !scanUrl.startsWith('https://')) {
-      scanUrl = 'https://' + scanUrl
+      scanUrl = `https://${scanUrl}`
     }
 
     setError(null)
@@ -88,9 +92,12 @@ export default function DesignImportPage() {
 
         // Generate preview
         try {
-          const previewResponse = await fetch('/api/onboarding/design/preview', {
-            method: 'POST',
-          })
+          const previewResponse = await fetch(
+            '/api/onboarding/design/preview',
+            {
+              method: 'POST',
+            },
+          )
           const previewData = await previewResponse.json()
           if (previewData.success && previewData.previewUrl) {
             setPreviewUrl(previewData.previewUrl)
@@ -116,9 +123,12 @@ export default function DesignImportPage() {
 
   const getDeviceWidth = () => {
     switch (deviceView) {
-      case 'mobile': return 375
-      case 'tablet': return 768
-      default: return '100%'
+      case 'mobile':
+        return 375
+      case 'tablet':
+        return 768
+      default:
+        return '100%'
     }
   }
 
@@ -171,7 +181,7 @@ export default function DesignImportPage() {
           {step === 'choice' && 'How would you like to get started?'}
           {step === 'url-input' && 'Enter your existing website URL'}
           {step === 'scanning' && 'Scanning your website...'}
-          {step === 'preview' && 'Here\'s what we found'}
+          {step === 'preview' && "Here's what we found"}
         </p>
       </div>
 
@@ -179,6 +189,7 @@ export default function DesignImportPage() {
       {step === 'choice' && (
         <div className="space-y-4">
           <button
+            type="button"
             onClick={handleStartFresh}
             className="w-full flex items-center gap-4 p-6 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-500 hover:bg-blue-50 transition-all text-left group"
           >
@@ -197,6 +208,7 @@ export default function DesignImportPage() {
           </button>
 
           <button
+            type="button"
             onClick={handleImportChoice}
             className="w-full flex items-center gap-4 p-6 rounded-xl border-2 border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 transition-all text-left group"
           >
@@ -220,7 +232,10 @@ export default function DesignImportPage() {
       {step === 'url-input' && (
         <div className="space-y-6">
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="url"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Website URL
             </label>
             <input
@@ -233,7 +248,8 @@ export default function DesignImportPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleScan()}
             />
             <p className="mt-2 text-sm text-gray-500">
-              We&apos;ll scan this website to extract your brand colors, fonts, and logo
+              We&apos;ll scan this website to extract your brand colors, fonts,
+              and logo
             </p>
           </div>
 
@@ -246,12 +262,14 @@ export default function DesignImportPage() {
 
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={() => setStep('choice')}
               className="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Back
             </button>
             <button
+              type="button"
               onClick={handleScan}
               disabled={!url.trim()}
               className="flex-1 px-4 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
@@ -289,6 +307,7 @@ export default function DesignImportPage() {
                   {/* Device Toggle */}
                   <div className="flex gap-1 bg-gray-200 rounded-lg p-1">
                     <button
+                      type="button"
                       onClick={() => setDeviceView('desktop')}
                       className={`p-1.5 rounded ${deviceView === 'desktop' ? 'bg-white shadow-sm' : 'hover:bg-gray-100'}`}
                       title="Desktop"
@@ -296,6 +315,7 @@ export default function DesignImportPage() {
                       <Monitor className="h-4 w-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setDeviceView('tablet')}
                       className={`p-1.5 rounded ${deviceView === 'tablet' ? 'bg-white shadow-sm' : 'hover:bg-gray-100'}`}
                       title="Tablet"
@@ -303,6 +323,7 @@ export default function DesignImportPage() {
                       <Tablet className="h-4 w-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setDeviceView('mobile')}
                       className={`p-1.5 rounded ${deviceView === 'mobile' ? 'bg-white shadow-sm' : 'hover:bg-gray-100'}`}
                       title="Mobile"
@@ -321,7 +342,10 @@ export default function DesignImportPage() {
                   </a>
                 </div>
               </div>
-              <div className="bg-gray-100 p-4 flex justify-center" style={{ minHeight: 400 }}>
+              <div
+                className="bg-gray-100 p-4 flex justify-center"
+                style={{ minHeight: 400 }}
+              >
                 <div
                   className="bg-white shadow-lg transition-all duration-300 overflow-hidden"
                   style={{
@@ -355,7 +379,9 @@ export default function DesignImportPage() {
                       className="h-8 w-8 rounded-md border border-gray-200"
                       style={{ backgroundColor: design.colors.primary }}
                     />
-                    <span className="text-xs text-gray-600 uppercase">{design.colors.primary}</span>
+                    <span className="text-xs text-gray-600 uppercase">
+                      {design.colors.primary}
+                    </span>
                   </div>
                 ) : (
                   <p className="text-gray-400 text-xs">No primary color</p>
@@ -366,7 +392,9 @@ export default function DesignImportPage() {
                       className="h-8 w-8 rounded-md border border-gray-200"
                       style={{ backgroundColor: design.colors.accent }}
                     />
-                    <span className="text-xs text-gray-600 uppercase">{design.colors.accent}</span>
+                    <span className="text-xs text-gray-600 uppercase">
+                      {design.colors.accent}
+                    </span>
                   </div>
                 )}
               </div>
@@ -399,7 +427,10 @@ export default function DesignImportPage() {
               {design.navigation.items.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {design.navigation.items.slice(0, 5).map((item, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-gray-100 rounded text-xs"
+                    >
                       {item.label}
                     </span>
                   ))}
@@ -455,7 +486,10 @@ export default function DesignImportPage() {
               {design.sections.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {design.sections.map((section, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs capitalize">
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs capitalize"
+                    >
                       {section.type}
                     </span>
                   ))}
@@ -491,6 +525,7 @@ export default function DesignImportPage() {
           {/* Actions */}
           <div className="flex gap-3 pt-4">
             <button
+              type="button"
               onClick={handleDecline}
               disabled={isApplying}
               className="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
@@ -498,6 +533,7 @@ export default function DesignImportPage() {
               Start Fresh Instead
             </button>
             <button
+              type="button"
               onClick={handleAccept}
               disabled={isApplying}
               className="flex-1 px-4 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
@@ -522,6 +558,7 @@ export default function DesignImportPage() {
       {step === 'choice' && (
         <div className="text-center mt-8">
           <button
+            type="button"
             onClick={() => router.push('/dashboard/onboarding')}
             className="text-sm text-gray-500 hover:text-gray-700 underline"
           >

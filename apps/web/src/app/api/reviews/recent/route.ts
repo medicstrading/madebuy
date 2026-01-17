@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { reviews, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/reviews/recent
@@ -23,13 +23,13 @@ export async function GET(request: NextRequest) {
     if (!tenantId) {
       return NextResponse.json(
         { error: 'tenantId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Parse and clamp limit
     let limit = parseInt(limitParam || '6', 10)
-    if (isNaN(limit) || limit < 1) limit = 6
+    if (Number.isNaN(limit) || limit < 1) limit = 6
     if (limit > 20) limit = 20
 
     // Validate tenant exists
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching recent reviews:', error)
     return NextResponse.json(
       { error: 'Failed to fetch reviews' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -3,9 +3,9 @@
  * Covers all bulk operations with tenant isolation
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { seedMockCollection, getMockCollectionData } from '../setup'
+import { beforeEach, describe, expect, it } from 'vitest'
 import * as bulk from '../../repositories/bulk'
+import { getMockCollectionData, seedMockCollection } from '../setup'
 
 describe('Bulk Repository', () => {
   const tenantId = 'tenant-123'
@@ -72,15 +72,15 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkUpdateStatus(
         tenantId,
         ['piece-1', 'piece-3'],
-        'available'
+        'available',
       )
 
       expect(result.success).toBe(true)
       expect(result.affected).toBe(2)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
-      const piece3 = pieces.find(p => p.id === 'piece-3')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
+      const piece3 = pieces.find((p) => p.id === 'piece-3')
 
       expect(piece1?.status).toBe('available')
       expect(piece3?.status).toBe('available')
@@ -90,14 +90,14 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkUpdateStatus(
         tenantId,
         ['piece-1', 'piece-other'],
-        'sold'
+        'sold',
       )
 
       // Only piece-1 should be updated (piece-other belongs to different tenant)
       expect(result.affected).toBe(1)
 
       const pieces = getMockCollectionData('pieces')
-      const otherPiece = pieces.find(p => p.id === 'piece-other')
+      const otherPiece = pieces.find((p) => p.id === 'piece-other')
 
       expect(otherPiece?.status).toBe('draft') // Unchanged
     })
@@ -111,9 +111,9 @@ describe('Bulk Repository', () => {
       expect(result.affected).toBe(2)
 
       const pieces = getMockCollectionData('pieces')
-      expect(pieces.find(p => p.id === 'piece-1')).toBeUndefined()
-      expect(pieces.find(p => p.id === 'piece-2')).toBeUndefined()
-      expect(pieces.find(p => p.id === 'piece-3')).toBeDefined() // Not deleted
+      expect(pieces.find((p) => p.id === 'piece-1')).toBeUndefined()
+      expect(pieces.find((p) => p.id === 'piece-2')).toBeUndefined()
+      expect(pieces.find((p) => p.id === 'piece-3')).toBeDefined() // Not deleted
     })
 
     it('should only delete pieces belonging to tenant', async () => {
@@ -122,7 +122,7 @@ describe('Bulk Repository', () => {
       expect(result.affected).toBe(1)
 
       const pieces = getMockCollectionData('pieces')
-      expect(pieces.find(p => p.id === 'piece-other')).toBeDefined() // Not deleted
+      expect(pieces.find((p) => p.id === 'piece-other')).toBeDefined() // Not deleted
     })
   })
 
@@ -131,31 +131,31 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkUpdatePrices(
         tenantId,
         ['piece-1', 'piece-2'],
-        { type: 'percentage', value: 10, direction: 'increase' }
+        { type: 'percentage', value: 10, direction: 'increase' },
       )
 
       expect(result.success).toBe(true)
       expect(result.affected).toBe(2)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
-      const piece2 = pieces.find(p => p.id === 'piece-2')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
+      const piece2 = pieces.find((p) => p.id === 'piece-2')
 
       expect(piece1?.price).toBe(110) // 100 + 10%
       expect(piece2?.price).toBe(220) // 200 + 10%
     })
 
     it('should decrease by percentage', async () => {
-      const result = await bulk.bulkUpdatePrices(
-        tenantId,
-        ['piece-1'],
-        { type: 'percentage', value: 50, direction: 'decrease' }
-      )
+      const result = await bulk.bulkUpdatePrices(tenantId, ['piece-1'], {
+        type: 'percentage',
+        value: 50,
+        direction: 'decrease',
+      })
 
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
 
       expect(piece1?.price).toBe(50) // 100 - 50%
     })
@@ -164,30 +164,30 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkUpdatePrices(
         tenantId,
         ['piece-1', 'piece-3'],
-        { type: 'fixed', value: 25, direction: 'increase' }
+        { type: 'fixed', value: 25, direction: 'increase' },
       )
 
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
-      const piece3 = pieces.find(p => p.id === 'piece-3')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
+      const piece3 = pieces.find((p) => p.id === 'piece-3')
 
       expect(piece1?.price).toBe(125) // 100 + 25
       expect(piece3?.price).toBe(75) // 50 + 25
     })
 
     it('should decrease by fixed amount', async () => {
-      const result = await bulk.bulkUpdatePrices(
-        tenantId,
-        ['piece-1'],
-        { type: 'fixed', value: 30, direction: 'decrease' }
-      )
+      const result = await bulk.bulkUpdatePrices(tenantId, ['piece-1'], {
+        type: 'fixed',
+        value: 30,
+        direction: 'decrease',
+      })
 
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
 
       expect(piece1?.price).toBe(70) // 100 - 30
     })
@@ -196,13 +196,13 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkUpdatePrices(
         tenantId,
         ['piece-3'], // price is 50
-        { type: 'fixed', value: 100, direction: 'decrease' }
+        { type: 'fixed', value: 100, direction: 'decrease' },
       )
 
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece3 = pieces.find(p => p.id === 'piece-3')
+      const piece3 = pieces.find((p) => p.id === 'piece-3')
 
       expect(piece3?.price).toBe(0) // Cannot go negative
     })
@@ -210,26 +210,34 @@ describe('Bulk Repository', () => {
 
   describe('bulkUpdateStock', () => {
     it('should set stock to specific value', async () => {
-      const result = await bulk.bulkUpdateStock(tenantId, ['piece-1', 'piece-2'], 50)
+      const result = await bulk.bulkUpdateStock(
+        tenantId,
+        ['piece-1', 'piece-2'],
+        50,
+      )
 
       expect(result.success).toBe(true)
       expect(result.affected).toBe(2)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
-      const piece2 = pieces.find(p => p.id === 'piece-2')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
+      const piece2 = pieces.find((p) => p.id === 'piece-2')
 
       expect(piece1?.stock).toBe(50)
       expect(piece2?.stock).toBe(50)
     })
 
     it('should set stock to null for unlimited', async () => {
-      const result = await bulk.bulkUpdateStock(tenantId, ['piece-1'], 'unlimited')
+      const result = await bulk.bulkUpdateStock(
+        tenantId,
+        ['piece-1'],
+        'unlimited',
+      )
 
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
 
       expect(piece1?.stock).toBeNull()
     })
@@ -240,16 +248,16 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkUpdateCategory(
         tenantId,
         ['piece-1', 'piece-2', 'piece-3'],
-        'New Category'
+        'New Category',
       )
 
       expect(result.success).toBe(true)
       expect(result.affected).toBe(3)
 
       const pieces = getMockCollectionData('pieces')
-      const ourPieces = pieces.filter(p => p.tenantId === tenantId)
+      const ourPieces = pieces.filter((p) => p.tenantId === tenantId)
 
-      ourPieces.forEach(p => {
+      ourPieces.forEach((p) => {
         expect(p.category).toBe('New Category')
       })
     })
@@ -260,7 +268,7 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkAddTags(
         tenantId,
         ['piece-1', 'piece-3'],
-        ['sale', 'new']
+        ['sale', 'new'],
       )
 
       expect(result.success).toBe(true)
@@ -273,7 +281,7 @@ describe('Bulk Repository', () => {
       const result = await bulk.bulkRemoveTags(
         tenantId,
         ['piece-1'],
-        ['silver']
+        ['silver'],
       )
 
       expect(result.success).toBe(true)
@@ -283,14 +291,18 @@ describe('Bulk Repository', () => {
 
   describe('bulkSetFeatured', () => {
     it('should set isFeatured to true', async () => {
-      const result = await bulk.bulkSetFeatured(tenantId, ['piece-1', 'piece-3'], true)
+      const result = await bulk.bulkSetFeatured(
+        tenantId,
+        ['piece-1', 'piece-3'],
+        true,
+      )
 
       expect(result.success).toBe(true)
       expect(result.affected).toBe(2)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
-      const piece3 = pieces.find(p => p.id === 'piece-3')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
+      const piece3 = pieces.find((p) => p.id === 'piece-3')
 
       expect(piece1?.isFeatured).toBe(true)
       expect(piece3?.isFeatured).toBe(true)
@@ -302,7 +314,7 @@ describe('Bulk Repository', () => {
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece2 = pieces.find(p => p.id === 'piece-2')
+      const piece2 = pieces.find((p) => p.id === 'piece-2')
 
       expect(piece2?.isFeatured).toBe(false)
     })
@@ -315,7 +327,7 @@ describe('Bulk Repository', () => {
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece1 = pieces.find(p => p.id === 'piece-1')
+      const piece1 = pieces.find((p) => p.id === 'piece-1')
 
       expect(piece1?.isPublishedToWebsite).toBe(true)
     })
@@ -326,7 +338,7 @@ describe('Bulk Repository', () => {
       expect(result.success).toBe(true)
 
       const pieces = getMockCollectionData('pieces')
-      const piece2 = pieces.find(p => p.id === 'piece-2')
+      const piece2 = pieces.find((p) => p.id === 'piece-2')
 
       expect(piece2?.isPublishedToWebsite).toBe(false)
     })
@@ -334,7 +346,11 @@ describe('Bulk Repository', () => {
 
   describe('getBulkStats', () => {
     it('should return count by status', async () => {
-      const stats = await bulk.getBulkStats(tenantId, ['piece-1', 'piece-2', 'piece-3'])
+      const stats = await bulk.getBulkStats(tenantId, [
+        'piece-1',
+        'piece-2',
+        'piece-3',
+      ])
 
       expect(stats.total).toBe(3)
       expect(stats.byStatus.draft).toBe(2)
@@ -342,14 +358,22 @@ describe('Bulk Repository', () => {
     })
 
     it('should return count by category', async () => {
-      const stats = await bulk.getBulkStats(tenantId, ['piece-1', 'piece-2', 'piece-3'])
+      const stats = await bulk.getBulkStats(tenantId, [
+        'piece-1',
+        'piece-2',
+        'piece-3',
+      ])
 
       expect(stats.byCategory.Jewelry).toBe(2)
       expect(stats.byCategory.Accessories).toBe(1)
     })
 
     it('should return price range', async () => {
-      const stats = await bulk.getBulkStats(tenantId, ['piece-1', 'piece-2', 'piece-3'])
+      const stats = await bulk.getBulkStats(tenantId, [
+        'piece-1',
+        'piece-2',
+        'piece-3',
+      ])
 
       expect(stats.priceRange.min).toBe(50) // piece-3
       expect(stats.priceRange.max).toBe(200) // piece-2

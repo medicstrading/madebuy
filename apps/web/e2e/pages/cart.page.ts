@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 /**
  * Page Object for the Shopping Cart page
@@ -47,11 +47,13 @@ export class CartPage {
 
     // Header
     this.pageTitle = page.getByRole('heading', { name: /cart|bag|basket/i })
-    this.itemCount = page.locator('[data-testid="cart-item-count"]')
+    this.itemCount = page
+      .locator('[data-testid="cart-item-count"]')
       .or(page.getByText(/\d+ items?/i))
 
     // Cart items
-    this.cartItems = page.locator('[data-testid="cart-item"]')
+    this.cartItems = page
+      .locator('[data-testid="cart-item"]')
       .or(page.locator('.cart-item'))
       .or(page.locator('[class*="cart-item"]'))
     this.emptyState = page.getByText(/cart is empty|no items|empty cart/i)
@@ -66,28 +68,42 @@ export class CartPage {
     this.itemOptions = page.locator('[data-testid="item-options"]')
 
     // Totals
-    this.subtotal = page.getByText(/subtotal/i).locator('..')
+    this.subtotal = page
+      .getByText(/subtotal/i)
+      .locator('..')
       .or(page.locator('[data-testid="subtotal"]'))
-    this.shippingCost = page.getByText(/shipping/i).locator('..')
+    this.shippingCost = page
+      .getByText(/shipping/i)
+      .locator('..')
       .or(page.locator('[data-testid="shipping"]'))
-    this.discount = page.getByText(/discount/i).locator('..')
+    this.discount = page
+      .getByText(/discount/i)
+      .locator('..')
       .or(page.locator('[data-testid="discount"]'))
-    this.total = page.getByText(/^total$/i).locator('..')
+    this.total = page
+      .getByText(/^total$/i)
+      .locator('..')
       .or(page.locator('[data-testid="total"]'))
 
     // Actions
-    this.checkoutButton = page.getByRole('button', { name: /checkout|proceed/i })
+    this.checkoutButton = page
+      .getByRole('button', { name: /checkout|proceed/i })
       .or(page.getByRole('link', { name: /checkout|proceed/i }))
-    this.continueShoppingLink = page.getByRole('link', { name: /continue shopping|keep shopping/i })
-    this.promoCodeInput = page.getByPlaceholder(/promo|coupon|discount/i)
+    this.continueShoppingLink = page.getByRole('link', {
+      name: /continue shopping|keep shopping/i,
+    })
+    this.promoCodeInput = page
+      .getByPlaceholder(/promo|coupon|discount/i)
       .or(page.getByLabel(/promo|coupon/i))
     this.applyPromoButton = page.getByRole('button', { name: /apply/i })
     this.clearCartButton = page.getByRole('button', { name: /clear|empty/i })
 
     // Messages
-    this.successMessage = page.getByText(/success|updated|applied/i)
+    this.successMessage = page
+      .getByText(/success|updated|applied/i)
       .or(page.locator('[role="status"]'))
-    this.errorMessage = page.getByText(/error|invalid|expired/i)
+    this.errorMessage = page
+      .getByText(/error|invalid|expired/i)
       .or(page.locator('[role="alert"]'))
   }
 
@@ -126,7 +142,9 @@ export class CartPage {
    */
   async getItemName(index: number): Promise<string | null> {
     const item = this.getItem(index)
-    const name = item.locator('[data-testid="item-name"], h3, h4, [class*="name"]')
+    const name = item.locator(
+      '[data-testid="item-name"], h3, h4, [class*="name"]',
+    )
     return name.first().textContent()
   }
 
@@ -239,7 +257,7 @@ export class CartPage {
    * Check if checkout button is enabled
    */
   async isCheckoutEnabled(): Promise<boolean> {
-    return !await this.checkoutButton.isDisabled()
+    return !(await this.checkoutButton.isDisabled())
   }
 
   /**

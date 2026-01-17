@@ -1,25 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
 
 export async function GET() {
   try {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const tenant = await tenants.getTenantById(user.id)
 
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     return NextResponse.json(tenant)
@@ -27,7 +21,7 @@ export async function GET() {
     console.error('Failed to fetch tenant:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -37,10 +31,7 @@ export async function PATCH(request: NextRequest) {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -79,7 +70,7 @@ export async function PATCH(request: NextRequest) {
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -92,7 +83,7 @@ export async function PATCH(request: NextRequest) {
     console.error('Failed to update tenant:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

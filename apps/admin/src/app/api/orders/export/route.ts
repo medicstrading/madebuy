@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { orders } from '@madebuy/db'
 import type { Order } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 // Maximum records to export to prevent memory exhaustion (P1 fix)
 const MAX_EXPORT_RECORDS = 10000
@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
       filters.status = status
     }
 
-    const paymentStatus = searchParams.get('paymentStatus') as Order['paymentStatus'] | null
+    const paymentStatus = searchParams.get('paymentStatus') as
+      | Order['paymentStatus']
+      | null
     if (paymentStatus) {
       filters.paymentStatus = paymentStatus
     }
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
       filteredOrders = orderData.filter((order) => {
         const orderDate = new Date(order.createdAt)
         if (fromDate && orderDate < new Date(fromDate)) return false
-        if (toDate && orderDate > new Date(toDate + 'T23:59:59')) return false
+        if (toDate && orderDate > new Date(`${toDate}T23:59:59`)) return false
         return true
       })
     }
@@ -72,7 +74,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error exporting orders:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -118,13 +123,23 @@ function ordersToCSV(orderData: Order[]): string {
     // Format item details
     const itemCount = order.items?.length || 0
     const itemDetails = (order.items || [])
-      .map((item) => `${item.name} x${item.quantity} @ ${formatMoney(item.price, order.currency)}`)
+      .map(
+        (item) =>
+          `${item.name} x${item.quantity} @ ${formatMoney(item.price, order.currency)}`,
+      )
       .join('; ')
 
     // Format shipping address
     const addr = order.shippingAddress
     const shippingAddress = addr
-      ? [addr.line1, addr.line2, addr.city, addr.state, addr.postcode, addr.country]
+      ? [
+          addr.line1,
+          addr.line2,
+          addr.city,
+          addr.state,
+          addr.postcode,
+          addr.country,
+        ]
           .filter(Boolean)
           .join(', ')
       : ''
@@ -197,7 +212,7 @@ function formatDate(date: Date | string): string {
 /**
  * Format money value (cents to dollars)
  */
-function formatMoney(cents: number, currency: string = 'AUD'): string {
+function formatMoney(cents: number, _currency: string = 'AUD'): string {
   // Prices are stored in cents
   return (cents / 100).toFixed(2)
 }

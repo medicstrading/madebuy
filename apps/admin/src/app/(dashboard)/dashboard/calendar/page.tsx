@@ -1,11 +1,24 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Plus, Trash2, Edit } from 'lucide-react'
-import type { KeyDate, CreateKeyDateInput } from '@madebuy/shared'
+import type { CreateKeyDateInput, KeyDate } from '@madebuy/shared'
+import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 const COLOR_OPTIONS = [
   { value: '#EF4444', label: 'Red' },
@@ -19,9 +32,9 @@ const COLOR_OPTIONS = [
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [keyDates, setKeyDates] = useState<KeyDate[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [_selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [editingKeyDate, setEditingKeyDate] = useState<KeyDate | null>(null)
   const [formData, setFormData] = useState<CreateKeyDateInput>({
     title: '',
@@ -34,15 +47,23 @@ export default function CalendarPage() {
   useEffect(() => {
     fetchKeyDates()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDate])
+  }, [fetchKeyDates])
 
   async function fetchKeyDates() {
     try {
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+      const startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1,
+      )
+      const endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0,
+      )
 
       const res = await fetch(
-        `/api/calendar/key-dates?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+        `/api/calendar/key-dates?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
       )
       const data = await res.json()
       setKeyDates(data.keyDates || [])
@@ -158,11 +179,15 @@ export default function CalendarPage() {
   }
 
   function prevMonth() {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
+    )
   }
 
   function nextMonth() {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+    )
   }
 
   function goToToday() {
@@ -187,6 +212,7 @@ export default function CalendarPage() {
           <p className="text-gray-500 mt-1">Track important dates and events</p>
         </div>
         <button
+          type="button"
           onClick={() => openModal(new Date())}
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
         >
@@ -201,6 +227,7 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={prevMonth}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
             >
@@ -210,6 +237,7 @@ export default function CalendarPage() {
               {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
             <button
+              type="button"
               onClick={nextMonth}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
             >
@@ -217,6 +245,7 @@ export default function CalendarPage() {
             </button>
           </div>
           <button
+            type="button"
             onClick={goToToday}
             className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
@@ -227,7 +256,10 @@ export default function CalendarPage() {
         {/* Day Headers */}
         <div className="grid grid-cols-7 border-b border-gray-200">
           {DAYS.map((day) => (
-            <div key={day} className="py-2 text-center text-sm font-medium text-gray-500">
+            <div
+              key={day}
+              className="py-2 text-center text-sm font-medium text-gray-500"
+            >
               {day}
             </div>
           ))}
@@ -252,8 +284,8 @@ export default function CalendarPage() {
                       isToday(day.date)
                         ? 'bg-blue-600 text-white w-7 h-7 rounded-full flex items-center justify-center'
                         : day.isCurrentMonth
-                        ? 'text-gray-900'
-                        : 'text-gray-400'
+                          ? 'text-gray-900'
+                          : 'text-gray-400'
                     }`}
                   >
                     {day.date.getDate()}
@@ -268,7 +300,10 @@ export default function CalendarPage() {
                         openModal(day.date, kd)
                       }}
                       className="text-xs px-1.5 py-0.5 rounded truncate"
-                      style={{ backgroundColor: `${kd.color}20`, color: kd.color }}
+                      style={{
+                        backgroundColor: `${kd.color}20`,
+                        color: kd.color,
+                      }}
                     >
                       {kd.title}
                     </div>
@@ -287,13 +322,20 @@ export default function CalendarPage() {
 
       {/* Key Dates List */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Key Dates</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Upcoming Key Dates
+        </h2>
         {keyDates.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No key dates this month</p>
+          <p className="text-gray-500 text-center py-8">
+            No key dates this month
+          </p>
         ) : (
           <div className="space-y-2">
             {keyDates
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .sort(
+                (a, b) =>
+                  new Date(a.date).getTime() - new Date(b.date).getTime(),
+              )
               .map((kd) => (
                 <div
                   key={kd.id}
@@ -314,12 +356,14 @@ export default function CalendarPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => openModal(new Date(kd.date), kd)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => deleteKeyDate(kd.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                     >
@@ -341,40 +385,66 @@ export default function CalendarPage() {
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title *
+                </label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
                 <textarea
                   value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date *
+                  </label>
                   <input
                     type="date"
-                    value={formData.date instanceof Date ? formData.date.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value) })}
+                    value={
+                      formData.date instanceof Date
+                        ? formData.date.toISOString().split('T')[0]
+                        : ''
+                    }
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        date: new Date(e.target.value),
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Repeat</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Repeat
+                  </label>
                   <select
                     value={formData.repeat}
-                    onChange={(e) => setFormData({ ...formData, repeat: e.target.value as any })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        repeat: e.target.value as any,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                   >
                     <option value="none">No repeat</option>
@@ -385,15 +455,22 @@ export default function CalendarPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Color
+                </label>
                 <div className="flex items-center gap-2">
                   {COLOR_OPTIONS.map((color) => (
                     <button
+                      type="button"
                       key={color.value}
                       type="button"
-                      onClick={() => setFormData({ ...formData, color: color.value })}
+                      onClick={() =>
+                        setFormData({ ...formData, color: color.value })
+                      }
                       className={`w-8 h-8 rounded-full ${
-                        formData.color === color.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                        formData.color === color.value
+                          ? 'ring-2 ring-offset-2 ring-gray-400'
+                          : ''
                       }`}
                       style={{ backgroundColor: color.value }}
                     />
@@ -403,12 +480,14 @@ export default function CalendarPage() {
               <div className="flex items-center justify-end gap-3 pt-4">
                 <button
                   type="button"
+                  type="button"
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                 >

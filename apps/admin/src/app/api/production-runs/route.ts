@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { productionRuns } from '@madebuy/db'
 import type { CreateProductionRunInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching production runs:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -41,14 +44,23 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!data.pieceId) {
-      return NextResponse.json({ error: 'pieceId is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'pieceId is required' },
+        { status: 400 },
+      )
     }
 
     if (!data.quantityProduced || data.quantityProduced < 1) {
-      return NextResponse.json({ error: 'quantityProduced must be at least 1' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'quantityProduced must be at least 1' },
+        { status: 400 },
+      )
     }
 
-    const productionRun = await productionRuns.createProductionRun(tenant.id, data)
+    const productionRun = await productionRuns.createProductionRun(
+      tenant.id,
+      data,
+    )
 
     return NextResponse.json({ productionRun }, { status: 201 })
   } catch (error) {
@@ -59,11 +71,17 @@ export async function POST(request: NextRequest) {
       if (error.message.includes('not found')) {
         return NextResponse.json({ error: error.message }, { status: 404 })
       }
-      if (error.message.includes('no materials configured') || error.message.includes('Insufficient')) {
+      if (
+        error.message.includes('no materials configured') ||
+        error.message.includes('Insufficient')
+      ) {
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

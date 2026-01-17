@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 // Reserved paths that should NOT be treated as tenant slugs
 const RESERVED_PATHS = [
@@ -23,7 +23,10 @@ const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 /**
  * Detect traffic source from UTM params or referrer
  */
-function detectSource(utmSource?: string | null, referrer?: string | null): string {
+function detectSource(
+  utmSource?: string | null,
+  referrer?: string | null,
+): string {
   // 1. UTM params (most reliable)
   if (utmSource) {
     return utmSource
@@ -35,9 +38,11 @@ function detectSource(utmSource?: string | null, referrer?: string | null): stri
   }
 
   // 3. Internal marketplace referrer
-  if (referrer.includes('madebuy.com.au/marketplace') ||
-      referrer.includes('madebuy.com.au/browse') ||
-      referrer.includes('madebuy.com.au/search')) {
+  if (
+    referrer.includes('madebuy.com.au/marketplace') ||
+    referrer.includes('madebuy.com.au/browse') ||
+    referrer.includes('madebuy.com.au/search')
+  ) {
     return 'marketplace'
   }
 
@@ -84,7 +89,7 @@ export function middleware(request: NextRequest) {
 
   // Check if this is a reserved path - don't process as tenant
   const isReservedPath = RESERVED_PATHS.some(
-    (reserved) => pathname === reserved || pathname.startsWith(`${reserved}/`)
+    (reserved) => pathname === reserved || pathname.startsWith(`${reserved}/`),
   )
 
   // Get or create session ID
@@ -104,7 +109,7 @@ export function middleware(request: NextRequest) {
   const source = detectSource(utmSource, referrer)
 
   // Check existing attribution
-  const existingAttribution = request.cookies.get(ATTRIBUTION_COOKIE)?.value
+  const _existingAttribution = request.cookies.get(ATTRIBUTION_COOKIE)?.value
 
   // Build response (will be modified based on routing)
   let response: NextResponse
@@ -160,12 +165,11 @@ export function middleware(request: NextRequest) {
  * Handle tenant routing (subdomain and custom domain)
  */
 function handleTenantRouting(
-  request: NextRequest,
+  _request: NextRequest,
   hostname: string,
   url: URL,
-  pathname: string
+  _pathname: string,
 ): NextResponse {
-
   // Development: localhost with tenant subdomain
   // Example: acme.localhost:3302
   if (hostname.includes('localhost')) {

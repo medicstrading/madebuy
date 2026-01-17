@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, Menu, Layout, Minus, Eye } from 'lucide-react'
-import type { HeaderConfig, FooterConfig } from '@madebuy/shared'
+import type { FooterConfig, HeaderConfig } from '@madebuy/shared'
+import { Check, Layout, Menu } from 'lucide-react'
 
 interface HeaderFooterTabProps {
   headerConfig: HeaderConfig
@@ -159,8 +158,12 @@ export function HeaderFooterTab({
     <div className="max-w-4xl mx-auto space-y-10">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-serif text-gray-900 mb-3">Header & Footer</h1>
-        <p className="text-gray-600 text-lg">Customize your site&apos;s navigation and footer.</p>
+        <h1 className="text-3xl font-serif text-gray-900 mb-3">
+          Header & Footer
+        </h1>
+        <p className="text-gray-600 text-lg">
+          Customize your site&apos;s navigation and footer.
+        </p>
       </div>
 
       {/* Header Section */}
@@ -170,8 +173,12 @@ export function HeaderFooterTab({
             <Menu className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Header Style</h2>
-            <p className="text-sm text-gray-500">Choose how your navigation appears</p>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Header Style
+            </h2>
+            <p className="text-sm text-gray-500">
+              Choose how your navigation appears
+            </p>
           </div>
         </div>
 
@@ -182,8 +189,11 @@ export function HeaderFooterTab({
 
             return (
               <button
+                type="button"
                 key={style.id}
-                onClick={() => onHeaderChange({ ...headerConfig, style: style.id })}
+                onClick={() =>
+                  onHeaderChange({ ...headerConfig, style: style.id })
+                }
                 className={`relative p-4 rounded-xl border-2 text-left transition-all ${
                   isSelected
                     ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500/20'
@@ -196,8 +206,12 @@ export function HeaderFooterTab({
                   </div>
                 )}
                 <div className="mb-3">{style.preview}</div>
-                <h4 className="font-medium text-gray-900 text-sm">{style.name}</h4>
-                <p className="text-xs text-gray-500 mt-0.5">{style.description}</p>
+                <h4 className="font-medium text-gray-900 text-sm">
+                  {style.name}
+                </h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {style.description}
+                </p>
               </button>
             )
           })}
@@ -209,20 +223,31 @@ export function HeaderFooterTab({
             <input
               type="checkbox"
               checked={headerConfig.showSocialIcons ?? false}
-              onChange={(e) => onHeaderChange({ ...headerConfig, showSocialIcons: e.target.checked })}
+              onChange={(e) =>
+                onHeaderChange({
+                  ...headerConfig,
+                  showSocialIcons: e.target.checked,
+                })
+              }
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">Show social icons in header</span>
+            <span className="text-sm text-gray-700">
+              Show social icons in header
+            </span>
           </label>
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={headerConfig.sticky ?? true}
-              onChange={(e) => onHeaderChange({ ...headerConfig, sticky: e.target.checked })}
+              onChange={(e) =>
+                onHeaderChange({ ...headerConfig, sticky: e.target.checked })
+              }
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">Sticky header on scroll</span>
+            <span className="text-sm text-gray-700">
+              Sticky header on scroll
+            </span>
           </label>
         </div>
       </section>
@@ -234,8 +259,12 @@ export function HeaderFooterTab({
             <Layout className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Footer Style</h2>
-            <p className="text-sm text-gray-500">Choose how your footer appears</p>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Footer Style
+            </h2>
+            <p className="text-sm text-gray-500">
+              Choose how your footer appears
+            </p>
           </div>
         </div>
 
@@ -246,8 +275,11 @@ export function HeaderFooterTab({
 
             return (
               <button
+                type="button"
                 key={style.id}
-                onClick={() => onFooterChange({ ...footerConfig, style: style.id })}
+                onClick={() =>
+                  onFooterChange({ ...footerConfig, style: style.id })
+                }
                 className={`relative p-4 rounded-xl border-2 text-left transition-all ${
                   isSelected
                     ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500/20'
@@ -260,8 +292,12 @@ export function HeaderFooterTab({
                   </div>
                 )}
                 <div className="mb-3">{style.preview}</div>
-                <h4 className="font-medium text-gray-900 text-sm">{style.name}</h4>
-                <p className="text-xs text-gray-500 mt-0.5">{style.description}</p>
+                <h4 className="font-medium text-gray-900 text-sm">
+                  {style.name}
+                </h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {style.description}
+                </p>
               </button>
             )
           })}
@@ -273,17 +309,29 @@ export function HeaderFooterTab({
             <input
               type="checkbox"
               checked={footerConfig.showPaymentMethods ?? true}
-              onChange={(e) => onFooterChange({ ...footerConfig, showPaymentMethods: e.target.checked })}
+              onChange={(e) =>
+                onFooterChange({
+                  ...footerConfig,
+                  showPaymentMethods: e.target.checked,
+                })
+              }
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">Show payment method icons</span>
+            <span className="text-sm text-gray-700">
+              Show payment method icons
+            </span>
           </label>
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={footerConfig.showSocialLinks ?? true}
-              onChange={(e) => onFooterChange({ ...footerConfig, showSocialLinks: e.target.checked })}
+              onChange={(e) =>
+                onFooterChange({
+                  ...footerConfig,
+                  showSocialLinks: e.target.checked,
+                })
+              }
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span className="text-sm text-gray-700">Show social links</span>
@@ -293,10 +341,17 @@ export function HeaderFooterTab({
             <input
               type="checkbox"
               checked={footerConfig.showPoweredBy ?? true}
-              onChange={(e) => onFooterChange({ ...footerConfig, showPoweredBy: e.target.checked })}
+              onChange={(e) =>
+                onFooterChange({
+                  ...footerConfig,
+                  showPoweredBy: e.target.checked,
+                })
+              }
               className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">Show &quot;Powered by MadeBuy&quot;</span>
+            <span className="text-sm text-gray-700">
+              Show &quot;Powered by MadeBuy&quot;
+            </span>
           </label>
         </div>
       </section>

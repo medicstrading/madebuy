@@ -1,14 +1,18 @@
 import type { CheerioAPI } from 'cheerio'
 import type { Element } from 'domhandler'
-import type { NavigationExtractionResult, NavItem, NavStructure } from '../types'
 import { resolveUrl } from '../fetcher'
+import type {
+  NavItem,
+  NavigationExtractionResult,
+  NavStructure,
+} from '../types'
 
 /**
  * Extracts navigation from HTML
  */
 export function extractNavigation(
   $: CheerioAPI,
-  baseUrl: string
+  baseUrl: string,
 ): NavigationExtractionResult {
   const items: NavItem[] = []
   let structure: NavStructure = 'simple'
@@ -64,8 +68,10 @@ export function extractNavigation(
     if (isUtilityLink(lowerLabel, href)) return
 
     // Check for dropdown/submenu
-    const hasSubmenu = $link.siblings('ul, div[class*="dropdown"], div[class*="submenu"]').length > 0 ||
-                       $link.parent().find('> ul, > div[class*="dropdown"]').length > 0
+    const hasSubmenu =
+      $link.siblings('ul, div[class*="dropdown"], div[class*="submenu"]')
+        .length > 0 ||
+      $link.parent().find('> ul, > div[class*="dropdown"]').length > 0
 
     const absoluteHref = resolveUrl(href, baseUrl)
 
@@ -100,7 +106,10 @@ export function extractNavigation(
 /**
  * Detects if navigation has mega-menu structure
  */
-function detectMegaMenu($: CheerioAPI, navElement: ReturnType<CheerioAPI>): boolean {
+function detectMegaMenu(
+  $: CheerioAPI,
+  navElement: ReturnType<CheerioAPI>,
+): boolean {
   // Check for common mega menu indicators
   const megaMenuIndicators = [
     '[class*="mega"]',
@@ -122,7 +131,8 @@ function detectMegaMenu($: CheerioAPI, navElement: ReturnType<CheerioAPI>): bool
   dropdowns.each((_: number, el: Element) => {
     const $dropdown = $(el)
     const linkCount = $dropdown.find('a').length
-    const hasColumns = $dropdown.find('[class*="column"], [class*="col-"]').length > 0
+    const hasColumns =
+      $dropdown.find('[class*="column"], [class*="col-"]').length > 0
 
     if (linkCount > 8 || hasColumns) {
       hasComplexDropdown = true
@@ -138,10 +148,29 @@ function detectMegaMenu($: CheerioAPI, navElement: ReturnType<CheerioAPI>): bool
  */
 function isUtilityLink(label: string, href: string): boolean {
   const utilityPatterns = [
-    'cart', 'login', 'sign in', 'sign up', 'register', 'account',
-    'search', 'facebook', 'instagram', 'twitter', 'linkedin', 'youtube',
-    'pinterest', 'tiktok', 'whatsapp', 'email', 'phone', 'tel:',
-    'mailto:', 'privacy', 'terms', 'cookie', 'sitemap',
+    'cart',
+    'login',
+    'sign in',
+    'sign up',
+    'register',
+    'account',
+    'search',
+    'facebook',
+    'instagram',
+    'twitter',
+    'linkedin',
+    'youtube',
+    'pinterest',
+    'tiktok',
+    'whatsapp',
+    'email',
+    'phone',
+    'tel:',
+    'mailto:',
+    'privacy',
+    'terms',
+    'cookie',
+    'sitemap',
   ]
 
   const lowerHref = href.toLowerCase()

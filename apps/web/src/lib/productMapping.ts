@@ -32,7 +32,7 @@ export interface CardProduct {
 export function mapPieceToProduct(
   piece: PieceWithMedia,
   tenantSlug: string,
-  tenantName?: string
+  tenantName?: string,
 ): CardProduct {
   return {
     id: piece.id,
@@ -41,8 +41,16 @@ export function mapPieceToProduct(
     price: piece.price ?? 0,
     originalPrice: undefined, // Piece type doesn't have originalPrice
     currency: 'AUD',
-    images: piece.allImages?.map(img => img.variants.large?.url || img.variants.original.url) ||
-      (piece.primaryImage ? [piece.primaryImage.variants.large?.url || piece.primaryImage.variants.original.url] : []),
+    images:
+      piece.allImages?.map(
+        (img) => img.variants.large?.url || img.variants.original.url,
+      ) ||
+      (piece.primaryImage
+        ? [
+            piece.primaryImage.variants.large?.url ||
+              piece.primaryImage.variants.original.url,
+          ]
+        : []),
     rating: piece.avgRating || 0,
     reviewCount: piece.reviewCount || 0,
     seller: {

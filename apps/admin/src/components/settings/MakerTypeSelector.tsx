@@ -1,32 +1,32 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
 import {
-  Gem,
-  Shirt,
-  Palette,
-  Coffee,
-  TreeDeciduous,
-  Scissors,
-  Briefcase,
-  Flame,
-  Droplets,
-  CakeSlice,
-  Sparkles,
-  ChevronDown,
-  Check,
-  Loader2,
-  AlertTriangle,
-  Package,
-  Boxes,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import {
-  MAKER_TYPES,
   MAKER_CATEGORY_PRESETS,
   MAKER_MATERIAL_PRESETS,
+  MAKER_TYPES,
   type MakerType,
 } from '@madebuy/shared'
+import {
+  AlertTriangle,
+  Boxes,
+  Briefcase,
+  CakeSlice,
+  Check,
+  ChevronDown,
+  Coffee,
+  Droplets,
+  Flame,
+  Gem,
+  Loader2,
+  Package,
+  Palette,
+  Scissors,
+  Shirt,
+  Sparkles,
+  TreeDeciduous,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 // Icon mapping for maker types
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -70,7 +70,10 @@ export function MakerTypeSelector({
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false)
       }
     }
@@ -109,14 +112,18 @@ export function MakerTypeSelector({
   const currentTypeInfo = selectedType
     ? MAKER_TYPES.find((t) => t.id === selectedType)
     : null
-  const CurrentIcon = currentTypeInfo ? ICONS[currentTypeInfo.icon] || Sparkles : null
+  const CurrentIcon = currentTypeInfo
+    ? ICONS[currentTypeInfo.icon] || Sparkles
+    : null
 
-  const productCategories = selectedType && selectedType !== 'custom'
-    ? MAKER_CATEGORY_PRESETS[selectedType]
-    : []
-  const materialCategories = selectedType && selectedType !== 'custom'
-    ? MAKER_MATERIAL_PRESETS[selectedType]
-    : []
+  const productCategories =
+    selectedType && selectedType !== 'custom'
+      ? MAKER_CATEGORY_PRESETS[selectedType]
+      : []
+  const materialCategories =
+    selectedType && selectedType !== 'custom'
+      ? MAKER_MATERIAL_PRESETS[selectedType]
+      : []
 
   return (
     <div className="space-y-6">
@@ -126,13 +133,16 @@ export function MakerTypeSelector({
           <div className="flex gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium text-amber-900">Cannot change maker type</h4>
+              <h4 className="font-medium text-amber-900">
+                Cannot change maker type
+              </h4>
               <p className="mt-1 text-sm text-amber-800">
-                You have custom categories already set up. To change your maker type,
-                you&apos;ll need to remove your custom categories first, or contact support
-                for assistance.
+                You have custom categories already set up. To change your maker
+                type, you&apos;ll need to remove your custom categories first,
+                or contact support for assistance.
               </p>
               <button
+                type="button"
                 onClick={() => setShowBlockedWarning(false)}
                 className="mt-3 text-sm font-medium text-amber-700 hover:text-amber-900"
               >
@@ -147,13 +157,16 @@ export function MakerTypeSelector({
       <div className="relative" ref={dropdownRef}>
         <button
           type="button"
+          type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
             'w-full flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all',
             'bg-white hover:border-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2',
-            isOpen ? 'border-stone-900 ring-2 ring-stone-900 ring-offset-2' : 'border-stone-200',
-            disabled && 'cursor-not-allowed opacity-50'
+            isOpen
+              ? 'border-stone-900 ring-2 ring-stone-900 ring-offset-2'
+              : 'border-stone-200',
+            disabled && 'cursor-not-allowed opacity-50',
           )}
         >
           <div className="flex items-center gap-3">
@@ -167,14 +180,16 @@ export function MakerTypeSelector({
                 {currentTypeInfo?.name || 'Select your craft type'}
               </p>
               {currentTypeInfo && (
-                <p className="text-sm text-stone-500">{currentTypeInfo.description}</p>
+                <p className="text-sm text-stone-500">
+                  {currentTypeInfo.description}
+                </p>
               )}
             </div>
           </div>
           <ChevronDown
             className={cn(
               'h-5 w-5 text-stone-400 transition-transform',
-              isOpen && 'rotate-180'
+              isOpen && 'rotate-180',
             )}
           />
         </button>
@@ -190,28 +205,31 @@ export function MakerTypeSelector({
 
                 return (
                   <button
+                    type="button"
                     key={makerType.id}
                     onClick={() => handleSelect(makerType.id)}
                     className={cn(
                       'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
-                      isSelected
-                        ? 'bg-stone-100'
-                        : 'hover:bg-stone-50'
+                      isSelected ? 'bg-stone-100' : 'hover:bg-stone-50',
                     )}
                   >
                     <div
                       className={cn(
                         'flex h-9 w-9 items-center justify-center rounded-lg',
-                        isSelected ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600'
+                        isSelected
+                          ? 'bg-stone-900 text-white'
+                          : 'bg-stone-100 text-stone-600',
                       )}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        'font-medium',
-                        isSelected ? 'text-stone-900' : 'text-stone-700'
-                      )}>
+                      <p
+                        className={cn(
+                          'font-medium',
+                          isSelected ? 'text-stone-900' : 'text-stone-700',
+                        )}
+                      >
                         {makerType.name}
                       </p>
                       <p className="text-sm text-stone-500 truncate">
@@ -239,7 +257,7 @@ export function MakerTypeSelector({
         <div
           className={cn(
             'rounded-xl border-2 bg-gradient-to-br from-stone-50 to-white p-6 transition-all duration-300',
-            hasChanges ? 'border-stone-300' : 'border-stone-200'
+            hasChanges ? 'border-stone-300' : 'border-stone-200',
           )}
         >
           <div className="grid gap-6 md:grid-cols-2">
@@ -292,8 +310,9 @@ export function MakerTypeSelector({
           <Sparkles className="h-8 w-8 text-stone-400 mx-auto mb-3" />
           <h4 className="font-medium text-stone-900 mb-1">Custom Categories</h4>
           <p className="text-sm text-stone-600 max-w-md mx-auto">
-            Start with a blank slate and define all your own product and material categories.
-            Perfect for unique crafts that don&apos;t fit standard presets.
+            Start with a blank slate and define all your own product and
+            material categories. Perfect for unique crafts that don&apos;t fit
+            standard presets.
           </p>
         </div>
       )}
@@ -301,11 +320,10 @@ export function MakerTypeSelector({
       {/* Save Button */}
       {hasChanges && (
         <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-          <p className="text-sm text-stone-500">
-            Unsaved changes
-          </p>
+          <p className="text-sm text-stone-500">Unsaved changes</p>
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={handleReset}
               disabled={isSaving}
               className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 disabled:opacity-50"
@@ -313,13 +331,14 @@ export function MakerTypeSelector({
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving || disabled}
               className={cn(
                 'inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all',
                 'bg-stone-900 text-white hover:bg-stone-800',
                 'focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2',
-                'disabled:opacity-50 disabled:cursor-not-allowed'
+                'disabled:opacity-50 disabled:cursor-not-allowed',
               )}
             >
               {isSaving ? (

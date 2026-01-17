@@ -9,23 +9,23 @@ export interface DiscountCode {
   tenantId: string
 
   // Code details
-  code: string              // e.g., "SUMMER20" (stored uppercase)
-  description?: string      // Internal note
+  code: string // e.g., "SUMMER20" (stored uppercase)
+  description?: string // Internal note
 
   // Discount value
   type: DiscountType
-  value: number             // Percentage (0-100) or fixed amount
+  value: number // Percentage (0-100) or fixed amount
 
   // Constraints
-  minOrderAmount?: number   // Minimum order value to apply
+  minOrderAmount?: number // Minimum order value to apply
   maxDiscountAmount?: number // Cap for percentage discounts
-  maxUses?: number          // Total uses allowed (null = unlimited)
+  maxUses?: number // Total uses allowed (null = unlimited)
   maxUsesPerCustomer?: number // Per-customer limit
 
   // Applicability
-  applicablePieceIds?: string[]      // Specific pieces (empty = all)
-  applicableCategories?: string[]    // Specific categories (empty = all)
-  excludedPieceIds?: string[]        // Pieces to exclude
+  applicablePieceIds?: string[] // Specific pieces (empty = all)
+  applicableCategories?: string[] // Specific categories (empty = all)
+  excludedPieceIds?: string[] // Pieces to exclude
 
   // Validity
   startsAt?: Date

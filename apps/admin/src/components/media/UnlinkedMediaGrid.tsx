@@ -1,11 +1,11 @@
 'use client'
 
-import { useRef, useMemo, useState, useCallback } from 'react'
-import { Play, Link2, Star, X } from 'lucide-react'
 import type { MediaItem } from '@madebuy/shared'
-import { useMediaLibrary } from './MediaLibraryClient'
-import { useRouter } from 'next/navigation'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { Link2, Play, Star, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { useMediaLibrary } from './MediaLibraryClient'
 import { MediaPreviewModal } from './MediaPreviewModal'
 
 interface UnlinkedMediaGridProps {
@@ -27,31 +27,38 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const parentRef = useRef<HTMLDivElement>(null)
 
-  const handleDelete = useCallback(async (e: React.MouseEvent, mediaId: string) => {
-    e.stopPropagation()
+  const handleDelete = useCallback(
+    async (e: React.MouseEvent, mediaId: string) => {
+      e.stopPropagation()
 
-    if (!confirm('Are you sure you want to delete this media? This action cannot be undone.')) {
-      return
-    }
-
-    setDeleting(mediaId)
-    try {
-      const response = await fetch(`/api/media/${mediaId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete media')
+      if (
+        !confirm(
+          'Are you sure you want to delete this media? This action cannot be undone.',
+        )
+      ) {
+        return
       }
 
-      router.refresh()
-    } catch (error) {
-      console.error('Delete error:', error)
-      alert('Failed to delete media. Please try again.')
-    } finally {
-      setDeleting(null)
-    }
-  }, [router])
+      setDeleting(mediaId)
+      try {
+        const response = await fetch(`/api/media/${mediaId}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to delete media')
+        }
+
+        router.refresh()
+      } catch (error) {
+        console.error('Delete error:', error)
+        alert('Failed to delete media. Please try again.')
+      } finally {
+        setDeleting(null)
+      }
+    },
+    [router],
+  )
 
   // Group items into rows for virtualization
   const rows = useMemo(() => {
@@ -103,7 +110,9 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
             item={previewItem}
             onClose={() => setPreviewIndex(null)}
             onPrev={() => setPreviewIndex(Math.max(0, previewIndex - 1))}
-            onNext={() => setPreviewIndex(Math.min(media.length - 1, previewIndex + 1))}
+            onNext={() =>
+              setPreviewIndex(Math.min(media.length - 1, previewIndex + 1))
+            }
             hasPrev={previewIndex > 0}
             hasNext={previewIndex < media.length - 1}
           />
@@ -116,7 +125,8 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
   const virtualItems = virtualizer.getVirtualItems()
 
   // Calculate flat index for virtualized items
-  const getItemIndex = (rowIndex: number, colIndex: number) => rowIndex * COLUMNS + colIndex
+  const getItemIndex = (rowIndex: number, colIndex: number) =>
+    rowIndex * COLUMNS + colIndex
 
   return (
     <>
@@ -151,7 +161,9 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
                     deleting={deleting}
                     onDelete={handleDelete}
                     onLink={openLinkModal}
-                    onPreview={() => handlePreview(getItemIndex(virtualRow.index, colIndex))}
+                    onPreview={() =>
+                      handlePreview(getItemIndex(virtualRow.index, colIndex))
+                    }
                   />
                 ))}
               </div>
@@ -166,7 +178,9 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
           item={previewItem}
           onClose={() => setPreviewIndex(null)}
           onPrev={() => setPreviewIndex(Math.max(0, previewIndex - 1))}
-          onNext={() => setPreviewIndex(Math.min(media.length - 1, previewIndex + 1))}
+          onNext={() =>
+            setPreviewIndex(Math.min(media.length - 1, previewIndex + 1))
+          }
           hasPrev={previewIndex > 0}
           hasNext={previewIndex < media.length - 1}
         />
@@ -183,7 +197,13 @@ interface MediaThumbnailProps {
   onPreview: () => void
 }
 
-function MediaThumbnail({ item, deleting, onDelete, onLink, onPreview }: MediaThumbnailProps) {
+function MediaThumbnail({
+  item,
+  deleting,
+  onDelete,
+  onLink,
+  onPreview,
+}: MediaThumbnailProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isHovered, setIsHovered] = useState(false)
 
@@ -249,7 +269,8 @@ function MediaThumbnail({ item, deleting, onDelete, onLink, onPreview }: MediaTh
           {/* Duration badge */}
           {item.video?.duration && (
             <div className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded">
-              {Math.floor(item.video.duration / 60)}:{String(Math.floor(item.video.duration % 60)).padStart(2, '0')}
+              {Math.floor(item.video.duration / 60)}:
+              {String(Math.floor(item.video.duration % 60)).padStart(2, '0')}
             </div>
           )}
         </div>
@@ -257,6 +278,7 @@ function MediaThumbnail({ item, deleting, onDelete, onLink, onPreview }: MediaTh
 
       {/* Link button - bottom right, only on hover */}
       <button
+        type="button"
         onClick={handleLinkClick}
         className="absolute bottom-1.5 left-1.5 p-1.5 bg-blue-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-700 z-10"
         title="Link to piece"
@@ -266,6 +288,7 @@ function MediaThumbnail({ item, deleting, onDelete, onLink, onPreview }: MediaTh
 
       {/* Delete button - top right, only on hover */}
       <button
+        type="button"
         onClick={(e) => onDelete(e, item.id)}
         disabled={deleting === item.id}
         className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50 z-10"

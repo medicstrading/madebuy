@@ -1,14 +1,24 @@
-import { NextResponse } from 'next/server'
-import { unstable_cache } from 'next/cache'
-import { getCurrentTenant } from '@/lib/session'
 import { analytics } from '@madebuy/db'
+import { unstable_cache } from 'next/cache'
+import { NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 // Cache funnel data for 2 minutes - analytics don't need real-time updates
 const getCachedFunnelData = unstable_cache(
-  async (tenantId: string, startDate: Date, endDate: Date, productId?: string) => {
+  async (
+    tenantId: string,
+    startDate: Date,
+    endDate: Date,
+    productId?: string,
+  ) => {
     const [funnelData, topProducts] = await Promise.all([
       productId
-        ? analytics.getFunnelDataByProduct(tenantId, productId, startDate, endDate)
+        ? analytics.getFunnelDataByProduct(
+            tenantId,
+            productId,
+            startDate,
+            endDate,
+          )
         : analytics.getFunnelData(tenantId, startDate, endDate),
       analytics.getTopProductsByConversion(tenantId, startDate, endDate, 5),
     ])
@@ -23,7 +33,7 @@ const getCachedFunnelData = unstable_cache(
     }
   },
   ['analytics-funnel'],
-  { revalidate: 120, tags: ['analytics'] } // 2 minute cache
+  { revalidate: 120, tags: ['analytics'] }, // 2 minute cache
 )
 
 export async function GET(request: Request) {
@@ -44,7 +54,12 @@ export async function GET(request: Request) {
       ? new Date(startDateStr)
       : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-    const result = await getCachedFunnelData(tenant.id, startDate, endDate, productId)
+    const result = await getCachedFunnelData(
+      tenant.id,
+      startDate,
+      endDate,
+      productId,
+    )
     // P13: Add cache headers for browser caching
     return NextResponse.json(result, {
       headers: {
@@ -55,7 +70,7 @@ export async function GET(request: Request) {
     console.error('Error fetching funnel data:', error)
     return NextResponse.json(
       { error: 'Failed to fetch funnel data' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

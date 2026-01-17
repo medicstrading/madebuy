@@ -1,11 +1,16 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { ImageIcon } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import type { SectionProps } from './SectionRenderer'
 
-export function ProductFeatured({ settings, tenant, tenantSlug, pieces }: SectionProps) {
+export function ProductFeatured({
+  settings,
+  tenant,
+  tenantSlug,
+  pieces,
+}: SectionProps) {
   const title = settings.title || 'Featured Piece'
   const subtitle = settings.subtitle
 
@@ -17,8 +22,10 @@ export function ProductFeatured({ settings, tenant, tenantSlug, pieces }: Sectio
   }
 
   // Get primary image URL from PieceWithMedia
-  const primaryMedia = featuredPiece.primaryImage || featuredPiece.allImages?.[0]
-  const imageUrl = primaryMedia?.variants?.large?.url || primaryMedia?.variants?.original?.url
+  const primaryMedia =
+    featuredPiece.primaryImage || featuredPiece.allImages?.[0]
+  const imageUrl =
+    primaryMedia?.variants?.large?.url || primaryMedia?.variants?.original?.url
   const href = `/${tenantSlug}/${featuredPiece.websiteSlug || featuredPiece.id}`
 
   return (
@@ -75,7 +82,9 @@ export function ProductFeatured({ settings, tenant, tenantSlug, pieces }: Sectio
           {(featuredPiece.metals?.length || featuredPiece.stones?.length) && (
             <p className="text-gray-500 mb-6">
               {featuredPiece.metals?.join(', ')}
-              {featuredPiece.metals?.length && featuredPiece.stones?.length && ' • '}
+              {featuredPiece.metals?.length &&
+                featuredPiece.stones?.length &&
+                ' • '}
               {featuredPiece.stones?.join(', ')}
             </p>
           )}

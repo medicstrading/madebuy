@@ -1,11 +1,11 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
   Collection,
+  CollectionListOptions,
   CreateCollectionInput,
   UpdateCollectionInput,
-  CollectionListOptions,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 function generateSlug(name: string): string {
   return name
@@ -16,7 +16,7 @@ function generateSlug(name: string): string {
 
 export async function createCollection(
   tenantId: string,
-  input: CreateCollectionInput
+  input: CreateCollectionInput,
 ): Promise<Collection> {
   const db = await getDatabase()
 
@@ -42,26 +42,30 @@ export async function createCollection(
 
 export async function getCollectionById(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Collection | null> {
   const db = await getDatabase()
-  const collection = await db.collection('collections').findOne({ tenantId, id })
+  const collection = await db
+    .collection('collections')
+    .findOne({ tenantId, id })
   return collection as unknown as Collection | null
 }
 
 export async function getCollectionBySlug(
   tenantId: string,
-  slug: string
+  slug: string,
 ): Promise<Collection | null> {
   const db = await getDatabase()
-  const collection = await db.collection('collections').findOne({ tenantId, slug })
+  const collection = await db
+    .collection('collections')
+    .findOne({ tenantId, slug })
   return collection as unknown as Collection | null
 }
 
 export async function updateCollection(
   tenantId: string,
   id: string,
-  input: UpdateCollectionInput
+  input: UpdateCollectionInput,
 ): Promise<Collection | null> {
   const db = await getDatabase()
 
@@ -78,16 +82,21 @@ export async function updateCollection(
     }
   }
 
-  const result = await db.collection('collections').findOneAndUpdate(
-    { tenantId, id },
-    { $set: updateData },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('collections')
+    .findOneAndUpdate(
+      { tenantId, id },
+      { $set: updateData },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as Collection | null
 }
 
-export async function deleteCollection(tenantId: string, id: string): Promise<boolean> {
+export async function deleteCollection(
+  tenantId: string,
+  id: string,
+): Promise<boolean> {
   const db = await getDatabase()
   const result = await db.collection('collections').deleteOne({ tenantId, id })
   return result.deletedCount === 1
@@ -95,7 +104,7 @@ export async function deleteCollection(tenantId: string, id: string): Promise<bo
 
 export async function listCollections(
   tenantId: string,
-  options: CollectionListOptions = {}
+  options: CollectionListOptions = {},
 ): Promise<{ items: Collection[]; total: number; hasMore: boolean }> {
   const db = await getDatabase()
 
@@ -115,7 +124,8 @@ export async function listCollections(
   const sortOrder = options.sortOrder === 'desc' ? -1 : 1
 
   const [items, total] = await Promise.all([
-    db.collection('collections')
+    db
+      .collection('collections')
       .find(filter)
       .sort({ [sortBy]: sortOrder })
       .skip(offset)
@@ -133,7 +143,7 @@ export async function listCollections(
 
 export async function listPublishedCollections(
   tenantId: string,
-  limit = 20
+  limit = 20,
 ): Promise<Collection[]> {
   const result = await listCollections(tenantId, {
     isPublished: true,
@@ -146,7 +156,7 @@ export async function listPublishedCollections(
 
 export async function getFeaturedCollections(
   tenantId: string,
-  limit = 6
+  limit = 6,
 ): Promise<Collection[]> {
   const result = await listCollections(tenantId, {
     isPublished: true,
@@ -161,7 +171,7 @@ export async function getFeaturedCollections(
 export async function addPieceToCollection(
   tenantId: string,
   collectionId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<Collection | null> {
   const db = await getDatabase()
 
@@ -171,7 +181,7 @@ export async function addPieceToCollection(
       $addToSet: { pieceIds: pieceId } as any,
       $set: { updatedAt: new Date() },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Collection | null
@@ -180,7 +190,7 @@ export async function addPieceToCollection(
 export async function removePieceFromCollection(
   tenantId: string,
   collectionId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<Collection | null> {
   const db = await getDatabase()
 
@@ -190,7 +200,7 @@ export async function removePieceFromCollection(
       $pull: { pieceIds: pieceId } as any,
       $set: { updatedAt: new Date() },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Collection | null
@@ -198,11 +208,12 @@ export async function removePieceFromCollection(
 
 export async function getCollectionsForPiece(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<Collection[]> {
   const db = await getDatabase()
 
-  const items = await db.collection('collections')
+  const items = await db
+    .collection('collections')
     .find({ tenantId, pieceIds: pieceId })
     .sort({ name: 1 })
     .toArray()

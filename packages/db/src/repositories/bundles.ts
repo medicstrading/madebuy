@@ -1,16 +1,16 @@
-import { nanoid } from 'nanoid'
-import type { Filter, Document } from 'mongodb'
-import { getDatabase, getMongoClient } from '../client'
 import type {
   Bundle,
-  BundleStatus,
+  BundleListOptions,
   BundlePiece,
+  BundleStatus,
   BundleWithPieces,
   CreateBundleInput,
-  UpdateBundleInput,
-  BundleListOptions,
   Piece,
+  UpdateBundleInput,
 } from '@madebuy/shared'
+import type { Document, Filter } from 'mongodb'
+import { nanoid } from 'nanoid'
+import { getDatabase, getMongoClient } from '../client'
 
 // Database record type
 interface BundleDbRecord extends Bundle {
@@ -32,13 +32,14 @@ function generateSlug(name: string): string {
  */
 async function getPiecesByIds(
   tenantId: string,
-  pieceIds: string[]
+  pieceIds: string[],
 ): Promise<Map<string, Piece>> {
   const db = await getDatabase()
-  const pieceList = await db.collection('pieces')
+  const pieceList = (await db
+    .collection('pieces')
     .find({ tenantId, id: { $in: pieceIds } })
-    .toArray() as unknown as Piece[]
-  return new Map(pieceList.map(p => [p.id, p]))
+    .toArray()) as unknown as Piece[]
+  return new Map(pieceList.map((p) => [p.id, p]))
 }
 
 /**
@@ -46,11 +47,11 @@ async function getPiecesByIds(
  */
 async function calculateOriginalPrice(
   tenantId: string,
-  bundlePieces: BundlePiece[]
+  bundlePieces: BundlePiece[],
 ): Promise<number> {
   if (bundlePieces.length === 0) return 0
 
-  const pieceIds = bundlePieces.map(bp => bp.pieceId)
+  const pieceIds = bundlePieces.map((bp) => bp.pieceId)
   const pieceMap = await getPiecesByIds(tenantId, pieceIds)
 
   let total = 0
@@ -67,7 +68,10 @@ async function calculateOriginalPrice(
 /**
  * Calculate discount percentage
  */
-function calculateDiscountPercent(originalPrice: number, bundlePrice: number): number {
+function calculateDiscountPercent(
+  originalPrice: number,
+  bundlePrice: number,
+): number {
   if (originalPrice <= 0) return 0
   const discount = ((originalPrice - bundlePrice) / originalPrice) * 100
   return Math.round(discount * 10) / 10 // Round to 1 decimal place
@@ -78,12 +82,15 @@ function calculateDiscountPercent(originalPrice: number, bundlePrice: number): n
  */
 export async function createBundle(
   tenantId: string,
-  input: CreateBundleInput
+  input: CreateBundleInput,
 ): Promise<Bundle> {
   const db = await getDatabase()
 
   const originalPrice = await calculateOriginalPrice(tenantId, input.pieces)
-  const discountPercent = calculateDiscountPercent(originalPrice, input.bundlePrice)
+  const discountPercent = calculateDiscountPercent(
+    originalPrice,
+    input.bundlePrice,
+  )
 
   const now = new Date()
   const bundle: Bundle = {
@@ -111,7 +118,7 @@ export async function createBundle(
  */
 export async function getBundle(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Bundle | null> {
   const db = await getDatabase()
   const bundle = await db.collection('bundles').findOne({ tenantId, id })
@@ -123,7 +130,7 @@ export async function getBundle(
  */
 export async function getBundleBySlug(
   tenantId: string,
-  slug: string
+  slug: string,
 ): Promise<Bundle | null> {
   const db = await getDatabase()
   const bundle = await db.collection('bundles').findOne({ tenantId, slug })
@@ -136,7 +143,7 @@ export async function getBundleBySlug(
 export async function updateBundle(
   tenantId: string,
   id: string,
-  input: UpdateBundleInput
+  input: UpdateBundleInput,
 ): Promise<Bundle | null> {
   const db = await getDatabase()
 
@@ -161,14 +168,19 @@ export async function updateBundle(
 
     const originalPrice = await calculateOriginalPrice(tenantId, bundlePieces)
     updateData.originalPrice = originalPrice
-    updateData.discountPercent = calculateDiscountPercent(originalPrice, bundlePrice)
+    updateData.discountPercent = calculateDiscountPercent(
+      originalPrice,
+      bundlePrice,
+    )
   }
 
-  const result = await db.collection('bundles').findOneAndUpdate(
-    { tenantId, id },
-    { $set: updateData },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('bundles')
+    .findOneAndUpdate(
+      { tenantId, id },
+      { $set: updateData },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as Bundle | null
 }
@@ -178,7 +190,7 @@ export async function updateBundle(
  */
 export async function deleteBundle(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<boolean> {
   const db = await getDatabase()
   const result = await db.collection('bundles').deleteOne({ tenantId, id })
@@ -190,7 +202,7 @@ export async function deleteBundle(
  */
 export async function listBundles(
   tenantId: string,
-  options: BundleListOptions = {}
+  options: BundleListOptions = {},
 ): Promise<{ items: Bundle[]; total: number; hasMore: boolean }> {
   const db = await getDatabase()
 
@@ -210,7 +222,8 @@ export async function listBundles(
   const sortOrder = options.sortOrder === 'asc' ? 1 : -1
 
   const [items, total] = await Promise.all([
-    db.collection('bundles')
+    db
+      .collection('bundles')
       .find(filter as Filter<Document>)
       .sort({ [sortBy]: sortOrder })
       .skip(offset)
@@ -231,7 +244,7 @@ export async function listBundles(
  */
 export async function listActiveBundles(
   tenantId: string,
-  limit = 20
+  limit = 20,
 ): Promise<Bundle[]> {
   const result = await listBundles(tenantId, {
     status: 'active',
@@ -247,13 +260,13 @@ export async function listActiveBundles(
  */
 export async function getBundleWithPieces(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<BundleWithPieces | null> {
   const bundle = await getBundle(tenantId, id)
   if (!bundle) return null
 
   // Batch fetch all pieces (fixes N+1 query)
-  const pieceIds = bundle.pieces.map(bp => bp.pieceId)
+  const pieceIds = bundle.pieces.map((bp) => bp.pieceId)
   const pieceMap = await getPiecesByIds(tenantId, pieceIds)
 
   const pieceDetails: BundleWithPieces['pieceDetails'] = []
@@ -293,7 +306,7 @@ export async function getBundleWithPieces(
  */
 export async function getBundleWithPiecesBySlug(
   tenantId: string,
-  slug: string
+  slug: string,
 ): Promise<BundleWithPieces | null> {
   const bundle = await getBundleBySlug(tenantId, slug)
   if (!bundle) return null
@@ -308,7 +321,7 @@ export async function getBundleWithPiecesBySlug(
 export async function getBundleAvailability(
   tenantId: string,
   id: string,
-  quantity: number = 1
+  quantity: number = 1,
 ): Promise<{
   available: boolean
   unavailablePieces: { pieceId: string; required: number; available: number }[]
@@ -319,10 +332,14 @@ export async function getBundleAvailability(
   }
 
   // Batch fetch all pieces (fixes N+1)
-  const pieceIds = bundle.pieces.map(bp => bp.pieceId)
+  const pieceIds = bundle.pieces.map((bp) => bp.pieceId)
   const pieceMap = await getPiecesByIds(tenantId, pieceIds)
 
-  const unavailablePieces: { pieceId: string; required: number; available: number }[] = []
+  const unavailablePieces: {
+    pieceId: string
+    required: number
+    available: number
+  }[] = []
 
   for (const bp of bundle.pieces) {
     const piece = pieceMap.get(bp.pieceId)
@@ -353,7 +370,7 @@ export async function getBundleAvailability(
 export async function decrementBundleStock(
   tenantId: string,
   bundleId: string,
-  quantity: number = 1
+  quantity: number = 1,
 ): Promise<boolean> {
   const client = await getMongoClient()
   const db = await getDatabase()
@@ -380,13 +397,13 @@ export async function decrementBundleStock(
             $or: [
               { stock: { $gte: decrementAmount } },
               { stock: { $exists: false } }, // Unlimited stock
-            ]
+            ],
           },
           {
             $inc: { stock: -decrementAmount },
             $set: { updatedAt: new Date() },
           },
-          { session }
+          { session },
         )
 
         // If a piece couldn't be decremented, mark as failed
@@ -413,7 +430,7 @@ export async function decrementBundleStock(
  */
 export async function countBundles(
   tenantId: string,
-  status?: BundleStatus
+  status?: BundleStatus,
 ): Promise<number> {
   const db = await getDatabase()
   const filter: Filter<BundleDbRecord> = { tenantId }
@@ -426,10 +443,11 @@ export async function countBundles(
  */
 export async function getBundlesContainingPiece(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<Bundle[]> {
   const db = await getDatabase()
-  const bundles = await db.collection('bundles')
+  const bundles = await db
+    .collection('bundles')
     .find({
       tenantId,
       'pieces.pieceId': pieceId,
@@ -444,14 +462,17 @@ export async function getBundlesContainingPiece(
  */
 export async function recalculateBundlesForPiece(
   tenantId: string,
-  pieceId: string
+  pieceId: string,
 ): Promise<number> {
   const bundles = await getBundlesContainingPiece(tenantId, pieceId)
   let updated = 0
 
   for (const bundle of bundles) {
     const originalPrice = await calculateOriginalPrice(tenantId, bundle.pieces)
-    const discountPercent = calculateDiscountPercent(originalPrice, bundle.bundlePrice)
+    const discountPercent = calculateDiscountPercent(
+      originalPrice,
+      bundle.bundlePrice,
+    )
 
     const db = await getDatabase()
     await db.collection('bundles').updateOne(
@@ -462,7 +483,7 @@ export async function recalculateBundlesForPiece(
           discountPercent,
           updatedAt: new Date(),
         },
-      }
+      },
     )
     updated++
   }

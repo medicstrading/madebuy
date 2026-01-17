@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import type { Material, Piece, PieceMaterialUsage } from '@madebuy/shared'
 import {
-  X,
-  Check,
-  RefreshCw,
   AlertTriangle,
-  Package,
-  Layers,
   Calendar,
+  Check,
   FileText,
+  Layers,
   Minus,
+  Package,
   Plus,
+  RefreshCw,
+  X,
 } from 'lucide-react'
-import type { Piece, Material, PieceMaterialUsage } from '@madebuy/shared'
+import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
 
 interface RecordProductionModalProps {
   isOpen: boolean
@@ -41,40 +41,44 @@ export function RecordProductionModal({
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [productionDate, setProductionDate] = useState(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split('T')[0],
   )
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Build materials lookup map
-  const materialsMap = new Map(materials.map(m => [m.id, m]))
+  const materialsMap = new Map(materials.map((m) => [m.id, m]))
 
   // Calculate material consumption preview
   const getConsumptionPreview = useCallback((): MaterialConsumption[] => {
     if (!piece.materialsUsed || piece.materialsUsed.length === 0) return []
 
-    return piece.materialsUsed.map(usage => {
-      const material = materialsMap.get(usage.materialId)
-      const quantityNeeded = usage.quantity * quantity
+    return piece.materialsUsed
+      .map((usage) => {
+        const material = materialsMap.get(usage.materialId)
+        const quantityNeeded = usage.quantity * quantity
 
-      return {
-        material: material!,
-        usage,
-        quantityNeeded,
-        hasStock: material ? material.quantityInStock >= quantityNeeded : false,
-      }
-    }).filter(c => c.material) // Filter out any missing materials
+        return {
+          material: material!,
+          usage,
+          quantityNeeded,
+          hasStock: material
+            ? material.quantityInStock >= quantityNeeded
+            : false,
+        }
+      })
+      .filter((c) => c.material) // Filter out any missing materials
   }, [piece.materialsUsed, quantity, materialsMap])
 
   const consumptionPreview = getConsumptionPreview()
-  const hasInsufficientStock = consumptionPreview.some(c => !c.hasStock)
+  const hasInsufficientStock = consumptionPreview.some((c) => !c.hasStock)
   const hasMaterials = piece.materialsUsed && piece.materialsUsed.length > 0
 
   // Calculate total cost
   const totalCost = consumptionPreview.reduce(
-    (sum, c) => sum + (c.material.costPerUnit * c.quantityNeeded),
-    0
+    (sum, c) => sum + c.material.costPerUnit * c.quantityNeeded,
+    0,
   )
 
   const handleSubmit = async () => {
@@ -119,8 +123,8 @@ export function RecordProductionModal({
     }
   }
 
-  const incrementQuantity = () => setQuantity(q => q + 1)
-  const decrementQuantity = () => setQuantity(q => Math.max(1, q - 1))
+  const incrementQuantity = () => setQuantity((q) => q + 1)
+  const decrementQuantity = () => setQuantity((q) => Math.max(1, q - 1))
 
   if (!isOpen) return null
 
@@ -135,11 +139,14 @@ export function RecordProductionModal({
                 <Layers className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Log Production</h3>
+                <h3 className="text-lg font-semibold text-white">
+                  Log Production
+                </h3>
                 <p className="text-emerald-100 text-sm">{piece.name}</p>
               </div>
             </div>
             <button
+              type="button"
               onClick={onClose}
               className="text-white/80 hover:text-white transition-colors"
             >
@@ -158,6 +165,7 @@ export function RecordProductionModal({
               <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                 <button
                   type="button"
+                  type="button"
                   onClick={decrementQuantity}
                   className="px-3 py-2 hover:bg-gray-100 transition-colors"
                 >
@@ -166,11 +174,14 @@ export function RecordProductionModal({
                 <input
                   type="number"
                   value={quantity}
-                  onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
+                  }
                   className="w-20 text-center text-lg font-semibold border-x border-gray-300 py-2 focus:outline-none"
                   min={1}
                 />
                 <button
+                  type="button"
                   type="button"
                   onClick={incrementQuantity}
                   className="px-3 py-2 hover:bg-gray-100 transition-colors"
@@ -179,7 +190,8 @@ export function RecordProductionModal({
                 </button>
               </div>
               <span className="text-gray-500 text-sm">
-                units of <span className="font-medium text-gray-700">{piece.name}</span>
+                units of{' '}
+                <span className="font-medium text-gray-700">{piece.name}</span>
               </span>
             </div>
           </div>
@@ -199,19 +211,27 @@ export function RecordProductionModal({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Package className={`h-4 w-4 ${
-                        item.hasStock ? 'text-gray-400' : 'text-red-500'
-                      }`} />
-                      <span className={`text-sm ${
-                        item.hasStock ? 'text-gray-700' : 'text-red-700 font-medium'
-                      }`}>
+                      <Package
+                        className={`h-4 w-4 ${
+                          item.hasStock ? 'text-gray-400' : 'text-red-500'
+                        }`}
+                      />
+                      <span
+                        className={`text-sm ${
+                          item.hasStock
+                            ? 'text-gray-700'
+                            : 'text-red-700 font-medium'
+                        }`}
+                      >
                         {item.material.name}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`text-sm font-medium ${
-                        item.hasStock ? 'text-gray-900' : 'text-red-700'
-                      }`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          item.hasStock ? 'text-gray-900' : 'text-red-700'
+                        }`}
+                      >
                         {item.quantityNeeded} {item.material.unit}
                       </span>
                       {!item.hasStock && (
@@ -224,7 +244,9 @@ export function RecordProductionModal({
                 ))}
                 {/* Total Cost */}
                 <div className="flex items-center justify-between px-4 py-3 bg-gray-100">
-                  <span className="text-sm font-medium text-gray-700">Material Cost</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Material Cost
+                  </span>
                   <span className="text-sm font-semibold text-gray-900">
                     ${(totalCost / 100).toFixed(2)}
                   </span>
@@ -239,7 +261,9 @@ export function RecordProductionModal({
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-amber-800">No materials configured</p>
+                  <p className="text-sm font-medium text-amber-800">
+                    No materials configured
+                  </p>
                   <p className="text-sm text-amber-700 mt-1">
                     Add materials to this piece to track usage and costs.
                   </p>
@@ -258,7 +282,7 @@ export function RecordProductionModal({
               <input
                 type="date"
                 value={productionDate}
-                onChange={e => setProductionDate(e.target.value)}
+                onChange={(e) => setProductionDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
@@ -270,7 +294,7 @@ export function RecordProductionModal({
               <input
                 type="text"
                 value={notes}
-                onChange={e => setNotes(e.target.value)}
+                onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g., Batch #001"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
@@ -290,6 +314,7 @@ export function RecordProductionModal({
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
             <button
+              type="button"
               onClick={onClose}
               disabled={isSubmitting}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
@@ -297,6 +322,7 @@ export function RecordProductionModal({
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitting || hasInsufficientStock || !hasMaterials}
               className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

@@ -9,7 +9,11 @@
 // Template Types
 // ============================================
 
-export type WebsiteTemplate = 'classic-store' | 'landing-page' | 'portfolio' | 'magazine'
+export type WebsiteTemplate =
+  | 'classic-store'
+  | 'landing-page'
+  | 'portfolio'
+  | 'magazine'
 
 export interface TemplateDefinition {
   id: WebsiteTemplate
@@ -26,19 +30,19 @@ export interface TemplateDefinition {
 // ============================================
 
 export type PageType =
-  | 'home'      // Homepage (required, always exists)
-  | 'shop'      // Product listing page
-  | 'about'     // About page
-  | 'contact'   // Contact page
-  | 'blog'      // Blog listing page
-  | 'gallery'   // Gallery/portfolio page
-  | 'faq'       // FAQ page
-  | 'custom'    // Custom page (user-defined)
+  | 'home' // Homepage (required, always exists)
+  | 'shop' // Product listing page
+  | 'about' // About page
+  | 'contact' // Contact page
+  | 'blog' // Blog listing page
+  | 'gallery' // Gallery/portfolio page
+  | 'faq' // FAQ page
+  | 'custom' // Custom page (user-defined)
 
 export interface WebsitePage {
   id: string
-  slug: string          // URL path (e.g., '', 'about', 'contact') - empty for home
-  title: string         // Page title
+  slug: string // URL path (e.g., '', 'about', 'contact') - empty for home
+  title: string // Page title
   type: PageType
 
   // Page content
@@ -47,14 +51,14 @@ export interface WebsitePage {
   // Navigation settings
   showInNavigation: boolean
   navigationOrder: number
-  navigationLabel?: string  // Override title in nav
+  navigationLabel?: string // Override title in nav
 
   // Page settings
   enabled: boolean
 
   // SEO
   seo?: {
-    title?: string        // Override page title for SEO
+    title?: string // Override page title for SEO
     description?: string
     ogImage?: string
   }
@@ -62,14 +66,14 @@ export interface WebsitePage {
 
 // Standard page slugs (used for routing)
 export const STANDARD_PAGE_SLUGS: Record<PageType, string> = {
-  'home': '',
-  'shop': 'shop',
-  'about': 'about',
-  'contact': 'contact',
-  'blog': 'blog',
-  'gallery': 'gallery',
-  'faq': 'faq',
-  'custom': '',  // Custom pages have user-defined slugs
+  home: '',
+  shop: 'shop',
+  about: 'about',
+  contact: 'contact',
+  blog: 'blog',
+  gallery: 'gallery',
+  faq: 'faq',
+  custom: '', // Custom pages have user-defined slugs
 }
 
 // ============================================
@@ -78,26 +82,26 @@ export const STANDARD_PAGE_SLUGS: Record<PageType, string> = {
 
 export type PageSectionType =
   // Hero variants
-  | 'hero-slider'      // Full-height hero with image carousel
-  | 'hero-simple'      // Simple hero with text/image
+  | 'hero-slider' // Full-height hero with image carousel
+  | 'hero-simple' // Simple hero with text/image
   // Product/shop sections
-  | 'product-grid'     // Product cards grid (configurable columns)
+  | 'product-grid' // Product cards grid (configurable columns)
   | 'product-featured' // Large featured product showcase
-  | 'collections'      // Collection showcase
+  | 'collections' // Collection showcase
   // Content sections
-  | 'feature-cards'    // 3-column feature grid
-  | 'blog-preview'     // Blog post cards
-  | 'testimonials'     // Customer reviews
-  | 'cta'              // Call-to-action block
-  | 'text-image'       // Two-column text + image
-  | 'gallery'          // Masonry image gallery
-  | 'faq'              // FAQ accordion
-  | 'about'            // About section
-  | 'contact'          // Contact form/info
-  | 'custom-order'     // Custom order CTA
-  | 'newsletter'       // Email signup
-  | 'spacer'           // Visual spacing
-  | 'reviews'          // Customer reviews aggregated
+  | 'feature-cards' // 3-column feature grid
+  | 'blog-preview' // Blog post cards
+  | 'testimonials' // Customer reviews
+  | 'cta' // Call-to-action block
+  | 'text-image' // Two-column text + image
+  | 'gallery' // Masonry image gallery
+  | 'faq' // FAQ accordion
+  | 'about' // About section
+  | 'contact' // Contact form/info
+  | 'custom-order' // Custom order CTA
+  | 'newsletter' // Email signup
+  | 'spacer' // Visual spacing
+  | 'reviews' // Customer reviews aggregated
 
 export interface PageSection {
   id: string
@@ -218,7 +222,7 @@ export interface PageSectionSettings {
 
   // Reviews section settings
   reviewsShowRatingBreakdown?: boolean
-  reviewsLimit?: number  // default 6
+  reviewsLimit?: number // default 6
   reviewsLayout?: 'grid' | 'list'
 }
 
@@ -269,7 +273,7 @@ export interface HeaderConfig {
   showLogo?: boolean
   showBusinessName?: boolean
   showSocialLinks?: boolean
-  showSocialIcons?: boolean  // Alias for showSocialLinks
+  showSocialIcons?: boolean // Alias for showSocialLinks
   showCart?: boolean
   navLinks?: NavLink[]
   sticky?: boolean
@@ -307,12 +311,22 @@ export interface FooterColumn {
 // Template Defaults (Multi-Page)
 // ============================================
 
-export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefinition, 'thumbnail'>> = {
+export const TEMPLATE_DEFINITIONS: Record<
+  WebsiteTemplate,
+  Omit<TemplateDefinition, 'thumbnail'>
+> = {
   'classic-store': {
     id: 'classic-store',
     name: 'Classic Store',
-    description: 'Full e-commerce website with home, shop, about, and contact pages',
-    features: ['Home with hero', 'Shop page', 'About page', 'Contact page', 'Blog'],
+    description:
+      'Full e-commerce website with home, shop, about, and contact pages',
+    features: [
+      'Home with hero',
+      'Shop page',
+      'About page',
+      'Contact page',
+      'Blog',
+    ],
     bestFor: 'Full product catalogs',
     defaultPages: [
       {
@@ -324,12 +338,48 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 1,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'medium' } },
-          { id: 'features', type: 'feature-cards', order: 2, enabled: true, settings: {} },
-          { id: 'products', type: 'product-grid', order: 3, enabled: true, settings: { columns: 4, limit: 8, title: 'Featured Products' } },
-          { id: 'collections', type: 'collections', order: 4, enabled: true, settings: { title: 'Shop by Collection' } },
-          { id: 'testimonials', type: 'testimonials', order: 5, enabled: true, settings: {} },
-          { id: 'newsletter', type: 'newsletter', order: 6, enabled: true, settings: {} },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'medium' },
+          },
+          {
+            id: 'features',
+            type: 'feature-cards',
+            order: 2,
+            enabled: true,
+            settings: {},
+          },
+          {
+            id: 'products',
+            type: 'product-grid',
+            order: 3,
+            enabled: true,
+            settings: { columns: 4, limit: 8, title: 'Featured Products' },
+          },
+          {
+            id: 'collections',
+            type: 'collections',
+            order: 4,
+            enabled: true,
+            settings: { title: 'Shop by Collection' },
+          },
+          {
+            id: 'testimonials',
+            type: 'testimonials',
+            order: 5,
+            enabled: true,
+            settings: {},
+          },
+          {
+            id: 'newsletter',
+            type: 'newsletter',
+            order: 6,
+            enabled: true,
+            settings: {},
+          },
         ],
       },
       {
@@ -341,8 +391,20 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 2,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Shop All Products' } },
-          { id: 'products', type: 'product-grid', order: 2, enabled: true, settings: { columns: 4, showCategories: true, showPrices: true } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title: 'Shop All Products' },
+          },
+          {
+            id: 'products',
+            type: 'product-grid',
+            order: 2,
+            enabled: true,
+            settings: { columns: 4, showCategories: true, showPrices: true },
+          },
         ],
       },
       {
@@ -354,9 +416,27 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 3,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'About Us' } },
-          { id: 'about', type: 'about', order: 2, enabled: true, settings: { showSocialLinks: true } },
-          { id: 'text-image', type: 'text-image', order: 3, enabled: true, settings: { imagePosition: 'right', title: 'Our Story' } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title: 'About Us' },
+          },
+          {
+            id: 'about',
+            type: 'about',
+            order: 2,
+            enabled: true,
+            settings: { showSocialLinks: true },
+          },
+          {
+            id: 'text-image',
+            type: 'text-image',
+            order: 3,
+            enabled: true,
+            settings: { imagePosition: 'right', title: 'Our Story' },
+          },
         ],
       },
       {
@@ -368,8 +448,24 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 4,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Get in Touch' } },
-          { id: 'contact', type: 'contact', order: 2, enabled: true, settings: { showContactForm: true, showEmail: true, showPhone: true } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title: 'Get in Touch' },
+          },
+          {
+            id: 'contact',
+            type: 'contact',
+            order: 2,
+            enabled: true,
+            settings: {
+              showContactForm: true,
+              showEmail: true,
+              showPhone: true,
+            },
+          },
         ],
       },
       {
@@ -379,10 +475,27 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         type: 'blog',
         showInNavigation: true,
         navigationOrder: 5,
-        enabled: false,  // Disabled by default, user enables if they want blog
+        enabled: false, // Disabled by default, user enables if they want blog
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Blog' } },
-          { id: 'blog', type: 'blog-preview', order: 2, enabled: true, settings: { postLimit: 12, layout: 'grid', showExcerpt: true, showDate: true } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title: 'Blog' },
+          },
+          {
+            id: 'blog',
+            type: 'blog-preview',
+            order: 2,
+            enabled: true,
+            settings: {
+              postLimit: 12,
+              layout: 'grid',
+              showExcerpt: true,
+              showDate: true,
+            },
+          },
         ],
       },
     ],
@@ -390,8 +503,15 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
   'landing-page': {
     id: 'landing-page',
     name: 'Landing Page',
-    description: 'Conversion-focused single page with optional shop and contact pages',
-    features: ['Full-height hero', 'Feature cards', 'Testimonials', 'CTA sections', 'FAQ'],
+    description:
+      'Conversion-focused single page with optional shop and contact pages',
+    features: [
+      'Full-height hero',
+      'Feature cards',
+      'Testimonials',
+      'CTA sections',
+      'FAQ',
+    ],
     bestFor: 'Services, bookings, single products',
     defaultPages: [
       {
@@ -403,13 +523,49 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 1,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-slider', order: 1, enabled: true, settings: { height: 'full' } },
-          { id: 'features', type: 'feature-cards', order: 2, enabled: true, settings: {} },
-          { id: 'text-image', type: 'text-image', order: 3, enabled: true, settings: { imagePosition: 'right' } },
-          { id: 'testimonials', type: 'testimonials', order: 4, enabled: true, settings: {} },
-          { id: 'cta', type: 'cta', order: 5, enabled: true, settings: { ctaStyle: 'banner' } },
+          {
+            id: 'hero',
+            type: 'hero-slider',
+            order: 1,
+            enabled: true,
+            settings: { height: 'full' },
+          },
+          {
+            id: 'features',
+            type: 'feature-cards',
+            order: 2,
+            enabled: true,
+            settings: {},
+          },
+          {
+            id: 'text-image',
+            type: 'text-image',
+            order: 3,
+            enabled: true,
+            settings: { imagePosition: 'right' },
+          },
+          {
+            id: 'testimonials',
+            type: 'testimonials',
+            order: 4,
+            enabled: true,
+            settings: {},
+          },
+          {
+            id: 'cta',
+            type: 'cta',
+            order: 5,
+            enabled: true,
+            settings: { ctaStyle: 'banner' },
+          },
           { id: 'faq', type: 'faq', order: 6, enabled: true, settings: {} },
-          { id: 'newsletter', type: 'newsletter', order: 7, enabled: true, settings: {} },
+          {
+            id: 'newsletter',
+            type: 'newsletter',
+            order: 7,
+            enabled: true,
+            settings: {},
+          },
         ],
       },
       {
@@ -421,7 +577,13 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 2,
         enabled: true,
         sections: [
-          { id: 'products', type: 'product-grid', order: 1, enabled: true, settings: { columns: 3, showPrices: true } },
+          {
+            id: 'products',
+            type: 'product-grid',
+            order: 1,
+            enabled: true,
+            settings: { columns: 3, showPrices: true },
+          },
         ],
       },
       {
@@ -433,16 +595,28 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 3,
         enabled: true,
         sections: [
-          { id: 'contact', type: 'contact', order: 1, enabled: true, settings: { showContactForm: true } },
+          {
+            id: 'contact',
+            type: 'contact',
+            order: 1,
+            enabled: true,
+            settings: { showContactForm: true },
+          },
         ],
       },
     ],
   },
-  'portfolio': {
+  portfolio: {
     id: 'portfolio',
     name: 'Portfolio / Gallery',
-    description: 'Visual-first website for artists with gallery, about, and custom order pages',
-    features: ['Masonry gallery', 'Featured work', 'Custom orders', 'Contact form'],
+    description:
+      'Visual-first website for artists with gallery, about, and custom order pages',
+    features: [
+      'Masonry gallery',
+      'Featured work',
+      'Custom orders',
+      'Contact form',
+    ],
     bestFor: 'Artists, photographers, custom work',
     defaultPages: [
       {
@@ -454,9 +628,34 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 1,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'large' } },
-          { id: 'gallery', type: 'gallery', order: 2, enabled: true, settings: { galleryStyle: 'masonry', galleryColumns: 3, title: 'Recent Work' } },
-          { id: 'cta', type: 'cta', order: 3, enabled: true, settings: { ctaStyle: 'card', ctaText: 'Interested in a custom piece?' } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'large' },
+          },
+          {
+            id: 'gallery',
+            type: 'gallery',
+            order: 2,
+            enabled: true,
+            settings: {
+              galleryStyle: 'masonry',
+              galleryColumns: 3,
+              title: 'Recent Work',
+            },
+          },
+          {
+            id: 'cta',
+            type: 'cta',
+            order: 3,
+            enabled: true,
+            settings: {
+              ctaStyle: 'card',
+              ctaText: 'Interested in a custom piece?',
+            },
+          },
         ],
       },
       {
@@ -468,8 +667,20 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 2,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Gallery' } },
-          { id: 'gallery', type: 'gallery', order: 2, enabled: true, settings: { galleryStyle: 'masonry', galleryColumns: 4 } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title: 'Gallery' },
+          },
+          {
+            id: 'gallery',
+            type: 'gallery',
+            order: 2,
+            enabled: true,
+            settings: { galleryStyle: 'masonry', galleryColumns: 4 },
+          },
         ],
       },
       {
@@ -481,7 +692,13 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 3,
         enabled: true,
         sections: [
-          { id: 'products', type: 'product-grid', order: 1, enabled: true, settings: { columns: 3, showPrices: true } },
+          {
+            id: 'products',
+            type: 'product-grid',
+            order: 1,
+            enabled: true,
+            settings: { columns: 3, showPrices: true },
+          },
         ],
       },
       {
@@ -493,8 +710,20 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 4,
         enabled: true,
         sections: [
-          { id: 'about', type: 'about', order: 1, enabled: true, settings: { showSocialLinks: true } },
-          { id: 'custom-order', type: 'custom-order', order: 2, enabled: true, settings: {} },
+          {
+            id: 'about',
+            type: 'about',
+            order: 1,
+            enabled: true,
+            settings: { showSocialLinks: true },
+          },
+          {
+            id: 'custom-order',
+            type: 'custom-order',
+            order: 2,
+            enabled: true,
+            settings: {},
+          },
         ],
       },
       {
@@ -506,16 +735,28 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 5,
         enabled: true,
         sections: [
-          { id: 'contact', type: 'contact', order: 1, enabled: true, settings: { showContactForm: true, showEmail: true } },
+          {
+            id: 'contact',
+            type: 'contact',
+            order: 1,
+            enabled: true,
+            settings: { showContactForm: true, showEmail: true },
+          },
         ],
       },
     ],
   },
-  'magazine': {
+  magazine: {
     id: 'magazine',
     name: 'Magazine / Editorial',
-    description: 'Blog-forward website with featured articles and editorial style',
-    features: ['Featured articles', 'Editorial layout', 'Collections', 'Newsletter'],
+    description:
+      'Blog-forward website with featured articles and editorial style',
+    features: [
+      'Featured articles',
+      'Editorial layout',
+      'Collections',
+      'Newsletter',
+    ],
     bestFor: 'Content creators, storytellers',
     defaultPages: [
       {
@@ -527,10 +768,38 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 1,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'medium' } },
-          { id: 'blog', type: 'blog-preview', order: 2, enabled: true, settings: { postLimit: 6, layout: 'featured', title: 'Latest Stories' } },
-          { id: 'collections', type: 'collections', order: 3, enabled: true, settings: { title: 'Collections' } },
-          { id: 'newsletter', type: 'newsletter', order: 4, enabled: true, settings: {} },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'medium' },
+          },
+          {
+            id: 'blog',
+            type: 'blog-preview',
+            order: 2,
+            enabled: true,
+            settings: {
+              postLimit: 6,
+              layout: 'featured',
+              title: 'Latest Stories',
+            },
+          },
+          {
+            id: 'collections',
+            type: 'collections',
+            order: 3,
+            enabled: true,
+            settings: { title: 'Collections' },
+          },
+          {
+            id: 'newsletter',
+            type: 'newsletter',
+            order: 4,
+            enabled: true,
+            settings: {},
+          },
         ],
       },
       {
@@ -542,8 +811,25 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 2,
         enabled: true,
         sections: [
-          { id: 'hero', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Stories' } },
-          { id: 'blog', type: 'blog-preview', order: 2, enabled: true, settings: { postLimit: 20, layout: 'grid', showExcerpt: true, showDate: true } },
+          {
+            id: 'hero',
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title: 'Stories' },
+          },
+          {
+            id: 'blog',
+            type: 'blog-preview',
+            order: 2,
+            enabled: true,
+            settings: {
+              postLimit: 20,
+              layout: 'grid',
+              showExcerpt: true,
+              showDate: true,
+            },
+          },
         ],
       },
       {
@@ -555,7 +841,13 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 3,
         enabled: true,
         sections: [
-          { id: 'products', type: 'product-grid', order: 1, enabled: true, settings: { columns: 3, showPrices: true } },
+          {
+            id: 'products',
+            type: 'product-grid',
+            order: 1,
+            enabled: true,
+            settings: { columns: 3, showPrices: true },
+          },
         ],
       },
       {
@@ -567,8 +859,20 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 4,
         enabled: true,
         sections: [
-          { id: 'about', type: 'about', order: 1, enabled: true, settings: { showSocialLinks: true } },
-          { id: 'text-image', type: 'text-image', order: 2, enabled: true, settings: { imagePosition: 'left' } },
+          {
+            id: 'about',
+            type: 'about',
+            order: 1,
+            enabled: true,
+            settings: { showSocialLinks: true },
+          },
+          {
+            id: 'text-image',
+            type: 'text-image',
+            order: 2,
+            enabled: true,
+            settings: { imagePosition: 'left' },
+          },
         ],
       },
       {
@@ -580,7 +884,13 @@ export const TEMPLATE_DEFINITIONS: Record<WebsiteTemplate, Omit<TemplateDefiniti
         navigationOrder: 5,
         enabled: true,
         sections: [
-          { id: 'contact', type: 'contact', order: 1, enabled: true, settings: { showContactForm: true } },
+          {
+            id: 'contact',
+            type: 'contact',
+            order: 1,
+            enabled: true,
+            settings: { showContactForm: true },
+          },
         ],
       },
     ],
@@ -608,7 +918,7 @@ export function getDefaultPages(template: WebsiteTemplate): WebsitePage[] {
  */
 export function getDefaultSections(template: WebsiteTemplate): PageSection[] {
   const pages = getDefaultPages(template)
-  const homePage = pages.find(p => p.type === 'home')
+  const homePage = pages.find((p) => p.type === 'home')
   return homePage?.sections || []
 }
 
@@ -629,45 +939,112 @@ export function generatePageId(): string {
 /**
  * Create a new page with default settings based on page type
  */
-export function createCustomPage(pageType: PageType, title: string): WebsitePage {
-  const slug = pageType === 'home' ? '' : STANDARD_PAGE_SLUGS[pageType] || title.toLowerCase().replace(/\s+/g, '-')
+export function createCustomPage(
+  pageType: PageType,
+  title: string,
+): WebsitePage {
+  const slug =
+    pageType === 'home'
+      ? ''
+      : STANDARD_PAGE_SLUGS[pageType] ||
+        title.toLowerCase().replace(/\s+/g, '-')
 
   // Get default sections based on page type
   const defaultSections: PageSection[] = (() => {
     switch (pageType) {
       case 'home':
         return [
-          { id: generateSectionId(), type: 'hero-simple', order: 1, enabled: true, settings: { height: 'medium' } },
-          { id: generateSectionId(), type: 'product-grid', order: 2, enabled: true, settings: { columns: 3, limit: 8 } },
+          {
+            id: generateSectionId(),
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'medium' },
+          },
+          {
+            id: generateSectionId(),
+            type: 'product-grid',
+            order: 2,
+            enabled: true,
+            settings: { columns: 3, limit: 8 },
+          },
         ]
       case 'shop':
         return [
-          { id: generateSectionId(), type: 'product-grid', order: 1, enabled: true, settings: { columns: 3, showPrices: true } },
+          {
+            id: generateSectionId(),
+            type: 'product-grid',
+            order: 1,
+            enabled: true,
+            settings: { columns: 3, showPrices: true },
+          },
         ]
       case 'about':
         return [
-          { id: generateSectionId(), type: 'about', order: 1, enabled: true, settings: { showSocialLinks: true } },
+          {
+            id: generateSectionId(),
+            type: 'about',
+            order: 1,
+            enabled: true,
+            settings: { showSocialLinks: true },
+          },
         ]
       case 'contact':
         return [
-          { id: generateSectionId(), type: 'contact', order: 1, enabled: true, settings: { showContactForm: true } },
+          {
+            id: generateSectionId(),
+            type: 'contact',
+            order: 1,
+            enabled: true,
+            settings: { showContactForm: true },
+          },
         ]
       case 'blog':
         return [
-          { id: generateSectionId(), type: 'blog-preview', order: 1, enabled: true, settings: { postLimit: 12, layout: 'grid' } },
+          {
+            id: generateSectionId(),
+            type: 'blog-preview',
+            order: 1,
+            enabled: true,
+            settings: { postLimit: 12, layout: 'grid' },
+          },
         ]
       case 'gallery':
         return [
-          { id: generateSectionId(), type: 'gallery', order: 1, enabled: true, settings: { galleryColumns: 3, galleryStyle: 'masonry' } },
+          {
+            id: generateSectionId(),
+            type: 'gallery',
+            order: 1,
+            enabled: true,
+            settings: { galleryColumns: 3, galleryStyle: 'masonry' },
+          },
         ]
       case 'faq':
         return [
-          { id: generateSectionId(), type: 'faq', order: 1, enabled: true, settings: { faqStyle: 'accordion' } },
+          {
+            id: generateSectionId(),
+            type: 'faq',
+            order: 1,
+            enabled: true,
+            settings: { faqStyle: 'accordion' },
+          },
         ]
       default:
         return [
-          { id: generateSectionId(), type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title } },
-          { id: generateSectionId(), type: 'text-image', order: 2, enabled: true, settings: {} },
+          {
+            id: generateSectionId(),
+            type: 'hero-simple',
+            order: 1,
+            enabled: true,
+            settings: { height: 'small', title },
+          },
+          {
+            id: generateSectionId(),
+            type: 'text-image',
+            order: 2,
+            enabled: true,
+            settings: {},
+          },
         ]
     }
   })()
@@ -692,40 +1069,58 @@ export const SECTION_TYPE_LABELS: Record<PageSectionType, string> = {
   'hero-simple': 'Hero Banner',
   'product-grid': 'Products Grid',
   'product-featured': 'Featured Product',
-  'collections': 'Collections',
+  collections: 'Collections',
   'feature-cards': 'Feature Cards',
   'blog-preview': 'Blog Preview',
-  'testimonials': 'Testimonials',
-  'cta': 'Call to Action',
+  testimonials: 'Testimonials',
+  cta: 'Call to Action',
   'text-image': 'Text & Image',
-  'gallery': 'Gallery',
-  'faq': 'FAQ',
-  'about': 'About Section',
-  'contact': 'Contact',
+  gallery: 'Gallery',
+  faq: 'FAQ',
+  about: 'About Section',
+  contact: 'Contact',
   'custom-order': 'Custom Order CTA',
-  'newsletter': 'Newsletter Signup',
-  'spacer': 'Spacer',
-  'reviews': 'Customer Reviews',
+  newsletter: 'Newsletter Signup',
+  spacer: 'Spacer',
+  reviews: 'Customer Reviews',
 }
 
 /**
  * Validate page slug (URL-safe, unique within pages)
  */
-export function validatePageSlug(slug: string, existingPages: WebsitePage[], currentPageId?: string): { valid: boolean; error?: string } {
+export function validatePageSlug(
+  slug: string,
+  existingPages: WebsitePage[],
+  currentPageId?: string,
+): { valid: boolean; error?: string } {
   // Check format
   const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
   if (slug && !slugRegex.test(slug)) {
-    return { valid: false, error: 'Slug must be lowercase letters, numbers, and hyphens only' }
+    return {
+      valid: false,
+      error: 'Slug must be lowercase letters, numbers, and hyphens only',
+    }
   }
 
   // Check uniqueness
-  const duplicate = existingPages.find(p => p.slug === slug && p.id !== currentPageId)
+  const duplicate = existingPages.find(
+    (p) => p.slug === slug && p.id !== currentPageId,
+  )
   if (duplicate) {
     return { valid: false, error: 'This URL is already used by another page' }
   }
 
   // Check reserved slugs
-  const reserved = ['cart', 'checkout', 'account', 'api', 'admin', 'login', 'signup', 'verify']
+  const reserved = [
+    'cart',
+    'checkout',
+    'account',
+    'api',
+    'admin',
+    'login',
+    'signup',
+    'verify',
+  ]
   if (reserved.includes(slug)) {
     return { valid: false, error: 'This URL is reserved and cannot be used' }
   }
@@ -738,10 +1133,10 @@ export function validatePageSlug(slug: string, existingPages: WebsitePage[], cur
 // ============================================
 
 export const LAYOUT_TO_TEMPLATE_MAP: Record<string, WebsiteTemplate> = {
-  'grid': 'classic-store',
-  'minimal': 'landing-page',
-  'featured': 'portfolio',
-  'masonry': 'magazine',
+  grid: 'classic-store',
+  minimal: 'landing-page',
+  featured: 'portfolio',
+  masonry: 'magazine',
 }
 
 /**
@@ -749,7 +1144,7 @@ export const LAYOUT_TO_TEMPLATE_MAP: Record<string, WebsiteTemplate> = {
  */
 export function migrateSectionsToPages(
   template: WebsiteTemplate,
-  oldSections?: PageSection[]
+  oldSections?: PageSection[],
 ): WebsitePage[] {
   const defaultPages = getDefaultPages(template)
 
@@ -758,7 +1153,7 @@ export function migrateSectionsToPages(
   }
 
   // Put old sections on home page, keep other default pages
-  return defaultPages.map(page => {
+  return defaultPages.map((page) => {
     if (page.type === 'home') {
       return { ...page, sections: oldSections }
     }

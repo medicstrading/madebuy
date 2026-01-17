@@ -47,11 +47,11 @@ export interface Order {
 
   // Fee breakdown (all amounts in cents)
   fees?: {
-    stripe: number      // Stripe processing fee
-    platform: number    // Always 0 for MadeBuy - our differentiator
-    total: number       // Total fees
+    stripe: number // Stripe processing fee
+    platform: number // Always 0 for MadeBuy - our differentiator
+    total: number // Total fees
   }
-  netAmount?: number    // What seller actually receives (total - fees)
+  netAmount?: number // What seller actually receives (total - fees)
 
   // UTM attribution for analytics
   trafficSource?: string
@@ -65,14 +65,14 @@ export interface Order {
   trackingUrl?: string
 
   // Sendle shipping integration
-  sendleOrderId?: string        // Sendle's internal order ID
-  sendleReference?: string      // Sendle tracking reference (e.g., SNDLE123)
-  labelUrl?: string             // URL to download shipping label PDF
+  sendleOrderId?: string // Sendle's internal order ID
+  sendleReference?: string // Sendle tracking reference (e.g., SNDLE123)
+  labelUrl?: string // URL to download shipping label PDF
 
   // Digital product delivery
-  hasDigitalItems?: boolean       // Order contains at least one digital product
-  isDigitalOnly?: boolean         // Order contains ONLY digital products (no shipping needed)
-  digitalDeliveredAt?: Date       // When download links were sent
+  hasDigitalItems?: boolean // Order contains at least one digital product
+  isDigitalOnly?: boolean // Order contains ONLY digital products (no shipping needed)
+  digitalDeliveredAt?: Date // When download links were sent
 
   // Notes
   customerNotes?: string
@@ -104,15 +104,15 @@ export interface OrderItem {
   // Variant info (if applicable)
   variantId?: string
   variantSku?: string
-  variantAttributes?: Record<string, string>  // e.g., { "Size": "M", "Color": "Blue" }
+  variantAttributes?: Record<string, string> // e.g., { "Size": "M", "Color": "Blue" }
 
   // Personalization (for custom/made-to-order products)
   personalizations?: PersonalizationValue[]
-  personalizationTotal?: number               // Sum of all personalization price adjustments (cents)
+  personalizationTotal?: number // Sum of all personalization price adjustments (cents)
 
   // Digital product fields
   isDigital?: boolean
-  downloadRecordId?: string       // Reference to download_records collection
+  downloadRecordId?: string // Reference to download_records collection
 }
 
 export interface Address {

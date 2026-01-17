@@ -98,7 +98,7 @@ export async function getAuditLogs(
     endDate?: Date
     limit?: number
     offset?: number
-  }
+  },
 ): Promise<AuditLogEntry[]> {
   const db = await getDatabase()
 
@@ -111,16 +111,14 @@ export async function getAuditLogs(
   if (options?.startDate || options?.endDate) {
     query.createdAt = {}
     if (options.startDate) {
-      (query.createdAt as Record<string, Date>).$gte = options.startDate
+      ;(query.createdAt as Record<string, Date>).$gte = options.startDate
     }
     if (options.endDate) {
-      (query.createdAt as Record<string, Date>).$lte = options.endDate
+      ;(query.createdAt as Record<string, Date>).$lte = options.endDate
     }
   }
 
-  const cursor = db.collection('audit_logs')
-    .find(query)
-    .sort({ createdAt: -1 })
+  const cursor = db.collection('audit_logs').find(query).sort({ createdAt: -1 })
 
   if (options?.offset) {
     cursor.skip(options.offset)
@@ -139,14 +137,12 @@ export async function getAuditLogs(
  * Get failed login attempts for an IP or email
  * Useful for detecting brute force attacks
  */
-export async function getFailedLoginAttempts(
-  options: {
-    ip?: string
-    email?: string
-    tenantId?: string
-    withinMinutes?: number
-  }
-): Promise<number> {
+export async function getFailedLoginAttempts(options: {
+  ip?: string
+  email?: string
+  tenantId?: string
+  withinMinutes?: number
+}): Promise<number> {
   const db = await getDatabase()
 
   const cutoff = new Date()
@@ -175,7 +171,9 @@ export async function getFailedLoginAttempts(
  * Clean up old audit logs (retention policy)
  * Should be called from a scheduled job
  */
-export async function purgeOldAuditLogs(olderThanDays: number = 90): Promise<number> {
+export async function purgeOldAuditLogs(
+  olderThanDays: number = 90,
+): Promise<number> {
   const db = await getDatabase()
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - olderThanDays)

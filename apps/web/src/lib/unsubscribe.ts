@@ -1,10 +1,13 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 
 /**
  * Generate unsubscribe token for an email
  * Used in email sending to create unsubscribe links
  */
-export function generateUnsubscribeToken(email: string, secret: string): string {
+export function generateUnsubscribeToken(
+  email: string,
+  secret: string,
+): string {
   return crypto
     .createHmac('sha256', secret)
     .update(email.toLowerCase())

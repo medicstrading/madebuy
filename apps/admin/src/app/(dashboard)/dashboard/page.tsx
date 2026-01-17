@@ -1,22 +1,32 @@
-import { redirect } from 'next/navigation'
-import { requireTenant } from '@/lib/session'
-import { Package, Image, ShoppingCart, Mail, Plus, Share, Settings, ArrowRight } from 'lucide-react'
-import { pieces, media, orders, enquiries } from '@madebuy/db'
+import { enquiries, media, orders, pieces } from '@madebuy/db'
+import {
+  ArrowRight,
+  Image,
+  Mail,
+  Package,
+  Plus,
+  Settings,
+  Share,
+  ShoppingCart,
+} from 'lucide-react'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { AnalyticsWidget } from '@/components/dashboard/AnalyticsWidget'
 import { FinanceWidgets } from '@/components/dashboard/FinanceWidgets'
 import { LowStockAlerts } from '@/components/dashboard/LowStockAlerts'
-import { AnalyticsWidget } from '@/components/dashboard/AnalyticsWidget'
-import { unstable_cache } from 'next/cache'
+import { requireTenant } from '@/lib/session'
 
 const getCachedDashboardStats = unstable_cache(
   async (tenantId: string) => {
-    const [piecesCount, mediaCount, ordersCount, enquiriesCount, recentOrders] = await Promise.all([
-      pieces.countPieces(tenantId),
-      media.countMedia(tenantId),
-      orders.countOrders(tenantId),
-      enquiries.countEnquiries(tenantId),
-      orders.listOrders(tenantId, { limit: 5 }),
-    ])
+    const [piecesCount, mediaCount, ordersCount, enquiriesCount, recentOrders] =
+      await Promise.all([
+        pieces.countPieces(tenantId),
+        media.countMedia(tenantId),
+        orders.countOrders(tenantId),
+        enquiries.countEnquiries(tenantId),
+        orders.listOrders(tenantId, { limit: 5 }),
+      ])
 
     return {
       pieces: piecesCount,
@@ -27,7 +37,7 @@ const getCachedDashboardStats = unstable_cache(
     }
   },
   ['dashboard-stats'],
-  { revalidate: 60, tags: ['dashboard'] }
+  { revalidate: 60, tags: ['dashboard'] },
 )
 
 function getTimeOfDayGreeting(): string {
@@ -60,8 +70,12 @@ export default async function DashboardPage() {
           }}
         />
         <div className="relative z-10">
-          <p className="text-slate-400 text-sm font-medium tracking-widest uppercase mb-3">{greeting}</p>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">{tenant.businessName}</h1>
+          <p className="text-slate-400 text-sm font-medium tracking-widest uppercase mb-3">
+            {greeting}
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
+            {tenant.businessName}
+          </h1>
           <p className="text-slate-300 max-w-lg text-lg">
             Your studio command center. Here&apos;s what&apos;s happening today.
           </p>
@@ -76,7 +90,9 @@ export default async function DashboardPage() {
       {/* Studio Vitals - Overview Stats */}
       <section className="animate-fade-in-up delay-1 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">Studio Vitals</h2>
+          <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">
+            Studio Vitals
+          </h2>
         </div>
         <div className="p-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -132,7 +148,9 @@ export default async function DashboardPage() {
         {/* Recent Orders Section */}
         <section className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">Recent Orders</h2>
+            <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">
+              Recent Orders
+            </h2>
             <Link
               href="/dashboard/orders"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
@@ -144,7 +162,10 @@ export default async function DashboardPage() {
           <div className="divide-y divide-gray-100">
             {stats.recentOrders.length > 0 ? (
               stats.recentOrders.map((order: any) => (
-                <div key={order._id?.toString()} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors">
+                <div
+                  key={order._id?.toString()}
+                  className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors"
+                >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
                     <ShoppingCart className="h-5 w-5 text-gray-600" />
                   </div>
@@ -167,8 +188,12 @@ export default async function DashboardPage() {
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 mb-4">
                   <ShoppingCart className="h-7 w-7 text-gray-400" />
                 </div>
-                <p className="text-sm font-medium text-gray-600">No orders yet</p>
-                <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">Orders will appear here once customers start buying</p>
+                <p className="text-sm font-medium text-gray-600">
+                  No orders yet
+                </p>
+                <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
+                  Orders will appear here once customers start buying
+                </p>
               </div>
             )}
           </div>
@@ -177,7 +202,9 @@ export default async function DashboardPage() {
         {/* Quick Actions Section */}
         <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">Quick Actions</h2>
+            <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase">
+              Quick Actions
+            </h2>
           </div>
           <div className="p-4">
             <div className="space-y-2">
@@ -215,7 +242,7 @@ function StatCard({
   value,
   icon: Icon,
   color,
-  delay = 0
+  delay = 0,
 }: {
   title: string
   value: number
@@ -258,7 +285,9 @@ function StatCard({
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-4xl font-bold text-gray-900 tracking-tight tabular-nums">{value}</p>
+        <p className="text-4xl font-bold text-gray-900 tracking-tight tabular-nums">
+          {value}
+        </p>
         <p className="text-sm text-gray-500 mt-1 font-medium">{title}</p>
       </div>
     </div>
@@ -270,7 +299,7 @@ function QuickAction({
   icon: Icon,
   label,
   description,
-  color
+  color,
 }: {
   href: string
   icon: any
@@ -313,7 +342,9 @@ function OrderStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[status] || 'bg-gray-50 text-gray-700'}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[status] || 'bg-gray-50 text-gray-700'}`}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   )

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { publish } from '@madebuy/db'
-import type { PublishRecord } from '@madebuy/shared'
+import type { CreatePublishInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET() {
   try {
@@ -16,7 +16,10 @@ export async function GET() {
     return NextResponse.json({ publishRecords: allPublishRecords })
   } catch (error) {
     console.error('Error fetching publish records:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -28,23 +31,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data: Omit<PublishRecord, 'id' | 'tenantId' | 'status' | 'results' | 'createdAt' | 'updatedAt'> = await request.json()
+    const data: CreatePublishInput = await request.json()
 
     // Check if tenant has social connections for the requested platforms
     const requestedPlatforms = data.platforms
-    const connectedPlatforms = tenant.socialConnections?.map((c: any) => c.platform) || []
+    const connectedPlatforms =
+      tenant.socialConnections?.map((c: any) => c.platform) || []
 
     // Add website-blog if enabled
     if (tenant.websiteDesign?.blog?.enabled) {
       connectedPlatforms.push('website-blog')
     }
 
-    const missingPlatforms = requestedPlatforms.filter(p => !connectedPlatforms.includes(p))
+    const missingPlatforms = requestedPlatforms.filter(
+      (p) => !connectedPlatforms.includes(p),
+    )
 
     if (missingPlatforms.length > 0) {
       return NextResponse.json(
         { error: `Not connected to platforms: ${missingPlatforms.join(', ')}` },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -53,6 +59,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ publishRecord }, { status: 201 })
   } catch (error) {
     console.error('Error creating publish record:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

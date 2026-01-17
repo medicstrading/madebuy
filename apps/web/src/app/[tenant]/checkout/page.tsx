@@ -1,10 +1,14 @@
-import { requireTenant } from '@/lib/tenant'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { CheckoutForm } from '@/components/checkout/CheckoutForm'
+import Link from 'next/link'
 import { CheckoutStartTracker } from '@/components/analytics/CheckoutStartTracker'
+import { CheckoutForm } from '@/components/checkout/CheckoutForm'
+import { requireTenant } from '@/lib/tenant'
 
-export async function generateMetadata({ params }: { params: { tenant: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return {
@@ -12,7 +16,11 @@ export async function generateMetadata({ params }: { params: { tenant: string } 
   }
 }
 
-export default async function CheckoutPage({ params }: { params: { tenant: string } }) {
+export default async function CheckoutPage({
+  params,
+}: {
+  params: { tenant: string }
+}) {
   const tenant = await requireTenant(params.tenant)
 
   return (

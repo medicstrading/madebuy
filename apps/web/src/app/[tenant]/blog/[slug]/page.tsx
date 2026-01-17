@@ -1,10 +1,11 @@
-import { requireTenant } from '@/lib/tenant'
 import { blog, media } from '@madebuy/db'
-import Link from 'next/link'
+import { sanitizeHtml } from '@madebuy/shared'
+import { ArrowLeft, Calendar, Clock, Eye } from 'lucide-react'
 import Image from 'next/image'
-import { Calendar, Clock, Eye, ArrowLeft } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { requireTenant } from '@/lib/tenant'
+import { formatDate } from '@/lib/utils'
 
 export async function generateMetadata({
   params,
@@ -70,7 +71,10 @@ export default async function BlogPostPage({
   let coverImageUrl: string | null = null
   if (post.coverImageId) {
     const coverMedia = await media.getMedia(tenant.id, post.coverImageId)
-    coverImageUrl = coverMedia?.variants.large?.url || coverMedia?.variants.original.url || null
+    coverImageUrl =
+      coverMedia?.variants.large?.url ||
+      coverMedia?.variants.original.url ||
+      null
   }
 
   const readingTime = Math.ceil(post.content.split(' ').length / 200)
@@ -81,7 +85,10 @@ export default async function BlogPostPage({
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href={`/${params.tenant}`} className="flex items-center gap-4">
+            <Link
+              href={`/${params.tenant}`}
+              className="flex items-center gap-4"
+            >
               {logoUrl && (
                 <div className="relative h-12 w-auto">
                   <Image
@@ -94,7 +101,9 @@ export default async function BlogPostPage({
                 </div>
               )}
               <div className="flex flex-col">
-                <h1 className="text-2xl font-bold text-gray-900">{tenant.businessName}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {tenant.businessName}
+                </h1>
                 {tenant.description && (
                   <p className="text-sm text-gray-600">{tenant.description}</p>
                 )}
@@ -187,6 +196,7 @@ export default async function BlogPostPage({
           )}
 
           {/* Content */}
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Blog content is sanitized with sanitizeHtml() before rendering */}
           <div
             className="prose prose-lg max-w-none
               prose-headings:font-bold prose-headings:text-gray-900
@@ -200,7 +210,7 @@ export default async function BlogPostPage({
               prose-img:rounded-lg prose-img:shadow-md
               prose-code:bg-gray-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:text-gray-800
               prose-pre:bg-gray-900 prose-pre:text-gray-100"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
           />
 
           {/* Tags (bottom) */}

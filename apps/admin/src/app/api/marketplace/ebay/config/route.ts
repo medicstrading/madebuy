@@ -1,6 +1,6 @@
+import { marketplace } from '@madebuy/db'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { marketplace } from '@madebuy/db'
 
 /**
  * GET /api/marketplace/ebay/config
@@ -15,7 +15,10 @@ export async function GET() {
     }
 
     // Check connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     const isConnected = connection?.status === 'connected'
 
     // Check required configuration
@@ -65,6 +68,9 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error checking eBay config:', error)
-    return NextResponse.json({ error: 'Failed to check configuration' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to check configuration' },
+      { status: 500 },
+    )
   }
 }

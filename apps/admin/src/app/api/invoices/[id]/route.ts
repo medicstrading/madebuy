@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { invoices } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/invoices/:id
  * Get a specific invoice by ID
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -25,28 +25,29 @@ export async function GET(
           success: false,
           error: 'Invoice not found',
           details: `No invoice found with ID: ${params.id}`,
-          code: 'INVOICE_NOT_FOUND'
+          code: 'INVOICE_NOT_FOUND',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      invoice
+      invoice,
     })
   } catch (error) {
     console.error('Error fetching invoice:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to retrieve invoice',
         details: errorMessage,
-        code: 'INVOICE_FETCH_FAILED'
+        code: 'INVOICE_FETCH_FAILED',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -56,8 +57,8 @@ export async function GET(
  * Delete an invoice
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -74,9 +75,9 @@ export async function DELETE(
           success: false,
           error: 'Invoice not found',
           details: `No invoice found with ID: ${params.id}`,
-          code: 'INVOICE_NOT_FOUND'
+          code: 'INVOICE_NOT_FOUND',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -85,20 +86,21 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
       message: 'Invoice deleted successfully',
-      deletedId: params.id
+      deletedId: params.id,
     })
   } catch (error) {
     console.error('Error deleting invoice:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to delete invoice',
         details: errorMessage,
-        code: 'INVOICE_DELETE_FAILED'
+        code: 'INVOICE_DELETE_FAILED',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

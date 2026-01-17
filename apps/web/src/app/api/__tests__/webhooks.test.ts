@@ -3,7 +3,7 @@
  * Covers checkout completion, payment failures, and subscription events
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock @madebuy/db
 vi.mock('@madebuy/db', () => ({
@@ -29,19 +29,27 @@ vi.mock('@madebuy/db', () => ({
   },
 }))
 
-import { orders, pieces, tenants, stockReservations, transactions } from '@madebuy/db'
+import {
+  orders,
+  pieces,
+  stockReservations,
+  tenants,
+  transactions,
+} from '@madebuy/db'
 
 // Mock Stripe
 vi.mock('stripe', () => {
   return {
     default: vi.fn().mockImplementation(() => ({
       webhooks: {
-        constructEvent: vi.fn().mockImplementation((body, signature, secret) => {
-          if (signature === 'invalid') {
-            throw new Error('Invalid signature')
-          }
-          return JSON.parse(body)
-        }),
+        constructEvent: vi
+          .fn()
+          .mockImplementation((body, signature, _secret) => {
+            if (signature === 'invalid') {
+              throw new Error('Invalid signature')
+            }
+            return JSON.parse(body)
+          }),
       },
     })),
   }
@@ -89,22 +97,35 @@ describe('Stripe Webhooks', () => {
       vi.mocked(pieces.getLowStockPieces).mockResolvedValue([])
 
       // Simulate handleCheckoutCompleted logic
-      const session = {
+      const _session = {
         id: 'cs_test_123',
         metadata: {
           tenantId: 'tenant-123',
-          items: JSON.stringify([{ pieceId: 'piece-456', price: 99.99, quantity: 1 }]),
+          items: JSON.stringify([
+            { pieceId: 'piece-456', price: 99.99, quantity: 1 },
+          ]),
           reservationSessionId: 'res_123',
         },
         customer_details: { email: 'customer@example.com' },
-        shipping_details: { address: { line1: '123 Test St', city: 'Sydney', state: 'NSW', postal_code: '2000', country: 'AU' } },
+        shipping_details: {
+          address: {
+            line1: '123 Test St',
+            city: 'Sydney',
+            state: 'NSW',
+            postal_code: '2000',
+            country: 'AU',
+          },
+        },
         amount_total: 12000,
         currency: 'aud',
         payment_intent: 'pi_test',
       }
 
       // Check idempotency
-      const existingOrder = await orders.getOrderByStripeSessionId('tenant-123', 'cs_test_123')
+      const existingOrder = await orders.getOrderByStripeSessionId(
+        'tenant-123',
+        'cs_test_123',
+      )
       expect(existingOrder).toBeNull()
 
       // Complete reservation
@@ -121,9 +142,14 @@ describe('Stripe Webhooks', () => {
         id: 'order-existing',
         orderNumber: 'ORD-EXISTING',
       }
-      vi.mocked(orders.getOrderByStripeSessionId).mockResolvedValue(existingOrder as any)
+      vi.mocked(orders.getOrderByStripeSessionId).mockResolvedValue(
+        existingOrder as any,
+      )
 
-      const order = await orders.getOrderByStripeSessionId('tenant-123', 'cs_test_123')
+      const order = await orders.getOrderByStripeSessionId(
+        'tenant-123',
+        'cs_test_123',
+      )
 
       expect(order).toBeDefined()
       expect(order?.id).toBe('order-existing')
@@ -132,9 +158,16 @@ describe('Stripe Webhooks', () => {
 
     it('should check for low stock after order completion', async () => {
       const lowStockPieces = [
-        { id: 'piece-low', name: 'Low Stock Item', stock: 2, lowStockThreshold: 5 },
+        {
+          id: 'piece-low',
+          name: 'Low Stock Item',
+          stock: 2,
+          lowStockThreshold: 5,
+        },
       ]
-      vi.mocked(pieces.getLowStockPieces).mockResolvedValue(lowStockPieces as any)
+      vi.mocked(pieces.getLowStockPieces).mockResolvedValue(
+        lowStockPieces as any,
+      )
 
       const pieces_result = await pieces.getLowStockPieces('tenant-123')
 
@@ -150,7 +183,9 @@ describe('Stripe Webhooks', () => {
       const result = await stockReservations.cancelReservation('res_failed_123')
 
       expect(result).toBe(true)
-      expect(stockReservations.cancelReservation).toHaveBeenCalledWith('res_failed_123')
+      expect(stockReservations.cancelReservation).toHaveBeenCalledWith(
+        'res_failed_123',
+      )
     })
   })
 
@@ -158,7 +193,8 @@ describe('Stripe Webhooks', () => {
     it('should release stock reservations on checkout expiry', async () => {
       vi.mocked(stockReservations.cancelReservation).mockResolvedValue(true)
 
-      const result = await stockReservations.cancelReservation('res_expired_123')
+      const result =
+        await stockReservations.cancelReservation('res_expired_123')
 
       expect(result).toBe(true)
     })
@@ -175,9 +211,12 @@ describe('Stripe Webhooks', () => {
         subscriptionStatus: 'active',
       })
 
-      expect(tenants.updateTenant).toHaveBeenCalledWith('tenant-123', expect.objectContaining({
-        plan: 'professional',
-      }))
+      expect(tenants.updateTenant).toHaveBeenCalledWith(
+        'tenant-123',
+        expect.objectContaining({
+          plan: 'professional',
+        }),
+      )
     })
 
     it('should downgrade to free on subscription.deleted', async () => {
@@ -190,14 +229,19 @@ describe('Stripe Webhooks', () => {
         subscriptionStatus: 'cancelled',
       })
 
-      expect(tenants.updateTenant).toHaveBeenCalledWith('tenant-123', expect.objectContaining({
-        plan: 'free',
-        subscriptionStatus: 'cancelled',
-      }))
+      expect(tenants.updateTenant).toHaveBeenCalledWith(
+        'tenant-123',
+        expect.objectContaining({
+          plan: 'free',
+          subscriptionStatus: 'cancelled',
+        }),
+      )
     })
 
     it('should handle invoice.payment_failed', async () => {
-      vi.mocked(tenants.getTenantByStripeCustomerId).mockResolvedValue(mockTenant as any)
+      vi.mocked(tenants.getTenantByStripeCustomerId).mockResolvedValue(
+        mockTenant as any,
+      )
 
       const tenant = await tenants.getTenantByStripeCustomerId('cus_123')
 
@@ -223,7 +267,9 @@ describe('Stripe Webhooks', () => {
 
   describe('Transaction Recording', () => {
     it('should record transaction with zero platform fee', async () => {
-      vi.mocked(transactions.createTransaction).mockResolvedValue({ id: 'txn_123' } as any)
+      vi.mocked(transactions.createTransaction).mockResolvedValue({
+        id: 'txn_123',
+      } as any)
 
       await transactions.createTransaction({
         tenantId: 'tenant-123',
@@ -238,9 +284,11 @@ describe('Stripe Webhooks', () => {
         status: 'completed',
       })
 
-      expect(transactions.createTransaction).toHaveBeenCalledWith(expect.objectContaining({
-        platformFee: 0,
-      }))
+      expect(transactions.createTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platformFee: 0,
+        }),
+      )
     })
   })
 })

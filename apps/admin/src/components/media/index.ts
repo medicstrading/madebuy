@@ -3,16 +3,15 @@
  * Components for managing media (images and videos) in the admin dashboard
  */
 
-// Media Library Components
-export { MediaLibraryClient, useMediaLibrary } from './MediaLibraryClient'
-export { MediaUploadModal } from './MediaUploadModal'
+export { BulkUploadModal } from './BulkUploadModal'
 export { LinkMediaModal } from './LinkMediaModal'
-export { UnlinkedMediaGrid } from './UnlinkedMediaGrid'
-export { PieceFolderHeader } from './PieceFolderHeader'
-export { PieceMediaThumbnail } from './PieceMediaThumbnail'
-
 // Enhanced Media Components
 export { MediaGallery } from './MediaGallery'
-export { VideoPlayer } from './VideoPlayer'
+// Media Library Components
+export { MediaLibraryClient, useMediaLibrary } from './MediaLibraryClient'
 export { MediaPreviewModal } from './MediaPreviewModal'
-export { BulkUploadModal } from './BulkUploadModal'
+export { MediaUploadModal } from './MediaUploadModal'
+export { PieceFolderHeader } from './PieceFolderHeader'
+export { PieceMediaThumbnail } from './PieceMediaThumbnail'
+export { UnlinkedMediaGrid } from './UnlinkedMediaGrid'
+export { VideoPlayer } from './VideoPlayer'

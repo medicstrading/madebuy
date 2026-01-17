@@ -1,7 +1,7 @@
 'use client'
 
+import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -57,11 +57,14 @@ export function Toast({ message, type, onClose, duration = 5000 }: ToastProps) {
     >
       <div className={`rounded-lg border p-4 shadow-lg ${colors[type]}`}>
         <div className="flex items-start gap-3">
-          <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${iconColors[type]}`} />
+          <Icon
+            className={`h-5 w-5 mt-0.5 flex-shrink-0 ${iconColors[type]}`}
+          />
           <div className="flex-1">
             <p className="text-sm font-medium">{message}</p>
           </div>
           <button
+            type="button"
             onClick={() => {
               setIsVisible(false)
               setTimeout(onClose, 300)

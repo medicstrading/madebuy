@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test'
-import { TestProduct } from '../fixtures'
+import { expect, type Locator, type Page } from '@playwright/test'
+import type { TestProduct } from '../fixtures'
 
 /**
  * Page Object for the Pieces (Products/Inventory) pages
@@ -43,48 +43,67 @@ export class PiecesPage {
     this.page = page
 
     // List page
-    this.pageTitle = page.getByRole('heading', { name: /inventory|pieces|products/i })
-    this.createButton = page.getByRole('link', { name: /add|create|new/i })
+    this.pageTitle = page.getByRole('heading', {
+      name: /inventory|pieces|products/i,
+    })
+    this.createButton = page
+      .getByRole('link', { name: /add|create|new/i })
       .or(page.getByRole('button', { name: /add|create|new/i }))
-    this.searchInput = page.getByPlaceholder(/search/i)
+    this.searchInput = page
+      .getByPlaceholder(/search/i)
       .or(page.getByRole('searchbox'))
-    this.filterDropdown = page.getByRole('combobox', { name: /filter|status/i })
+    this.filterDropdown = page
+      .getByRole('combobox', { name: /filter|status/i })
       .or(page.locator('[data-testid="filter-dropdown"]'))
-    this.productRows = page.locator('table tbody tr')
+    this.productRows = page
+      .locator('table tbody tr')
       .or(page.locator('[data-testid="product-row"]'))
-    this.productCards = page.locator('[data-testid="product-card"]')
+    this.productCards = page
+      .locator('[data-testid="product-card"]')
       .or(page.locator('.product-card'))
     this.emptyState = page.getByText(/no products|no pieces|empty|get started/i)
-    this.bulkSelectAll = page.getByRole('checkbox', { name: /select all/i })
+    this.bulkSelectAll = page
+      .getByRole('checkbox', { name: /select all/i })
       .or(page.locator('thead input[type="checkbox"]'))
-    this.bulkActionsMenu = page.getByRole('button', { name: /bulk|actions/i })
+    this.bulkActionsMenu = page
+      .getByRole('button', { name: /bulk|actions/i })
       .or(page.locator('[data-testid="bulk-actions"]'))
 
     // Create/Edit form
     this.nameInput = page.getByLabel(/name|title/i)
-    this.descriptionInput = page.getByLabel(/description/i)
+    this.descriptionInput = page
+      .getByLabel(/description/i)
       .or(page.locator('textarea').first())
     this.priceInput = page.getByLabel(/price/i)
-    this.statusSelect = page.getByLabel(/status/i)
+    this.statusSelect = page
+      .getByLabel(/status/i)
       .or(page.locator('[data-testid="status-select"]'))
     this.quantityInput = page.getByLabel(/quantity|stock/i)
     this.categoryInput = page.getByLabel(/category/i)
     this.saveButton = page.getByRole('button', { name: /save|create|update/i })
-    this.cancelButton = page.getByRole('button', { name: /cancel/i })
+    this.cancelButton = page
+      .getByRole('button', { name: /cancel/i })
       .or(page.getByRole('link', { name: /cancel|back/i }))
     this.deleteButton = page.getByRole('button', { name: /delete|remove/i })
 
     // Media upload
-    this.mediaDropzone = page.locator('[data-testid="media-dropzone"]')
+    this.mediaDropzone = page
+      .locator('[data-testid="media-dropzone"]')
       .or(page.getByText(/drag|drop|upload/i).locator('..'))
-    this.mediaUploadButton = page.getByRole('button', { name: /upload|add image/i })
-    this.uploadedImages = page.locator('[data-testid="uploaded-image"]')
+    this.mediaUploadButton = page.getByRole('button', {
+      name: /upload|add image/i,
+    })
+    this.uploadedImages = page
+      .locator('[data-testid="uploaded-image"]')
       .or(page.locator('.uploaded-image'))
 
     // Confirmation dialog
-    this.confirmDialog = page.getByRole('dialog')
+    this.confirmDialog = page
+      .getByRole('dialog')
       .or(page.locator('[data-testid="confirm-dialog"]'))
-    this.confirmButton = page.getByRole('button', { name: /confirm|yes|delete/i })
+    this.confirmButton = page.getByRole('button', {
+      name: /confirm|yes|delete/i,
+    })
     this.cancelDialogButton = page.getByRole('button', { name: /cancel|no/i })
   }
 
@@ -151,16 +170,19 @@ export class PiecesPage {
     if (product.name) {
       await this.nameInput.fill(product.name)
     }
-    if (product.description && await this.descriptionInput.isVisible()) {
+    if (product.description && (await this.descriptionInput.isVisible())) {
       await this.descriptionInput.fill(product.description)
     }
-    if (product.price !== undefined && await this.priceInput.isVisible()) {
+    if (product.price !== undefined && (await this.priceInput.isVisible())) {
       await this.priceInput.fill(product.price.toString())
     }
-    if (product.quantity !== undefined && await this.quantityInput.isVisible()) {
+    if (
+      product.quantity !== undefined &&
+      (await this.quantityInput.isVisible())
+    ) {
       await this.quantityInput.fill(product.quantity.toString())
     }
-    if (product.status && await this.statusSelect.isVisible()) {
+    if (product.status && (await this.statusSelect.isVisible())) {
       // Handle both native select and custom dropdown
       try {
         await this.statusSelect.selectOption({ label: product.status })
@@ -193,7 +215,8 @@ export class PiecesPage {
    * Click on a product in the list to edit it
    */
   async clickProductByName(name: string): Promise<void> {
-    const productLink = this.page.getByRole('link', { name: new RegExp(name, 'i') })
+    const productLink = this.page
+      .getByRole('link', { name: new RegExp(name, 'i') })
       .or(this.page.getByText(name))
     await productLink.first().click()
   }
@@ -224,7 +247,9 @@ export class PiecesPage {
     await this.deleteButton.click()
     await expect(this.confirmDialog).toBeVisible()
     await this.confirmButton.click()
-    await expect(this.page).toHaveURL(/\/(pieces|products)$/, { timeout: 10000 })
+    await expect(this.page).toHaveURL(/\/(pieces|products)$/, {
+      timeout: 10000,
+    })
   }
 
   /**
@@ -267,7 +292,8 @@ export class PiecesPage {
    * Get error message if visible
    */
   async getErrorMessage(): Promise<string | null> {
-    const toast = this.page.getByText(/error|failed|invalid/i)
+    const toast = this.page
+      .getByText(/error|failed|invalid/i)
       .or(this.page.locator('[role="alert"]'))
     if (await toast.isVisible({ timeout: 3000 }).catch(() => false)) {
       return toast.textContent()

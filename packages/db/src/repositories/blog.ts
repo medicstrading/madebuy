@@ -1,7 +1,11 @@
+import type {
+  BlogPost,
+  CreateBlogPostInput,
+  UpdateBlogPostInput,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import slugify from 'slugify'
 import { getDatabase } from '../client'
-import type { BlogPost, CreateBlogPostInput, UpdateBlogPostInput } from '@madebuy/shared'
 
 /**
  * Ensure MongoDB indexes exist for blog posts collection
@@ -26,7 +30,10 @@ export async function ensureBlogIndexes(): Promise<void> {
 /**
  * Generate a unique slug for a blog post
  */
-export async function generateUniqueSlug(tenantId: string, title: string): Promise<string> {
+export async function generateUniqueSlug(
+  tenantId: string,
+  title: string,
+): Promise<string> {
   const db = await getDatabase()
   const collection = db.collection('blog_posts')
 
@@ -48,7 +55,7 @@ export async function generateUniqueSlug(tenantId: string, title: string): Promi
  */
 export async function createBlogPost(
   tenantId: string,
-  input: CreateBlogPostInput
+  input: CreateBlogPostInput,
 ): Promise<BlogPost> {
   const db = await getDatabase()
   const collection = db.collection('blog_posts')
@@ -81,17 +88,27 @@ export async function createBlogPost(
 /**
  * Get a blog post by ID
  */
-export async function getBlogPost(tenantId: string, id: string): Promise<BlogPost | null> {
+export async function getBlogPost(
+  tenantId: string,
+  id: string,
+): Promise<BlogPost | null> {
   const db = await getDatabase()
-  return await db.collection('blog_posts').findOne({ tenantId, id }) as BlogPost | null
+  return (await db
+    .collection('blog_posts')
+    .findOne({ tenantId, id })) as BlogPost | null
 }
 
 /**
  * Get a blog post by slug
  */
-export async function getBlogPostBySlug(tenantId: string, slug: string): Promise<BlogPost | null> {
+export async function getBlogPostBySlug(
+  tenantId: string,
+  slug: string,
+): Promise<BlogPost | null> {
   const db = await getDatabase()
-  return await db.collection('blog_posts').findOne({ tenantId, slug }) as BlogPost | null
+  return (await db
+    .collection('blog_posts')
+    .findOne({ tenantId, slug })) as BlogPost | null
 }
 
 /**
@@ -104,7 +121,7 @@ export async function listBlogPosts(
     tags?: string[]
     limit?: number
     offset?: number
-  }
+  },
 ): Promise<BlogPost[]> {
   const db = await getDatabase()
   const collection = db.collection('blog_posts')
@@ -135,7 +152,7 @@ export async function listBlogPosts(
 export async function updateBlogPost(
   tenantId: string,
   id: string,
-  input: UpdateBlogPostInput
+  input: UpdateBlogPostInput,
 ): Promise<BlogPost | null> {
   const db = await getDatabase()
   const collection = db.collection('blog_posts')
@@ -158,17 +175,14 @@ export async function updateBlogPost(
     const slugExists = await collection.findOne({
       tenantId,
       slug: input.slug,
-      id: { $ne: id }
+      id: { $ne: id },
     })
     if (slugExists) {
       throw new Error('Slug already exists')
     }
   }
 
-  await collection.updateOne(
-    { tenantId, id },
-    { $set: updates }
-  )
+  await collection.updateOne({ tenantId, id }, { $set: updates })
 
   return getBlogPost(tenantId, id)
 }
@@ -176,7 +190,10 @@ export async function updateBlogPost(
 /**
  * Delete a blog post
  */
-export async function deleteBlogPost(tenantId: string, id: string): Promise<void> {
+export async function deleteBlogPost(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
   await db.collection('blog_posts').deleteOne({ tenantId, id })
 }
@@ -184,12 +201,14 @@ export async function deleteBlogPost(tenantId: string, id: string): Promise<void
 /**
  * Increment view count for a blog post
  */
-export async function incrementBlogPostViews(tenantId: string, id: string): Promise<void> {
+export async function incrementBlogPostViews(
+  tenantId: string,
+  id: string,
+): Promise<void> {
   const db = await getDatabase()
-  await db.collection('blog_posts').updateOne(
-    { tenantId, id },
-    { $inc: { views: 1 } }
-  )
+  await db
+    .collection('blog_posts')
+    .updateOne({ tenantId, id }, { $inc: { views: 1 } })
 }
 
 /**
@@ -197,7 +216,7 @@ export async function incrementBlogPostViews(tenantId: string, id: string): Prom
  */
 export async function countBlogPosts(
   tenantId: string,
-  status?: 'draft' | 'published'
+  status?: 'draft' | 'published',
 ): Promise<number> {
   const db = await getDatabase()
   const collection = db.collection('blog_posts')

@@ -43,7 +43,7 @@ export interface CreateAbandonedCartInput {
  */
 export async function upsertAbandonedCart(
   tenantId: string,
-  data: CreateAbandonedCartInput
+  data: CreateAbandonedCartInput,
 ): Promise<AbandonedCart> {
   const db = await getDatabase()
 
@@ -67,7 +67,7 @@ export async function upsertAbandonedCart(
           customerEmail: data.customerEmail || existing.customerEmail,
           updatedAt: now,
         },
-      }
+      },
     )
 
     return {
@@ -109,7 +109,7 @@ export async function listAbandonedCarts(
     offset?: number
     recovered?: boolean
     emailSent?: boolean
-  }
+  },
 ): Promise<AbandonedCart[]> {
   const db = await getDatabase()
 
@@ -139,7 +139,7 @@ export async function listAbandonedCarts(
  */
 export async function getAbandonedCartBySession(
   tenantId: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<AbandonedCart | null> {
   const db = await getDatabase()
 
@@ -157,7 +157,7 @@ export async function getAbandonedCartBySession(
  */
 export async function markCartRecovered(
   tenantId: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -169,7 +169,7 @@ export async function markCartRecovered(
         recoveredAt: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -178,7 +178,7 @@ export async function markCartRecovered(
  */
 export async function markRecoveryEmailSent(
   tenantId: string,
-  cartId: string
+  cartId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -190,7 +190,7 @@ export async function markRecoveryEmailSent(
         recoveryEmailSentAt: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -200,7 +200,7 @@ export async function markRecoveryEmailSent(
  */
 export async function getCartsForRecoveryEmail(
   tenantId: string,
-  minAbandonmentMinutes: number = 60
+  minAbandonmentMinutes: number = 60,
 ): Promise<AbandonedCart[]> {
   const db = await getDatabase()
 
@@ -226,7 +226,7 @@ export async function getCartsForRecoveryEmail(
  */
 export async function getCartsForSecondRecoveryEmail(
   tenantId: string,
-  minAbandonmentMinutes: number = 24 * 60 // 24 hours default
+  minAbandonmentMinutes: number = 24 * 60, // 24 hours default
 ): Promise<AbandonedCart[]> {
   const db = await getDatabase()
 
@@ -255,7 +255,7 @@ export async function getCartsForSecondRecoveryEmail(
  */
 export async function markSecondEmailSent(
   tenantId: string,
-  cartId: string
+  cartId: string,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -267,7 +267,7 @@ export async function markSecondEmailSent(
         secondEmailSentAt: new Date(),
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -276,7 +276,7 @@ export async function markSecondEmailSent(
  */
 export async function countAbandonedCarts(
   tenantId: string,
-  options?: { recovered?: boolean }
+  options?: { recovered?: boolean },
 ): Promise<number> {
   const db = await getDatabase()
 
@@ -302,11 +302,14 @@ export async function getAbandonedCartStats(tenantId: string): Promise<{
 
   const [total, recovered] = await Promise.all([
     db.collection('abandoned_carts').countDocuments({ tenantId }),
-    db.collection('abandoned_carts').countDocuments({ tenantId, recovered: true }),
+    db
+      .collection('abandoned_carts')
+      .countDocuments({ tenantId, recovered: true }),
   ])
 
   const pending = total - recovered
-  const recoveryRate = total > 0 ? Math.round((recovered / total) * 100 * 10) / 10 : 0
+  const recoveryRate =
+    total > 0 ? Math.round((recovered / total) * 100 * 10) / 10 : 0
 
   return {
     total,

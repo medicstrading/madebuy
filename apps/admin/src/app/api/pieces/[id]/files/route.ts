@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { nanoid } from 'nanoid'
-import { getCurrentTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
+import type { DigitalFile } from '@madebuy/shared'
 import { uploadToR2 } from '@madebuy/storage'
-import type { DigitalFile, CreateDigitalFileInput } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 // Allowed file types for digital products
 const ALLOWED_MIME_TYPES = new Set([
@@ -78,8 +78,8 @@ const MAX_FILE_SIZE = 250 * 1024 * 1024
  * List all digital files for a piece
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -104,8 +104,10 @@ export async function GET(
   } catch (error) {
     console.error('Error listing digital files:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -116,7 +118,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -144,16 +146,20 @@ export async function POST(
     // Validate file type
     if (!ALLOWED_MIME_TYPES.has(file.type)) {
       return NextResponse.json(
-        { error: `File type ${file.type} is not allowed for digital products.` },
-        { status: 400 }
+        {
+          error: `File type ${file.type} is not allowed for digital products.`,
+        },
+        { status: 400 },
       )
     }
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: `File size exceeds maximum allowed (${MAX_FILE_SIZE / 1024 / 1024}MB).` },
-        { status: 400 }
+        {
+          error: `File size exceeds maximum allowed (${MAX_FILE_SIZE / 1024 / 1024}MB).`,
+        },
+        { status: 400 },
       )
     }
 
@@ -188,7 +194,7 @@ export async function POST(
       mimeType: file.type,
       description: description || undefined,
       version: version || undefined,
-      sortOrder: (piece.digital?.files?.length || 0),
+      sortOrder: piece.digital?.files?.length || 0,
       createdAt: now,
       updatedAt: now,
     }
@@ -214,8 +220,10 @@ export async function POST(
   } catch (error) {
     console.error('Error uploading digital file:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -226,7 +234,7 @@ export async function POST(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -245,16 +253,22 @@ export async function PATCH(
     const { fileIds } = body as { fileIds: string[] }
 
     if (!Array.isArray(fileIds)) {
-      return NextResponse.json({ error: 'fileIds array is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'fileIds array is required' },
+        { status: 400 },
+      )
     }
 
     const currentFiles = piece.digital?.files || []
 
     // Validate all file IDs exist
-    const fileMap = new Map(currentFiles.map(f => [f.id, f]))
+    const fileMap = new Map(currentFiles.map((f) => [f.id, f]))
     for (const id of fileIds) {
       if (!fileMap.has(id)) {
-        return NextResponse.json({ error: `File ${id} not found` }, { status: 400 })
+        return NextResponse.json(
+          { error: `File ${id} not found` },
+          { status: 400 },
+        )
       }
     }
 
@@ -267,7 +281,7 @@ export async function PATCH(
     // Add any files not in fileIds at the end
     const reorderedIds = new Set(fileIds)
     const remainingFiles = currentFiles
-      .filter(f => !reorderedIds.has(f.id))
+      .filter((f) => !reorderedIds.has(f.id))
       .map((f, i) => ({ ...f, sortOrder: fileIds.length + i }))
 
     const allFiles = [...reorderedFiles, ...remainingFiles]
@@ -283,8 +297,10 @@ export async function PATCH(
   } catch (error) {
     console.error('Error reordering files:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

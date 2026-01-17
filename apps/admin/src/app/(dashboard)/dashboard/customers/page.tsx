@@ -1,25 +1,25 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import type { Customer, Enquiry } from '@madebuy/shared'
 import {
-  Users,
+  Archive,
+  ChevronLeft,
+  ChevronRight,
+  DollarSign,
+  Eye,
+  Loader2,
   Mail,
   MailX,
   MessageSquare,
-  Search,
-  TrendingUp,
-  DollarSign,
-  ShoppingCart,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
   Reply,
-  Archive,
-  Eye,
+  Search,
+  ShoppingCart,
+  TrendingUp,
+  Users,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
-import type { Customer, Enquiry } from '@madebuy/shared'
 
 // ============================================================================
 // Types
@@ -69,7 +69,9 @@ export default function CustomersPage() {
       try {
         const res = await fetch('/api/enquiries')
         const data = await res.json()
-        const newCount = (data.enquiries || []).filter((e: Enquiry) => e.status === 'new').length
+        const newCount = (data.enquiries || []).filter(
+          (e: Enquiry) => e.status === 'new',
+        ).length
         setEnquiryCount(newCount)
       } catch (error) {
         console.error('Failed to fetch enquiry count:', error)
@@ -82,14 +84,18 @@ export default function CustomersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Customers</h1>
-        <p className="mt-1 text-gray-500">Manage your customer base and respond to enquiries</p>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          Customers
+        </h1>
+        <p className="mt-1 text-gray-500">
+          Manage your customer base and respond to enquiries
+        </p>
       </div>
 
       {/* Tab Navigation */}
       <div className="relative">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-        <nav className="flex gap-1" role="tablist">
+        <nav className="flex gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
@@ -97,6 +103,7 @@ export default function CustomersPage() {
 
             return (
               <button
+                type="button"
                 key={tab.id}
                 role="tab"
                 aria-selected={isActive}
@@ -106,13 +113,17 @@ export default function CustomersPage() {
                   'rounded-t-xl border border-b-0',
                   isActive
                     ? 'bg-white text-gray-900 border-gray-200 shadow-sm z-10 -mb-px'
-                    : 'bg-gray-50/80 text-gray-500 border-transparent hover:bg-gray-100/80 hover:text-gray-700'
+                    : 'bg-gray-50/80 text-gray-500 border-transparent hover:bg-gray-100/80 hover:text-gray-700',
                 )}
               >
-                <Icon className={cn(
-                  'h-4 w-4 transition-colors',
-                  isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
-                )} />
+                <Icon
+                  className={cn(
+                    'h-4 w-4 transition-colors',
+                    isActive
+                      ? 'text-blue-600'
+                      : 'text-gray-400 group-hover:text-gray-500',
+                  )}
+                />
                 <span>{tab.label}</span>
                 {showBadge && (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-xs font-semibold text-white">
@@ -129,10 +140,12 @@ export default function CustomersPage() {
       </div>
 
       {/* Tab Content */}
-      <div className={cn(
-        'transition-opacity duration-150',
-        isTransitioning ? 'opacity-0' : 'opacity-100'
-      )}>
+      <div
+        className={cn(
+          'transition-opacity duration-150',
+          isTransitioning ? 'opacity-0' : 'opacity-100',
+        )}
+      >
         {activeTab === 'customers' && <CustomersTab />}
         {activeTab === 'enquiries' && <EnquiriesTab />}
       </div>
@@ -165,11 +178,11 @@ function CustomersTab() {
 
   useEffect(() => {
     fetchCustomers()
-  }, [page, debouncedSearch, filterSubscribed])
+  }, [fetchCustomers])
 
   useEffect(() => {
     fetchStats()
-  }, [])
+  }, [fetchStats])
 
   async function fetchCustomers() {
     try {
@@ -200,7 +213,10 @@ function CustomersTab() {
   }
 
   function formatCurrency(cents: number) {
-    return (cents / 100).toLocaleString('en-AU', { style: 'currency', currency: 'AUD' })
+    return (cents / 100).toLocaleString('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
+    })
   }
 
   if (loading) {
@@ -216,10 +232,32 @@ function CustomersTab() {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Customers" value={stats.totalCustomers} icon={Users} color="blue" />
-          <StatCard title="Repeat Customers" value={stats.repeatCustomers} icon={TrendingUp} color="emerald" />
-          <StatCard title="Avg. LTV" value={formatCurrency(stats.averageLTV)} icon={DollarSign} color="purple" isText />
-          <StatCard title="Avg. Order Value" value={formatCurrency(stats.averageOrderValue)} icon={ShoppingCart} color="amber" isText />
+          <StatCard
+            title="Total Customers"
+            value={stats.totalCustomers}
+            icon={Users}
+            color="blue"
+          />
+          <StatCard
+            title="Repeat Customers"
+            value={stats.repeatCustomers}
+            icon={TrendingUp}
+            color="emerald"
+          />
+          <StatCard
+            title="Avg. LTV"
+            value={formatCurrency(stats.averageLTV)}
+            icon={DollarSign}
+            color="purple"
+            isText
+          />
+          <StatCard
+            title="Avg. Order Value"
+            value={formatCurrency(stats.averageOrderValue)}
+            icon={ShoppingCart}
+            color="amber"
+            isText
+          />
         </div>
       )}
 
@@ -237,7 +275,10 @@ function CustomersTab() {
         </div>
         <select
           value={filterSubscribed}
-          onChange={(e) => { setFilterSubscribed(e.target.value); setPage(1) }}
+          onChange={(e) => {
+            setFilterSubscribed(e.target.value)
+            setPage(1)
+          }}
           className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
         >
           <option value="">All Customers</option>
@@ -251,8 +292,12 @@ function CustomersTab() {
         {customers.length === 0 ? (
           <div className="p-12 text-center">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No customers yet</h3>
-            <p className="text-gray-500">Customers will appear here once they make a purchase.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No customers yet
+            </h3>
+            <p className="text-gray-500">
+              Customers will appear here once they make a purchase.
+            </p>
           </div>
         ) : (
           <>
@@ -260,24 +305,48 @@ function CustomersTab() {
               <table className="w-full">
                 <thead className="bg-gray-50/80 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Spent</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Order</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Orders
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Total Spent
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Last Order
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {customers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={customer.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-6 py-4">
-                        <Link href={`/dashboard/customers/${customer.id}`} className="block hover:text-blue-600">
-                          <p className="font-medium text-gray-900">{customer.name}</p>
-                          <p className="text-sm text-gray-500">{customer.email}</p>
+                        <Link
+                          href={`/dashboard/customers/${customer.id}`}
+                          className="block hover:text-blue-600"
+                        >
+                          <p className="font-medium text-gray-900">
+                            {customer.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {customer.email}
+                          </p>
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{customer.totalOrders}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatCurrency(customer.totalSpent)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {customer.totalOrders}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        {formatCurrency(customer.totalSpent)}
+                      </td>
                       <td className="px-6 py-4">
                         {customer.emailSubscribed ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-full">
@@ -292,7 +361,9 @@ function CustomersTab() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {customer.lastOrderAt ? new Date(customer.lastOrderAt).toLocaleDateString() : '-'}
+                        {customer.lastOrderAt
+                          ? new Date(customer.lastOrderAt).toLocaleDateString()
+                          : '-'}
                       </td>
                     </tr>
                   ))}
@@ -303,18 +374,23 @@ function CustomersTab() {
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                Showing {(page - 1) * 20 + 1} - {Math.min(page * 20, total)} of {total} customers
+                Showing {(page - 1) * 20 + 1} - {Math.min(page * 20, total)} of{' '}
+                {total} customers
               </p>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+                <span className="text-sm text-gray-600">
+                  Page {page} of {totalPages}
+                </span>
                 <button
+                  type="button"
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -341,7 +417,7 @@ function EnquiriesTab() {
 
   useEffect(() => {
     fetchEnquiries()
-  }, [])
+  }, [fetchEnquiries])
 
   async function fetchEnquiries() {
     try {
@@ -355,15 +431,16 @@ function EnquiriesTab() {
     }
   }
 
-  const filteredEnquiries = statusFilter === 'all'
-    ? enquiries
-    : enquiries.filter(e => e.status === statusFilter)
+  const filteredEnquiries =
+    statusFilter === 'all'
+      ? enquiries
+      : enquiries.filter((e) => e.status === statusFilter)
 
   const stats = {
     total: enquiries.length,
-    new: enquiries.filter(e => e.status === 'new').length,
-    read: enquiries.filter(e => e.status === 'read').length,
-    replied: enquiries.filter(e => e.status === 'replied').length,
+    new: enquiries.filter((e) => e.status === 'new').length,
+    read: enquiries.filter((e) => e.status === 'read').length,
+    replied: enquiries.filter((e) => e.status === 'replied').length,
   }
 
   async function updateStatus(id: string, status: string) {
@@ -400,28 +477,45 @@ function EnquiriesTab() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
         <StatCard title="Total" value={stats.total} icon={Mail} color="blue" />
-        <StatCard title="New" value={stats.new} icon={MessageSquare} color="orange" />
+        <StatCard
+          title="New"
+          value={stats.new}
+          icon={MessageSquare}
+          color="orange"
+        />
         <StatCard title="Read" value={stats.read} icon={Eye} color="purple" />
-        <StatCard title="Replied" value={stats.replied} icon={Reply} color="emerald" />
+        <StatCard
+          title="Replied"
+          value={stats.replied}
+          icon={Reply}
+          color="emerald"
+        />
       </div>
 
       {/* Filter Pills */}
       <div className="flex flex-wrap gap-2">
-        {['all', 'new', 'read', 'replied', 'archived'].map(status => (
+        {['all', 'new', 'read', 'replied', 'archived'].map((status) => (
           <button
+            type="button"
             key={status}
             onClick={() => setStatusFilter(status)}
             className={cn(
               'rounded-full px-4 py-1.5 text-sm font-medium transition-all capitalize',
               statusFilter === status
                 ? 'bg-gray-900 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
             )}
           >
             {status}
             {status !== 'all' && (
               <span className="ml-1.5 opacity-60">
-                {status === 'new' ? stats.new : status === 'read' ? stats.read : status === 'replied' ? stats.replied : 0}
+                {status === 'new'
+                  ? stats.new
+                  : status === 'read'
+                    ? stats.read
+                    : status === 'replied'
+                      ? stats.replied
+                      : 0}
               </span>
             )}
           </button>
@@ -432,7 +526,9 @@ function EnquiriesTab() {
       {filteredEnquiries.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
           <Mail className="mx-auto h-12 w-12 text-gray-300" />
-          <h3 className="mt-4 text-lg font-semibold text-gray-900">No enquiries</h3>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">
+            No enquiries
+          </h3>
           <p className="mt-2 text-sm text-gray-500">
             {statusFilter === 'all'
               ? 'Customer messages from your website will appear here.'
@@ -444,23 +540,52 @@ function EnquiriesTab() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50/80">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Message</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Piece</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Message
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Piece
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
               {filteredEnquiries.map((enquiry) => (
-                <tr key={enquiry.id} className={cn('transition-colors', enquiry.status === 'new' ? 'bg-orange-50/30' : 'hover:bg-gray-50')}>
+                <tr
+                  key={enquiry.id}
+                  className={cn(
+                    'transition-colors',
+                    enquiry.status === 'new'
+                      ? 'bg-orange-50/30'
+                      : 'hover:bg-gray-50',
+                  )}
+                >
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{enquiry.name}</div>
-                    <a href={`mailto:${enquiry.email}`} className="text-xs text-blue-600 hover:underline">{enquiry.email}</a>
+                    <div className="text-sm font-medium text-gray-900">
+                      {enquiry.name}
+                    </div>
+                    <a
+                      href={`mailto:${enquiry.email}`}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      {enquiry.email}
+                    </a>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 line-clamp-2 max-w-md">{enquiry.message}</div>
+                    <div className="text-sm text-gray-900 line-clamp-2 max-w-md">
+                      {enquiry.message}
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                     {enquiry.pieceName || '-'}
@@ -475,6 +600,7 @@ function EnquiriesTab() {
                     <div className="flex items-center justify-end gap-1">
                       {enquiry.status === 'new' && (
                         <button
+                          type="button"
                           onClick={() => updateStatus(enquiry.id, 'read')}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                           title="Mark as read"
@@ -494,6 +620,7 @@ function EnquiriesTab() {
                       )}
                       {enquiry.status !== 'archived' && (
                         <button
+                          type="button"
                           onClick={() => updateStatus(enquiry.id, 'archived')}
                           className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
                           title="Archive"
@@ -517,7 +644,13 @@ function EnquiriesTab() {
 // Shared Components
 // ============================================================================
 
-function StatCard({ title, value, icon: Icon, color, isText }: {
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  isText,
+}: {
   title: string
   value: number | string
   icon: typeof Users
@@ -537,7 +670,15 @@ function StatCard({ title, value, icon: Icon, color, isText }: {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className={cn('mt-1 font-bold', isText ? 'text-xl' : 'text-2xl', 'text-gray-900')}>{value}</p>
+          <p
+            className={cn(
+              'mt-1 font-bold',
+              isText ? 'text-xl' : 'text-2xl',
+              'text-gray-900',
+            )}
+          >
+            {value}
+          </p>
         </div>
         <div className={cn('rounded-lg p-2', colors[color])}>
           <Icon className="h-5 w-5" />
@@ -556,7 +697,12 @@ function EnquiryStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={cn('inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize', colors[status] || colors.new)}>
+    <span
+      className={cn(
+        'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize',
+        colors[status] || colors.new,
+      )}
+    >
       {status}
     </span>
   )

@@ -1,36 +1,43 @@
 // Main scanner exports
-export { WebsiteScanner, scanWebsite } from './scanner'
-
-// Fetcher exports
-export { fetchHtml, fetchStylesheets, ScannerError, resolveUrl } from './fetcher'
 
 // Extractor exports
 export { extractColors } from './extractors/colors'
-export { extractTypography } from './extractors/typography'
-export { extractLogo, downloadLogo, detectContentType } from './extractors/logo'
+export { detectContentType, downloadLogo, extractLogo } from './extractors/logo'
 export { extractNavigation } from './extractors/navigation'
 export { extractSections } from './extractors/sections'
-export { recommendTemplate, detectsProducts } from './extractors/template-matcher'
+export {
+  detectsProducts,
+  recommendTemplate,
+} from './extractors/template-matcher'
+export { extractTypography } from './extractors/typography'
+// Fetcher exports
+export {
+  fetchHtml,
+  fetchStylesheets,
+  resolveUrl,
+  ScannerError,
+} from './fetcher'
+export { scanWebsite, WebsiteScanner } from './scanner'
 
 // Type exports
 export type {
-  ScanOptions,
-  ScanResult,
-  ExtractedDesign,
   ColorCandidate,
   ColorExtractionResult,
   ColorSource,
   DetectedFont,
-  TypographyExtractionResult,
+  DetectedSection,
+  ExtractedDesign,
   FontSource,
   LogoExtractionResult,
   LogoSource,
   NavItem,
-  NavStructure,
   NavigationExtractionResult,
+  NavStructure,
+  ScanOptions,
+  ScanResult,
   SectionType,
-  DetectedSection,
   TemplateRecommendation,
+  TypographyExtractionResult,
 } from './types'
 
-export { ScanErrorCode, ERROR_MESSAGES } from './types'
+export { ERROR_MESSAGES, ScanErrorCode } from './types'

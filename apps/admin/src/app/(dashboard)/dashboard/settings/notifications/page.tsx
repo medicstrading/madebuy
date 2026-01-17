@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import type { TenantNotificationPreferences } from '@madebuy/shared'
 import {
+  AlertCircle,
+  AlertTriangle,
   Bell,
   CheckCircle,
-  AlertCircle,
-  Loader2,
-  ShoppingCart,
-  Package,
-  AlertTriangle,
   DollarSign,
-  Star,
+  Loader2,
   Mail,
   Newspaper,
+  Package,
+  ShoppingCart,
+  Star,
 } from 'lucide-react'
-import type { TenantNotificationPreferences } from '@madebuy/shared'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning'
 
 // Default notification preferences
@@ -89,15 +89,23 @@ const notificationSettings: NotificationSetting[] = [
 ]
 
 export default function NotificationSettingsPage() {
-  const [preferences, setPreferences] = useState<TenantNotificationPreferences>(defaultPreferences)
+  const [preferences, setPreferences] =
+    useState<TenantNotificationPreferences>(defaultPreferences)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
 
   // Track initial settings for unsaved changes detection
-  const initialPreferencesRef = useRef<TenantNotificationPreferences | null>(null)
-  const isDirty = initialPreferencesRef.current !== null &&
-    JSON.stringify(preferences) !== JSON.stringify(initialPreferencesRef.current)
+  const initialPreferencesRef = useRef<TenantNotificationPreferences | null>(
+    null,
+  )
+  const isDirty =
+    initialPreferencesRef.current !== null &&
+    JSON.stringify(preferences) !==
+      JSON.stringify(initialPreferencesRef.current)
 
   // Warn user about unsaved changes
   useUnsavedChangesWarning(isDirty)
@@ -124,7 +132,7 @@ export default function NotificationSettingsPage() {
   }, [fetchPreferences])
 
   const handleToggle = (key: keyof TenantNotificationPreferences) => {
-    setPreferences(prev => ({
+    setPreferences((prev) => ({
       ...prev,
       [key]: !prev[key],
     }))
@@ -143,15 +151,24 @@ export default function NotificationSettingsPage() {
       })
 
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Notification preferences saved successfully!' })
+        setMessage({
+          type: 'success',
+          text: 'Notification preferences saved successfully!',
+        })
         // Update initial reference after successful save
         initialPreferencesRef.current = { ...preferences }
       } else {
         const data = await res.json()
-        setMessage({ type: 'error', text: data.error || 'Failed to save preferences' })
+        setMessage({
+          type: 'error',
+          text: data.error || 'Failed to save preferences',
+        })
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to save preferences. Please try again.' })
+    } catch (_error) {
+      setMessage({
+        type: 'error',
+        text: 'Failed to save preferences. Please try again.',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -168,7 +185,9 @@ export default function NotificationSettingsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Notification Preferences</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Notification Preferences
+        </h1>
         <p className="mt-1 text-gray-600">
           Choose which email notifications you&apos;d like to receive
         </p>
@@ -197,7 +216,9 @@ export default function NotificationSettingsPage() {
         <div className="border-b border-gray-200 px-6 py-4">
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5 text-gray-500" />
-            <h2 className="text-lg font-medium text-gray-900">Email Notifications</h2>
+            <h2 className="text-lg font-medium text-gray-900">
+              Email Notifications
+            </h2>
           </div>
           <p className="mt-1 text-sm text-gray-500">
             Emails will be sent to your account email address
@@ -216,15 +237,22 @@ export default function NotificationSettingsPage() {
                 className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-4">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 ${setting.iconColor}`}>
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 ${setting.iconColor}`}
+                  >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">{setting.label}</h3>
-                    <p className="text-sm text-gray-500">{setting.description}</p>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {setting.label}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {setting.description}
+                    </p>
                   </div>
                 </div>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => handleToggle(setting.key)}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
@@ -251,6 +279,7 @@ export default function NotificationSettingsPage() {
               {isDirty ? 'You have unsaved changes' : 'All changes saved'}
             </p>
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving || !isDirty}
               className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -270,10 +299,18 @@ export default function NotificationSettingsPage() {
 
       {/* Info Banner */}
       <div className="mt-6 rounded-lg bg-blue-50 p-4">
-        <h4 className="text-sm font-medium text-blue-800">About Email Notifications</h4>
+        <h4 className="text-sm font-medium text-blue-800">
+          About Email Notifications
+        </h4>
         <ul className="mt-2 text-sm text-blue-700 list-disc list-inside space-y-1">
-          <li>Critical notifications (security alerts, account changes) are always sent</li>
-          <li>You can unsubscribe from any email by clicking the link at the bottom</li>
+          <li>
+            Critical notifications (security alerts, account changes) are always
+            sent
+          </li>
+          <li>
+            You can unsubscribe from any email by clicking the link at the
+            bottom
+          </li>
           <li>Changes take effect immediately after saving</li>
         </ul>
       </div>

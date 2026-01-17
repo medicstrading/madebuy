@@ -1,16 +1,20 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Upload, X, Loader2, GripVertical, ArrowLeft, Image as ImageIcon } from 'lucide-react'
-import Image from 'next/image'
 import type { MediaItem } from '@madebuy/shared'
+import { ArrowLeft, Image as ImageIcon, Loader2, Upload, X } from 'lucide-react'
+import Image from 'next/image'
+import { useCallback, useState } from 'react'
 
 interface MediaStepProps {
   pieceId: string
   initialMediaIds: string[]
   primaryMediaId: string | null
   existingMedia: MediaItem[]
-  onSave: (mediaIds: string[], primaryId: string | null, uploadedIds: string[]) => void
+  onSave: (
+    mediaIds: string[],
+    primaryId: string | null,
+    uploadedIds: string[],
+  ) => void
   onBack: () => void
   onSkip: () => void
   loading: boolean
@@ -44,38 +48,41 @@ export function MediaStep({
 
   // Get media objects for selected IDs
   const selectedMedia = selectedIds
-    .map(id => allMedia.find(m => m.id === id))
+    .map((id) => allMedia.find((m) => m.id === id))
     .filter((m): m is MediaItem => !!m)
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
 
-    // Check if this is a library item drag (not a file upload)
-    const mediaId = e.dataTransfer.getData('application/x-media-id')
-    if (mediaId) {
-      // It's a library item - just select it
-      if (!selectedIds.includes(mediaId)) {
-        setSelectedIds(prev => {
-          const newIds = [...prev, mediaId]
-          if (!primaryId) {
-            setPrimaryId(mediaId)
-          }
-          return newIds
-        })
+      // Check if this is a library item drag (not a file upload)
+      const mediaId = e.dataTransfer.getData('application/x-media-id')
+      if (mediaId) {
+        // It's a library item - just select it
+        if (!selectedIds.includes(mediaId)) {
+          setSelectedIds((prev) => {
+            const newIds = [...prev, mediaId]
+            if (!primaryId) {
+              setPrimaryId(mediaId)
+            }
+            return newIds
+          })
+        }
+        return
       }
-      return
-    }
 
-    // Otherwise, check for actual file drops
-    const files = Array.from(e.dataTransfer.files).filter(
-      f => f.type.startsWith('image/')
-    )
+      // Otherwise, check for actual file drops
+      const files = Array.from(e.dataTransfer.files).filter((f) =>
+        f.type.startsWith('image/'),
+      )
 
-    if (files.length > 0) {
-      uploadFiles(files)
-    }
-  }, [selectedIds, primaryId])
+      if (files.length > 0) {
+        uploadFiles(files)
+      }
+    },
+    [selectedIds, primaryId, uploadFiles],
+  )
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -87,13 +94,13 @@ export function MediaStep({
   }
 
   const uploadFiles = async (files: File[]) => {
-    const newUploading: UploadingFile[] = files.map(file => ({
+    const newUploading: UploadingFile[] = files.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
       file,
       progress: 0,
     }))
 
-    setUploadingFiles(prev => [...prev, ...newUploading])
+    setUploadingFiles((prev) => [...prev, ...newUploading])
 
     for (const upload of newUploading) {
       try {
@@ -114,8 +121,8 @@ export function MediaStep({
         const mediaId = data.media.id
 
         // Add to selected and mark as uploaded in this session
-        setSelectedIds(prev => [...prev, mediaId])
-        setUploadedMediaIds(prev => [...prev, mediaId])
+        setSelectedIds((prev) => [...prev, mediaId])
+        setUploadedMediaIds((prev) => [...prev, mediaId])
 
         // Set as primary if first image
         if (selectedIds.length === 0 && uploadedMediaIds.length === 0) {
@@ -123,29 +130,29 @@ export function MediaStep({
         }
 
         // Update progress
-        setUploadingFiles(prev =>
-          prev.map(u => (u.id === upload.id ? { ...u, progress: 100 } : u))
+        setUploadingFiles((prev) =>
+          prev.map((u) => (u.id === upload.id ? { ...u, progress: 100 } : u)),
         )
 
         // Remove from uploading after delay
         setTimeout(() => {
-          setUploadingFiles(prev => prev.filter(u => u.id !== upload.id))
+          setUploadingFiles((prev) => prev.filter((u) => u.id !== upload.id))
         }, 500)
       } catch {
-        setUploadingFiles(prev =>
-          prev.map(u =>
-            u.id === upload.id ? { ...u, error: 'Upload failed' } : u
-          )
+        setUploadingFiles((prev) =>
+          prev.map((u) =>
+            u.id === upload.id ? { ...u, error: 'Upload failed' } : u,
+          ),
         )
       }
     }
   }
 
   const toggleMedia = (mediaId: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       if (prev.includes(mediaId)) {
         // Removing
-        const newIds = prev.filter(id => id !== mediaId)
+        const newIds = prev.filter((id) => id !== mediaId)
         // Update primary if we removed it
         if (primaryId === mediaId) {
           setPrimaryId(newIds[0] || null)
@@ -170,7 +177,7 @@ export function MediaStep({
   }
 
   const removeUploading = (id: string) => {
-    setUploadingFiles(prev => prev.filter(u => u.id !== id))
+    setUploadingFiles((prev) => prev.filter((u) => u.id !== id))
   }
 
   const handleSubmit = () => {
@@ -183,7 +190,9 @@ export function MediaStep({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Show off your work</h2>
-        <p className="mt-2 text-gray-600">Great photos help sell - add your best shots</p>
+        <p className="mt-2 text-gray-600">
+          Great photos help sell - add your best shots
+        </p>
       </div>
 
       {/* Upload area */}
@@ -193,7 +202,7 @@ export function MediaStep({
             ? 'border-purple-400 bg-purple-50'
             : 'border-gray-300 hover:border-gray-400 bg-gray-50'
         }`}
-        onDragOver={e => {
+        onDragOver={(e) => {
           e.preventDefault()
           setIsDragging(true)
         }}
@@ -217,7 +226,7 @@ export function MediaStep({
       {/* Uploading files */}
       {uploadingFiles.length > 0 && (
         <div className="space-y-2">
-          {uploadingFiles.map(upload => (
+          {uploadingFiles.map((upload) => (
             <div
               key={upload.id}
               className={`flex items-center gap-3 rounded-lg p-3 ${
@@ -250,6 +259,7 @@ export function MediaStep({
               </div>
               {upload.error && (
                 <button
+                  type="button"
                   onClick={() => removeUploading(upload.id)}
                   className="text-red-500 hover:text-red-700"
                 >
@@ -268,14 +278,13 @@ export function MediaStep({
             <p className="text-sm font-medium text-gray-700">
               Selected ({selectedMedia.length})
             </p>
-            <p className="text-xs text-gray-500">
-              Click to set as main image
-            </p>
+            <p className="text-xs text-gray-500">Click to set as main image</p>
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-            {selectedMedia.map((media, index) => (
+            {selectedMedia.map((media, _index) => (
               <div key={media.id} className="relative group">
                 <button
+                  type="button"
                   type="button"
                   onClick={() => setPrimary(media.id)}
                   className={`relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all ${
@@ -285,7 +294,9 @@ export function MediaStep({
                   }`}
                 >
                   <Image
-                    src={media.variants.thumb?.url || media.variants.original.url}
+                    src={
+                      media.variants.thumb?.url || media.variants.original.url
+                    }
                     alt=""
                     fill
                     className="object-cover"
@@ -297,6 +308,7 @@ export function MediaStep({
                   )}
                 </button>
                 <button
+                  type="button"
                   type="button"
                   onClick={() => toggleMedia(media.id)}
                   className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -318,9 +330,10 @@ export function MediaStep({
           <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-200 p-3">
             <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
               {allMedia
-                .filter(m => !selectedIds.includes(m.id))
-                .map(media => (
+                .filter((m) => !selectedIds.includes(m.id))
+                .map((media) => (
                   <button
+                    type="button"
                     key={media.id}
                     type="button"
                     draggable
@@ -332,7 +345,9 @@ export function MediaStep({
                     className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 hover:border-purple-400 transition-colors cursor-grab active:cursor-grabbing"
                   >
                     <Image
-                      src={media.variants.thumb?.url || media.variants.original.url}
+                      src={
+                        media.variants.thumb?.url || media.variants.original.url
+                      }
                       alt=""
                       fill
                       className="object-cover pointer-events-none"
@@ -358,6 +373,7 @@ export function MediaStep({
       <div className="flex items-center justify-between pt-4">
         <button
           type="button"
+          type="button"
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -368,12 +384,14 @@ export function MediaStep({
         <div className="flex items-center gap-3">
           <button
             type="button"
+            type="button"
             onClick={onSkip}
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             Skip for now
           </button>
           <button
+            type="button"
             type="button"
             onClick={handleSubmit}
             disabled={loading || hasUploads}

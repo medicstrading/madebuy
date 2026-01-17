@@ -1,23 +1,29 @@
-import { cache } from 'react'
-import { NextResponse } from 'next/server'
 import { tenants } from '@madebuy/db'
 import type { Tenant } from '@madebuy/shared'
+import { NextResponse } from 'next/server'
+import { cache } from 'react'
 
 /**
  * Request-scoped tenant cache using React cache()
  * Prevents multiple database lookups for the same tenant within a single request
  */
-export const getCachedTenantById = cache(async (tenantId: string): Promise<Tenant | null> => {
-  return tenants.getTenantById(tenantId)
-})
+export const getCachedTenantById = cache(
+  async (tenantId: string): Promise<Tenant | null> => {
+    return tenants.getTenantById(tenantId)
+  },
+)
 
-export const getCachedTenantByEmail = cache(async (email: string): Promise<Tenant | null> => {
-  return tenants.getTenantByEmail(email)
-})
+export const getCachedTenantByEmail = cache(
+  async (email: string): Promise<Tenant | null> => {
+    return tenants.getTenantByEmail(email)
+  },
+)
 
-export const getCachedTenantBySlug = cache(async (slug: string): Promise<Tenant | null> => {
-  return tenants.getTenantBySlug(slug)
-})
+export const getCachedTenantBySlug = cache(
+  async (slug: string): Promise<Tenant | null> => {
+    return tenants.getTenantBySlug(slug)
+  },
+)
 
 /**
  * Cache-Control header presets for different data types
@@ -47,7 +53,7 @@ export const CachePresets = {
  */
 export function withCacheHeaders(
   response: NextResponse,
-  preset: keyof typeof CachePresets = 'privateShort'
+  preset: keyof typeof CachePresets = 'privateShort',
 ): NextResponse {
   response.headers.set('Cache-Control', CachePresets[preset])
   return response
@@ -61,7 +67,7 @@ export function cachedJsonResponse<T>(
   options: {
     status?: number
     cache?: keyof typeof CachePresets
-  } = {}
+  } = {},
 ): NextResponse {
   const response = NextResponse.json(data, { status: options.status || 200 })
   return withCacheHeaders(response, options.cache || 'privateShort')

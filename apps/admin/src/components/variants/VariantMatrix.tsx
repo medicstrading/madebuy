@@ -1,21 +1,18 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
 import {
   ChevronDown,
-  ChevronUp,
   ChevronLeft,
   ChevronRight,
-  Search,
-  Filter,
-  Trash2,
-  Settings,
-  Download,
+  ChevronUp,
   RefreshCw,
+  Search,
+  Trash2,
 } from 'lucide-react'
-import type { VariantMatrixProps, EditableVariant } from './types'
+import { useCallback, useMemo, useState } from 'react'
+import { LOW_STOCK_DEFAULT_THRESHOLD, VARIANTS_PER_PAGE } from './constants'
+import type { VariantMatrixProps } from './types'
 import { VariantRow } from './VariantRow'
-import { VARIANTS_PER_PAGE, LOW_STOCK_DEFAULT_THRESHOLD } from './constants'
 
 type SortField = 'options' | 'sku' | 'price' | 'stock'
 type SortDirection = 'asc' | 'desc'
@@ -48,7 +45,7 @@ export function VariantMatrix({
     stockStatus: 'all',
     priceRange: { min: null, max: null },
   })
-  const [showFilters, setShowFilters] = useState(false)
+  const [_showFilters, _setShowFilters] = useState(false)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -59,8 +56,11 @@ export function VariantMatrix({
       // Search filter
       if (filters.search) {
         const searchLower = filters.search.toLowerCase()
-        const optionValues = Object.values(variant.options).join(' ').toLowerCase()
-        const skuMatch = variant.sku?.toLowerCase().includes(searchLower) || false
+        const optionValues = Object.values(variant.options)
+          .join(' ')
+          .toLowerCase()
+        const skuMatch =
+          variant.sku?.toLowerCase().includes(searchLower) || false
         if (!optionValues.includes(searchLower) && !skuMatch) {
           return false
         }
@@ -70,14 +70,21 @@ export function VariantMatrix({
       if (filters.stockStatus !== 'all') {
         const stock = variant.stock
         const isAvailable = variant.isAvailable
-        const threshold = variant.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD
+        const threshold =
+          variant.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD
 
         switch (filters.stockStatus) {
           case 'in':
-            if (!isAvailable || stock === undefined || stock <= threshold) return false
+            if (!isAvailable || stock === undefined || stock <= threshold)
+              return false
             break
           case 'low':
-            if (!isAvailable || stock === undefined || stock === 0 || stock > threshold)
+            if (
+              !isAvailable ||
+              stock === undefined ||
+              stock === 0 ||
+              stock > threshold
+            )
               return false
             break
           case 'out':
@@ -90,10 +97,16 @@ export function VariantMatrix({
       }
 
       // Price range filter
-      if (filters.priceRange.min !== null && (variant.price === undefined || variant.price < filters.priceRange.min)) {
+      if (
+        filters.priceRange.min !== null &&
+        (variant.price === undefined || variant.price < filters.priceRange.min)
+      ) {
         return false
       }
-      if (filters.priceRange.max !== null && (variant.price === undefined || variant.price > filters.priceRange.max)) {
+      if (
+        filters.priceRange.max !== null &&
+        (variant.price === undefined || variant.price > filters.priceRange.max)
+      ) {
         return false
       }
 
@@ -107,7 +120,7 @@ export function VariantMatrix({
       let comparison = 0
 
       switch (sortField) {
-        case 'options':
+        case 'options': {
           const aName = attributes
             .map((attr) => a.options[attr.name])
             .filter(Boolean)
@@ -118,6 +131,7 @@ export function VariantMatrix({
             .join(' ')
           comparison = aName.localeCompare(bName)
           break
+        }
         case 'sku':
           comparison = (a.sku || '').localeCompare(b.sku || '')
           break
@@ -141,14 +155,17 @@ export function VariantMatrix({
   }, [sortedVariants, currentPage])
 
   // Handle sort
-  const handleSort = useCallback((field: SortField) => {
-    if (sortField === field) {
-      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }, [sortField])
+  const handleSort = useCallback(
+    (field: SortField) => {
+      if (sortField === field) {
+        setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+      } else {
+        setSortField(field)
+        setSortDirection('asc')
+      }
+    },
+    [sortField],
+  )
 
   // Handle select all (only visible variants)
   const handleSelectAll = useCallback(
@@ -163,7 +180,7 @@ export function VariantMatrix({
         onSelectionChange(newSelected)
       }
     },
-    [selectedIds, paginatedVariants, onSelectionChange]
+    [selectedIds, paginatedVariants, onSelectionChange],
   )
 
   // Check if all visible variants are selected
@@ -203,6 +220,7 @@ export function VariantMatrix({
   }) => (
     <button
       type="button"
+      type="button"
       onClick={() => handleSort(field)}
       className={`flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 ${className}`}
     >
@@ -220,9 +238,12 @@ export function VariantMatrix({
     return (
       <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
         <RefreshCw className="mx-auto h-8 w-8 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No variants yet</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">
+          No variants yet
+        </h3>
         <p className="mt-1 text-xs text-gray-500">
-          Add attributes above and click &ldquo;Generate Variants&rdquo; to create variant combinations.
+          Add attributes above and click &ldquo;Generate Variants&rdquo; to
+          create variant combinations.
         </p>
       </div>
     )
@@ -276,6 +297,7 @@ export function VariantMatrix({
               </span>
               <button
                 type="button"
+                type="button"
                 onClick={handleDeleteSelected}
                 disabled={disabled}
                 className="rounded p-1 text-blue-700 hover:bg-blue-100"
@@ -292,6 +314,7 @@ export function VariantMatrix({
             filters.priceRange.min !== null ||
             filters.priceRange.max !== null) && (
             <button
+              type="button"
               type="button"
               onClick={handleClearFilters}
               className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
@@ -391,6 +414,7 @@ export function VariantMatrix({
           <div className="flex items-center gap-1">
             <button
               type="button"
+              type="button"
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -400,6 +424,7 @@ export function VariantMatrix({
               <ChevronLeft className="-ml-2 h-4 w-4" />
             </button>
             <button
+              type="button"
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
@@ -425,6 +450,7 @@ export function VariantMatrix({
 
                 return (
                   <button
+                    type="button"
                     key={pageNum}
                     type="button"
                     onClick={() => setCurrentPage(pageNum)}
@@ -442,6 +468,7 @@ export function VariantMatrix({
 
             <button
               type="button"
+              type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -450,6 +477,7 @@ export function VariantMatrix({
               <ChevronRight className="h-4 w-4" />
             </button>
             <button
+              type="button"
               type="button"
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}

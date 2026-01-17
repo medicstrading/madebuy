@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import {
-  Wallet,
-  Calendar,
-  ArrowRight,
-  RefreshCw,
   AlertCircle,
+  ArrowRight,
+  Banknote,
+  Calendar,
   CheckCircle2,
   Clock,
-  Banknote,
+  RefreshCw,
+  Wallet,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 interface RecentPayout {
   id: string
@@ -50,7 +50,7 @@ function formatRelativeDate(dateString: string): string {
   const date = new Date(dateString)
   const now = new Date()
   const diffDays = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
   )
 
   if (diffDays === 0) return 'Today'

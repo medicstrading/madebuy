@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
+import crypto from 'node:crypto'
 import { marketplace } from '@madebuy/db'
 import { nanoid } from 'nanoid'
-import crypto from 'crypto'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * eBay OAuth Configuration
@@ -58,26 +58,29 @@ export async function GET(request: NextRequest) {
     // Debug logging
     console.log('[eBay OAuth] Environment:', process.env.EBAY_ENVIRONMENT)
     console.log('[eBay OAuth] Auth URL:', ebayAuthUrl)
-    console.log('[eBay OAuth] Client ID:', ebayClientId?.substring(0, 20) + '...')
+    console.log(
+      '[eBay OAuth] Client ID:',
+      `${ebayClientId?.substring(0, 20)}...`,
+    )
     console.log('[eBay OAuth] Redirect URI:', ebayRedirectUri)
 
     // Check if eBay credentials are configured
     if (!ebayClientId || !ebayRedirectUri) {
       return NextResponse.json(
         { error: 'eBay integration not configured' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     // Check if already connected
     const existingConnection = await marketplace.getConnectionByMarketplace(
       tenant.id,
-      'ebay'
+      'ebay',
     )
     if (existingConnection && existingConnection.status === 'connected') {
       return NextResponse.json(
         { error: 'Already connected to eBay' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -90,7 +93,8 @@ export async function GET(request: NextRequest) {
       .slice(0, 32)
 
     // Get return URL from query params
-    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
+    const returnUrl =
+      request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
 
     // Store OAuth state for verification
     await marketplace.saveOAuthState({
@@ -115,7 +119,7 @@ export async function GET(request: NextRequest) {
     console.error('Error initiating eBay OAuth:', error)
     return NextResponse.json(
       { error: 'Failed to initiate eBay connection' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

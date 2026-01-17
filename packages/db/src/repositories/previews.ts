@@ -1,6 +1,6 @@
+import type { ExtractedDesign, PreviewConfig } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { PreviewConfig, ExtractedDesign } from '@madebuy/shared'
 
 const COLLECTION = 'design_previews'
 const PREVIEW_TTL_HOURS = 24
@@ -15,10 +15,9 @@ async function ensureIndex(): Promise<void> {
 
   const db = await getDatabase()
   try {
-    await db.collection(COLLECTION).createIndex(
-      { expiresAt: 1 },
-      { expireAfterSeconds: 0 }
-    )
+    await db
+      .collection(COLLECTION)
+      .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
     indexEnsured = true
   } catch {
     // Index may already exist
@@ -32,7 +31,7 @@ async function ensureIndex(): Promise<void> {
 export async function createPreview(
   tenantId: string,
   extractedDesign: ExtractedDesign,
-  sourceUrl: string
+  sourceUrl: string,
 ): Promise<PreviewConfig> {
   await ensureIndex()
 
@@ -57,9 +56,13 @@ export async function createPreview(
 /**
  * Gets a preview by ID
  */
-export async function getPreviewById(id: string): Promise<PreviewConfig | null> {
+export async function getPreviewById(
+  id: string,
+): Promise<PreviewConfig | null> {
   const db = await getDatabase()
-  const preview = await db.collection(COLLECTION).findOne({ id }) as PreviewConfig | null
+  const preview = (await db
+    .collection(COLLECTION)
+    .findOne({ id })) as PreviewConfig | null
 
   if (!preview) return null
 
@@ -74,13 +77,13 @@ export async function getPreviewById(id: string): Promise<PreviewConfig | null> 
 /**
  * Gets the latest preview for a tenant
  */
-export async function getLatestPreviewForTenant(tenantId: string): Promise<PreviewConfig | null> {
+export async function getLatestPreviewForTenant(
+  tenantId: string,
+): Promise<PreviewConfig | null> {
   const db = await getDatabase()
-  const preview = await db.collection(COLLECTION)
-    .findOne(
-      { tenantId },
-      { sort: { createdAt: -1 } }
-    ) as PreviewConfig | null
+  const preview = (await db
+    .collection(COLLECTION)
+    .findOne({ tenantId }, { sort: { createdAt: -1 } })) as PreviewConfig | null
 
   if (!preview) return null
 
@@ -104,7 +107,9 @@ export async function deletePreview(id: string): Promise<boolean> {
 /**
  * Deletes all previews for a tenant
  */
-export async function deletePreviewsForTenant(tenantId: string): Promise<number> {
+export async function deletePreviewsForTenant(
+  tenantId: string,
+): Promise<number> {
   const db = await getDatabase()
   const result = await db.collection(COLLECTION).deleteMany({ tenantId })
   return result.deletedCount

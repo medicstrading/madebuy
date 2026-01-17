@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { bulk } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/pieces/export
@@ -44,15 +44,20 @@ export async function GET(request: NextRequest) {
     const headers = Object.keys(data[0])
     const csvRows = [
       headers.join(','),
-      ...data.map(row =>
-        headers.map(header => {
-          const value = row[header as keyof typeof row]
-          // Escape values with commas or quotes
-          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-            return `"${value.replace(/"/g, '""')}"`
-          }
-          return value
-        }).join(',')
+      ...data.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header as keyof typeof row]
+            // Escape values with commas or quotes
+            if (
+              typeof value === 'string' &&
+              (value.includes(',') || value.includes('"'))
+            ) {
+              return `"${value.replace(/"/g, '""')}"`
+            }
+            return value
+          })
+          .join(','),
       ),
     ]
 
@@ -69,7 +74,7 @@ export async function GET(request: NextRequest) {
     console.error('Error exporting pieces:', error)
     return NextResponse.json(
       { error: 'Failed to export pieces' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

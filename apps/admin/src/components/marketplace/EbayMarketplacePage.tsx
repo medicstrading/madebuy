@@ -1,44 +1,34 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import type {
+  MarketplaceListingStatus,
+  MarketplacePlatform,
+} from '@madebuy/shared'
 import {
-  RefreshCw,
-  Package,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  MoreHorizontal,
-  Eye,
-  ExternalLink,
-  Trash2,
-  Plus,
-  Search,
-  X,
-  Download,
-  Upload,
-  TrendingUp,
-  DollarSign,
   Activity,
-  Settings,
-  Filter,
-  ChevronDown,
-  Check,
+  AlertCircle,
   AlertTriangle,
-  Zap,
-  ShoppingBag,
-  Tag,
-  Truck,
-  Calendar,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  DollarSign,
+  Download,
   Edit3,
-  Copy,
-  Pause,
-  Play,
+  ExternalLink,
+  Loader2,
+  Package,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings,
+  Trash2,
+  Upload,
+  X,
 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import type { MarketplacePlatform, MarketplaceListingStatus } from '@madebuy/shared'
 
 // =============================================================================
 // Types
@@ -119,13 +109,46 @@ type ListingFilter = 'all' | 'active' | 'ended' | 'error' | 'pending'
 // Status Configuration
 // =============================================================================
 
-const statusConfig: Record<MarketplaceListingStatus, { label: string; color: string; bgColor: string; icon: typeof CheckCircle }> = {
-  draft: { label: 'Draft', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: Clock },
-  pending: { label: 'Pending', color: 'text-amber-600', bgColor: 'bg-amber-50', icon: Clock },
-  active: { label: 'Active', color: 'text-emerald-600', bgColor: 'bg-emerald-50', icon: CheckCircle },
-  ended: { label: 'Ended', color: 'text-gray-500', bgColor: 'bg-gray-100', icon: Clock },
-  error: { label: 'Error', color: 'text-red-600', bgColor: 'bg-red-50', icon: AlertCircle },
-  out_of_stock: { label: 'Out of Stock', color: 'text-orange-600', bgColor: 'bg-orange-50', icon: AlertTriangle },
+const statusConfig: Record<
+  MarketplaceListingStatus,
+  { label: string; color: string; bgColor: string; icon: typeof CheckCircle }
+> = {
+  draft: {
+    label: 'Draft',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100',
+    icon: Clock,
+  },
+  pending: {
+    label: 'Pending',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50',
+    icon: Clock,
+  },
+  active: {
+    label: 'Active',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50',
+    icon: CheckCircle,
+  },
+  ended: {
+    label: 'Ended',
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-100',
+    icon: Clock,
+  },
+  error: {
+    label: 'Error',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    icon: AlertCircle,
+  },
+  out_of_stock: {
+    label: 'Out of Stock',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    icon: AlertTriangle,
+  },
 }
 
 // =============================================================================
@@ -168,16 +191,25 @@ function AccountStatusCard({
   onRefresh: () => void
   isRefreshing: boolean
 }) {
-  const tokenExpiry = connection?.tokenExpiresAt ? new Date(connection.tokenExpiresAt) : null
-  const isTokenExpiring = tokenExpiry && tokenExpiry.getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
+  const tokenExpiry = connection?.tokenExpiresAt
+    ? new Date(connection.tokenExpiresAt)
+    : null
+  const isTokenExpiring =
+    tokenExpiry && tokenExpiry.getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-gray-200">
-            <svg viewBox="0 0 24 24" className="h-7 w-7">
-              <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7">
+              <text
+                x="1"
+                y="17"
+                fontSize="12"
+                fontWeight="bold"
+                fontFamily="Arial, sans-serif"
+              >
                 <tspan fill="#E53238">e</tspan>
                 <tspan fill="#0064D2">b</tspan>
                 <tspan fill="#F5AF02">a</tspan>
@@ -196,16 +228,21 @@ function AccountStatusCard({
               )}
             </div>
             {connection?.sellerId && (
-              <p className="text-sm text-gray-500">Seller ID: {connection.sellerId}</p>
+              <p className="text-sm text-gray-500">
+                Seller ID: {connection.sellerId}
+              </p>
             )}
           </div>
         </div>
         <button
+          type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
         >
-          <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+          <RefreshCw
+            className={cn('h-4 w-4', isRefreshing && 'animate-spin')}
+          />
           Sync
         </button>
       </div>
@@ -215,15 +252,19 @@ function AccountStatusCard({
         <div className="rounded-lg bg-gray-50 p-3">
           <p className="text-xs font-medium text-gray-500">Last Sync</p>
           <p className="mt-1 text-sm font-semibold text-gray-900">
-            {connection?.lastSyncAt ? formatTimeAgo(connection.lastSyncAt) : 'Never'}
+            {connection?.lastSyncAt
+              ? formatTimeAgo(connection.lastSyncAt)
+              : 'Never'}
           </p>
         </div>
         <div className="rounded-lg bg-gray-50 p-3">
           <p className="text-xs font-medium text-gray-500">Token Status</p>
-          <p className={cn(
-            'mt-1 text-sm font-semibold',
-            isTokenExpiring ? 'text-amber-600' : 'text-emerald-600'
-          )}>
+          <p
+            className={cn(
+              'mt-1 text-sm font-semibold',
+              isTokenExpiring ? 'text-amber-600' : 'text-emerald-600',
+            )}
+          >
             {isTokenExpiring ? 'Expiring Soon' : 'Valid'}
           </p>
         </div>
@@ -240,7 +281,9 @@ function AccountStatusCard({
             <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-red-800">Sync Error</p>
-              <p className="text-xs text-red-600 mt-0.5">{connection.lastError}</p>
+              <p className="text-xs text-red-600 mt-0.5">
+                {connection.lastError}
+              </p>
             </div>
           </div>
         </div>
@@ -255,11 +298,17 @@ function AccountStatusCard({
 
 function StatsCards({ listings }: { listings: ListingWithPiece[] }) {
   const stats = useMemo(() => {
-    const active = listings.filter(l => l.status === 'active')
-    const totalValue = active.reduce((sum, l) => sum + (l.lastSyncedPrice || l.piece?.price || 0), 0)
-    const totalQuantity = active.reduce((sum, l) => sum + (l.lastSyncedQuantity || l.piece?.stock || 0), 0)
-    const errors = listings.filter(l => l.status === 'error').length
-    const pending = listings.filter(l => l.status === 'pending').length
+    const active = listings.filter((l) => l.status === 'active')
+    const totalValue = active.reduce(
+      (sum, l) => sum + (l.lastSyncedPrice || l.piece?.price || 0),
+      0,
+    )
+    const totalQuantity = active.reduce(
+      (sum, l) => sum + (l.lastSyncedQuantity || l.piece?.stock || 0),
+      0,
+    )
+    const errors = listings.filter((l) => l.status === 'error').length
+    const pending = listings.filter((l) => l.status === 'pending').length
 
     return {
       total: listings.length,
@@ -292,7 +341,9 @@ function StatsCards({ listings }: { listings: ListingWithPiece[] }) {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Active</p>
-            <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
+            <p className="text-2xl font-bold text-emerald-600">
+              {stats.active}
+            </p>
           </div>
         </div>
       </div>
@@ -304,7 +355,9 @@ function StatsCards({ listings }: { listings: ListingWithPiece[] }) {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Listed Value</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalValue)}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatCurrency(stats.totalValue)}
+            </p>
           </div>
         </div>
       </div>
@@ -347,18 +400,24 @@ function ListingsTab({
 }) {
   const [filter, setFilter] = useState<ListingFilter>('all')
   const [search, setSearch] = useState('')
-  const [selectedListings, setSelectedListings] = useState<Set<string>>(new Set())
+  const [selectedListings, setSelectedListings] = useState<Set<string>>(
+    new Set(),
+  )
 
   const filteredListings = useMemo(() => {
-    return listings.filter(listing => {
+    return listings.filter((listing) => {
       // Status filter
       if (filter !== 'all' && listing.status !== filter) return false
 
       // Search filter
       if (search) {
         const searchLower = search.toLowerCase()
-        const nameMatch = listing.piece?.name?.toLowerCase().includes(searchLower)
-        const idMatch = listing.externalListingId?.toLowerCase().includes(searchLower)
+        const nameMatch = listing.piece?.name
+          ?.toLowerCase()
+          .includes(searchLower)
+        const idMatch = listing.externalListingId
+          ?.toLowerCase()
+          .includes(searchLower)
         if (!nameMatch && !idMatch) return false
       }
 
@@ -380,7 +439,7 @@ function ListingsTab({
     if (selectedListings.size === filteredListings.length) {
       setSelectedListings(new Set())
     } else {
-      setSelectedListings(new Set(filteredListings.map(l => l.id)))
+      setSelectedListings(new Set(filteredListings.map((l) => l.id)))
     }
   }
 
@@ -425,6 +484,7 @@ function ListingsTab({
             />
             {search && (
               <button
+                type="button"
                 onClick={() => setSearch('')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-gray-100"
               >
@@ -441,6 +501,7 @@ function ListingsTab({
             </span>
           )}
           <button
+            type="button"
             onClick={onRefresh}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
@@ -454,7 +515,9 @@ function ListingsTab({
       {filteredListings.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
           <Package className="mx-auto h-12 w-12 text-gray-300" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No listings found</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No listings found
+          </h3>
           <p className="mt-2 text-sm text-gray-500">
             {filter !== 'all' || search
               ? 'Try adjusting your filters or search query.'
@@ -469,7 +532,10 @@ function ListingsTab({
                 <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedListings.size === filteredListings.length && filteredListings.length > 0}
+                    checked={
+                      selectedListings.size === filteredListings.length &&
+                      filteredListings.length > 0
+                    }
                     onChange={toggleAll}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
@@ -496,12 +562,17 @@ function ListingsTab({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredListings.map((listing) => {
-                const status = statusConfig[listing.status] || statusConfig.draft
+                const status =
+                  statusConfig[listing.status] || statusConfig.draft
                 const StatusIcon = status.icon
-                const isProcessing = syncing === listing.id || deleting === listing.id
+                const isProcessing =
+                  syncing === listing.id || deleting === listing.id
 
                 return (
-                  <tr key={listing.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={listing.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
@@ -538,11 +609,13 @@ function ListingsTab({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                        status.bgColor,
-                        status.color
-                      )}>
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                          status.bgColor,
+                          status.color,
+                        )}
+                      >
                         <StatusIcon className="h-3 w-3" />
                         {status.label}
                       </span>
@@ -554,16 +627,22 @@ function ListingsTab({
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(listing.lastSyncedPrice || listing.piece?.price || 0)}
+                        {formatCurrency(
+                          listing.lastSyncedPrice || listing.piece?.price || 0,
+                        )}
                       </p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm text-gray-600">
-                        {listing.lastSyncedQuantity ?? listing.piece?.stock ?? 0}
+                        {listing.lastSyncedQuantity ??
+                          listing.piece?.stock ??
+                          0}
                       </p>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
-                      {listing.lastSyncedAt ? formatTimeAgo(listing.lastSyncedAt) : 'Never'}
+                      {listing.lastSyncedAt
+                        ? formatTimeAgo(listing.lastSyncedAt)
+                        : 'Never'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -579,6 +658,7 @@ function ListingsTab({
                           </a>
                         )}
                         <button
+                          type="button"
                           onClick={() => onSync(listing.id)}
                           disabled={isProcessing}
                           className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
@@ -591,7 +671,13 @@ function ListingsTab({
                           )}
                         </button>
                         <button
-                          onClick={() => onDelete(listing.id, listing.piece?.name || 'this listing')}
+                          type="button"
+                          onClick={() =>
+                            onDelete(
+                              listing.id,
+                              listing.piece?.name || 'this listing',
+                            )
+                          }
                           disabled={isProcessing}
                           className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                           title="End listing"
@@ -640,7 +726,10 @@ function ListItemsTab({
   initialInventory,
 }: {
   existingListings: ListingWithPiece[]
-  onListItem: (pieceId: string, options: { price?: number; quantity?: number; categoryId?: string }) => Promise<void>
+  onListItem: (
+    pieceId: string,
+    options: { price?: number; quantity?: number; categoryId?: string },
+  ) => Promise<void>
   listing: string | null
   initialInventory: InventoryPiece[]
 }) {
@@ -649,7 +738,9 @@ function ListItemsTab({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
   const [listingItem, setListingItem] = useState<string | null>(null)
   const [configReady, setConfigReady] = useState<boolean | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState(EBAY_CATEGORIES[0].id)
+  const [selectedCategory, setSelectedCategory] = useState(
+    EBAY_CATEGORIES[0].id,
+  )
 
   // Check if config is ready for listing
   useEffect(() => {
@@ -669,13 +760,15 @@ function ListItemsTab({
 
   // Filter out already-listed items
   const listedPieceIds = useMemo(() => {
-    return new Set(existingListings
-      .filter(l => l.status === 'active' || l.status === 'pending')
-      .map(l => l.pieceId))
+    return new Set(
+      existingListings
+        .filter((l) => l.status === 'active' || l.status === 'pending')
+        .map((l) => l.pieceId),
+    )
   }, [existingListings])
 
   const availableItems = useMemo(() => {
-    return inventory.filter(item => {
+    return inventory.filter((item) => {
       // Exclude already listed
       if (listedPieceIds.has(item.id)) return false
 
@@ -690,7 +783,12 @@ function ListItemsTab({
   }, [inventory, listedPieceIds, search])
 
   const handleListItem = async (pieceId: string) => {
-    console.log('[ListItemsTab] handleListItem called with pieceId:', pieceId, 'category:', selectedCategory)
+    console.log(
+      '[ListItemsTab] handleListItem called with pieceId:',
+      pieceId,
+      'category:',
+      selectedCategory,
+    )
     setListingItem(pieceId)
     try {
       await onListItem(pieceId, { categoryId: selectedCategory })
@@ -718,8 +816,9 @@ function ListItemsTab({
           <div>
             <p className="font-medium text-amber-900">Setup Required</p>
             <p className="text-sm text-amber-700 mt-1">
-              You need to configure eBay Business Policies before you can list items.
-              Go to the <strong>Settings</strong> tab to see what's missing.
+              You need to configure eBay Business Policies before you can list
+              items. Go to the <strong>Settings</strong> tab to see what's
+              missing.
             </p>
           </div>
         </div>
@@ -736,6 +835,7 @@ function ListItemsTab({
         <div className="flex items-center gap-2">
           {selectedItems.size > 0 && (
             <button
+              type="button"
               onClick={handleBulkList}
               disabled={!!listingItem || configReady === false}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
@@ -760,7 +860,10 @@ function ListItemsTab({
           />
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="ebay-category" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+          <label
+            htmlFor="ebay-category"
+            className="text-sm font-medium text-gray-700 whitespace-nowrap"
+          >
             eBay Category:
           </label>
           <select
@@ -782,7 +885,9 @@ function ListItemsTab({
       {availableItems.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
           <CheckCircle className="mx-auto h-12 w-12 text-emerald-300" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">All items listed!</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            All items listed!
+          </h3>
           <p className="mt-2 text-sm text-gray-500">
             All your available inventory items are already listed on eBay.
           </p>
@@ -802,12 +907,17 @@ function ListItemsTab({
                 <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedItems.size === availableItems.length && availableItems.length > 0}
+                    checked={
+                      selectedItems.size === availableItems.length &&
+                      availableItems.length > 0
+                    }
                     onChange={() => {
                       if (selectedItems.size === availableItems.length) {
                         setSelectedItems(new Set())
                       } else {
-                        setSelectedItems(new Set(availableItems.map(i => i.id)))
+                        setSelectedItems(
+                          new Set(availableItems.map((i) => i.id)),
+                        )
                       }
                     }}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -835,11 +945,15 @@ function ListItemsTab({
                 const isSelected = selectedItems.has(item.id)
                 const isListing = listingItem === item.id || listing === item.id
                 const hasImage = !!item.thumbnailUrl
-                const hasDescription = item.description && item.description.length >= 10
+                const hasDescription =
+                  item.description && item.description.length >= 10
                 const isReady = hasImage && hasDescription && item.price > 0
 
                 return (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
@@ -941,9 +1055,16 @@ function ListItemsTab({
                           </Link>
                         )}
                         <button
+                          type="button"
                           onClick={() => handleListItem(item.id)}
-                          disabled={isListing || configReady === false || !isReady}
-                          title={!isReady ? 'Fix missing fields before listing' : undefined}
+                          disabled={
+                            isListing || configReady === false || !isReady
+                          }
+                          title={
+                            !isReady
+                              ? 'Fix missing fields before listing'
+                              : undefined
+                          }
                           className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isListing ? (
@@ -997,7 +1118,11 @@ interface EbayPolicies {
   envVars: Record<string, string>
 }
 
-function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }) {
+function SettingsTab({
+  connection,
+}: {
+  connection: EbayConnectionStatus | null
+}) {
   const [config, setConfig] = useState<EbayConfig | null>(null)
   const [loading, setLoading] = useState(true)
   const [policies, setPolicies] = useState<EbayPolicies | null>(null)
@@ -1049,7 +1174,9 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
           setPoliciesError(`Some APIs failed: ${data.errors.join(', ')}`)
         }
       } else {
-        setPoliciesError(data.error || `Failed to fetch policies (${res.status})`)
+        setPoliciesError(
+          data.error || `Failed to fetch policies (${res.status})`,
+        )
       }
     } catch (err: any) {
       console.error('[Settings] Policy fetch error:', err)
@@ -1082,7 +1209,13 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
     }
   }
 
-  const ConfigItem = ({ label, configured }: { label: string; configured: boolean }) => (
+  const ConfigItem = ({
+    label,
+    configured,
+  }: {
+    label: string
+    configured: boolean
+  }) => (
     <div className="flex items-center justify-between py-2">
       <span className="text-sm text-gray-700">{label}</span>
       {configured ? (
@@ -1103,16 +1236,20 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">eBay Settings</h3>
-        <p className="text-sm text-gray-500">Configure your eBay integration preferences</p>
+        <p className="text-sm text-gray-500">
+          Configure your eBay integration preferences
+        </p>
       </div>
 
       {/* Configuration Status */}
-      <div className={cn(
-        'rounded-xl border p-6',
-        config?.readyToList
-          ? 'border-emerald-200 bg-emerald-50'
-          : 'border-amber-200 bg-amber-50'
-      )}>
+      <div
+        className={cn(
+          'rounded-xl border p-6',
+          config?.readyToList
+            ? 'border-emerald-200 bg-emerald-50'
+            : 'border-amber-200 bg-amber-50',
+        )}
+      >
         <div className="flex items-start gap-3">
           {config?.readyToList ? (
             <CheckCircle className="h-6 w-6 text-emerald-600 flex-shrink-0" />
@@ -1120,16 +1257,20 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
             <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0" />
           )}
           <div className="flex-1">
-            <h4 className={cn(
-              'font-medium',
-              config?.readyToList ? 'text-emerald-900' : 'text-amber-900'
-            )}>
+            <h4
+              className={cn(
+                'font-medium',
+                config?.readyToList ? 'text-emerald-900' : 'text-amber-900',
+              )}
+            >
               {config?.readyToList ? 'Ready to List' : 'Setup Required'}
             </h4>
-            <p className={cn(
-              'text-sm mt-1',
-              config?.readyToList ? 'text-emerald-700' : 'text-amber-700'
-            )}>
+            <p
+              className={cn(
+                'text-sm mt-1',
+                config?.readyToList ? 'text-emerald-700' : 'text-amber-700',
+              )}
+            >
               {config?.readyToList
                 ? 'Your eBay account is fully configured and ready to create listings.'
                 : 'Complete the setup below before you can list items on eBay.'}
@@ -1141,21 +1282,40 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
           <div className="mt-4 flex items-center justify-center py-4">
             <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
           </div>
-        ) : config && !config.readyToList && (
-          <div className="mt-4 pt-4 border-t border-amber-200">
-            <p className="text-sm font-medium text-amber-900 mb-2">Missing Configuration:</p>
-            <div className="space-y-1">
-              <ConfigItem label="Fulfillment Policy" configured={config.policies.fulfillment.configured} />
-              <ConfigItem label="Payment Policy" configured={config.policies.payment.configured} />
-              <ConfigItem label="Return Policy" configured={config.policies.return.configured} />
-              <ConfigItem label="Merchant Location" configured={config.merchantLocation.configured} />
-            </div>
-            <div className="mt-4 p-3 rounded-lg bg-white border border-amber-200">
-              <p className="text-sm text-amber-800">
-                <strong>How to set up:</strong> Create your policies in eBay Seller Hub, then click the button below to fetch your policy IDs.
+        ) : (
+          config &&
+          !config.readyToList && (
+            <div className="mt-4 pt-4 border-t border-amber-200">
+              <p className="text-sm font-medium text-amber-900 mb-2">
+                Missing Configuration:
               </p>
+              <div className="space-y-1">
+                <ConfigItem
+                  label="Fulfillment Policy"
+                  configured={config.policies.fulfillment.configured}
+                />
+                <ConfigItem
+                  label="Payment Policy"
+                  configured={config.policies.payment.configured}
+                />
+                <ConfigItem
+                  label="Return Policy"
+                  configured={config.policies.return.configured}
+                />
+                <ConfigItem
+                  label="Merchant Location"
+                  configured={config.merchantLocation.configured}
+                />
+              </div>
+              <div className="mt-4 p-3 rounded-lg bg-white border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>How to set up:</strong> Create your policies in eBay
+                  Seller Hub, then click the button below to fetch your policy
+                  IDs.
+                </p>
+              </div>
             </div>
-          </div>
+          )
         )}
       </div>
 
@@ -1164,9 +1324,12 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
         <div className="flex items-center justify-between mb-4">
           <div>
             <h4 className="font-medium text-gray-900">Policy IDs</h4>
-            <p className="text-sm text-gray-500">Fetch your eBay business policy IDs automatically</p>
+            <p className="text-sm text-gray-500">
+              Fetch your eBay business policy IDs automatically
+            </p>
           </div>
           <button
+            type="button"
             onClick={fetchPolicies}
             disabled={fetchingPolicies}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
@@ -1194,25 +1357,44 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
         {policies && (
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-3">Add these to your Railway environment variables:</p>
+              <p className="text-sm font-medium text-gray-700 mb-3">
+                Add these to your Railway environment variables:
+              </p>
               <div className="font-mono text-xs space-y-1 bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto">
-                <div>EBAY_FULFILLMENT_POLICY_ID={policies.envVars.EBAY_FULFILLMENT_POLICY_ID}</div>
-                <div>EBAY_PAYMENT_POLICY_ID={policies.envVars.EBAY_PAYMENT_POLICY_ID}</div>
-                <div>EBAY_RETURN_POLICY_ID={policies.envVars.EBAY_RETURN_POLICY_ID}</div>
-                <div>EBAY_MERCHANT_LOCATION_KEY={policies.envVars.EBAY_MERCHANT_LOCATION_KEY}</div>
+                <div>
+                  EBAY_FULFILLMENT_POLICY_ID=
+                  {policies.envVars.EBAY_FULFILLMENT_POLICY_ID}
+                </div>
+                <div>
+                  EBAY_PAYMENT_POLICY_ID=
+                  {policies.envVars.EBAY_PAYMENT_POLICY_ID}
+                </div>
+                <div>
+                  EBAY_RETURN_POLICY_ID={policies.envVars.EBAY_RETURN_POLICY_ID}
+                </div>
+                <div>
+                  EBAY_MERCHANT_LOCATION_KEY=
+                  {policies.envVars.EBAY_MERCHANT_LOCATION_KEY}
+                </div>
               </div>
             </div>
 
-            {(policies.fulfillment.length > 0 || policies.payment.length > 0 || policies.return.length > 0) && (
+            {(policies.fulfillment.length > 0 ||
+              policies.payment.length > 0 ||
+              policies.return.length > 0) && (
               <div className="grid gap-4 sm:grid-cols-2">
                 {policies.fulfillment.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Shipping Policies</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Shipping Policies
+                    </p>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {policies.fulfillment.map(p => (
+                      {policies.fulfillment.map((p) => (
                         <li key={p.id} className="flex justify-between">
                           <span>{p.name}</span>
-                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.id}</code>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            {p.id}
+                          </code>
                         </li>
                       ))}
                     </ul>
@@ -1220,12 +1402,16 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
                 )}
                 {policies.payment.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Payment Policies</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Payment Policies
+                    </p>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {policies.payment.map(p => (
+                      {policies.payment.map((p) => (
                         <li key={p.id} className="flex justify-between">
                           <span>{p.name}</span>
-                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.id}</code>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            {p.id}
+                          </code>
                         </li>
                       ))}
                     </ul>
@@ -1233,12 +1419,16 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
                 )}
                 {policies.return.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Return Policies</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Return Policies
+                    </p>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {policies.return.map(p => (
+                      {policies.return.map((p) => (
                         <li key={p.id} className="flex justify-between">
                           <span>{p.name}</span>
-                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.id}</code>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            {p.id}
+                          </code>
                         </li>
                       ))}
                     </ul>
@@ -1246,12 +1436,16 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
                 )}
                 {policies.locations.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Locations</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Locations
+                    </p>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {policies.locations.map(l => (
+                      {policies.locations.map((l) => (
                         <li key={l.key} className="flex justify-between">
                           <span>{l.name}</span>
-                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{l.key}</code>
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            {l.key}
+                          </code>
                         </li>
                       ))}
                     </ul>
@@ -1268,71 +1462,119 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
                 <div className="space-y-3">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-xs font-medium text-amber-800 mb-1">Location Key</label>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">
+                        Location Key
+                      </label>
                       <input
                         type="text"
                         value={locationForm.locationKey}
-                        onChange={(e) => setLocationForm({ ...locationForm, locationKey: e.target.value })}
+                        onChange={(e) =>
+                          setLocationForm({
+                            ...locationForm,
+                            locationKey: e.target.value,
+                          })
+                        }
                         className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
                         placeholder="default"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-amber-800 mb-1">Location Name</label>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">
+                        Location Name
+                      </label>
                       <input
                         type="text"
                         value={locationForm.name}
-                        onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
+                        onChange={(e) =>
+                          setLocationForm({
+                            ...locationForm,
+                            name: e.target.value,
+                          })
+                        }
                         className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
                         placeholder="Main Location"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-amber-800 mb-1">Street Address</label>
+                    <label className="block text-xs font-medium text-amber-800 mb-1">
+                      Street Address
+                    </label>
                     <input
                       type="text"
                       value={locationForm.addressLine1}
-                      onChange={(e) => setLocationForm({ ...locationForm, addressLine1: e.target.value })}
+                      onChange={(e) =>
+                        setLocationForm({
+                          ...locationForm,
+                          addressLine1: e.target.value,
+                        })
+                      }
                       className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
                       placeholder="123 Main St"
                     />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <div>
-                      <label className="block text-xs font-medium text-amber-800 mb-1">City</label>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">
+                        City
+                      </label>
                       <input
                         type="text"
                         value={locationForm.city}
-                        onChange={(e) => setLocationForm({ ...locationForm, city: e.target.value })}
+                        onChange={(e) =>
+                          setLocationForm({
+                            ...locationForm,
+                            city: e.target.value,
+                          })
+                        }
                         className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
                         placeholder="Sydney"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-amber-800 mb-1">State</label>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">
+                        State
+                      </label>
                       <input
                         type="text"
                         value={locationForm.stateOrProvince}
-                        onChange={(e) => setLocationForm({ ...locationForm, stateOrProvince: e.target.value })}
+                        onChange={(e) =>
+                          setLocationForm({
+                            ...locationForm,
+                            stateOrProvince: e.target.value,
+                          })
+                        }
                         className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
                         placeholder="NSW"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-amber-800 mb-1">Postcode</label>
+                      <label className="block text-xs font-medium text-amber-800 mb-1">
+                        Postcode
+                      </label>
                       <input
                         type="text"
                         value={locationForm.postalCode}
-                        onChange={(e) => setLocationForm({ ...locationForm, postalCode: e.target.value })}
+                        onChange={(e) =>
+                          setLocationForm({
+                            ...locationForm,
+                            postalCode: e.target.value,
+                          })
+                        }
                         className="w-full rounded border border-amber-300 px-2 py-1.5 text-sm"
                         placeholder="2000"
                       />
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={createLocation}
-                    disabled={creatingLocation || !locationForm.addressLine1 || !locationForm.city || !locationForm.postalCode}
+                    disabled={
+                      creatingLocation ||
+                      !locationForm.addressLine1 ||
+                      !locationForm.city ||
+                      !locationForm.postalCode
+                    }
                     className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
                   >
                     {creatingLocation ? (
@@ -1359,12 +1601,14 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           <h4 className="font-medium text-gray-900 mb-4">Environment</h4>
           <div className="flex items-center gap-2">
-            <span className={cn(
-              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-              config.environment === 'production'
-                ? 'bg-emerald-100 text-emerald-800'
-                : 'bg-amber-100 text-amber-800'
-            )}>
+            <span
+              className={cn(
+                'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                config.environment === 'production'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-amber-100 text-amber-800',
+              )}
+            >
               {config.environment === 'production' ? 'Production' : 'Sandbox'}
             </span>
             <span className="text-sm text-gray-500">
@@ -1381,7 +1625,9 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
         <h4 className="font-medium text-gray-900 mb-4">Listing Defaults</h4>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Default Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Default Category
+            </label>
             <select className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option>Crafts &gt; Handcrafted Items</option>
               <option>Art &gt; Handmade Art</option>
@@ -1389,7 +1635,9 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Item Condition</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Item Condition
+            </label>
             <select className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option>New</option>
               <option>New with tags</option>
@@ -1404,7 +1652,8 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
       <div className="rounded-xl border border-red-200 bg-red-50 p-6">
         <h4 className="font-medium text-red-900 mb-2">Danger Zone</h4>
         <p className="text-sm text-red-700 mb-4">
-          Disconnecting will remove your eBay integration. Active listings will remain on eBay but won't be synced.
+          Disconnecting will remove your eBay integration. Active listings will
+          remain on eBay but won't be synced.
         </p>
         <Link
           href="/dashboard/connections?tab=marketplaces"
@@ -1421,31 +1670,36 @@ function SettingsTab({ connection }: { connection: EbayConnectionStatus | null }
 // Main Component
 // =============================================================================
 
-export function EbayMarketplacePage({ connection: initialConnection, inventoryItems }: EbayMarketplacePageProps) {
+export function EbayMarketplacePage({
+  connection: initialConnection,
+  inventoryItems,
+}: EbayMarketplacePageProps) {
   const [activeTab, setActiveTab] = useState<TabId>('listings')
 
   // Convert serialized connection to EbayConnectionStatus format
   const [connection, setConnection] = useState<EbayConnectionStatus | null>(
-    initialConnection ? {
-      connected: initialConnection.status === 'connected',
-      status: initialConnection.status,
-      sellerId: initialConnection.accountId,
-      shopName: initialConnection.accountName,
-      lastSyncAt: initialConnection.lastSync || undefined,
-      tokenExpiresAt: initialConnection.tokenExpiresAt || undefined,
-    } : null
+    initialConnection
+      ? {
+          connected: initialConnection.status === 'connected',
+          status: initialConnection.status,
+          sellerId: initialConnection.accountId,
+          shopName: initialConnection.accountName,
+          lastSyncAt: initialConnection.lastSync || undefined,
+          tokenExpiresAt: initialConnection.tokenExpiresAt || undefined,
+        }
+      : null,
   )
 
   // Convert inventory items to InventoryPiece format for the List Items tab
   const [availableInventory] = useState<InventoryPiece[]>(
-    inventoryItems.map(item => ({
+    inventoryItems.map((item) => ({
       id: item.id,
       name: item.name,
       price: item.price,
       stock: item.quantity,
       status: item.status,
       thumbnailUrl: item.thumbnailUrl || undefined,
-    }))
+    })),
   )
   const [listings, setListings] = useState<ListingWithPiece[]>([])
   const [loading, setLoading] = useState(true)
@@ -1453,7 +1707,10 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
   const [deleting, setDeleting] = useState<string | null>(null)
   const [listing, setListing] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
 
   // Fetch listings
   const fetchListings = useCallback(async () => {
@@ -1492,7 +1749,10 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
   async function handleSync(listingId: string) {
     setSyncing(listingId)
     try {
-      const res = await fetch(`/api/marketplace/ebay/listings/${listingId}/sync`, { method: 'POST' })
+      const res = await fetch(
+        `/api/marketplace/ebay/listings/${listingId}/sync`,
+        { method: 'POST' },
+      )
       if (res.ok) {
         await fetchListings()
         setMessage({ type: 'success', text: 'Listing synced successfully' })
@@ -1512,7 +1772,9 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
     if (!confirm(`Are you sure you want to end "${name}" on eBay?`)) return
     setDeleting(listingId)
     try {
-      const res = await fetch(`/api/marketplace/ebay/listings/${listingId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/marketplace/ebay/listings/${listingId}`, {
+        method: 'DELETE',
+      })
       if (res.ok) {
         await fetchListings()
         setMessage({ type: 'success', text: 'Listing ended successfully' })
@@ -1528,11 +1790,19 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
   }
 
   // List item
-  async function handleListItem(pieceId: string, options: { price?: number; quantity?: number; categoryId?: string }) {
-    console.log('[EbayMarketplacePage] handleListItem called with:', { pieceId, options })
+  async function handleListItem(
+    pieceId: string,
+    options: { price?: number; quantity?: number; categoryId?: string },
+  ) {
+    console.log('[EbayMarketplacePage] handleListItem called with:', {
+      pieceId,
+      options,
+    })
     setListing(pieceId)
     try {
-      console.log('[EbayMarketplacePage] Making POST request to /api/marketplace/ebay/listings')
+      console.log(
+        '[EbayMarketplacePage] Making POST request to /api/marketplace/ebay/listings',
+      )
       const res = await fetch('/api/marketplace/ebay/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1581,11 +1851,16 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">eBay</h1>
-          <p className="mt-1 text-gray-500">Manage your eBay listings and sync inventory</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            eBay
+          </h1>
+          <p className="mt-1 text-gray-500">
+            Manage your eBay listings and sync inventory
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => setActiveTab('list-items')}
             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
           >
@@ -1597,12 +1872,14 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
 
       {/* Message */}
       {message && (
-        <div className={cn(
-          'flex items-center gap-3 rounded-xl p-4',
-          message.type === 'success'
-            ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
-            : 'border border-red-200 bg-red-50 text-red-800'
-        )}>
+        <div
+          className={cn(
+            'flex items-center gap-3 rounded-xl p-4',
+            message.type === 'success'
+              ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border border-red-200 bg-red-50 text-red-800',
+          )}
+        >
           {message.type === 'success' ? (
             <CheckCircle className="h-5 w-5 flex-shrink-0" />
           ) : (
@@ -1630,13 +1907,14 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
             const isActive = activeTab === tab.id
             return (
               <button
+                type="button"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   'group relative flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors',
                   isActive
                     ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -1668,9 +1946,7 @@ export function EbayMarketplacePage({ connection: initialConnection, inventoryIt
             initialInventory={availableInventory}
           />
         )}
-        {activeTab === 'settings' && (
-          <SettingsTab connection={connection} />
-        )}
+        {activeTab === 'settings' && <SettingsTab connection={connection} />}
       </div>
     </div>
   )

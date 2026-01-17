@@ -1,18 +1,20 @@
-import { requireTenant } from '@/lib/session'
-import { pieces, materials, productionRuns } from '@madebuy/db'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { materials, pieces, productionRuns } from '@madebuy/db'
 import { ArrowLeft, Package } from 'lucide-react'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { DigitalProductSection } from '@/components/inventory/DigitalProductSection'
 import { PersonalizationConfigEditor } from '@/components/inventory/PersonalizationConfigEditor'
 import { PieceDetailsEditor } from '@/components/inventory/PieceDetailsEditor'
-import { DigitalProductSection } from '@/components/inventory/DigitalProductSection'
 import { ProductionSection } from '@/components/production/ProductionSection'
+import { requireTenant } from '@/lib/session'
 
 interface PieceDetailPageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function PieceDetailPage({ params }: PieceDetailPageProps) {
+export default async function PieceDetailPage({
+  params,
+}: PieceDetailPageProps) {
   const tenant = await requireTenant()
   const { id } = await params
   const piece = await pieces.getPiece(tenant.id, id)
@@ -48,17 +50,16 @@ export default async function PieceDetailPage({ params }: PieceDetailPageProps) 
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Package className="h-5 w-5 text-gray-400" />
             Product Details
-            <span className="text-xs font-normal text-gray-400 ml-2">Hover to edit</span>
+            <span className="text-xs font-normal text-gray-400 ml-2">
+              Hover to edit
+            </span>
           </h2>
 
           <PieceDetailsEditor piece={piece} />
         </div>
 
         {/* Digital Product */}
-        <DigitalProductSection
-          pieceId={piece.id}
-          digital={piece.digital}
-        />
+        <DigitalProductSection pieceId={piece.id} digital={piece.digital} />
 
         {/* Production Section */}
         <ProductionSection

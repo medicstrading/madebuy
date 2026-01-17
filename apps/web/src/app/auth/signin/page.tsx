@@ -1,6 +1,6 @@
-import { Metadata } from 'next'
+import { ArrowLeft, ShoppingBag, Store } from 'lucide-react'
+import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft, Store, ShoppingBag } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +27,9 @@ export default function SignInPage() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-mb-blue">
                 <span className="text-lg font-bold text-white">M</span>
               </div>
-              <span className="text-xl font-semibold text-gray-900">MadeBuy</span>
+              <span className="text-xl font-semibold text-gray-900">
+                MadeBuy
+              </span>
             </Link>
             <div className="w-32" />
           </div>
@@ -38,8 +40,12 @@ export default function SignInPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to MadeBuy</h1>
-            <p className="text-gray-600">Choose how you&apos;d like to continue</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome to MadeBuy
+            </h1>
+            <p className="text-gray-600">
+              Choose how you&apos;d like to continue
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -52,8 +58,12 @@ export default function SignInPage() {
                 <Store className="h-7 w-7 text-mb-blue" />
               </div>
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900">Seller Dashboard</h2>
-                <p className="text-sm text-gray-500">Manage your shop, products & orders</p>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Seller Dashboard
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Manage your shop, products & orders
+                </p>
               </div>
               <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180 group-hover:translate-x-1 transition-transform" />
             </a>
@@ -64,8 +74,12 @@ export default function SignInPage() {
                 <ShoppingBag className="h-7 w-7 text-gray-400" />
               </div>
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-500">Buyer Account</h2>
-                <p className="text-sm text-gray-400">Track orders & save favorites</p>
+                <h2 className="text-lg font-semibold text-gray-500">
+                  Buyer Account
+                </h2>
+                <p className="text-sm text-gray-400">
+                  Track orders & save favorites
+                </p>
               </div>
               <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-500">
                 Coming Soon
@@ -75,7 +89,10 @@ export default function SignInPage() {
 
           <p className="mt-8 text-center text-sm text-gray-500">
             Want to sell on MadeBuy?{' '}
-            <Link href="/auth/signup" className="font-medium text-mb-blue hover:text-mb-blue-dark">
+            <Link
+              href="/auth/signup"
+              className="font-medium text-mb-blue hover:text-mb-blue-dark"
+            >
               Create a seller account
             </Link>
           </p>

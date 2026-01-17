@@ -48,13 +48,13 @@ const config: Config = {
         full: 'var(--radius-full, 9999px)',
       },
       boxShadow: {
-        'sm': 'var(--shadow-sm)',
-        'md': 'var(--shadow-md)',
-        'lg': 'var(--shadow-lg)',
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
       },
       transitionDuration: {
-        'fast': '150ms',
-        'normal': '200ms',
+        fast: '150ms',
+        normal: '200ms',
       },
     },
   },

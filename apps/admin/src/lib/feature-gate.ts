@@ -1,7 +1,11 @@
+import type { Tenant, TenantFeatures } from '@madebuy/shared'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from './session'
-import { checkFeatureAccess, checkCanAddPiece, checkCanAddMedia } from './subscription-check'
-import type { Tenant, TenantFeatures } from '@madebuy/shared'
+import {
+  checkCanAddMedia,
+  checkCanAddPiece,
+  checkFeatureAccess,
+} from './subscription-check'
 
 /**
  * Feature Gate Middleware
@@ -48,7 +52,9 @@ export class QuotaExceededError extends Error {
  * @example
  * const tenant = await requireFeature('socialPublishing')
  */
-export async function requireFeature(feature: keyof TenantFeatures): Promise<Tenant> {
+export async function requireFeature(
+  feature: keyof TenantFeatures,
+): Promise<Tenant> {
   const tenant = await getCurrentTenant()
 
   if (!tenant) {
@@ -60,7 +66,7 @@ export async function requireFeature(feature: keyof TenantFeatures): Promise<Ten
   if (!access.allowed) {
     throw new FeatureGatedError(
       access.message || `This feature requires an upgraded plan`,
-      access.requiredPlan
+      access.requiredPlan,
     )
   }
 
@@ -86,7 +92,7 @@ export async function requirePieceQuota(): Promise<Tenant> {
   if (!check.allowed) {
     throw new QuotaExceededError(
       check.message || 'Product limit reached',
-      check.requiredPlan
+      check.requiredPlan,
     )
   }
 
@@ -100,7 +106,9 @@ export async function requirePieceQuota(): Promise<Tenant> {
  * @example
  * const tenant = await requireMediaQuota(currentMediaCount)
  */
-export async function requireMediaQuota(currentMediaCount: number): Promise<Tenant> {
+export async function requireMediaQuota(
+  currentMediaCount: number,
+): Promise<Tenant> {
   const tenant = await getCurrentTenant()
 
   if (!tenant) {
@@ -112,7 +120,7 @@ export async function requireMediaQuota(currentMediaCount: number): Promise<Tena
   if (!check.allowed) {
     throw new QuotaExceededError(
       check.message || 'Media limit reached',
-      check.requiredPlan
+      check.requiredPlan,
     )
   }
 
@@ -131,10 +139,7 @@ export async function requireMediaQuota(currentMediaCount: number): Promise<Tena
  */
 export function handleFeatureGateError(error: unknown): NextResponse {
   if (error instanceof UnauthorizedError) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   if (error instanceof FeatureGatedError) {
@@ -145,7 +150,7 @@ export function handleFeatureGateError(error: unknown): NextResponse {
         upgradeRequired: true,
         requiredPlan: error.requiredPlan,
       },
-      { status: 403 }
+      { status: 403 },
     )
   }
 
@@ -157,7 +162,7 @@ export function handleFeatureGateError(error: unknown): NextResponse {
         upgradeRequired: true,
         requiredPlan: error.requiredPlan,
       },
-      { status: 403 }
+      { status: 403 },
     )
   }
 
@@ -173,9 +178,11 @@ export function handleFeatureGateError(error: unknown): NextResponse {
  *   // Handler code here
  * })
  */
-export function withFeatureGate<T extends (...args: any[]) => Promise<NextResponse>>(
+export function withFeatureGate<
+  _T extends (...args: any[]) => Promise<NextResponse>,
+>(
   feature: keyof TenantFeatures,
-  handler: (request: Request, tenant: Tenant) => Promise<NextResponse>
+  handler: (request: Request, tenant: Tenant) => Promise<NextResponse>,
 ) {
   return async (request: Request): Promise<NextResponse> => {
     try {
@@ -192,8 +199,11 @@ export function withFeatureGate<T extends (...args: any[]) => Promise<NextRespon
  * Returns the tenant if allowed, null otherwise
  */
 export async function canAccessFeature(
-  feature: keyof TenantFeatures
-): Promise<{ tenant: Tenant; allowed: true } | { tenant: null; allowed: false; message: string }> {
+  feature: keyof TenantFeatures,
+): Promise<
+  | { tenant: Tenant; allowed: true }
+  | { tenant: null; allowed: false; message: string }
+> {
   const tenant = await getCurrentTenant()
 
   if (!tenant) {
@@ -203,7 +213,11 @@ export async function canAccessFeature(
   const access = checkFeatureAccess(tenant, feature)
 
   if (!access.allowed) {
-    return { tenant: null, allowed: false, message: access.message || 'Feature not available' }
+    return {
+      tenant: null,
+      allowed: false,
+      message: access.message || 'Feature not available',
+    }
   }
 
   return { tenant, allowed: true }

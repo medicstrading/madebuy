@@ -1,19 +1,25 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, KeyboardEvent, memo } from 'react'
+import type { MediaItem } from '@madebuy/shared'
 import {
-  Trash2,
-  Image as ImageIcon,
-  Check,
-  X,
   AlertCircle,
+  Check,
   Eye,
   EyeOff,
-  ChevronDown,
+  Image as ImageIcon,
+  Trash2,
+  X,
 } from 'lucide-react'
-import type { VariantRowProps, EditableVariant } from './types'
-import type { MediaItem } from '@madebuy/shared'
+import {
+  type KeyboardEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { LOW_STOCK_DEFAULT_THRESHOLD } from './constants'
+import type { VariantRowProps } from './types'
 
 interface EditableCellProps {
   value: string | number | undefined
@@ -59,7 +65,7 @@ function EditableCell({
       newValue = undefined
     } else if (type === 'number' || type === 'currency') {
       const parsed = parseFloat(localValue)
-      newValue = isNaN(parsed) ? undefined : parsed
+      newValue = Number.isNaN(parsed) ? undefined : parsed
     } else {
       newValue = localValue.trim()
     }
@@ -81,7 +87,7 @@ function EditableCell({
         handleSave()
       }
     },
-    [handleSave, value]
+    [handleSave, value],
   )
 
   if (isEditing) {
@@ -96,12 +102,12 @@ function EditableCell({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          step={type === 'currency' ? '0.01' : type === 'number' ? '1' : undefined}
+          step={
+            type === 'currency' ? '0.01' : type === 'number' ? '1' : undefined
+          }
           min={type === 'number' || type === 'currency' ? '0' : undefined}
           className={`w-full rounded border px-2 py-1 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 ${
-            error
-              ? 'border-red-300 bg-red-50'
-              : 'border-gray-300 bg-white'
+            error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
           } ${className}`}
         />
         {error && (
@@ -121,14 +127,15 @@ function EditableCell({
   return (
     <button
       type="button"
+      type="button"
       onClick={() => !disabled && setIsEditing(true)}
       disabled={disabled}
       className={`w-full rounded px-2 py-1 text-left text-sm transition-colors ${
         error
           ? 'bg-red-50 text-red-900 hover:bg-red-100'
           : displayValue
-          ? 'text-gray-900 hover:bg-gray-100'
-          : 'text-gray-400 hover:bg-gray-100'
+            ? 'text-gray-900 hover:bg-gray-100'
+            : 'text-gray-400 hover:bg-gray-100'
       } ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${className}`}
     >
       {displayValue || placeholder}
@@ -187,6 +194,7 @@ function ImageSelector({
     <div ref={containerRef} className="relative">
       <button
         type="button"
+        type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded border transition-colors ${
@@ -212,6 +220,7 @@ function ImageSelector({
           <div className="grid grid-cols-4 gap-1">
             <button
               type="button"
+              type="button"
               onClick={() => {
                 onSelect(undefined)
                 setIsOpen(false)
@@ -226,6 +235,7 @@ function ImageSelector({
             </button>
             {images.map((image) => (
               <button
+                type="button"
                 key={image.id}
                 type="button"
                 onClick={() => {
@@ -271,7 +281,10 @@ export const VariantRow = memo(function VariantRow({
     if (!variant.isAvailable) return 'unavailable'
     if (variant.stock === undefined) return 'unlimited'
     if (variant.stock === 0) return 'out'
-    if (variant.stock <= (variant.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD)) {
+    if (
+      variant.stock <=
+      (variant.lowStockThreshold || LOW_STOCK_DEFAULT_THRESHOLD)
+    ) {
       return 'low'
     }
     return 'in'
@@ -330,7 +343,9 @@ export const VariantRow = memo(function VariantRow({
       {/* Variant name (options) */}
       <td className="px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-900">{variantName}</span>
+          <span className="text-sm font-medium text-gray-900">
+            {variantName}
+          </span>
           {error && (
             <div className="group/error relative">
               <AlertCircle className="h-4 w-4 text-red-500" />
@@ -357,9 +372,7 @@ export const VariantRow = memo(function VariantRow({
       <td className="w-28 px-2 py-2">
         <EditableCell
           value={variant.price}
-          onChange={(value) =>
-            onChange({ price: value as number | undefined })
-          }
+          onChange={(value) => onChange({ price: value as number | undefined })}
           type="currency"
           placeholder="$0.00"
           disabled={disabled}
@@ -398,12 +411,12 @@ export const VariantRow = memo(function VariantRow({
             {stockStatus === 'unlimited'
               ? 'Unlim'
               : stockStatus === 'out'
-              ? 'Out'
-              : stockStatus === 'low'
-              ? 'Low'
-              : stockStatus === 'unavailable'
-              ? 'Off'
-              : ''}
+                ? 'Out'
+                : stockStatus === 'low'
+                  ? 'Low'
+                  : stockStatus === 'unavailable'
+                    ? 'Off'
+                    : ''}
           </span>
         </div>
       </td>
@@ -424,6 +437,7 @@ export const VariantRow = memo(function VariantRow({
       {/* Availability toggle */}
       <td className="w-16 px-2 py-2">
         <button
+          type="button"
           type="button"
           onClick={() => onChange({ isAvailable: !variant.isAvailable })}
           disabled={disabled}
@@ -449,6 +463,7 @@ export const VariantRow = memo(function VariantRow({
           <div className="flex items-center gap-1">
             <button
               type="button"
+              type="button"
               onClick={handleDelete}
               className="rounded bg-red-600 p-1 text-white hover:bg-red-700"
               aria-label="Confirm delete"
@@ -456,6 +471,7 @@ export const VariantRow = memo(function VariantRow({
               <Check className="h-3 w-3" />
             </button>
             <button
+              type="button"
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
               className="rounded bg-gray-200 p-1 text-gray-600 hover:bg-gray-300"
@@ -466,6 +482,7 @@ export const VariantRow = memo(function VariantRow({
           </div>
         ) : (
           <button
+            type="button"
             type="button"
             onClick={handleDelete}
             disabled={disabled}

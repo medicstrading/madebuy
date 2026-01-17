@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { HexColorPicker, HexColorInput } from 'react-colorful'
-import { Loader2 } from 'lucide-react'
-import { PreviewPanel } from './PreviewPanel'
-import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import type { Tenant } from '@madebuy/shared'
+import { Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { HexColorInput, HexColorPicker } from 'react-colorful'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { PreviewPanel } from './PreviewPanel'
 
 export function ColorsTabWithPreview() {
   const [tenant, setTenant] = useState<Tenant | null>(null)
@@ -77,9 +77,12 @@ export function ColorsTabWithPreview() {
       <div className="space-y-6">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Brand Colors</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Brand Colors
+            </h2>
             <p className="mt-1 text-sm text-gray-600">
-              Customize your storefront&apos;s color scheme to match your brand identity
+              Customize your storefront&apos;s color scheme to match your brand
+              identity
             </p>
           </div>
 
@@ -96,7 +99,10 @@ export function ColorsTabWithPreview() {
               </div>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                <HexColorPicker color={primaryColor} onChange={setPrimaryColor} />
+                <HexColorPicker
+                  color={primaryColor}
+                  onChange={setPrimaryColor}
+                />
                 <div className="space-y-3">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-gray-700">
@@ -119,6 +125,7 @@ export function ColorsTabWithPreview() {
                         style={{ backgroundColor: primaryColor }}
                       />
                       <button
+                        type="button"
                         className="flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
                         style={{ backgroundColor: primaryColor }}
                       >
@@ -165,6 +172,7 @@ export function ColorsTabWithPreview() {
                         style={{ backgroundColor: accentColor }}
                       />
                       <button
+                        type="button"
                         className="flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
                         style={{ backgroundColor: accentColor }}
                       >
@@ -180,9 +188,12 @@ export function ColorsTabWithPreview() {
           {/* Save Button */}
           <div className="mt-6 flex items-center justify-end gap-3 border-t pt-6">
             {isSaved && (
-              <p className="text-sm font-medium text-green-600">✓ Colors saved successfully!</p>
+              <p className="text-sm font-medium text-green-600">
+                ✓ Colors saved successfully!
+              </p>
             )}
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving}
               className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -201,12 +212,22 @@ export function ColorsTabWithPreview() {
 
         {/* Color Theory Tips */}
         <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-          <h3 className="mb-2 text-sm font-semibold text-blue-900">Color Tips</h3>
+          <h3 className="mb-2 text-sm font-semibold text-blue-900">
+            Color Tips
+          </h3>
           <ul className="space-y-1 text-sm text-blue-800">
-            <li>• Ensure sufficient contrast between text and background colors</li>
-            <li>• Test your colors on different devices and lighting conditions</li>
-            <li>• Consider color accessibility for users with visual impairments</li>
-            <li>• Your primary color should be consistent with your brand identity</li>
+            <li>
+              • Ensure sufficient contrast between text and background colors
+            </li>
+            <li>
+              • Test your colors on different devices and lighting conditions
+            </li>
+            <li>
+              • Consider color accessibility for users with visual impairments
+            </li>
+            <li>
+              • Your primary color should be consistent with your brand identity
+            </li>
           </ul>
         </div>
       </div>

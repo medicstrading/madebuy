@@ -1,5 +1,5 @@
-export { QuickLaunchWizard } from './QuickLaunchWizard'
-export { WizardProgress } from './WizardProgress'
 export { DraftRecoveryModal } from './DraftRecoveryModal'
 export { FeatureGate, FeatureLockBadge } from './FeatureGate'
+export { QuickLaunchWizard } from './QuickLaunchWizard'
 export * from './types'
+export { WizardProgress } from './WizardProgress'

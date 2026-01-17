@@ -1,8 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { blog, media, publish } from '@madebuy/db'
+import type { PlatformResult, SocialPlatform } from '@madebuy/shared'
+import {
+  type LateMedia,
+  type LatePlatform,
+  type LatePlatformType,
+  lateClient,
+} from '@madebuy/social'
+import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { publish, media, blog } from '@madebuy/db'
-import { lateClient, type LateMedia, type LatePlatform, type LatePlatformType } from '@madebuy/social'
-import type { SocialPlatform, PlatformResult } from '@madebuy/shared'
 
 // Video file extensions for determining media type
 const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v']
@@ -12,7 +17,7 @@ const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v']
  */
 function isVideo(url: string): boolean {
   const lowerUrl = url.toLowerCase()
-  return VIDEO_EXTENSIONS.some(ext => lowerUrl.includes(ext))
+  return VIDEO_EXTENSIONS.some((ext) => lowerUrl.includes(ext))
 }
 
 /**
@@ -20,12 +25,16 @@ function isVideo(url: string): boolean {
  */
 async function getAccountIdForPlatform(
   platform: Exclude<SocialPlatform, 'website-blog'>,
-  socialConnections?: { platform: SocialPlatform; lateAccountId?: string; isActive: boolean }[]
+  socialConnections?: {
+    platform: SocialPlatform
+    lateAccountId?: string
+    isActive: boolean
+  }[],
 ): Promise<string | null> {
   // First, check if tenant has a stored lateAccountId for this platform
   if (socialConnections) {
     const connection = socialConnections.find(
-      c => c.platform === platform && c.isActive && c.lateAccountId
+      (c) => c.platform === platform && c.isActive && c.lateAccountId,
     )
     if (connection?.lateAccountId) {
       return connection.lateAccountId
@@ -50,8 +59,8 @@ async function getAccountIdForPlatform(
 }
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -64,28 +73,38 @@ export async function POST(
     const publishRecord = await publish.getPublishRecord(tenant.id, params.id)
 
     if (!publishRecord) {
-      return NextResponse.json({ error: 'Publish record not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Publish record not found' },
+        { status: 404 },
+      )
     }
 
     // Check if already published
     if (publishRecord.status === 'published') {
-      return NextResponse.json({ error: 'Post already published' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Post already published' },
+        { status: 400 },
+      )
     }
 
     // Get media files if any
     const mediaFiles = await Promise.all(
-      publishRecord.mediaIds.map(id => media.getMedia(tenant.id, id))
+      publishRecord.mediaIds.map((id) => media.getMedia(tenant.id, id)),
     )
 
-    const validMediaFiles = mediaFiles.filter(m => m !== null)
+    const validMediaFiles = mediaFiles.filter((m) => m !== null)
 
     // Update status to publishing
-    await publish.updatePublishRecord(tenant.id, params.id, { status: 'publishing' })
+    await publish.updatePublishRecord(tenant.id, params.id, {
+      status: 'publishing',
+    })
 
     const results: PlatformResult[] = []
 
     // Separate social platforms from blog
-    const socialPlatforms = publishRecord.platforms.filter(p => p !== 'website-blog') as Exclude<SocialPlatform, 'website-blog'>[]
+    const socialPlatforms = publishRecord.platforms.filter(
+      (p) => p !== 'website-blog',
+    ) as Exclude<SocialPlatform, 'website-blog'>[]
     const includeBlog = publishRecord.platforms.includes('website-blog')
 
     try {
@@ -97,10 +116,16 @@ export async function POST(
           const missingPlatforms: string[] = []
 
           for (const platform of socialPlatforms) {
-            const accountId = await getAccountIdForPlatform(platform, tenant.socialConnections)
+            const accountId = await getAccountIdForPlatform(
+              platform,
+              tenant.socialConnections,
+            )
 
             if (accountId) {
-              platformTargets.push({ platform: platform as LatePlatformType, accountId })
+              platformTargets.push({
+                platform: platform as LatePlatformType,
+                accountId,
+              })
             } else {
               missingPlatforms.push(platform)
             }
@@ -118,10 +143,12 @@ export async function POST(
           // Only proceed if we have at least one platform with an account ID
           if (platformTargets.length > 0) {
             // Build media items from valid media files
-            const mediaUrls = validMediaFiles.map(m => m!.variants.original.url)
-            const mediaItems: LateMedia[] = mediaUrls.map(url => ({
-              type: isVideo(url) ? 'video' as const : 'image' as const,
-              url
+            const mediaUrls = validMediaFiles.map(
+              (m) => m?.variants.original.url,
+            )
+            const mediaItems: LateMedia[] = mediaUrls.map((url) => ({
+              type: isVideo(url) ? ('video' as const) : ('image' as const),
+              url,
             }))
 
             // Create post using the new Late API format
@@ -147,12 +174,17 @@ export async function POST(
           }
         } catch (socialError) {
           // If social publishing fails, mark all remaining social platforms as failed
-          const errorMessage = socialError instanceof Error ? socialError.message : 'Social publishing failed'
+          const errorMessage =
+            socialError instanceof Error
+              ? socialError.message
+              : 'Social publishing failed'
 
           // Only add failures for platforms that weren't already added
-          const alreadyResultedPlatforms = new Set(results.map(r => r.platform))
+          const alreadyResultedPlatforms = new Set(
+            results.map((r) => r.platform),
+          )
 
-          socialPlatforms.forEach(platform => {
+          socialPlatforms.forEach((platform) => {
             if (!alreadyResultedPlatforms.has(platform)) {
               results.push({
                 platform,
@@ -195,7 +227,10 @@ export async function POST(
           })
         } catch (blogError) {
           // If blog publishing fails, add failure result
-          const errorMessage = blogError instanceof Error ? blogError.message : 'Blog publishing failed'
+          const errorMessage =
+            blogError instanceof Error
+              ? blogError.message
+              : 'Blog publishing failed'
           results.push({
             platform: 'website-blog',
             status: 'failed',
@@ -205,9 +240,13 @@ export async function POST(
       }
 
       // Determine final status
-      const allSuccess = results.every(r => r.status === 'success')
-      const anySuccess = results.some(r => r.status === 'success')
-      const finalStatus = allSuccess ? 'published' : (anySuccess ? 'published' : 'failed')
+      const allSuccess = results.every((r) => r.status === 'success')
+      const anySuccess = results.some((r) => r.status === 'success')
+      const finalStatus = allSuccess
+        ? 'published'
+        : anySuccess
+          ? 'published'
+          : 'failed'
 
       // Update with results
       await publish.updatePublishRecord(tenant.id, params.id, {
@@ -222,9 +261,10 @@ export async function POST(
       })
     } catch (publishError) {
       // Update status to failed with error in results
-      const errorMessage = publishError instanceof Error ? publishError.message : 'Unknown error'
+      const errorMessage =
+        publishError instanceof Error ? publishError.message : 'Unknown error'
 
-      const failedResults = publishRecord.platforms.map(platform => ({
+      const failedResults = publishRecord.platforms.map((platform) => ({
         platform,
         status: 'failed' as const,
         error: errorMessage,
@@ -240,8 +280,10 @@ export async function POST(
   } catch (error) {
     console.error('Error executing publish:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

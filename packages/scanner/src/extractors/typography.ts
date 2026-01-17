@@ -1,46 +1,46 @@
+import type { TypographyPreset } from '@madebuy/shared'
 import type { CheerioAPI } from 'cheerio'
 import type { Element } from 'domhandler'
-import type { TypographyPreset } from '@madebuy/shared'
 import type { DetectedFont, TypographyExtractionResult } from '../types'
 
 // Map detected fonts to MadeBuy typography presets
 const FONT_TO_PRESET_MAP: Record<string, TypographyPreset> = {
   // Modern preset (Outfit)
-  'outfit': 'modern',
-  'inter': 'modern',
-  'roboto': 'modern',
-  'poppins': 'modern',
+  outfit: 'modern',
+  inter: 'modern',
+  roboto: 'modern',
+  poppins: 'modern',
   'source sans pro': 'modern',
   'source sans 3': 'modern',
-  'nunito': 'modern',
+  nunito: 'modern',
   'nunito sans': 'modern',
-  'raleway': 'modern',
+  raleway: 'modern',
 
   // Classic preset (Merriweather + Open Sans)
-  'merriweather': 'classic',
+  merriweather: 'classic',
   'open sans': 'classic',
-  'georgia': 'classic',
+  georgia: 'classic',
   'times new roman': 'classic',
-  'lora': 'classic',
+  lora: 'classic',
   'pt serif': 'classic',
   'libre baskerville': 'classic',
   'noto serif': 'classic',
 
   // Elegant preset (Playfair Display + Lato)
   'playfair display': 'elegant',
-  'lato': 'elegant',
-  'cormorant': 'elegant',
+  lato: 'elegant',
+  cormorant: 'elegant',
   'cormorant garamond': 'elegant',
   'crimson text': 'elegant',
   'eb garamond': 'elegant',
-  'spectral': 'elegant',
+  spectral: 'elegant',
 
   // Bold preset (Montserrat + Roboto)
-  'montserrat': 'bold',
-  'oswald': 'bold',
+  montserrat: 'bold',
+  oswald: 'bold',
   'bebas neue': 'bold',
-  'anton': 'bold',
-  'barlow': 'bold',
+  anton: 'bold',
+  barlow: 'bold',
   'barlow condensed': 'bold',
   'archivo black': 'bold',
 
@@ -48,9 +48,9 @@ const FONT_TO_PRESET_MAP: Record<string, TypographyPreset> = {
   'space grotesk': 'minimal',
   'dm sans': 'minimal',
   'work sans': 'minimal',
-  'manrope': 'minimal',
+  manrope: 'minimal',
   'plus jakarta sans': 'minimal',
-  'sora': 'minimal',
+  sora: 'minimal',
 }
 
 /**
@@ -58,7 +58,7 @@ const FONT_TO_PRESET_MAP: Record<string, TypographyPreset> = {
  */
 export function extractTypography(
   $: CheerioAPI,
-  css: string[]
+  css: string[],
 ): TypographyExtractionResult {
   const detectedFonts: DetectedFont[] = []
 
@@ -77,7 +77,9 @@ export function extractTypography(
 
   // Determine heading and body fonts
   const headingFont = findFontByUsage(detectedFonts, 'heading')
-  const bodyFont = findFontByUsage(detectedFonts, 'body') || findFontByUsage(detectedFonts, 'unknown')
+  const bodyFont =
+    findFontByUsage(detectedFonts, 'body') ||
+    findFontByUsage(detectedFonts, 'unknown')
 
   // Match to preset
   const matchedPreset = matchFontToPreset(headingFont, bodyFont)
@@ -86,7 +88,9 @@ export function extractTypography(
   let confidence = 0
   if (matchedPreset) {
     // Higher confidence if we detected from Google Fonts
-    const hasGoogleFont = detectedFonts.some(f => f.source === 'google-fonts-link')
+    const hasGoogleFont = detectedFonts.some(
+      (f) => f.source === 'google-fonts-link',
+    )
     if (hasGoogleFont) {
       confidence = 0.9
     } else if (detectedFonts.length > 0) {
@@ -122,9 +126,14 @@ function extractGoogleFonts($: CheerioAPI, fonts: DetectedFont[]): void {
       const fontName = decodeURIComponent(match[1].replace(/\+/g, ' '))
 
       // Extract weights if present
-      const weightsMatch = href.match(new RegExp(`family=${match[1]}[^&]*:wght@([\\d;]+)`))
+      const weightsMatch = href.match(
+        new RegExp(`family=${match[1]}[^&]*:wght@([\\d;]+)`),
+      )
       const weights = weightsMatch
-        ? weightsMatch[1].split(';').map((w: string) => parseInt(w, 10)).filter((w: number) => !isNaN(w))
+        ? weightsMatch[1]
+            .split(';')
+            .map((w: string) => parseInt(w, 10))
+            .filter((w: number) => !Number.isNaN(w))
         : [400]
 
       fonts.push({
@@ -141,17 +150,25 @@ function extractGoogleFonts($: CheerioAPI, fonts: DetectedFont[]): void {
  * Extracts fonts from @font-face declarations
  */
 function extractFontFace(css: string, fonts: DetectedFont[]): void {
-  const fontFaceRegex = /@font-face\s*\{[^}]*font-family:\s*["']?([^"';}\n]+)["']?[^}]*\}/gi
-  let match
+  const fontFaceRegex =
+    /@font-face\s*\{[^}]*font-family:\s*["']?([^"';}\n]+)["']?[^}]*\}/gi
+  let match: RegExpExecArray | null = null
 
-  while ((match = fontFaceRegex.exec(css)) !== null) {
+  match = fontFaceRegex.exec(css)
+  while (match !== null) {
     const fontName = match[1].trim()
 
     // Skip system fonts and generic families
-    if (isSystemFont(fontName)) continue
+    if (isSystemFont(fontName)) {
+      match = fontFaceRegex.exec(css)
+      continue
+    }
 
     // Check if already detected
-    if (fonts.some(f => f.name.toLowerCase() === fontName.toLowerCase())) continue
+    if (fonts.some((f) => f.name.toLowerCase() === fontName.toLowerCase())) {
+      match = fontFaceRegex.exec(css)
+      continue
+    }
 
     fonts.push({
       name: fontName,
@@ -159,6 +176,8 @@ function extractFontFace(css: string, fonts: DetectedFont[]): void {
       usage: 'unknown',
       weights: [400],
     })
+
+    match = fontFaceRegex.exec(css)
   }
 }
 
@@ -168,18 +187,34 @@ function extractFontFace(css: string, fonts: DetectedFont[]): void {
 function extractFontFamily(css: string, fonts: DetectedFont[]): void {
   // Match font-family in body/heading selectors
   const patterns = [
-    { regex: /body[^{]*\{[^}]*font-family:\s*["']?([^"';},]+)/gi, usage: 'body' as const },
-    { regex: /h[1-3][^{]*\{[^}]*font-family:\s*["']?([^"';},]+)/gi, usage: 'heading' as const },
-    { regex: /\.heading[^{]*\{[^}]*font-family:\s*["']?([^"';},]+)/gi, usage: 'heading' as const },
+    {
+      regex: /body[^{]*\{[^}]*font-family:\s*["']?([^"';},]+)/gi,
+      usage: 'body' as const,
+    },
+    {
+      regex: /h[1-3][^{]*\{[^}]*font-family:\s*["']?([^"';},]+)/gi,
+      usage: 'heading' as const,
+    },
+    {
+      regex: /\.heading[^{]*\{[^}]*font-family:\s*["']?([^"';},]+)/gi,
+      usage: 'heading' as const,
+    },
   ]
 
   for (const { regex, usage } of patterns) {
-    let match
-    while ((match = regex.exec(css)) !== null) {
+    let match: RegExpExecArray | null = null
+    match = regex.exec(css)
+    while (match !== null) {
       const fontName = match[1].trim()
 
-      if (isSystemFont(fontName)) continue
-      if (fonts.some(f => f.name.toLowerCase() === fontName.toLowerCase())) continue
+      if (isSystemFont(fontName)) {
+        match = regex.exec(css)
+        continue
+      }
+      if (fonts.some((f) => f.name.toLowerCase() === fontName.toLowerCase())) {
+        match = regex.exec(css)
+        continue
+      }
 
       fonts.push({
         name: fontName,
@@ -187,6 +222,8 @@ function extractFontFamily(css: string, fonts: DetectedFont[]): void {
         usage,
         weights: [400],
       })
+
+      match = regex.exec(css)
     }
   }
 }
@@ -215,7 +252,7 @@ function extractAdobeFonts($: CheerioAPI, fonts: DetectedFont[]): void {
  */
 function matchFontToPreset(
   headingFont: string | null,
-  bodyFont: string | null
+  bodyFont: string | null,
 ): TypographyPreset | null {
   // Try heading font first (more distinctive for branding)
   if (headingFont) {
@@ -239,18 +276,23 @@ function matchFontToPreset(
 /**
  * Finds font by usage type
  */
-function findFontByUsage(fonts: DetectedFont[], usage: 'heading' | 'body' | 'unknown'): string | null {
-  const font = fonts.find(f => f.usage === usage)
+function findFontByUsage(
+  fonts: DetectedFont[],
+  usage: 'heading' | 'body' | 'unknown',
+): string | null {
+  const font = fonts.find((f) => f.usage === usage)
   return font?.name || null
 }
 
 /**
  * Guesses font usage based on weights
  */
-function guessUsageFromWeights(weights: number[]): 'heading' | 'body' | 'unknown' {
+function guessUsageFromWeights(
+  weights: number[],
+): 'heading' | 'body' | 'unknown' {
   // Fonts with heavier weights are typically for headings
-  const hasHeavyWeight = weights.some(w => w >= 600)
-  const hasLightWeight = weights.some(w => w <= 400)
+  const hasHeavyWeight = weights.some((w) => w >= 600)
+  const hasLightWeight = weights.some((w) => w <= 400)
 
   if (hasHeavyWeight && !hasLightWeight) {
     return 'heading'
@@ -266,12 +308,32 @@ function guessUsageFromWeights(weights: number[]): 'heading' | 'body' | 'unknown
  */
 function isSystemFont(fontName: string): boolean {
   const systemFonts = [
-    'arial', 'helvetica', 'verdana', 'tahoma', 'trebuchet ms',
-    'times', 'times new roman', 'georgia', 'garamond', 'courier',
-    'courier new', 'comic sans ms', 'impact', 'lucida',
-    'sans-serif', 'serif', 'monospace', 'cursive', 'fantasy',
-    'system-ui', '-apple-system', 'blinkmacsystemfont', 'segoe ui',
-    'inherit', 'initial', 'unset',
+    'arial',
+    'helvetica',
+    'verdana',
+    'tahoma',
+    'trebuchet ms',
+    'times',
+    'times new roman',
+    'georgia',
+    'garamond',
+    'courier',
+    'courier new',
+    'comic sans ms',
+    'impact',
+    'lucida',
+    'sans-serif',
+    'serif',
+    'monospace',
+    'cursive',
+    'fantasy',
+    'system-ui',
+    '-apple-system',
+    'blinkmacsystemfont',
+    'segoe ui',
+    'inherit',
+    'initial',
+    'unset',
   ]
 
   return systemFonts.includes(fontName.toLowerCase().trim())
@@ -283,7 +345,7 @@ function isSystemFont(fontName: string): boolean {
 function extractInlineStyles($: CheerioAPI): string {
   let css = ''
   $('style').each((_: number, el: Element) => {
-    css += $(el).text() + '\n'
+    css += `${$(el).text()}\n`
   })
   return css
 }

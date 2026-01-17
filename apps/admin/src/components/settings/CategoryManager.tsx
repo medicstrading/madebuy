@@ -1,7 +1,7 @@
 'use client'
 
+import { Loader2, Plus, X } from 'lucide-react'
 import { useState } from 'react'
-import { Plus, X, Loader2, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CategoryManagerProps {
@@ -36,7 +36,9 @@ export function CategoryManager({
     if (!trimmed) return
 
     // Check for duplicates
-    if (allCategories.some((cat) => cat.toLowerCase() === trimmed.toLowerCase())) {
+    if (
+      allCategories.some((cat) => cat.toLowerCase() === trimmed.toLowerCase())
+    ) {
       setError('This category already exists')
       return
     }
@@ -46,7 +48,7 @@ export function CategoryManager({
     try {
       await onAddCategory(trimmed)
       setNewCategory('')
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to add category')
     } finally {
       setIsAdding(false)
@@ -58,7 +60,7 @@ export function CategoryManager({
     setError(null)
     try {
       await onRemoveCategory(category)
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to remove category')
     } finally {
       setRemovingCategory(null)
@@ -77,7 +79,9 @@ export function CategoryManager({
       {/* Header */}
       <div>
         <h3 className="text-sm font-medium text-gray-900">{title}</h3>
-        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+        {description && (
+          <p className="mt-1 text-sm text-gray-500">{description}</p>
+        )}
       </div>
 
       {/* Category List */}
@@ -94,11 +98,12 @@ export function CategoryManager({
                   key={`preset-${category}`}
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm',
-                    'border-gray-200 bg-gray-50 text-gray-700'
+                    'border-gray-200 bg-gray-50 text-gray-700',
                   )}
                 >
                   {category}
                   <button
+                    type="button"
                     onClick={() => handleRemove(category)}
                     disabled={disabled || removingCategory === category}
                     className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
@@ -128,11 +133,12 @@ export function CategoryManager({
                   key={`custom-${category}`}
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm',
-                    'border-blue-200 bg-blue-50 text-blue-700'
+                    'border-blue-200 bg-blue-50 text-blue-700',
                   )}
                 >
                   {category}
                   <button
+                    type="button"
                     onClick={() => handleRemove(category)}
                     disabled={disabled || removingCategory === category}
                     className="text-blue-400 hover:text-red-500 transition-colors disabled:opacity-50"
@@ -152,7 +158,9 @@ export function CategoryManager({
 
         {/* Empty State */}
         {allCategories.length === 0 && (
-          <p className="text-sm text-gray-400 italic">No categories yet. Add your first one below.</p>
+          <p className="text-sm text-gray-400 italic">
+            No categories yet. Add your first one below.
+          </p>
         )}
       </div>
 
@@ -171,16 +179,17 @@ export function CategoryManager({
           className={cn(
             'flex-1 rounded-lg border px-3 py-2 text-sm',
             'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
-            'disabled:bg-gray-50 disabled:cursor-not-allowed'
+            'disabled:bg-gray-50 disabled:cursor-not-allowed',
           )}
         />
         <button
+          type="button"
           onClick={handleAdd}
           disabled={disabled || isAdding || !newCategory.trim()}
           className={cn(
             'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium',
             'bg-blue-600 text-white hover:bg-blue-700',
-            'disabled:bg-gray-300 disabled:cursor-not-allowed'
+            'disabled:bg-gray-300 disabled:cursor-not-allowed',
           )}
         >
           {isAdding ? (

@@ -3,7 +3,12 @@
  * Records when money moves from Stripe balance to bank
  */
 
-export type PayoutStatus = 'pending' | 'in_transit' | 'paid' | 'failed' | 'canceled'
+export type PayoutStatus =
+  | 'pending'
+  | 'in_transit'
+  | 'paid'
+  | 'failed'
+  | 'canceled'
 
 export interface Payout {
   id: string
@@ -11,8 +16,8 @@ export interface Payout {
   stripePayoutId: string
 
   // Amount
-  amount: number          // In cents
-  currency: string        // 'aud', 'usd', etc.
+  amount: number // In cents
+  currency: string // 'aud', 'usd', etc.
 
   // Status
   status: PayoutStatus
@@ -23,8 +28,8 @@ export interface Payout {
 
   // Timing
   createdAt: Date
-  arrivalDate?: Date      // Expected arrival
-  paidAt?: Date           // When actually paid
+  arrivalDate?: Date // Expected arrival
+  paidAt?: Date // When actually paid
   failedAt?: Date
   canceledAt?: Date
 

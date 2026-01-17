@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
 import type { DigitalProductConfig } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/pieces/[id]/digital
  * Get digital product configuration
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -35,8 +35,10 @@ export async function GET(
   } catch (error) {
     console.error('Error getting digital config:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -47,7 +49,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -80,7 +82,7 @@ export async function PUT(
       if (typeof downloadLimit !== 'number' || downloadLimit < 1) {
         return NextResponse.json(
           { error: 'downloadLimit must be a positive number or null' },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -90,7 +92,7 @@ export async function PUT(
       if (typeof downloadExpiryDays !== 'number' || downloadExpiryDays < 1) {
         return NextResponse.json(
           { error: 'downloadExpiryDays must be a positive number or null' },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -99,8 +101,11 @@ export async function PUT(
     if (licenseType !== undefined && licenseType !== null) {
       if (!['personal', 'commercial', 'extended'].includes(licenseType)) {
         return NextResponse.json(
-          { error: 'licenseType must be personal, commercial, extended, or null' },
-          { status: 400 }
+          {
+            error:
+              'licenseType must be personal, commercial, extended, or null',
+          },
+          { status: 400 },
         )
       }
     }
@@ -116,12 +121,26 @@ export async function PUT(
     const updatedDigital: DigitalProductConfig = {
       ...currentDigital,
       isDigital: isDigital !== undefined ? isDigital : currentDigital.isDigital,
-      downloadLimit: downloadLimit !== undefined ? downloadLimit : currentDigital.downloadLimit,
-      downloadExpiryDays: downloadExpiryDays !== undefined ? downloadExpiryDays : currentDigital.downloadExpiryDays,
-      instantDelivery: instantDelivery !== undefined ? instantDelivery : currentDigital.instantDelivery,
-      emailDelivery: emailDelivery !== undefined ? emailDelivery : currentDigital.emailDelivery,
-      licenseType: licenseType !== undefined ? licenseType : currentDigital.licenseType,
-      licenseText: licenseText !== undefined ? licenseText : currentDigital.licenseText,
+      downloadLimit:
+        downloadLimit !== undefined
+          ? downloadLimit
+          : currentDigital.downloadLimit,
+      downloadExpiryDays:
+        downloadExpiryDays !== undefined
+          ? downloadExpiryDays
+          : currentDigital.downloadExpiryDays,
+      instantDelivery:
+        instantDelivery !== undefined
+          ? instantDelivery
+          : currentDigital.instantDelivery,
+      emailDelivery:
+        emailDelivery !== undefined
+          ? emailDelivery
+          : currentDigital.emailDelivery,
+      licenseType:
+        licenseType !== undefined ? licenseType : currentDigital.licenseType,
+      licenseText:
+        licenseText !== undefined ? licenseText : currentDigital.licenseText,
     }
 
     await pieces.updatePiece(tenant.id, pieceId, {
@@ -132,8 +151,10 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating digital config:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -144,8 +165,8 @@ export async function PUT(
  * Note: This does NOT delete the files from storage
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -180,8 +201,10 @@ export async function DELETE(
   } catch (error) {
     console.error('Error removing digital config:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

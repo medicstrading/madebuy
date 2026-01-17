@@ -1,6 +1,6 @@
+import { newsletters } from '@madebuy/db'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { newsletters } from '@madebuy/db'
 
 export async function GET() {
   try {
@@ -15,6 +15,9 @@ export async function GET() {
     return NextResponse.json(stats)
   } catch (error) {
     console.error('Error fetching newsletter stats:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

@@ -90,7 +90,12 @@ export interface DesignImportState {
   importStatus: DesignImportStatus
 }
 
-export type DesignImportStatus = 'not_started' | 'scanning' | 'preview' | 'accepted' | 'declined'
+export type DesignImportStatus =
+  | 'not_started'
+  | 'scanning'
+  | 'preview'
+  | 'accepted'
+  | 'declined'
 
 /**
  * Domain onboarding state (including design import)
@@ -99,7 +104,10 @@ export interface DomainOnboardingState {
   // Domain setup
   status: DomainOnboardingStatus
   domain?: string
-  domainSource?: 'cloudflare_purchase' | 'existing_cloudflare' | 'external_transfer'
+  domainSource?:
+    | 'cloudflare_purchase'
+    | 'existing_cloudflare'
+    | 'external_transfer'
   cloudflareAccountConnected?: boolean
   cloudflareZoneId?: string
   dnsVerified?: boolean
@@ -111,7 +119,12 @@ export interface DomainOnboardingState {
   designImport?: DesignImportState
 }
 
-export type DomainOnboardingStatus = 'not_started' | 'domain_setup' | 'design_choice' | 'importing' | 'complete'
+export type DomainOnboardingStatus =
+  | 'not_started'
+  | 'domain_setup'
+  | 'design_choice'
+  | 'importing'
+  | 'complete'
 
 export interface DnsRecord {
   type: 'A' | 'CNAME' | 'TXT'

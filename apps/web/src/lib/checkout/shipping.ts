@@ -74,7 +74,7 @@ const DEFAULT_ITEM_WEIGHT_GRAMS = 250
  */
 export function requiresShipping(items: CartItem[]): boolean {
   // Check if any item is NOT a digital product
-  return items.some(item => {
+  return items.some((item) => {
     const isDigital = item.product.isDigital || item.product.digitalConfig
     return !isDigital
   })
@@ -84,7 +84,7 @@ export function requiresShipping(items: CartItem[]): boolean {
  * Check if all items in cart are digital products
  */
 export function isDigitalOnlyOrder(items: CartItem[]): boolean {
-  return items.every(item => {
+  return items.every((item) => {
     const isDigital = item.product.isDigital || item.product.digitalConfig
     return isDigital
   })
@@ -104,7 +104,7 @@ export function calculateTotalWeight(items: CartItem[]): number {
  * Validate shipping address
  */
 export async function validateShippingAddress(
-  address: ShippingAddress
+  address: ShippingAddress,
 ): Promise<AddressValidationResult> {
   try {
     const response = await fetch('/api/shipping/validate-address', {
@@ -126,7 +126,9 @@ export async function validateShippingAddress(
     console.error('Address validation error:', error)
     return {
       valid: false,
-      errors: ['Unable to validate address. Please check your connection and try again.'],
+      errors: [
+        'Unable to validate address. Please check your connection and try again.',
+      ],
     }
   }
 }
@@ -137,7 +139,10 @@ export async function validateShippingAddress(
 export async function getShippingQuotes(
   tenantId: string,
   items: CartItem[],
-  destination: Pick<ShippingAddress, 'postcode' | 'suburb' | 'state' | 'country'>
+  destination: Pick<
+    ShippingAddress,
+    'postcode' | 'suburb' | 'state' | 'country'
+  >,
 ): Promise<QuoteResponse> {
   try {
     const response = await fetch('/api/shipping/quote', {
@@ -145,11 +150,13 @@ export async function getShippingQuotes(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tenantId,
-        items: items.map(item => ({
+        items: items.map((item) => ({
           pieceId: item.product.id,
           quantity: item.quantity,
           weightGrams: item.product.weightGrams,
-          price: item.product.price ? Math.round(item.product.price * 100) : undefined, // Price in cents
+          price: item.product.price
+            ? Math.round(item.product.price * 100)
+            : undefined, // Price in cents
         })),
         destination: {
           postcode: destination.postcode,
@@ -194,8 +201,14 @@ export function formatDeliveryEstimate(quote: ShippingQuote): string {
   }
 
   // Otherwise show range like "Dec 28 - Jan 3"
-  const minFormatted = minDate.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })
-  const maxFormatted = maxDate.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })
+  const minFormatted = minDate.toLocaleDateString('en-AU', {
+    month: 'short',
+    day: 'numeric',
+  })
+  const maxFormatted = maxDate.toLocaleDateString('en-AU', {
+    month: 'short',
+    day: 'numeric',
+  })
   return `${minFormatted} - ${maxFormatted}`
 }
 
@@ -234,7 +247,10 @@ function addBusinessDays(date: Date, days: number): Date {
 /**
  * Format shipping price for display
  */
-export function formatShippingPrice(priceInCents: number, currency: string = 'AUD'): string {
+export function formatShippingPrice(
+  priceInCents: number,
+  currency: string = 'AUD',
+): string {
   if (priceInCents === 0) {
     return 'FREE'
   }
@@ -249,7 +265,7 @@ export function formatShippingPrice(priceInCents: number, currency: string = 'AU
  * Get state name from code
  */
 export function getStateName(stateCode: string): string {
-  const state = AUSTRALIAN_STATES.find(s => s.code === stateCode)
+  const state = AUSTRALIAN_STATES.find((s) => s.code === stateCode)
   return state?.name || stateCode
 }
 
@@ -257,7 +273,7 @@ export function getStateName(stateCode: string): string {
  * Get country name from code
  */
 export function getCountryName(countryCode: string): string {
-  const country = SUPPORTED_COUNTRIES.find(c => c.code === countryCode)
+  const country = SUPPORTED_COUNTRIES.find((c) => c.code === countryCode)
   return country?.name || countryCode
 }
 
@@ -283,7 +299,10 @@ export function isValidPostcode(postcode: string, country: string): boolean {
 /**
  * Check if postcode matches the selected Australian state
  */
-export function isPostcodeInState(postcode: string, stateCode: string): boolean {
+export function isPostcodeInState(
+  postcode: string,
+  stateCode: string,
+): boolean {
   if (!/^\d{4}$/.test(postcode)) return false
 
   const postcodeNum = parseInt(postcode, 10)
@@ -329,7 +348,9 @@ export function isPostcodeInState(postcode: string, stateCode: string): boolean 
   const ranges = stateRanges[stateCode.toUpperCase()]
   if (!ranges) return true // Unknown state, don't validate
 
-  return ranges.some(range => postcodeNum >= range.min && postcodeNum <= range.max)
+  return ranges.some(
+    (range) => postcodeNum >= range.min && postcodeNum <= range.max,
+  )
 }
 
 /**
@@ -379,7 +400,11 @@ export function getStateFromPostcode(postcode: string): string | null {
   }
 
   for (const [state, ranges] of Object.entries(stateRanges)) {
-    if (ranges.some(range => postcodeNum >= range.min && postcodeNum <= range.max)) {
+    if (
+      ranges.some(
+        (range) => postcodeNum >= range.min && postcodeNum <= range.max,
+      )
+    ) {
       return state
     }
   }
@@ -408,12 +433,14 @@ export function createEmptyAddress(): ShippingAddress {
 /**
  * Check if address has minimum required fields
  */
-export function hasRequiredAddressFields(address: Partial<ShippingAddress>): boolean {
+export function hasRequiredAddressFields(
+  address: Partial<ShippingAddress>,
+): boolean {
   return Boolean(
     address.line1?.trim() &&
-    address.suburb?.trim() &&
-    address.state?.trim() &&
-    address.postcode?.trim() &&
-    address.country?.trim()
+      address.suburb?.trim() &&
+      address.state?.trim() &&
+      address.postcode?.trim() &&
+      address.country?.trim(),
   )
 }

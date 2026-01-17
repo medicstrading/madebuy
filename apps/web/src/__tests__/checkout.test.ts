@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { pieces, media, tenants, stockReservations } from '@madebuy/db'
+import { pieces, stockReservations, tenants } from '@madebuy/db'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the modules
 vi.mock('@madebuy/db')
@@ -115,14 +115,18 @@ describe('Checkout Flow', () => {
         ...mockPiece,
         stock: 1,
       } as any)
-      vi.mocked(stockReservations.reserveStock).mockResolvedValue({ id: 'stub', pieceId: mockPieceId, quantity: 0 })
+      vi.mocked(stockReservations.reserveStock).mockResolvedValue({
+        id: 'stub',
+        pieceId: mockPieceId,
+        quantity: 0,
+      })
 
       const result = await stockReservations.reserveStock(
         mockTenantId,
         mockPieceId,
         5, // Trying to reserve 5, but only 1 available
         'session-123',
-        30
+        30,
       )
 
       expect(result.quantity).toBe(0) // Reservation returns 0 quantity for insufficient stock
@@ -141,7 +145,7 @@ describe('Checkout Flow', () => {
         mockPieceId,
         2,
         'session-123',
-        30
+        30,
       )
 
       expect(result).not.toBeNull()
@@ -156,7 +160,9 @@ describe('Checkout Flow', () => {
       const result = await stockReservations.cancelReservation('session-123')
 
       expect(result).toBe(true)
-      expect(stockReservations.cancelReservation).toHaveBeenCalledWith('session-123')
+      expect(stockReservations.cancelReservation).toHaveBeenCalledWith(
+        'session-123',
+      )
     })
 
     it('should complete reservation when payment succeeds', async () => {
@@ -165,7 +171,9 @@ describe('Checkout Flow', () => {
       const result = await stockReservations.completeReservation('session-123')
 
       expect(result).toBe(true)
-      expect(stockReservations.completeReservation).toHaveBeenCalledWith('session-123')
+      expect(stockReservations.completeReservation).toHaveBeenCalledWith(
+        'session-123',
+      )
     })
   })
 
@@ -195,7 +203,7 @@ describe('Checkout Flow', () => {
       vi.mocked(pieces.getPiece).mockResolvedValue(mockVariantPiece as any)
 
       const piece = await pieces.getPiece(mockTenantId, mockPieceId)
-      const variant = piece?.variants?.find(v => v.id === mockVariantId)
+      const variant = piece?.variants?.find((v) => v.id === mockVariantId)
 
       expect(variant).toBeDefined()
       expect(variant?.sku).toBe('TEST-M-RED')
@@ -206,7 +214,7 @@ describe('Checkout Flow', () => {
       vi.mocked(pieces.getPiece).mockResolvedValue(mockVariantPiece as any)
 
       const piece = await pieces.getPiece(mockTenantId, mockPieceId)
-      const variant = piece?.variants?.find(v => v.id === mockVariantId)
+      const variant = piece?.variants?.find((v) => v.id === mockVariantId)
       const effectivePrice = variant?.price ?? piece?.price
 
       expect(effectivePrice).toBe(109.99) // Variant overrides base price
@@ -225,7 +233,7 @@ describe('Checkout Flow', () => {
         2,
         'session-123',
         30,
-        mockVariantId // Variant ID passed
+        mockVariantId, // Variant ID passed
       )
 
       expect(result).not.toBeNull()
@@ -236,7 +244,9 @@ describe('Checkout Flow', () => {
       vi.mocked(pieces.getPiece).mockResolvedValue(mockVariantPiece as any)
 
       const piece = await pieces.getPiece(mockTenantId, mockPieceId)
-      const soldOutVariant = piece?.variants?.find(v => v.id === 'variant-sold-out')
+      const soldOutVariant = piece?.variants?.find(
+        (v) => v.id === 'variant-sold-out',
+      )
 
       expect(soldOutVariant?.isAvailable).toBe(false)
       expect(soldOutVariant?.stock).toBe(0)
@@ -246,7 +256,10 @@ describe('Checkout Flow', () => {
       vi.mocked(pieces.getPiece).mockResolvedValue(mockVariantPiece as any)
 
       const piece = await pieces.getPiece(mockTenantId, mockPieceId)
-      const totalStock = piece?.variants?.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+      const totalStock = piece?.variants?.reduce(
+        (sum, v) => sum + (v.stock ?? 0),
+        0,
+      )
 
       expect(totalStock).toBe(3) // 3 + 0 = 3
     })

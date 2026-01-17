@@ -1,6 +1,6 @@
+import { domains } from '@madebuy/db'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { domains } from '@madebuy/db'
 
 /**
  * POST /api/domain/verify
@@ -17,7 +17,7 @@ export async function POST() {
     if (!tenant.customDomain) {
       return NextResponse.json(
         { error: 'No custom domain configured' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -28,7 +28,7 @@ export async function POST() {
     console.error('Error verifying domain:', error)
     return NextResponse.json(
       { error: 'Failed to verify domain' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,10 +1,10 @@
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { bundles } from '@madebuy/db'
-import { getTenantBySlug } from '@/lib/tenant'
-import { BundleCard } from '@/components/bundles/BundleCard'
 import { ChevronRight, Package } from 'lucide-react'
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { BundleCard } from '@/components/bundles/BundleCard'
+import { getTenantBySlug } from '@/lib/tenant'
 
 interface BundlesPageProps {
   params: Promise<{
@@ -12,7 +12,9 @@ interface BundlesPageProps {
   }>
 }
 
-export async function generateMetadata({ params }: BundlesPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: BundlesPageProps): Promise<Metadata> {
   const { tenant: tenantSlug } = await params
 
   const tenant = await getTenantBySlug(tenantSlug)
@@ -34,10 +36,14 @@ export default async function BundlesPage({ params }: BundlesPageProps) {
   const activeBundles = await bundles.listActiveBundles(tenant.id, 50)
 
   const bundlesWithPieces = await Promise.all(
-    activeBundles.map(bundle => bundles.getBundleWithPieces(tenant.id, bundle.id))
+    activeBundles.map((bundle) =>
+      bundles.getBundleWithPieces(tenant.id, bundle.id),
+    ),
   )
 
-  const validBundles = bundlesWithPieces.filter((b): b is NonNullable<typeof b> => b !== null)
+  const validBundles = bundlesWithPieces.filter(
+    (b): b is NonNullable<typeof b> => b !== null,
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,7 +68,8 @@ export default async function BundlesPage({ params }: BundlesPageProps) {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Product Bundles</h1>
           <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
-            Save more when you buy together. Our curated bundles offer great value on complementary products.
+            Save more when you buy together. Our curated bundles offer great
+            value on complementary products.
           </p>
         </div>
 
@@ -70,8 +77,12 @@ export default async function BundlesPage({ params }: BundlesPageProps) {
         {validBundles.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No bundles available</h3>
-            <p className="text-gray-500 mb-4">Check back later for special bundle deals.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No bundles available
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Check back later for special bundle deals.
+            </p>
             <Link
               href={`/${tenantSlug}`}
               className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"

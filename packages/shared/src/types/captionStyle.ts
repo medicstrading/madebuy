@@ -122,7 +122,10 @@ export interface UpdateCaptionStyleInput {
 /**
  * Default style options per platform
  */
-export const PLATFORM_DEFAULT_STYLES: Record<SocialPlatform, CaptionStyleOptions> = {
+export const PLATFORM_DEFAULT_STYLES: Record<
+  SocialPlatform,
+  CaptionStyleOptions
+> = {
   instagram: {
     tones: ['authentic', 'casual'],
     emojiUsage: 'moderate',

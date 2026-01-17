@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { X, Upload, Image as ImageIcon, Video, AlertCircle } from 'lucide-react'
+import { AlertCircle, Image as ImageIcon, Upload, Video, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
@@ -45,47 +45,54 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
     }
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    setSizeError(null)
-
-    const files = Array.from(e.dataTransfer.files).filter(file =>
-      file.type.startsWith('image/') || file.type.startsWith('video/')
-    )
-
-    // Check for oversized files
-    const oversizedFile = files.find(f => !validateFileSize(f))
-    if (oversizedFile) {
-      setSizeError(getFileSizeError(oversizedFile))
-      return
-    }
-
-    if (files.length > 0) {
-      setSelectedFiles(prev => [...prev, ...files])
-    }
-  }, [])
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setDragActive(false)
       setSizeError(null)
-      const files = Array.from(e.target.files)
+
+      const files = Array.from(e.dataTransfer.files).filter(
+        (file) =>
+          file.type.startsWith('image/') || file.type.startsWith('video/'),
+      )
 
       // Check for oversized files
-      const oversizedFile = files.find(f => !validateFileSize(f))
+      const oversizedFile = files.find((f) => !validateFileSize(f))
       if (oversizedFile) {
         setSizeError(getFileSizeError(oversizedFile))
-        e.target.value = '' // Reset file input
         return
       }
 
-      setSelectedFiles(prev => [...prev, ...files])
-    }
-  }, [])
+      if (files.length > 0) {
+        setSelectedFiles((prev) => [...prev, ...files])
+      }
+    },
+    [getFileSizeError, validateFileSize],
+  )
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        setSizeError(null)
+        const files = Array.from(e.target.files)
+
+        // Check for oversized files
+        const oversizedFile = files.find((f) => !validateFileSize(f))
+        if (oversizedFile) {
+          setSizeError(getFileSizeError(oversizedFile))
+          e.target.value = '' // Reset file input
+          return
+        }
+
+        setSelectedFiles((prev) => [...prev, ...files])
+      }
+    },
+    [getFileSizeError, validateFileSize],
+  )
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleUpload = async () => {
@@ -138,6 +145,7 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
             <h2 className="text-xl font-bold text-gray-900">Upload Media</h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
@@ -171,7 +179,8 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
               Drop files here or click to browse
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              Support for images (JPG, PNG, GIF, WebP) and videos (MP4, MOV, AVI)
+              Support for images (JPG, PNG, GIF, WebP) and videos (MP4, MOV,
+              AVI)
             </p>
             <p className="mt-1 text-xs text-gray-400">
               Max size: 10MB for images, 100MB for videos
@@ -214,6 +223,7 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
                       </p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => removeFile(index)}
                       className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors"
                     >
@@ -229,6 +239,7 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
           <button
+            type="button"
             onClick={onClose}
             disabled={uploading}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -236,6 +247,7 @@ export function MediaUploadModal({ isOpen, onClose }: MediaUploadModalProps) {
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleUpload}
             disabled={uploading || selectedFiles.length === 0}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"

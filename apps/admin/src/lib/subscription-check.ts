@@ -1,15 +1,14 @@
 import { pieces } from '@madebuy/db'
+import type { Plan, Tenant, TenantFeatures } from '@madebuy/shared'
 import {
-  canAddMorePieces,
   canAddMoreMedia,
-  needsUpgradeFor,
-  getUpgradeMessage,
-  getRequiredPlanForFeature,
-  getFeaturesForPlan,
-  PLAN_NAMES,
+  canAddMorePieces,
   getPlanLimits,
+  getRequiredPlanForFeature,
+  getUpgradeMessage,
+  needsUpgradeFor,
+  PLAN_NAMES,
 } from '@madebuy/shared/src/lib/subscription'
-import type { Tenant, TenantFeatures, Plan } from '@madebuy/shared'
 
 /**
  * Subscription Enforcement
@@ -26,7 +25,9 @@ export interface SubscriptionCheckResult {
 /**
  * Check if tenant can add a new piece
  */
-export async function checkCanAddPiece(tenant: Tenant): Promise<SubscriptionCheckResult> {
+export async function checkCanAddPiece(
+  tenant: Tenant,
+): Promise<SubscriptionCheckResult> {
   const currentCount = await pieces.countPieces(tenant.id)
 
   if (!canAddMorePieces(tenant.plan, currentCount)) {
@@ -45,7 +46,10 @@ export async function checkCanAddPiece(tenant: Tenant): Promise<SubscriptionChec
 /**
  * Check if tenant can add more media to a piece
  */
-export function checkCanAddMedia(tenant: Tenant, currentMediaCount: number): SubscriptionCheckResult {
+export function checkCanAddMedia(
+  tenant: Tenant,
+  currentMediaCount: number,
+): SubscriptionCheckResult {
   if (!canAddMoreMedia(tenant.plan, currentMediaCount)) {
     const limits = getPlanLimits(tenant.plan)
     return {
@@ -64,7 +68,7 @@ export function checkCanAddMedia(tenant: Tenant, currentMediaCount: number): Sub
  */
 export function checkFeatureAccess(
   tenant: Tenant,
-  feature: keyof TenantFeatures
+  feature: keyof TenantFeatures,
 ): SubscriptionCheckResult {
   if (needsUpgradeFor(tenant.plan, feature)) {
     return {
@@ -90,7 +94,9 @@ export function checkFeatureAccess(
 /**
  * Check if tenant can use custom domain
  */
-export function checkCustomDomainAccess(tenant: Tenant): SubscriptionCheckResult {
+export function checkCustomDomainAccess(
+  tenant: Tenant,
+): SubscriptionCheckResult {
   return checkFeatureAccess(tenant, 'customDomain')
 }
 
@@ -107,7 +113,10 @@ export async function getSubscriptionSummary(tenant: Tenant) {
     pieces: {
       current: currentPieceCount,
       limit: limits.pieces,
-      remaining: limits.pieces === -1 ? Infinity : Math.max(0, limits.pieces - currentPieceCount),
+      remaining:
+        limits.pieces === -1
+          ? Infinity
+          : Math.max(0, limits.pieces - currentPieceCount),
       isUnlimited: limits.pieces === -1,
     },
     mediaPerPiece: limits.mediaPerPiece,
@@ -130,4 +139,3 @@ function getNextPlan(currentPlan: Plan): Plan {
 
   return currentPlan
 }
-

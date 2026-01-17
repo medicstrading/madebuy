@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function NewNewsletterPage() {
   const router = useRouter()
@@ -50,8 +50,12 @@ export default function NewNewsletterPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">Create Newsletter</h1>
-          <p className="text-gray-500 mt-1">Compose a new newsletter for your subscribers</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Create Newsletter
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Compose a new newsletter for your subscribers
+          </p>
         </div>
       </div>
 
@@ -70,7 +74,9 @@ export default function NewNewsletterPage() {
             <input
               type="text"
               value={formData.subject}
-              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, subject: e.target.value })
+              }
               placeholder="e.g., New arrivals this week!"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
@@ -83,14 +89,17 @@ export default function NewNewsletterPage() {
             </label>
             <textarea
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
               placeholder="Write your newsletter content here... You can use HTML for formatting."
               rows={12}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
               required
             />
             <p className="text-sm text-gray-500 mt-1">
-              Tip: Use HTML tags for formatting (e.g., &lt;b&gt;bold&lt;/b&gt;, &lt;a href=&quot;...&quot;&gt;links&lt;/a&gt;)
+              Tip: Use HTML tags for formatting (e.g., &lt;b&gt;bold&lt;/b&gt;,
+              &lt;a href=&quot;...&quot;&gt;links&lt;/a&gt;)
             </p>
           </div>
         </div>
@@ -103,6 +112,7 @@ export default function NewNewsletterPage() {
             Cancel
           </Link>
           <button
+            type="button"
             type="submit"
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"

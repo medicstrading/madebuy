@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { reconciliations } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(_request: NextRequest, { params }: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
 
@@ -19,9 +19,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     await reconciliations.completeReconciliation(tenant.id, reconciliationId)
 
     // Return updated reconciliation
-    const reconciliation = await reconciliations.getReconciliation(tenant.id, reconciliationId)
+    const reconciliation = await reconciliations.getReconciliation(
+      tenant.id,
+      reconciliationId,
+    )
 
-    return NextResponse.json({ reconciliation, message: 'Stock levels have been updated' })
+    return NextResponse.json({
+      reconciliation,
+      message: 'Stock levels have been updated',
+    })
   } catch (error) {
     console.error('Error completing reconciliation:', error)
 
@@ -34,6 +40,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

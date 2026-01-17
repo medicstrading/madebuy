@@ -1,5 +1,5 @@
-import type { Worker } from 'tesseract.js'
 import sharp from 'sharp'
+import type { Worker } from 'tesseract.js'
 
 /**
  * OCR Result from Tesseract
@@ -20,7 +20,7 @@ async function preprocessImage(buffer: Buffer): Promise<Buffer> {
   return await sharp(buffer)
     .resize(2000, null, {
       withoutEnlargement: true,
-      fit: 'inside'
+      fit: 'inside',
     })
     .greyscale() // Better text contrast
     .normalize() // Improve brightness/contrast
@@ -31,7 +31,7 @@ async function preprocessImage(buffer: Buffer): Promise<Buffer> {
  * Extract text from invoice image using Tesseract OCR
  */
 export async function extractTextFromInvoice(
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
 ): Promise<OCRResult> {
   let worker: Worker | null = null
 
@@ -49,7 +49,7 @@ export async function extractTextFromInvoice(
         if (m.status === 'recognizing text') {
           console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
         }
-      }
+      },
     })
 
     // Perform OCR
@@ -58,17 +58,19 @@ export async function extractTextFromInvoice(
     // Extract lines from text
     const lines = result.data.text
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
 
     return {
       text: result.data.text,
       confidence: result.data.confidence,
-      lines
+      lines,
     }
   } catch (error) {
     console.error('OCR extraction error:', error)
-    throw new Error(`Failed to extract text from invoice: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(
+      `Failed to extract text from invoice: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
   } finally {
     // Clean up worker
     if (worker) {
@@ -82,11 +84,13 @@ export async function extractTextFromInvoice(
  * Note: For now, this is a placeholder. Full PDF support would require pdf-lib or similar
  */
 export async function extractTextFromPDF(
-  pdfBuffer: Buffer
+  _pdfBuffer: Buffer,
 ): Promise<OCRResult> {
   // TODO: Implement PDF to image conversion
   // For MVP, reject PDFs and ask user to upload images instead
-  throw new Error('PDF support not yet implemented. Please upload invoice as JPG or PNG.')
+  throw new Error(
+    'PDF support not yet implemented. Please upload invoice as JPG or PNG.',
+  )
 }
 
 /**
@@ -94,14 +98,14 @@ export async function extractTextFromPDF(
  */
 export function validateInvoiceImage(
   file: File | Buffer,
-  maxSizeBytes: number = 20 * 1024 * 1024 // 20MB default
+  maxSizeBytes: number = 20 * 1024 * 1024, // 20MB default
 ): { valid: boolean; error?: string } {
   if (file instanceof File) {
     // File object validation
     if (file.size > maxSizeBytes) {
       return {
         valid: false,
-        error: `File too large. Maximum size is ${maxSizeBytes / (1024 * 1024)}MB`
+        error: `File too large. Maximum size is ${maxSizeBytes / (1024 * 1024)}MB`,
       }
     }
 
@@ -109,7 +113,7 @@ export function validateInvoiceImage(
     if (!validTypes.includes(file.type)) {
       return {
         valid: false,
-        error: 'Invalid file type. Please upload JPG or PNG image'
+        error: 'Invalid file type. Please upload JPG or PNG image',
       }
     }
   } else {
@@ -117,7 +121,7 @@ export function validateInvoiceImage(
     if (file.length > maxSizeBytes) {
       return {
         valid: false,
-        error: `File too large. Maximum size is ${maxSizeBytes / (1024 * 1024)}MB`
+        error: `File too large. Maximum size is ${maxSizeBytes / (1024 * 1024)}MB`,
       }
     }
   }

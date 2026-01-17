@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { tenants } from '@madebuy/db'
-import { validatePassword, ADMIN_PASSWORD_REQUIREMENTS } from '@madebuy/shared'
+import { ADMIN_PASSWORD_REQUIREMENTS, validatePassword } from '@madebuy/shared'
+import bcrypt from 'bcryptjs'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     if (!email || !password || !businessName) {
       return NextResponse.json(
         { error: 'Email, password, and business name are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -21,16 +21,23 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate password strength (12+ chars, uppercase, lowercase, numbers, special chars)
-    const passwordValidation = validatePassword(password, ADMIN_PASSWORD_REQUIREMENTS)
+    const passwordValidation = validatePassword(
+      password,
+      ADMIN_PASSWORD_REQUIREMENTS,
+    )
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: passwordValidation.errors[0] || 'Password does not meet security requirements' },
-        { status: 400 }
+        {
+          error:
+            passwordValidation.errors[0] ||
+            'Password does not meet security requirements',
+        },
+        { status: 400 },
       )
     }
 
@@ -38,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (businessName.length < 2 || businessName.length > 100) {
       return NextResponse.json(
         { error: 'Business name must be between 2 and 100 characters' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -47,7 +54,7 @@ export async function POST(request: NextRequest) {
     if (existingTenant) {
       return NextResponse.json(
         { error: 'An account with this email already exists' },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
@@ -58,7 +65,7 @@ export async function POST(request: NextRequest) {
     const tenant = await tenants.createTenant(
       email.toLowerCase(),
       passwordHash,
-      businessName.trim()
+      businessName.trim(),
     )
 
     return NextResponse.json({
@@ -75,7 +82,7 @@ export async function POST(request: NextRequest) {
     console.error('Registration error:', error)
     return NextResponse.json(
       { error: 'Failed to create account' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

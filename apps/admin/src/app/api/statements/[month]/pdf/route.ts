@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { tenants, transactions } from '@madebuy/db'
+import type { Tenant, TransactionSummary } from '@madebuy/shared'
+import { getFromR2, putToR2 } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { getCurrentTenant } from '@/lib/session'
-import { transactions, tenants } from '@madebuy/db'
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-import { putToR2, getFromR2 } from '@madebuy/storage'
-import type { TransactionSummary, Tenant } from '@madebuy/shared'
 
 /**
  * GET /api/statements/[month]/pdf
@@ -13,8 +13,8 @@ import type { TransactionSummary, Tenant } from '@madebuy/shared'
  * @param month - Format: YYYY-MM (e.g., 2024-01)
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { month: string } }
+  _request: NextRequest,
+  { params }: { params: { month: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -29,7 +29,7 @@ export async function GET(
     if (!monthMatch) {
       return NextResponse.json(
         { error: 'Invalid month format. Use YYYY-MM (e.g., 2024-01)' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -49,7 +49,7 @@ export async function GET(
     // Get transaction count for cache invalidation
     const transactionCount = await transactions.countTransactions(tenant.id, {
       startDate,
-      endDate
+      endDate,
     })
 
     // Check R2 cache - key includes tenant, month, and transaction count for automatic invalidation
@@ -71,7 +71,7 @@ export async function GET(
           },
         })
       }
-    } catch (cacheError) {
+    } catch (_cacheError) {
       // Cache miss or R2 error - continue to generate
       console.log(`Statement cache miss: ${cacheKey}`)
     }
@@ -80,18 +80,18 @@ export async function GET(
     const summary = await transactions.getTransactionSummary(
       tenant.id,
       startDate,
-      endDate
+      endDate,
     )
 
     // Fetch all transactions for detailed breakdown
     const monthTransactions = await transactions.listTransactions(tenant.id, {
       filters: {
         startDate,
-        endDate
+        endDate,
       },
       limit: 1000,
       sortBy: 'createdAt',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
     })
 
     // Generate PDF
@@ -99,26 +99,23 @@ export async function GET(
       fullTenant,
       summary,
       monthTransactions,
-      monthParam
+      monthParam,
     )
 
     const pdfBuffer = Buffer.from(pdfBytes)
 
     // Store in R2 cache (non-blocking) - uses deterministic key for caching
-    putToR2(
-      cacheKey,
-      pdfBuffer,
-      'application/pdf',
-      {
-        month: monthParam,
-        transactionCount: String(transactionCount),
-        generatedAt: new Date().toISOString(),
-      }
-    ).then(() => {
-      console.log(`Statement cached: ${cacheKey}`)
-    }).catch(err => {
-      console.error('Failed to cache statement:', err)
+    putToR2(cacheKey, pdfBuffer, 'application/pdf', {
+      month: monthParam,
+      transactionCount: String(transactionCount),
+      generatedAt: new Date().toISOString(),
     })
+      .then(() => {
+        console.log(`Statement cached: ${cacheKey}`)
+      })
+      .catch((err) => {
+        console.error('Failed to cache statement:', err)
+      })
 
     // Return PDF
     return new NextResponse(pdfBuffer, {
@@ -134,7 +131,7 @@ export async function GET(
     console.error('Error generating statement PDF:', error)
     return NextResponse.json(
       { error: 'Failed to generate statement' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -143,7 +140,7 @@ async function generateStatementPDF(
   tenant: Tenant,
   summary: TransactionSummary,
   transactionsList: any[],
-  monthStr: string
+  _monthStr: string,
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   const page = pdfDoc.addPage([595.28, 841.89]) // A4 size
@@ -182,7 +179,7 @@ async function generateStatementPDF(
   y -= 40
   const monthName = new Date(summary.startDate).toLocaleDateString('en-AU', {
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })
   page.drawText(`Period: ${monthName}`, {
     x: 50,
@@ -201,7 +198,7 @@ async function generateStatementPDF(
       size: 10,
       font: helvetica,
       color: gray,
-    }
+    },
   )
 
   // Summary section
@@ -225,12 +222,27 @@ async function generateStatementPDF(
   // Summary table
   y -= 25
   const summaryData = [
-    { label: 'Total Sales', value: summary.sales.count.toString() + ' orders' },
+    { label: 'Total Sales', value: `${summary.sales.count.toString()} orders` },
     { label: 'Gross Revenue', value: formatCurrency(summary.sales.gross) },
-    { label: 'Processing Fees (Stripe)', value: '-' + formatCurrency(summary.sales.fees) },
+    {
+      label: 'Processing Fees (Stripe)',
+      value: `-${formatCurrency(summary.sales.fees)}`,
+    },
     { label: 'Net Revenue', value: formatCurrency(summary.sales.net) },
-    { label: 'Refunds', value: summary.refunds.count > 0 ? '-' + formatCurrency(summary.refunds.amount) + ` (${summary.refunds.count})` : '$0.00' },
-    { label: 'Payouts to Bank', value: summary.payouts.count > 0 ? formatCurrency(summary.payouts.amount) + ` (${summary.payouts.count})` : '$0.00' },
+    {
+      label: 'Refunds',
+      value:
+        summary.refunds.count > 0
+          ? `-${formatCurrency(summary.refunds.amount)} (${summary.refunds.count})`
+          : '$0.00',
+    },
+    {
+      label: 'Payouts to Bank',
+      value:
+        summary.payouts.count > 0
+          ? `${formatCurrency(summary.payouts.amount)} (${summary.payouts.count})`
+          : '$0.00',
+    },
   ]
 
   for (const item of summaryData) {
@@ -273,11 +285,41 @@ async function generateStatementPDF(
   y -= 20
   const colX = { date: 50, type: 140, desc: 220, amount: 400, net: 480 }
 
-  page.drawText('Date', { x: colX.date, y, size: 9, font: helveticaBold, color: gray })
-  page.drawText('Type', { x: colX.type, y, size: 9, font: helveticaBold, color: gray })
-  page.drawText('Description', { x: colX.desc, y, size: 9, font: helveticaBold, color: gray })
-  page.drawText('Gross', { x: colX.amount, y, size: 9, font: helveticaBold, color: gray })
-  page.drawText('Net', { x: colX.net, y, size: 9, font: helveticaBold, color: gray })
+  page.drawText('Date', {
+    x: colX.date,
+    y,
+    size: 9,
+    font: helveticaBold,
+    color: gray,
+  })
+  page.drawText('Type', {
+    x: colX.type,
+    y,
+    size: 9,
+    font: helveticaBold,
+    color: gray,
+  })
+  page.drawText('Description', {
+    x: colX.desc,
+    y,
+    size: 9,
+    font: helveticaBold,
+    color: gray,
+  })
+  page.drawText('Gross', {
+    x: colX.amount,
+    y,
+    size: 9,
+    font: helveticaBold,
+    color: gray,
+  })
+  page.drawText('Net', {
+    x: colX.net,
+    y,
+    size: 9,
+    font: helveticaBold,
+    color: gray,
+  })
 
   y -= 10
   page.drawLine({
@@ -296,27 +338,63 @@ async function generateStatementPDF(
 
     const txDate = formatDatePDF(new Date(tx.createdAt))
     const txType = tx.type.charAt(0).toUpperCase() + tx.type.slice(1)
-    const txDesc = (tx.description || getDefaultDescription(tx.type)).slice(0, 25)
+    const txDesc = (tx.description || getDefaultDescription(tx.type)).slice(
+      0,
+      25,
+    )
     const txGross = formatCurrency(tx.grossAmount)
     const txNet = formatCurrency(tx.netAmount)
 
-    page.drawText(txDate, { x: colX.date, y, size: 9, font: helvetica, color: black })
-    page.drawText(txType, { x: colX.type, y, size: 9, font: helvetica, color: black })
-    page.drawText(txDesc, { x: colX.desc, y, size: 9, font: helvetica, color: black })
-    page.drawText(txGross, { x: colX.amount, y, size: 9, font: helvetica, color: black })
-    page.drawText(txNet, { x: colX.net, y, size: 9, font: helvetica, color: black })
+    page.drawText(txDate, {
+      x: colX.date,
+      y,
+      size: 9,
+      font: helvetica,
+      color: black,
+    })
+    page.drawText(txType, {
+      x: colX.type,
+      y,
+      size: 9,
+      font: helvetica,
+      color: black,
+    })
+    page.drawText(txDesc, {
+      x: colX.desc,
+      y,
+      size: 9,
+      font: helvetica,
+      color: black,
+    })
+    page.drawText(txGross, {
+      x: colX.amount,
+      y,
+      size: 9,
+      font: helvetica,
+      color: black,
+    })
+    page.drawText(txNet, {
+      x: colX.net,
+      y,
+      size: 9,
+      font: helvetica,
+      color: black,
+    })
 
     y -= 15
   }
 
   if (transactionsList.length > maxRows) {
-    page.drawText(`... and ${transactionsList.length - maxRows} more transactions`, {
-      x: 50,
-      y,
-      size: 9,
-      font: helvetica,
-      color: gray,
-    })
+    page.drawText(
+      `... and ${transactionsList.length - maxRows} more transactions`,
+      {
+        x: 50,
+        y,
+        size: 9,
+        font: helvetica,
+        color: gray,
+      },
+    )
   }
 
   // Footer
@@ -328,13 +406,16 @@ async function generateStatementPDF(
     color: lightGray,
   })
 
-  page.drawText(`Generated by MadeBuy on ${new Date().toLocaleDateString('en-AU')}`, {
-    x: 50,
-    y: footerY,
-    size: 8,
-    font: helvetica,
-    color: gray,
-  })
+  page.drawText(
+    `Generated by MadeBuy on ${new Date().toLocaleDateString('en-AU')}`,
+    {
+      x: 50,
+      y: footerY,
+      size: 8,
+      font: helvetica,
+      color: gray,
+    },
+  )
 
   if (tenant.email) {
     page.drawText(tenant.email, {
@@ -353,7 +434,7 @@ function formatDatePDF(date: Date): string {
   return new Date(date).toLocaleDateString('en-AU', {
     day: '2-digit',
     month: 'short',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
@@ -371,7 +452,7 @@ function getDefaultDescription(type: string): string {
     refund: 'Order refund',
     payout: 'Payout to bank',
     fee: 'Platform fee',
-    subscription: 'Subscription payment'
+    subscription: 'Subscription payment',
   }
   return descriptions[type] || type
 }

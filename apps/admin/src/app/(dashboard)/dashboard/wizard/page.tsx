@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation'
-import { getCurrentTenant } from '@/lib/session'
 import { media, tenants } from '@madebuy/db'
-import { QuickLaunchWizard } from '@/components/wizard'
 import type { SocialPlatform } from '@madebuy/shared'
+import { redirect } from 'next/navigation'
+import { QuickLaunchWizard } from '@/components/wizard'
+import { getCurrentTenant } from '@/lib/session'
 
 export const metadata = {
   title: 'Quick Launch | MadeBuy',
@@ -26,7 +26,10 @@ export default async function WizardPage() {
 
   // Determine connected social platforms from socialConnections array
   const connectedSocialPlatforms: SocialPlatform[] = []
-  if (fullTenant?.socialConnections && Array.isArray(fullTenant.socialConnections)) {
+  if (
+    fullTenant?.socialConnections &&
+    Array.isArray(fullTenant.socialConnections)
+  ) {
     for (const conn of fullTenant.socialConnections) {
       if (conn.isActive && conn.platform) {
         connectedSocialPlatforms.push(conn.platform)

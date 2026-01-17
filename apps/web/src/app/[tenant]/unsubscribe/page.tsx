@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
+import { CheckCircle, Loader2, Mail, XCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function UnsubscribePage({
   params: { tenant },
@@ -14,7 +14,9 @@ export default function UnsubscribePage({
   const email = searchParams?.get('email')
   const token = searchParams?.get('token')
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading')
+  const [status, setStatus] = useState<
+    'loading' | 'success' | 'error' | 'invalid'
+  >('loading')
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
@@ -26,7 +28,11 @@ export default function UnsubscribePage({
 
     // Process unsubscribe
     processUnsubscribe()
-  }, [email, token])
+  }, [
+    email,
+    token, // Process unsubscribe
+    processUnsubscribe,
+  ])
 
   const processUnsubscribe = async () => {
     try {
@@ -55,8 +61,12 @@ export default function UnsubscribePage({
         {status === 'loading' && (
           <>
             <Loader2 className="h-12 w-12 text-blue-500 mx-auto animate-spin" />
-            <h1 className="mt-4 text-xl font-semibold text-gray-900">Processing...</h1>
-            <p className="mt-2 text-gray-600">Please wait while we process your request.</p>
+            <h1 className="mt-4 text-xl font-semibold text-gray-900">
+              Processing...
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Please wait while we process your request.
+            </p>
           </>
         )}
 
@@ -65,9 +75,12 @@ export default function UnsubscribePage({
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
-            <h1 className="mt-4 text-xl font-semibold text-gray-900">Successfully Unsubscribed</h1>
+            <h1 className="mt-4 text-xl font-semibold text-gray-900">
+              Successfully Unsubscribed
+            </h1>
             <p className="mt-2 text-gray-600">
-              You have been removed from our mailing list. You will no longer receive marketing emails from us.
+              You have been removed from our mailing list. You will no longer
+              receive marketing emails from us.
             </p>
             {email && (
               <p className="mt-4 text-sm text-gray-500">
@@ -88,7 +101,9 @@ export default function UnsubscribePage({
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
               <XCircle className="h-10 w-10 text-red-600" />
             </div>
-            <h1 className="mt-4 text-xl font-semibold text-gray-900">Unable to Unsubscribe</h1>
+            <h1 className="mt-4 text-xl font-semibold text-gray-900">
+              Unable to Unsubscribe
+            </h1>
             <p className="mt-2 text-gray-600">{errorMessage}</p>
             <p className="mt-4 text-sm text-gray-500">
               Please contact support if you continue to have issues.
@@ -107,9 +122,12 @@ export default function UnsubscribePage({
             <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
               <Mail className="h-10 w-10 text-yellow-600" />
             </div>
-            <h1 className="mt-4 text-xl font-semibold text-gray-900">Invalid Link</h1>
+            <h1 className="mt-4 text-xl font-semibold text-gray-900">
+              Invalid Link
+            </h1>
             <p className="mt-2 text-gray-600">
-              The unsubscribe link is missing required information. Please use the link from your email.
+              The unsubscribe link is missing required information. Please use
+              the link from your email.
             </p>
             <Link
               href={`/${tenant}`}

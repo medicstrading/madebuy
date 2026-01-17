@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { BundleBuilder } from '@/components/bundles/BundleBuilder'
 import type { Bundle } from '@madebuy/shared'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { use, useEffect, useState } from 'react'
+import { BundleBuilder } from '@/components/bundles/BundleBuilder'
 
 export default function EditBundlePage({
   params,
@@ -81,7 +81,9 @@ export default function EditBundlePage({
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Edit Bundle</h1>
-          <p className="text-gray-500 mt-1">Update bundle details and products</p>
+          <p className="text-gray-500 mt-1">
+            Update bundle details and products
+          </p>
         </div>
       </div>
 

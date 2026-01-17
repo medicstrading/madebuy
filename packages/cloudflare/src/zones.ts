@@ -4,7 +4,7 @@
  */
 
 import type { CloudflareClient } from './client'
-import type { CloudflareZone, CreateZoneParams, CloudflareResponse } from './types'
+import type { CloudflareZone, CreateZoneParams } from './types'
 
 export class ZonesApi {
   constructor(private client: CloudflareClient) {}
@@ -14,7 +14,13 @@ export class ZonesApi {
    */
   async listZones(params?: {
     name?: string
-    status?: 'active' | 'pending' | 'initializing' | 'moved' | 'deleted' | 'deactivated'
+    status?:
+      | 'active'
+      | 'pending'
+      | 'initializing'
+      | 'moved'
+      | 'deleted'
+      | 'deactivated'
     page?: number
     per_page?: number
   }): Promise<CloudflareZone[]> {
@@ -24,7 +30,10 @@ export class ZonesApi {
     if (params?.page) queryParams.page = String(params.page)
     if (params?.per_page) queryParams.per_page = String(params.per_page)
 
-    const response = await this.client.get<CloudflareZone[]>('/zones', queryParams)
+    const response = await this.client.get<CloudflareZone[]>(
+      '/zones',
+      queryParams,
+    )
     return response.result
   }
 
@@ -57,7 +66,9 @@ export class ZonesApi {
    * Delete a zone
    */
   async deleteZone(zoneId: string): Promise<{ id: string }> {
-    const response = await this.client.delete<{ id: string }>(`/zones/${zoneId}`)
+    const response = await this.client.delete<{ id: string }>(
+      `/zones/${zoneId}`,
+    )
     return response.result
   }
 
@@ -67,7 +78,7 @@ export class ZonesApi {
   async purgeCache(zoneId: string): Promise<{ id: string }> {
     const response = await this.client.post<{ id: string }>(
       `/zones/${zoneId}/purge_cache`,
-      { purge_everything: true }
+      { purge_everything: true },
     )
     return response.result
   }

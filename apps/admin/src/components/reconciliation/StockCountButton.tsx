@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { ClipboardCheck } from 'lucide-react'
-import { ReconciliationSheet } from './ReconciliationSheet'
 import type { Material } from '@madebuy/shared'
+import { ClipboardCheck } from 'lucide-react'
+import { useState } from 'react'
+import { ReconciliationSheet } from './ReconciliationSheet'
 
 interface StockCountButtonProps {
   materials: Material[]
@@ -15,6 +15,7 @@ export function StockCountButton({ materials }: StockCountButtonProps) {
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsSheetOpen(true)}
         className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
       >

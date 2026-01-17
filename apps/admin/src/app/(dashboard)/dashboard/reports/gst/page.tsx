@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import type { QuarterlyGSTReport } from '@madebuy/shared'
 import {
-  Receipt,
+  AlertCircle,
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
   Download,
-  Loader2,
-  AlertCircle,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
   FileText,
+  Loader2,
+  Receipt,
   Settings,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
-import type { QuarterlyGSTReport } from '@madebuy/shared'
+import { useEffect, useState } from 'react'
 
 interface GSTReportResponse {
   report: QuarterlyGSTReport
@@ -78,7 +78,9 @@ function formatDate(date: Date | string): string {
 
 export default function GSTSummaryPage() {
   const quarterOptions = getQuarterOptions()
-  const [selectedQuarter, setSelectedQuarter] = useState(quarterOptions[0].value)
+  const [selectedQuarter, setSelectedQuarter] = useState(
+    quarterOptions[0].value,
+  )
   const [report, setReport] = useState<GSTReportResponse | null>(null)
   const [error, setError] = useState<ErrorResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -90,7 +92,9 @@ export default function GSTSummaryPage() {
       setError(null)
 
       try {
-        const response = await fetch(`/api/reports/gst?quarter=${selectedQuarter}`)
+        const response = await fetch(
+          `/api/reports/gst?quarter=${selectedQuarter}`,
+        )
         const data = await response.json()
 
         if (!response.ok) {
@@ -100,7 +104,7 @@ export default function GSTSummaryPage() {
           setReport(data as GSTReportResponse)
           setError(null)
         }
-      } catch (err) {
+      } catch (_err) {
         setError({ error: 'Failed to load GST report' })
         setReport(null)
       } finally {
@@ -113,7 +117,9 @@ export default function GSTSummaryPage() {
 
   // Navigate to previous/next quarter
   const goToQuarter = (direction: 'prev' | 'next') => {
-    const currentIndex = quarterOptions.findIndex((q) => q.value === selectedQuarter)
+    const currentIndex = quarterOptions.findIndex(
+      (q) => q.value === selectedQuarter,
+    )
     const newIndex = direction === 'prev' ? currentIndex + 1 : currentIndex - 1
 
     if (newIndex >= 0 && newIndex < quarterOptions.length) {
@@ -126,7 +132,9 @@ export default function GSTSummaryPage() {
     window.print()
   }
 
-  const currentQuarterIndex = quarterOptions.findIndex((q) => q.value === selectedQuarter)
+  const currentQuarterIndex = quarterOptions.findIndex(
+    (q) => q.value === selectedQuarter,
+  )
   const canGoNext = currentQuarterIndex > 0
   const canGoPrev = currentQuarterIndex < quarterOptions.length - 1
 
@@ -143,6 +151,7 @@ export default function GSTSummaryPage() {
 
         {report && (
           <button
+            type="button"
             onClick={handleExport}
             className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           >
@@ -155,6 +164,7 @@ export default function GSTSummaryPage() {
       {/* Quarter Selector */}
       <div className="flex items-center justify-center gap-4 print:hidden">
         <button
+          type="button"
           onClick={() => goToQuarter('prev')}
           disabled={!canGoPrev}
           className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -176,6 +186,7 @@ export default function GSTSummaryPage() {
         </select>
 
         <button
+          type="button"
           onClick={() => goToQuarter('next')}
           disabled={!canGoNext}
           className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -190,7 +201,8 @@ export default function GSTSummaryPage() {
         <h1 className="text-xl font-bold">GST Summary Report</h1>
         {report && (
           <p className="text-sm text-gray-600">
-            {report.tenant.businessName} | ABN: {report.tenant.abn || 'Not registered'} |{' '}
+            {report.tenant.businessName} | ABN:{' '}
+            {report.tenant.abn || 'Not registered'} |{' '}
             {quarterOptions.find((q) => q.value === selectedQuarter)?.label}
           </p>
         )}
@@ -234,21 +246,28 @@ export default function GSTSummaryPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-gray-500">Business</p>
-                <p className="font-medium text-gray-900">{report.tenant.businessName}</p>
+                <p className="font-medium text-gray-900">
+                  {report.tenant.businessName}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">ABN</p>
-                <p className="font-medium text-gray-900">{report.tenant.abn || 'Not provided'}</p>
+                <p className="font-medium text-gray-900">
+                  {report.tenant.abn || 'Not provided'}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Period</p>
                 <p className="font-medium text-gray-900">
-                  {formatDate(report.report.startDate)} - {formatDate(report.report.endDate)}
+                  {formatDate(report.report.startDate)} -{' '}
+                  {formatDate(report.report.endDate)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">GST Rate</p>
-                <p className="font-medium text-gray-900">{report.tenant.gstRate}%</p>
+                <p className="font-medium text-gray-900">
+                  {report.tenant.gstRate}%
+                </p>
               </div>
             </div>
           </div>
@@ -269,7 +288,9 @@ export default function GSTSummaryPage() {
                 </div>
               </div>
               <div className="mt-4 border-t border-gray-100 pt-4">
-                <p className="text-xs text-gray-500">From {report.report.salesCount} sales</p>
+                <p className="text-xs text-gray-500">
+                  From {report.report.salesCount} sales
+                </p>
                 <p className="text-sm text-gray-900">
                   Gross: {formatCurrency(report.report.salesGross)}
                 </p>
@@ -290,7 +311,9 @@ export default function GSTSummaryPage() {
                 </div>
               </div>
               <div className="mt-4 border-t border-gray-100 pt-4">
-                <p className="text-xs text-gray-500">From {report.report.refundsCount} refunds</p>
+                <p className="text-xs text-gray-500">
+                  From {report.report.refundsCount} refunds
+                </p>
                 <p className="text-sm text-gray-900">
                   Total: {formatCurrency(report.report.refundsTotal)}
                 </p>
@@ -313,7 +336,9 @@ export default function GSTSummaryPage() {
               <div className="mt-4 border-t border-blue-200 pt-4">
                 <p className="text-xs text-blue-600">Amount to report on BAS</p>
                 <p className="text-sm text-blue-700 font-medium">
-                  {report.report.netGst >= 0 ? 'Payable to ATO' : 'Claimable from ATO'}
+                  {report.report.netGst >= 0
+                    ? 'Payable to ATO'
+                    : 'Claimable from ATO'}
                 </p>
               </div>
             </div>
@@ -323,7 +348,9 @@ export default function GSTSummaryPage() {
           <div className="rounded-xl border border-gray-200 bg-white overflow-hidden print:border-gray-300">
             <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
               <h2 className="font-semibold text-gray-900">BAS Summary</h2>
-              <p className="text-sm text-gray-500">Key figures for your Business Activity Statement</p>
+              <p className="text-sm text-gray-500">
+                Key figures for your Business Activity Statement
+              </p>
             </div>
             <div className="divide-y divide-gray-100">
               <div className="flex items-center justify-between px-6 py-4">
@@ -348,7 +375,9 @@ export default function GSTSummaryPage() {
                   </span>
                   <div>
                     <p className="font-medium text-gray-900">GST on Sales</p>
-                    <p className="text-sm text-gray-500">GST collected from customers</p>
+                    <p className="text-sm text-gray-500">
+                      GST collected from customers
+                    </p>
                   </div>
                 </div>
                 <p className="text-lg font-semibold text-green-600">
@@ -363,7 +392,9 @@ export default function GSTSummaryPage() {
                   </span>
                   <div>
                     <p className="font-medium text-gray-900">GST on Refunds</p>
-                    <p className="text-sm text-gray-500">GST returned with refunds</p>
+                    <p className="text-sm text-gray-500">
+                      GST returned with refunds
+                    </p>
                   </div>
                 </div>
                 <p className="text-lg font-semibold text-red-600">
@@ -393,9 +424,11 @@ export default function GSTSummaryPage() {
               <div>
                 <h3 className="font-medium text-yellow-900">Important Note</h3>
                 <p className="mt-1 text-sm text-yellow-700">
-                  This summary shows GST from sales processed through MadeBuy only. If you have other
-                  business income or expenses, consult your accountant for your complete BAS figures.
-                  Input tax credits from business purchases are not included in this report.
+                  This summary shows GST from sales processed through MadeBuy
+                  only. If you have other business income or expenses, consult
+                  your accountant for your complete BAS figures. Input tax
+                  credits from business purchases are not included in this
+                  report.
                 </p>
               </div>
             </div>

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
 import { analytics } from '@madebuy/db'
-import { cookies } from 'next/headers'
 import { nanoid } from 'nanoid'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 // Get or create a session ID for analytics tracking
 function getSessionId(): string {
@@ -24,17 +24,19 @@ export async function POST(request: Request) {
     if (!tenantId || !event) {
       return NextResponse.json(
         { error: 'tenantId and event are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate event type
-    const validEvents = ['view_product', 'add_to_cart', 'start_checkout', 'complete_purchase']
+    const validEvents = [
+      'view_product',
+      'add_to_cart',
+      'start_checkout',
+      'complete_purchase',
+    ]
     if (!validEvents.includes(event)) {
-      return NextResponse.json(
-        { error: 'Invalid event type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid event type' }, { status: 400 })
     }
 
     const sessionId = getSessionId()
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
     console.error('Error tracking analytics event:', error)
     return NextResponse.json(
       { error: 'Failed to track event' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: DomainPathPageProps) {
 
   return {
     title: tenant.businessName,
-    description: tenant.tagline || tenant.description || `Shop ${tenant.businessName}`,
+    description:
+      tenant.tagline || tenant.description || `Shop ${tenant.businessName}`,
   }
 }

@@ -1,4 +1,4 @@
-import { NextPageContext } from 'next'
+import type { NextPageContext } from 'next'
 
 interface ErrorProps {
   statusCode?: number
@@ -6,28 +6,34 @@ interface ErrorProps {
 
 function Error({ statusCode }: ErrorProps) {
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f9fafb',
-      padding: '2rem',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb',
+        padding: '2rem',
+      }}
+    >
       <div style={{ textAlign: 'center' }}>
-        <h1 style={{
-          fontSize: '4rem',
-          fontWeight: 'bold',
-          color: '#111827',
-          marginBottom: '1rem',
-        }}>
+        <h1
+          style={{
+            fontSize: '4rem',
+            fontWeight: 'bold',
+            color: '#111827',
+            marginBottom: '1rem',
+          }}
+        >
           {statusCode || 'Error'}
         </h1>
-        <p style={{
-          color: '#4b5563',
-          marginBottom: '2rem',
-        }}>
+        <p
+          style={{
+            color: '#4b5563',
+            marginBottom: '2rem',
+          }}
+        >
           {statusCode
             ? `An error ${statusCode} occurred on server`
             : 'An error occurred on client'}

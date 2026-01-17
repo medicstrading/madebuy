@@ -40,14 +40,16 @@ export const ADMIN_PASSWORD_REQUIREMENTS: PasswordRequirements = {
  */
 export function validatePassword(
   password: string,
-  requirements: PasswordRequirements = DEFAULT_PASSWORD_REQUIREMENTS
+  requirements: PasswordRequirements = DEFAULT_PASSWORD_REQUIREMENTS,
 ): PasswordValidationResult {
   const errors: string[] = []
   let score = 0
 
   // Check minimum length
   if (password.length < requirements.minLength) {
-    errors.push(`Password must be at least ${requirements.minLength} characters`)
+    errors.push(
+      `Password must be at least ${requirements.minLength} characters`,
+    )
   } else {
     score++
     // Bonus for longer passwords
@@ -74,7 +76,10 @@ export function validatePassword(
   }
 
   // Check special characters
-  if (requirements.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+  if (
+    requirements.requireSpecialChars &&
+    !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+  ) {
     errors.push('Password must contain at least one special character')
   } else if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     score++

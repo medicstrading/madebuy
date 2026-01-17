@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { enquiries } from '@madebuy/db'
-import { CreateEnquiryInput } from '@madebuy/shared'
+import type { CreateEnquiryInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET() {
   try {
@@ -16,7 +16,10 @@ export async function GET() {
     return NextResponse.json({ enquiries: allEnquiries })
   } catch (error) {
     console.error('Error fetching enquiries:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -35,6 +38,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ enquiry }, { status: 201 })
   } catch (error) {
     console.error('Error creating enquiry:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

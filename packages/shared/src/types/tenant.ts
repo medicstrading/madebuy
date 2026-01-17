@@ -1,7 +1,13 @@
 import type { MakerType } from '../constants/makerPresets'
 import type { TenantPaymentConfig } from './payment'
-import type { WebsiteTemplate, WebsitePage, PageSection, HeaderConfig, FooterConfig } from './template'
 import type { ExtractedDesign } from './scanner'
+import type {
+  FooterConfig,
+  HeaderConfig,
+  PageSection,
+  WebsitePage,
+  WebsiteTemplate,
+} from './template'
 
 /**
  * Tenant - Multi-tenant user/shop owner
@@ -14,10 +20,10 @@ export type OnboardingStep = 'location' | 'design' | 'complete'
 export type MeasurementSystem = 'metric' | 'imperial'
 
 export interface RegionalSettings {
-  countryCode: string              // ISO 3166-1 alpha-2 (e.g., 'AU', 'US', 'GB')
-  currency: string                 // ISO 4217 code (e.g., 'AUD', 'USD', 'GBP')
-  locale: string                   // BCP 47 locale (e.g., 'en-AU', 'en-US')
-  timezone: string                 // IANA timezone (e.g., 'Australia/Sydney')
+  countryCode: string // ISO 3166-1 alpha-2 (e.g., 'AU', 'US', 'GB')
+  currency: string // ISO 4217 code (e.g., 'AUD', 'USD', 'GBP')
+  locale: string // BCP 47 locale (e.g., 'en-AU', 'en-US')
+  timezone: string // IANA timezone (e.g., 'Australia/Sydney')
   measurementSystem: MeasurementSystem
 
   // Optional overrides for power users
@@ -111,7 +117,13 @@ export interface Tenant {
 
 // Domain onboarding state for AI-generated design suggestions
 export interface DomainOnboardingState {
-  status: 'pending' | 'generating' | 'ready' | 'accepted' | 'declined' | 'design_choice'
+  status:
+    | 'pending'
+    | 'generating'
+    | 'ready'
+    | 'accepted'
+    | 'declined'
+    | 'design_choice'
   generatedAt?: Date
   suggestedDesign?: TenantWebsiteDesign
   suggestedBranding?: {
@@ -148,7 +160,13 @@ export interface SocialConnection {
   expiresAt?: Date
 }
 
-export type SocialPlatform = 'instagram' | 'facebook' | 'tiktok' | 'pinterest' | 'youtube' | 'website-blog'
+export type SocialPlatform =
+  | 'instagram'
+  | 'facebook'
+  | 'tiktok'
+  | 'pinterest'
+  | 'youtube'
+  | 'website-blog'
 
 export interface TenantFeatures {
   socialPublishing: boolean
@@ -172,7 +190,7 @@ export interface TenantUsage {
 export interface TenantWebsiteDesign {
   // Multi-page template system
   template?: WebsiteTemplate
-  pages?: WebsitePage[]       // All website pages with their sections
+  pages?: WebsitePage[] // All website pages with their sections
   header?: HeaderConfig
   footer?: FooterConfig
   typography: TypographyPreset
@@ -237,7 +255,12 @@ export interface LayoutContent {
   moreCollectionTitle?: string
 }
 
-export type TypographyPreset = 'modern' | 'classic' | 'elegant' | 'bold' | 'minimal'
+export type TypographyPreset =
+  | 'modern'
+  | 'classic'
+  | 'elegant'
+  | 'bold'
+  | 'minimal'
 export type LayoutTemplate = 'grid' | 'minimal' | 'featured' | 'masonry'
 
 export interface CustomSection {
@@ -248,7 +271,14 @@ export interface CustomSection {
   config: SectionConfig
 }
 
-export type SectionType = 'hero' | 'features' | 'testimonials' | 'cta' | 'gallery' | 'text-image' | 'faq'
+export type SectionType =
+  | 'hero'
+  | 'features'
+  | 'testimonials'
+  | 'cta'
+  | 'gallery'
+  | 'text-image'
+  | 'faq'
 
 export interface SectionConfig {
   // Base config that all sections share
@@ -354,36 +384,36 @@ export interface BusinessAddress {
   addressLine1: string
   addressLine2?: string
   suburb: string
-  state: string  // State abbreviation (e.g., 'NSW', 'VIC', 'QLD')
+  state: string // State abbreviation (e.g., 'NSW', 'VIC', 'QLD')
   postcode: string
-  country: string  // ISO country code (default 'AU')
+  country: string // ISO country code (default 'AU')
 }
 
 // Sendle shipping integration settings
 export interface SendleSettings {
-  apiKey?: string  // Encrypted API key
-  senderId?: string  // Sendle Account ID
-  isConnected: boolean  // Whether credentials have been validated
-  connectedAt?: Date  // When credentials were last verified
-  environment: 'sandbox' | 'production'  // Which Sendle environment to use
-  pickupAddress?: BusinessAddress  // Business address for shipping origin
+  apiKey?: string // Encrypted API key
+  senderId?: string // Sendle Account ID
+  isConnected: boolean // Whether credentials have been validated
+  connectedAt?: Date // When credentials were last verified
+  environment: 'sandbox' | 'production' // Which Sendle environment to use
+  pickupAddress?: BusinessAddress // Business address for shipping origin
 }
 
 // Tax/GST settings for Australian sellers
 export interface TenantTaxSettings {
-  gstRegistered: boolean  // Is the seller GST registered?
-  abn?: string  // Australian Business Number (11 digits)
-  gstRate: number  // GST rate (default 10 for Australia)
-  pricesIncludeGst: boolean  // Are product prices GST inclusive?
+  gstRegistered: boolean // Is the seller GST registered?
+  abn?: string // Australian Business Number (11 digits)
+  gstRate: number // GST rate (default 10 for Australia)
+  pricesIncludeGst: boolean // Are product prices GST inclusive?
 }
 
 // Notification preferences for email alerts
 export interface TenantNotificationPreferences {
-  orderNotifications: boolean      // New order received
-  lowStockNotifications: boolean   // Product stock low
-  disputeNotifications: boolean    // Payment dispute/chargeback
-  payoutNotifications: boolean     // Payout processed
-  reviewNotifications: boolean     // New product review
-  enquiryNotifications: boolean    // Customer enquiry received
-  newsletterUpdates: boolean       // MadeBuy platform updates
+  orderNotifications: boolean // New order received
+  lowStockNotifications: boolean // Product stock low
+  disputeNotifications: boolean // Payment dispute/chargeback
+  payoutNotifications: boolean // Payout processed
+  reviewNotifications: boolean // New product review
+  enquiryNotifications: boolean // Customer enquiry received
+  newsletterUpdates: boolean // MadeBuy platform updates
 }

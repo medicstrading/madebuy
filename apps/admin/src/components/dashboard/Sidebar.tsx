@@ -1,35 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard,
-  Package,
+  BarChart3,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  Gift,
   Image,
   Layers,
-  ShoppingCart,
-  Share2,
-  Plug,
-  Settings,
+  LayoutDashboard,
+  MapPin,
+  Package,
   Paintbrush,
-  ChevronRight,
-  ChevronDown,
-  Tag,
-  X,
-  Users,
-  Star,
-  BarChart3,
-  Gift,
+  Percent,
+  Plug,
   Receipt,
   Rocket,
-  Truck,
-  MapPin,
-  Percent,
-  Bell,
+  Settings,
+  Share2,
+  ShoppingCart,
   Sparkles,
+  Star,
+  Tag,
+  Truck,
   Upload,
+  Users,
+  X,
 } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface MarketplaceConnections {
@@ -58,14 +58,54 @@ const planLabels: Record<string, string> = {
 
 // Settings sub-items
 const settingsSubItems = [
-  { name: 'General', href: '/dashboard/settings', icon: Settings, description: 'Maker type & categories' },
-  { name: 'Regional', href: '/dashboard/settings/regional', icon: MapPin, description: 'Currency & locale' },
-  { name: 'Shipping', href: '/dashboard/settings/shipping', icon: Truck, description: 'Sendle integration' },
-  { name: 'Billing', href: '/dashboard/settings/billing', icon: Receipt, description: 'Plans & invoices' },
-  { name: 'Tax / GST', href: '/dashboard/settings/tax', icon: Percent, description: 'Tax settings' },
-  { name: 'Notifications', href: '/dashboard/settings/notifications', icon: Bell, description: 'Email preferences' },
-  { name: 'AI Captions', href: '/dashboard/settings/caption-style', icon: Sparkles, description: 'Caption style' },
-  { name: 'Import', href: '/dashboard/settings/import', icon: Upload, description: 'Bulk CSV import' },
+  {
+    name: 'General',
+    href: '/dashboard/settings',
+    icon: Settings,
+    description: 'Maker type & categories',
+  },
+  {
+    name: 'Regional',
+    href: '/dashboard/settings/regional',
+    icon: MapPin,
+    description: 'Currency & locale',
+  },
+  {
+    name: 'Shipping',
+    href: '/dashboard/settings/shipping',
+    icon: Truck,
+    description: 'Sendle integration',
+  },
+  {
+    name: 'Billing',
+    href: '/dashboard/settings/billing',
+    icon: Receipt,
+    description: 'Plans & invoices',
+  },
+  {
+    name: 'Tax / GST',
+    href: '/dashboard/settings/tax',
+    icon: Percent,
+    description: 'Tax settings',
+  },
+  {
+    name: 'Notifications',
+    href: '/dashboard/settings/notifications',
+    icon: Bell,
+    description: 'Email preferences',
+  },
+  {
+    name: 'AI Captions',
+    href: '/dashboard/settings/caption-style',
+    icon: Sparkles,
+    description: 'Caption style',
+  },
+  {
+    name: 'Import',
+    href: '/dashboard/settings/import',
+    icon: Upload,
+    description: 'Bulk CSV import',
+  },
 ]
 
 const navigationGroups = [
@@ -75,7 +115,7 @@ const navigationGroups = [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Quick Launch', href: '/dashboard/wizard', icon: Rocket },
       { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-    ]
+    ],
   },
   {
     label: 'Catalog',
@@ -84,7 +124,7 @@ const navigationGroups = [
       { name: 'Bundles', href: '/dashboard/bundles', icon: Gift },
       { name: 'Media', href: '/dashboard/media', icon: Image },
       { name: 'Materials', href: '/dashboard/materials', icon: Layers },
-    ]
+    ],
   },
   {
     label: 'Sales',
@@ -93,24 +133,35 @@ const navigationGroups = [
       { name: 'Customers', href: '/dashboard/customers', icon: Users },
       { name: 'Reports', href: '/dashboard/reports', icon: Receipt },
       { name: 'Reviews', href: '/dashboard/reviews', icon: Star },
-    ]
+    ],
   },
   {
     label: 'Marketing',
     items: [
-      { name: 'Website Design', href: '/dashboard/website-design', icon: Paintbrush },
+      {
+        name: 'Website Design',
+        href: '/dashboard/website-design',
+        icon: Paintbrush,
+      },
       { name: 'Content', href: '/dashboard/content', icon: Share2 },
       { name: 'Discounts', href: '/dashboard/discounts', icon: Tag },
-    ]
+    ],
   },
 ]
 
-export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: SidebarProps) {
+export function Sidebar({
+  tenant,
+  isOpen,
+  onClose,
+  marketplaceConnections,
+}: SidebarProps) {
   const pathname = usePathname()
 
   // Settings expansion state - auto-expand if on a settings page
   const isOnSettingsPage = pathname?.startsWith('/dashboard/settings')
-  const [settingsExpanded, setSettingsExpanded] = useState(isOnSettingsPage || false)
+  const [settingsExpanded, setSettingsExpanded] = useState(
+    isOnSettingsPage || false,
+  )
 
   // Update expansion when pathname changes
   useEffect(() => {
@@ -126,7 +177,11 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
     <>
       {/* Logo */}
       <div className="flex h-14 items-center justify-between px-6 border-b border-gray-100">
-        <Link href="/dashboard" className="flex items-center gap-2" onClick={onClose}>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2"
+          onClick={onClose}
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
             <span className="text-lg font-bold text-white">M</span>
           </div>
@@ -134,6 +189,7 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
         </Link>
         {onClose && (
           <button
+            type="button"
             onClick={onClose}
             className="lg:hidden flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
           >
@@ -151,7 +207,9 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
             </h3>
             <div className="space-y-1">
               {group.items.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+                const isActive =
+                  pathname === item.href ||
+                  pathname?.startsWith(`${item.href}/`)
                 const Icon = item.icon
 
                 return (
@@ -163,13 +221,17 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                       'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                       isActive
                         ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                     )}
                   >
-                    <Icon className={cn(
-                      'h-5 w-5 transition-colors',
-                      isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                    )} />
+                    <Icon
+                      className={cn(
+                        'h-5 w-5 transition-colors',
+                        isActive
+                          ? 'text-blue-600'
+                          : 'text-gray-400 group-hover:text-gray-600',
+                      )}
+                    />
                     <span className="flex-1">{item.name}</span>
                     {isActive && (
                       <ChevronRight className="h-4 w-4 text-blue-400" />
@@ -196,15 +258,21 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                   ? 'bg-blue-50 text-blue-600'
                   : hasEtsy
                     ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
               )}
             >
-              <span className={cn(
-                'flex h-5 w-5 items-center justify-center rounded',
-                hasEtsy ? 'bg-orange-100' : 'bg-gray-100'
-              )}>
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill={hasEtsy ? '#F56400' : '#9CA3AF'}>
-                  <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z"/>
+              <span
+                className={cn(
+                  'flex h-5 w-5 items-center justify-center rounded',
+                  hasEtsy ? 'bg-orange-100' : 'bg-gray-100',
+                )}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-3.5 w-3.5"
+                  fill={hasEtsy ? '#F56400' : '#9CA3AF'}
+                >
+                  <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z" />
                 </svg>
               </span>
               <span className="flex-1">Etsy</span>
@@ -221,15 +289,23 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                   ? 'bg-blue-50 text-blue-600'
                   : hasEbay
                     ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                    : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
               )}
             >
-              <span className={cn(
-                'flex h-5 w-5 items-center justify-center rounded',
-                hasEbay ? 'bg-blue-50' : 'bg-gray-100'
-              )}>
+              <span
+                className={cn(
+                  'flex h-5 w-5 items-center justify-center rounded',
+                  hasEbay ? 'bg-blue-50' : 'bg-gray-100',
+                )}
+              >
                 <svg viewBox="0 0 24 24" className="h-4 w-4">
-                  <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+                  <text
+                    x="1"
+                    y="17"
+                    fontSize="12"
+                    fontWeight="bold"
+                    fontFamily="Arial, sans-serif"
+                  >
                     <tspan fill={hasEbay ? '#E53238' : '#9CA3AF'}>e</tspan>
                     <tspan fill={hasEbay ? '#0064D2' : '#9CA3AF'}>b</tspan>
                     <tspan fill={hasEbay ? '#F5AF02' : '#9CA3AF'}>a</tspan>
@@ -259,44 +335,59 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                 'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 pathname === '/dashboard/connections'
                   ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
               )}
             >
-              <Plug className={cn(
-                'h-5 w-5 transition-colors',
-                pathname === '/dashboard/connections' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-              )} />
+              <Plug
+                className={cn(
+                  'h-5 w-5 transition-colors',
+                  pathname === '/dashboard/connections'
+                    ? 'text-blue-600'
+                    : 'text-gray-400 group-hover:text-gray-600',
+                )}
+              />
               <span className="flex-1">Connections</span>
             </Link>
 
             {/* Settings - Expandable */}
             <div>
               <button
+                type="button"
                 onClick={() => setSettingsExpanded(!settingsExpanded)}
                 className={cn(
                   'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                   isOnSettingsPage
                     ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                 )}
               >
-                <Settings className={cn(
-                  'h-5 w-5 transition-colors',
-                  isOnSettingsPage ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                )} />
+                <Settings
+                  className={cn(
+                    'h-5 w-5 transition-colors',
+                    isOnSettingsPage
+                      ? 'text-blue-600'
+                      : 'text-gray-400 group-hover:text-gray-600',
+                  )}
+                />
                 <span className="flex-1 text-left">Settings</span>
-                <ChevronDown className={cn(
-                  'h-4 w-4 transition-transform duration-200',
-                  settingsExpanded ? 'rotate-180' : '',
-                  isOnSettingsPage ? 'text-blue-400' : 'text-gray-400'
-                )} />
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 transition-transform duration-200',
+                    settingsExpanded ? 'rotate-180' : '',
+                    isOnSettingsPage ? 'text-blue-400' : 'text-gray-400',
+                  )}
+                />
               </button>
 
               {/* Settings Sub-items */}
-              <div className={cn(
-                'overflow-hidden transition-all duration-200 ease-in-out',
-                settingsExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-              )}>
+              <div
+                className={cn(
+                  'overflow-hidden transition-all duration-200 ease-in-out',
+                  settingsExpanded
+                    ? 'max-h-[500px] opacity-100'
+                    : 'max-h-0 opacity-0',
+                )}
+              >
                 <div className="mt-1 ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3">
                   {settingsSubItems.map((item) => {
                     const isActive = pathname === item.href
@@ -311,13 +402,17 @@ export function Sidebar({ tenant, isOpen, onClose, marketplaceConnections }: Sid
                           'group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-all duration-150',
                           isActive
                             ? 'bg-blue-50 text-blue-600 font-medium'
-                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
                         )}
                       >
-                        <Icon className={cn(
-                          'h-4 w-4 transition-colors flex-shrink-0',
-                          isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                        )} />
+                        <Icon
+                          className={cn(
+                            'h-4 w-4 transition-colors flex-shrink-0',
+                            isActive
+                              ? 'text-blue-600'
+                              : 'text-gray-400 group-hover:text-gray-600',
+                          )}
+                        />
                         <span className="truncate">{item.name}</span>
                       </Link>
                     )

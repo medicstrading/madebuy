@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { imports, pieces, media } from '@madebuy/db'
+import { imports, media, pieces } from '@madebuy/db'
+import type { CreatePieceInput, ImportError, ParsedRow } from '@madebuy/shared'
 import { getFromR2, uploadToR2 } from '@madebuy/storage'
-import { parseCSV, validateAndParse } from '@/lib/csv-parser'
-import type { ParsedRow, CreatePieceInput, ImportError } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+import { type NextRequest, NextResponse } from 'next/server'
+import { parseCSV, validateAndParse } from '@/lib/csv-parser'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ jobId: string }>
@@ -14,7 +14,7 @@ interface RouteParams {
  * POST /api/import/[jobId]/confirm
  * Execute the import - create/update products from validated CSV
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(_request: NextRequest, { params }: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
 
@@ -27,14 +27,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const job = await imports.getImportJob(tenant.id, jobId)
 
     if (!job) {
-      return NextResponse.json({ error: 'Import job not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Import job not found' },
+        { status: 404 },
+      )
     }
 
     // Can only confirm validated jobs
     if (job.status !== 'validated') {
       return NextResponse.json(
-        { error: `Cannot confirm job with status: ${job.status}. Must be validated first.` },
-        { status: 400 }
+        {
+          error: `Cannot confirm job with status: ${job.status}. Must be validated first.`,
+        },
+        { status: 400 },
       )
     }
 
@@ -49,11 +54,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (!csvBuffer) {
       await imports.updateImportJob(tenant.id, jobId, {
         status: 'failed',
-        errors: [...job.errors, { row: 0, message: 'Could not retrieve CSV file from storage' }],
+        errors: [
+          ...job.errors,
+          { row: 0, message: 'Could not retrieve CSV file from storage' },
+        ],
       })
       return NextResponse.json(
         { error: 'Could not retrieve CSV file' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -84,7 +92,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     for (const [handle, productRows] of productsByHandle) {
       try {
         // Primary row has the product data
-        const primaryRow = productRows.find(r => r.name) || productRows[0]
+        const primaryRow = productRows.find((r) => r.name) || productRows[0]
         if (!primaryRow?.name) {
           errors.push({
             row: primaryRow?.rowNumber || 0,
@@ -124,7 +132,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               tenant.id,
               img.url,
               handle,
-              img.position
+              img.position,
             )
             if (imageMedia) {
               mediaIds.push(imageMedia.id)
@@ -145,9 +153,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             stock: primaryRow.stock,
             category: primaryRow.category,
             tags: primaryRow.tags,
-            status: (['draft', 'available', 'sold', 'reserved'].includes(primaryRow.status || '')
-              ? primaryRow.status as 'draft' | 'available' | 'sold' | 'reserved'
-              : existingPiece.status),
+            status: ['draft', 'available', 'sold', 'reserved'].includes(
+              primaryRow.status || '',
+            )
+              ? (primaryRow.status as
+                  | 'draft'
+                  | 'available'
+                  | 'sold'
+                  | 'reserved')
+              : existingPiece.status,
             // Add new media to existing
             mediaIds: [...existingPiece.mediaIds, ...mediaIds],
           })
@@ -161,9 +175,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             stock: primaryRow.stock,
             category: primaryRow.category || 'Uncategorized',
             tags: primaryRow.tags,
-            status: (['draft', 'available', 'sold', 'reserved'].includes(primaryRow.status || '')
-              ? primaryRow.status as 'draft' | 'available' | 'sold' | 'reserved'
-              : 'draft'),
+            status: ['draft', 'available', 'sold', 'reserved'].includes(
+              primaryRow.status || '',
+            )
+              ? (primaryRow.status as
+                  | 'draft'
+                  | 'available'
+                  | 'sold'
+                  | 'reserved')
+              : 'draft',
           }
 
           const newPiece = await pieces.createPiece(tenant.id, pieceData)
@@ -184,7 +204,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           imagesDownloaded: mediaIds.length,
         })
       } catch (productError) {
-        const errorMessage = productError instanceof Error ? productError.message : 'Unknown error'
+        const errorMessage =
+          productError instanceof Error ? productError.message : 'Unknown error'
         errors.push({
           row: productRows[0]?.rowNumber || 0,
           message: `Failed to import product "${handle}": ${errorMessage}`,
@@ -203,7 +224,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           })
           return NextResponse.json(
             { error: 'Import failed', errors },
-            { status: 500 }
+            { status: 500 },
           )
         }
 
@@ -242,13 +263,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       await imports.updateImportJob(tenant.id, jobId, {
         status: 'failed',
         completedAt: new Date(),
-        errors: [{ row: 0, message: error instanceof Error ? error.message : 'Import failed' }],
+        errors: [
+          {
+            row: 0,
+            message: error instanceof Error ? error.message : 'Import failed',
+          },
+        ],
       })
     }
 
     return NextResponse.json(
       { error: 'Failed to process import' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -260,7 +286,7 @@ async function downloadAndUploadImage(
   tenantId: string,
   imageUrl: string,
   productHandle: string,
-  position: number
+  position: number,
 ): Promise<{ id: string } | null> {
   try {
     // Download image
@@ -271,7 +297,9 @@ async function downloadAndUploadImage(
     })
 
     if (!response.ok) {
-      console.error(`Failed to download image: ${response.status} ${response.statusText}`)
+      console.error(
+        `Failed to download image: ${response.status} ${response.statusText}`,
+      )
       return null
     }
 
@@ -280,7 +308,11 @@ async function downloadAndUploadImage(
     const buffer = Buffer.from(arrayBuffer)
 
     // Generate filename
-    const extension = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg'
+    const extension = contentType.includes('png')
+      ? 'png'
+      : contentType.includes('webp')
+        ? 'webp'
+        : 'jpg'
     const fileName = `imports/${productHandle}-${position}-${nanoid(6)}.${extension}`
 
     // Upload to R2

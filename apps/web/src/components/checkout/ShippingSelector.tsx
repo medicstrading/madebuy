@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { AddressForm } from './AddressForm'
-import { ShippingOption } from './ShippingOption'
+import { useCallback, useEffect, useState } from 'react'
+import type { CartItem } from '@/contexts/CartContext'
 import {
-  ShippingAddress,
-  ShippingQuote,
-  QuoteResponse,
-  getShippingQuotes,
-  validateShippingAddress,
-  hasRequiredAddressFields,
   createEmptyAddress,
   formatShippingPrice,
-  requiresShipping,
+  getShippingQuotes,
+  hasRequiredAddressFields,
   isDigitalOnlyOrder,
+  type QuoteResponse,
+  requiresShipping,
+  type ShippingAddress,
+  type ShippingQuote,
+  validateShippingAddress,
 } from '@/lib/checkout/shipping'
-import type { CartItem } from '@/contexts/CartContext'
+import { AddressForm } from './AddressForm'
+import { ShippingOption } from './ShippingOption'
 
 interface ShippingSelectorProps {
   tenantId: string
@@ -43,7 +43,7 @@ export function ShippingSelector({
 
   // Check if this is a digital-only order
   const isDigitalOnly = isDigitalOnlyOrder(cartItems)
-  const needsShipping = requiresShipping(cartItems)
+  const _needsShipping = requiresShipping(cartItems)
 
   // Initialize address if not provided
   const address = destination || createEmptyAddress()
@@ -73,12 +73,21 @@ export function ShippingSelector({
         onMethodSelect(response.quotes[0])
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get shipping rates')
+      setError(
+        err instanceof Error ? err.message : 'Failed to get shipping rates',
+      )
       setQuoteResponse(null)
     } finally {
       setLoading(false)
     }
-  }, [tenantId, cartItems, address, isDigitalOnly, selectedMethod, onMethodSelect])
+  }, [
+    tenantId,
+    cartItems,
+    address,
+    isDigitalOnly,
+    selectedMethod,
+    onMethodSelect,
+  ])
 
   // Debounce quote fetching
   useEffect(() => {
@@ -89,7 +98,14 @@ export function ShippingSelector({
     }, 500) // Wait 500ms after last change
 
     return () => clearTimeout(timer)
-  }, [address.postcode, address.suburb, address.state, address.country, fetchQuotes])
+  }, [
+    address.postcode,
+    address.suburb,
+    address.state,
+    address.country,
+    fetchQuotes,
+    address,
+  ])
 
   // Validate address when it changes
   const handleAddressChange = async (newAddress: ShippingAddress) => {
@@ -99,7 +115,7 @@ export function ShippingSelector({
   }
 
   // Validate address on blur or before continuing
-  const validateAddress = async () => {
+  const _validateAddress = async () => {
     if (!hasRequiredAddressFields(address)) return false
 
     setValidatingAddress(true)
@@ -108,11 +124,15 @@ export function ShippingSelector({
 
       if (!result.valid && result.errors) {
         const errorMap: Record<string, string> = {}
-        result.errors.forEach(err => {
+        result.errors.forEach((err) => {
           // Try to map errors to specific fields
           if (err.toLowerCase().includes('postcode')) errorMap.postcode = err
           else if (err.toLowerCase().includes('state')) errorMap.state = err
-          else if (err.toLowerCase().includes('suburb') || err.toLowerCase().includes('city')) errorMap.suburb = err
+          else if (
+            err.toLowerCase().includes('suburb') ||
+            err.toLowerCase().includes('city')
+          )
+            errorMap.suburb = err
           else if (err.toLowerCase().includes('address')) errorMap.line1 = err
           else errorMap.general = err
         })
@@ -125,7 +145,7 @@ export function ShippingSelector({
       }
 
       return true
-    } catch (err) {
+    } catch (_err) {
       setAddressErrors({ general: 'Failed to validate address' })
       return false
     } finally {
@@ -154,10 +174,12 @@ export function ShippingSelector({
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-green-800">Digital Products Only</h3>
+            <h3 className="text-sm font-medium text-green-800">
+              Digital Products Only
+            </h3>
             <p className="mt-1 text-sm text-green-700">
-              Your order contains only digital products. No shipping required - you&apos;ll
-              receive download links via email after payment.
+              Your order contains only digital products. No shipping required -
+              you&apos;ll receive download links via email after payment.
             </p>
           </div>
         </div>
@@ -169,7 +191,9 @@ export function ShippingSelector({
     <div className="space-y-6">
       {/* Shipping Address Form */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Shipping Address</h2>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Shipping Address
+        </h2>
         <div className="mt-4">
           <AddressForm
             value={address}
@@ -195,7 +219,9 @@ export function ShippingSelector({
                 />
               </svg>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-amber-800">Address Warnings</h3>
+                <h3 className="text-sm font-medium text-amber-800">
+                  Address Warnings
+                </h3>
                 <ul className="mt-1 list-inside list-disc text-sm text-amber-700">
                   {addressWarnings.map((warning, index) => (
                     <li key={index}>{warning}</li>
@@ -219,12 +245,13 @@ export function ShippingSelector({
         <h2 className="text-xl font-semibold text-gray-900">Shipping Method</h2>
 
         {/* Free Shipping Progress */}
-        {quoteResponse?.freeShippingThreshold && !quoteResponse.freeShippingEligible && (
-          <FreeShippingProgress
-            threshold={quoteResponse.freeShippingThreshold}
-            amountUntil={quoteResponse.amountUntilFreeShipping || 0}
-          />
-        )}
+        {quoteResponse?.freeShippingThreshold &&
+          !quoteResponse.freeShippingEligible && (
+            <FreeShippingProgress
+              threshold={quoteResponse.freeShippingThreshold}
+              amountUntil={quoteResponse.amountUntilFreeShipping || 0}
+            />
+          )}
 
         {/* Free Shipping Achieved */}
         {quoteResponse?.freeShippingEligible && (
@@ -253,7 +280,9 @@ export function ShippingSelector({
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-              <span className="ml-3 text-sm text-gray-600">Getting shipping rates...</span>
+              <span className="ml-3 text-sm text-gray-600">
+                Getting shipping rates...
+              </span>
             </div>
           )}
 
@@ -275,7 +304,6 @@ export function ShippingSelector({
                 <div className="ml-3">
                   <p className="text-sm text-red-700">{error}</p>
                   <button
-                    type="button"
                     onClick={fetchQuotes}
                     className="mt-2 text-sm font-medium text-red-600 hover:text-red-500"
                   >
@@ -309,7 +337,8 @@ export function ShippingSelector({
                 />
               </svg>
               <p className="mt-2 text-sm text-gray-600">
-                Enter your shipping address above to see available delivery options
+                Enter your shipping address above to see available delivery
+                options
               </p>
             </div>
           )}
@@ -317,7 +346,7 @@ export function ShippingSelector({
           {/* Shipping Options */}
           {quoteResponse && quoteResponse.quotes.length > 0 && !loading && (
             <div className="space-y-3">
-              {quoteResponse.quotes.map(quote => (
+              {quoteResponse.quotes.map((quote) => (
                 <ShippingOption
                   key={quote.id}
                   quote={quote}
@@ -348,8 +377,8 @@ export function ShippingSelector({
                   </svg>
                   <div className="ml-3">
                     <p className="text-sm text-yellow-700">
-                      No shipping options available for this address. Please contact the
-                      seller for assistance.
+                      No shipping options available for this address. Please
+                      contact the seller for assistance.
                     </p>
                   </div>
                 </div>

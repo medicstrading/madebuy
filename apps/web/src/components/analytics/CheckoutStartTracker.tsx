@@ -14,7 +14,7 @@ export function CheckoutStartTracker({ tenantId }: CheckoutStartTrackerProps) {
     trackStartCheckout()
     // Only track once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [trackStartCheckout])
 
   return null
 }

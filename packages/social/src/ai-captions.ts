@@ -1,12 +1,12 @@
-import OpenAI from 'openai'
 import type {
   AICaptionRequest,
   AICaptionResponse,
-  SocialPlatform,
-  CaptionStyleProfile,
   CaptionStyleOptions,
+  CaptionStyleProfile,
+  SocialPlatform,
 } from '@madebuy/shared'
 import { PLATFORM_GUIDELINES } from '@madebuy/shared'
+import OpenAI from 'openai'
 
 // Lazy initialization to avoid build-time errors
 let openaiClient: OpenAI | null = null
@@ -23,7 +23,10 @@ function checkCaptionRateLimit(tenantId: string): boolean {
   const entry = captionRateLimit.requests.get(tenantId)
 
   if (!entry || now > entry.resetAt) {
-    captionRateLimit.requests.set(tenantId, { count: 1, resetAt: now + captionRateLimit.windowMs })
+    captionRateLimit.requests.set(tenantId, {
+      count: 1,
+      resetAt: now + captionRateLimit.windowMs,
+    })
     return true
   }
 
@@ -49,12 +52,15 @@ function getOpenAI(): OpenAI {
 /**
  * Sanitize user input for use in AI prompts to prevent prompt injection
  */
-function sanitizeForPrompt(input: string | undefined, maxLength: number = 500): string {
+function sanitizeForPrompt(
+  input: string | undefined,
+  maxLength: number = 500,
+): string {
   if (!input) return ''
   // Remove potential prompt injection patterns and limit length
   return input
-    .replace(/[\r\n]+/g, ' ')  // Remove newlines
-    .replace(/[<>{}[\]]/g, '')  // Remove brackets that could be interpreted as instructions
+    .replace(/[\r\n]+/g, ' ') // Remove newlines
+    .replace(/[<>{}[\]]/g, '') // Remove brackets that could be interpreted as instructions
     .slice(0, maxLength)
     .trim()
 }
@@ -68,8 +74,8 @@ function buildExamplesSection(profile: CaptionStyleProfile): string {
   const learnedExamples = profile.learnedExamples.slice(-2) // Most recent learned
 
   const allExamples = [
-    ...userExamples.map(e => e.content),
-    ...learnedExamples.map(e => e.content),
+    ...userExamples.map((e) => e.content),
+    ...learnedExamples.map((e) => e.content),
   ].slice(0, 5) // Max 5 examples
 
   if (allExamples.length === 0) {
@@ -118,8 +124,13 @@ function buildStyleInstructions(options: CaptionStyleOptions): string {
       moderate: '10-15',
       heavy: '20-30',
     }
-    const position = options.hashtagPosition === 'inline' ? 'naturally within the text' : 'at the end'
-    parts.push(`Include ${hashtagCounts[options.hashtagStyle] || '10-15'} relevant hashtags ${position}.`)
+    const position =
+      options.hashtagPosition === 'inline'
+        ? 'naturally within the text'
+        : 'at the end'
+    parts.push(
+      `Include ${hashtagCounts[options.hashtagStyle] || '10-15'} relevant hashtags ${position}.`,
+    )
   } else {
     parts.push('Do not include hashtags.')
   }
@@ -136,7 +147,9 @@ function buildStyleInstructions(options: CaptionStyleOptions): string {
 
   // Custom instructions
   if (options.customInstructions) {
-    parts.push(`Additional preferences: ${sanitizeForPrompt(options.customInstructions, 200)}`)
+    parts.push(
+      `Additional preferences: ${sanitizeForPrompt(options.customInstructions, 200)}`,
+    )
   }
 
   return parts.join('\n')
@@ -146,16 +159,16 @@ export interface GenerateCaptionOptions extends AICaptionRequest {
   imageUrls?: string[]
   productName?: string
   productDescription?: string
-  tenantId?: string  // For rate limiting
-  platform?: SocialPlatform  // Target platform for style
-  styleProfile?: CaptionStyleProfile  // User's style profile for this platform
+  tenantId?: string // For rate limiting
+  platform?: SocialPlatform // Target platform for style
+  styleProfile?: CaptionStyleProfile // User's style profile for this platform
 }
 
 /**
  * Generate AI-powered social media caption using OpenAI GPT-4o-mini
  */
 export async function generateCaption(
-  options: GenerateCaptionOptions
+  options: GenerateCaptionOptions,
 ): Promise<AICaptionResponse> {
   const {
     imageUrls = [],
@@ -170,13 +183,15 @@ export async function generateCaption(
 
   // Rate limit check
   if (tenantId && !checkCaptionRateLimit(tenantId)) {
-    throw new Error('Rate limit exceeded. Please wait before generating more captions.')
+    throw new Error(
+      'Rate limit exceeded. Please wait before generating more captions.',
+    )
   }
 
   // Validate image URLs (only allow https URLs)
   const validImageUrls = imageUrls
-    .filter(url => url.startsWith('https://'))
-    .slice(0, 4)  // Max 4 images
+    .filter((url) => url.startsWith('https://'))
+    .slice(0, 4) // Max 4 images
 
   // Sanitize user inputs to prevent prompt injection
   const sanitizedProductName = sanitizeForPrompt(productName, 200)
@@ -192,9 +207,12 @@ export async function generateCaption(
   } else {
     // Fallback to basic style
     const basicStyles: Record<string, string> = {
-      casual: 'Write in a casual, friendly tone. Use moderate emojis. Keep it conversational.',
-      professional: 'Write in a professional, polished tone. Use minimal emojis. Be clear and concise.',
-      playful: 'Write in a playful, fun tone with personality. Use lots of emojis. Be creative and engaging.',
+      casual:
+        'Write in a casual, friendly tone. Use moderate emojis. Keep it conversational.',
+      professional:
+        'Write in a professional, polished tone. Use minimal emojis. Be clear and concise.',
+      playful:
+        'Write in a playful, fun tone with personality. Use lots of emojis. Be creative and engaging.',
     }
     styleInstructions = basicStyles[style] || basicStyles.professional
   }
@@ -236,17 +254,14 @@ Important rules:
 
   if (validImageUrls.length > 0) {
     // GPT-4o-mini can analyze images
-    const imageContent = validImageUrls.map(url => ({
+    const imageContent = validImageUrls.map((url) => ({
       type: 'image_url' as const,
-      image_url: { url }
+      image_url: { url },
     }))
 
     messages.push({
       role: 'user',
-      content: [
-        { type: 'text' as const, text: userPrompt },
-        ...imageContent,
-      ]
+      content: [{ type: 'text' as const, text: userPrompt }, ...imageContent],
     })
   } else {
     messages.push({
@@ -257,7 +272,7 @@ Important rules:
 
   try {
     const response = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o-mini',  // Using cost-effective mini model
+      model: 'gpt-4o-mini', // Using cost-effective mini model
       messages,
       max_tokens: 300,
       temperature: 0.8, // More creative
@@ -285,7 +300,7 @@ Important rules:
  */
 export async function generateCaptionVariations(
   options: GenerateCaptionOptions,
-  count: number = 3
+  count: number = 3,
 ): Promise<AICaptionResponse[]> {
   // Limit count to prevent abuse
   const safeCount = Math.min(Math.max(1, count), 5)
@@ -304,7 +319,7 @@ export async function suggestHashtags(
   productName: string,
   productDescription?: string,
   category?: string,
-  platform?: SocialPlatform
+  platform?: SocialPlatform,
 ): Promise<string[]> {
   // Platform-specific hashtag counts
   const hashtagCounts: Record<SocialPlatform, string> = {
@@ -327,11 +342,12 @@ ${platform ? `Platform: ${platform}` : ''}
 Return ONLY the hashtags, one per line, without the # symbol.`
 
   const response = await getOpenAI().chat.completions.create({
-    model: 'gpt-4o-mini',  // Using cost-effective mini model
+    model: 'gpt-4o-mini', // Using cost-effective mini model
     messages: [
       {
         role: 'system',
-        content: 'You are a social media hashtag expert. Generate relevant, popular hashtags for product marketing. Focus on discoverability and engagement.',
+        content:
+          'You are a social media hashtag expert. Generate relevant, popular hashtags for product marketing. Focus on discoverability and engagement.',
       },
       {
         role: 'user',
@@ -357,7 +373,7 @@ Return ONLY the hashtags, one per line, without the # symbol.`
 export async function adaptCaptionForPlatform(
   baseCaption: string,
   targetPlatform: SocialPlatform,
-  styleProfile?: CaptionStyleProfile
+  styleProfile?: CaptionStyleProfile,
 ): Promise<AICaptionResponse> {
   const platformGuidelines = PLATFORM_GUIDELINES[targetPlatform]
   const styleInstructions = styleProfile?.style
@@ -378,7 +394,10 @@ Important: Maintain the core message but optimize for the target platform.`
     model: 'gpt-4o-mini',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Adapt this caption for ${targetPlatform}:\n\n${sanitizeForPrompt(baseCaption, 500)}` },
+      {
+        role: 'user',
+        content: `Adapt this caption for ${targetPlatform}:\n\n${sanitizeForPrompt(baseCaption, 500)}`,
+      },
     ],
     max_tokens: 300,
     temperature: 0.7,

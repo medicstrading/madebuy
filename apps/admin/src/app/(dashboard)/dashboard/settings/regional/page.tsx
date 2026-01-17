@@ -1,19 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Save, Loader2, Check, RefreshCw } from 'lucide-react'
+import type { RegionalSettings } from '@madebuy/shared'
 import {
   COUNTRY_PRESETS,
-  getCountryPreset,
   DEFAULT_REGIONAL_SETTINGS,
+  getCountryPreset,
 } from '@madebuy/shared'
-import type { RegionalSettings } from '@madebuy/shared'
+import { Check, Loader2, Save } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function RegionalSettingsPage() {
   const [settings, setSettings] = useState<RegionalSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
@@ -78,14 +81,17 @@ export default function RegionalSettingsPage() {
       })
 
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Regional settings saved! Reloading...' })
+        setMessage({
+          type: 'success',
+          text: 'Regional settings saved! Reloading...',
+        })
         setHasChanges(false)
         // Reload to update the RegionalProvider context
         setTimeout(() => window.location.reload(), 1500)
       } else {
         setMessage({ type: 'error', text: 'Failed to save settings' })
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({ type: 'error', text: 'Failed to save settings' })
     } finally {
       setIsSaving(false)
@@ -145,33 +151,37 @@ export default function RegionalSettingsPage() {
             ))}
           </select>
           <p className="mt-2 text-sm text-gray-500">
-            Changing your country updates currency, date format, and timezone defaults
+            Changing your country updates currency, date format, and timezone
+            defaults
           </p>
         </div>
 
         {/* Timezone Selection */}
-        {currentPreset?.popularTimezones && currentPreset.popularTimezones.length > 1 && (
-          <div className="p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Timezone
-            </label>
-            <select
-              value={effectiveTimezone}
-              onChange={(e) => handleTimezoneChange(e.target.value)}
-              className="w-full max-w-md rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            >
-              {currentPreset.popularTimezones.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {currentPreset?.popularTimezones &&
+          currentPreset.popularTimezones.length > 1 && (
+            <div className="p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Timezone
+              </label>
+              <select
+                value={effectiveTimezone}
+                onChange={(e) => handleTimezoneChange(e.target.value)}
+                className="w-full max-w-md rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              >
+                {currentPreset.popularTimezones.map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz.replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
         {/* Current Settings Preview */}
         <div className="p-6 bg-gray-50">
-          <h3 className="text-sm font-medium text-gray-700 mb-4">Current Settings Preview</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-4">
+            Current Settings Preview
+          </h3>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <dt className="text-sm text-gray-500">Currency</dt>
@@ -185,21 +195,27 @@ export default function RegionalSettingsPage() {
             <div>
               <dt className="text-sm text-gray-500">Date Format</dt>
               <dd className="mt-1 text-lg font-medium text-gray-900">
-                {new Intl.DateTimeFormat(settings.customLocale || settings.locale, {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                }).format(new Date())}
+                {new Intl.DateTimeFormat(
+                  settings.customLocale || settings.locale,
+                  {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  },
+                ).format(new Date())}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Time Format</dt>
               <dd className="mt-1 text-lg font-medium text-gray-900">
-                {new Intl.DateTimeFormat(settings.customLocale || settings.locale, {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  timeZone: effectiveTimezone,
-                }).format(new Date())}
+                {new Intl.DateTimeFormat(
+                  settings.customLocale || settings.locale,
+                  {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZone: effectiveTimezone,
+                  },
+                ).format(new Date())}
               </dd>
             </div>
             <div>
@@ -220,6 +236,7 @@ export default function RegionalSettingsPage() {
         {/* Save Button */}
         <div className="p-6 flex justify-end">
           <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving || !hasChanges}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"

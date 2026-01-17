@@ -3,16 +3,13 @@
  * PATCH /api/pieces/[id]/variants/stock - Bulk update stock for multiple variants
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { pieces, variants } from '@madebuy/db'
 import type { BulkStockUpdateItem } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 // Import error classes from the variants namespace
-const {
-  NotFoundError,
-  ValidationError,
-} = variants
+const { NotFoundError, ValidationError } = variants
 
 interface RouteParams {
   params: { id: string }
@@ -34,7 +31,7 @@ function errorResponse(
   message: string,
   code: string,
   status: number,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): NextResponse<ErrorResponse> {
   return NextResponse.json({ error: message, code, details }, { status })
 }
@@ -53,17 +50,15 @@ function handleVariantError(error: unknown): NextResponse<ErrorResponse> {
 
   // Unknown error
   console.error('[stock API] Unexpected error:', error)
-  return errorResponse(
-    'An unexpected error occurred',
-    'INTERNAL_ERROR',
-    500
-  )
+  return errorResponse('An unexpected error occurred', 'INTERNAL_ERROR', 500)
 }
 
 /**
  * Type guard for bulk stock update input
  */
-function isValidBulkStockInput(data: unknown): data is { updates: BulkStockUpdateItem[] } {
+function _isValidBulkStockInput(
+  data: unknown,
+): data is { updates: BulkStockUpdateItem[] } {
   if (!data || typeof data !== 'object') return false
 
   const input = data as Record<string, unknown>
@@ -79,7 +74,11 @@ function isValidBulkStockInput(data: unknown): data is { updates: BulkStockUpdat
       return false
     }
 
-    if (typeof update.stock !== 'number' || !Number.isInteger(update.stock) || update.stock < 0) {
+    if (
+      typeof update.stock !== 'number' ||
+      !Number.isInteger(update.stock) ||
+      update.stock < 0
+    ) {
       return false
     }
   }
@@ -91,7 +90,7 @@ function isValidBulkStockInput(data: unknown): data is { updates: BulkStockUpdat
  * Validates each update item and returns detailed errors
  */
 function validateBulkStockUpdates(
-  updates: unknown[]
+  updates: unknown[],
 ): { index: number; errors: string[] }[] {
   const results: { index: number; errors: string[] }[] = []
 
@@ -171,12 +170,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
               { variantId: 'string', stock: 'number (non-negative integer)' },
             ],
           },
-        }
+        },
       )
     }
 
     if (body.updates.length === 0) {
-      return errorResponse('Updates array cannot be empty', 'EMPTY_UPDATES', 400)
+      return errorResponse(
+        'Updates array cannot be empty',
+        'EMPTY_UPDATES',
+        400,
+      )
     }
 
     // Validate each update
@@ -186,7 +189,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         'Validation failed for some updates',
         'VALIDATION_ERROR',
         400,
-        { validationErrors }
+        { validationErrors },
       )
     }
 
@@ -195,13 +198,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const uniqueIds = new Set(variantIds)
     if (uniqueIds.size !== variantIds.length) {
       const duplicates = variantIds.filter(
-        (id: string, index: number) => variantIds.indexOf(id) !== index
+        (id: string, index: number) => variantIds.indexOf(id) !== index,
       )
       return errorResponse(
         'Duplicate variant IDs in updates',
         'DUPLICATE_VARIANT_IDS',
         400,
-        { duplicates: [...new Set(duplicates)] }
+        { duplicates: [...new Set(duplicates)] },
       )
     }
 
@@ -226,7 +229,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             ? `Successfully updated stock for ${result.updated} variants`
             : `Updated ${result.updated} variants, ${result.failed.length} not found`,
       },
-      { status }
+      { status },
     )
   } catch (error) {
     console.error('[stock PATCH] Error:', error)

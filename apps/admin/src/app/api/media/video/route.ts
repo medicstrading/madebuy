@@ -1,10 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
-import { uploadToR2, uploadToLocal } from '@madebuy/storage'
+import { uploadToLocal, uploadToR2 } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
+
 // Media constants
-const VALID_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'] as const
-const MAX_VIDEO_SIZE = 100 * 1024 * 1024  // 100MB
+const VALID_VIDEO_TYPES = [
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+] as const
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
 const MAX_MEDIA_PER_PIECE = 20
 
 const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === 'true'
@@ -36,18 +41,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    if (!VALID_VIDEO_TYPES.includes(file.type as typeof VALID_VIDEO_TYPES[number])) {
+    if (
+      !VALID_VIDEO_TYPES.includes(
+        file.type as (typeof VALID_VIDEO_TYPES)[number],
+      )
+    ) {
       return NextResponse.json(
         { error: `Invalid file type. Supported formats: MP4, MOV, WebM` },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate file size
     if (file.size > MAX_VIDEO_SIZE) {
       return NextResponse.json(
-        { error: `File too large. Maximum size is ${MAX_VIDEO_SIZE / 1024 / 1024}MB` },
-        { status: 400 }
+        {
+          error: `File too large. Maximum size is ${MAX_VIDEO_SIZE / 1024 / 1024}MB`,
+        },
+        { status: 400 },
       )
     }
 
@@ -57,7 +68,7 @@ export async function POST(request: NextRequest) {
       if (existingMedia.length >= MAX_MEDIA_PER_PIECE) {
         return NextResponse.json(
           { error: `Maximum ${MAX_MEDIA_PER_PIECE} media items per piece` },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -109,15 +120,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         media: mediaItem,
-        message: 'Video uploaded successfully. Thumbnail will be generated shortly.',
+        message:
+          'Video uploaded successfully. Thumbnail will be generated shortly.',
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
     console.error('Error uploading video:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }
@@ -148,8 +162,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching videos:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 },
     )
   }
 }

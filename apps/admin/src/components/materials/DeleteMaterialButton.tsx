@@ -9,12 +9,19 @@ interface DeleteMaterialButtonProps {
   materialName: string
 }
 
-export function DeleteMaterialButton({ materialId, materialName }: DeleteMaterialButtonProps) {
+export function DeleteMaterialButton({
+  materialId,
+  materialName,
+}: DeleteMaterialButtonProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete "${materialName}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${materialName}"? This action cannot be undone.`,
+      )
+    ) {
       return
     }
 
@@ -39,6 +46,7 @@ export function DeleteMaterialButton({ materialId, materialName }: DeleteMateria
 
   return (
     <button
+      type="button"
       onClick={handleDelete}
       disabled={deleting}
       className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"

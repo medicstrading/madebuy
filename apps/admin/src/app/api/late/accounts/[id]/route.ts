@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { lateClient } from '@madebuy/social'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * DELETE /api/late/accounts/[id]
@@ -9,8 +9,8 @@ import { lateClient } from '@madebuy/social'
 export const dynamic = 'force-dynamic'
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -25,8 +25,13 @@ export async function DELETE(
   } catch (error) {
     console.error('Error disconnecting account:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to disconnect account' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to disconnect account',
+      },
+      { status: 500 },
     )
   }
 }

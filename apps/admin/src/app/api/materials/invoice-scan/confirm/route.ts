@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { invoices, materials } from '@madebuy/db'
-import type { InvoiceLineItem, CreateMaterialInput } from '@madebuy/shared'
+import type { CreateMaterialInput, InvoiceLineItem } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * POST /api/materials/invoice-scan/confirm
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { invoiceId, confirmedLineItems } = await request.json() as {
+    const { invoiceId, confirmedLineItems } = (await request.json()) as {
       invoiceId: string
       confirmedLineItems: InvoiceLineItem[]
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     if (!invoiceId || !confirmedLineItems) {
       return NextResponse.json(
         { error: 'Invoice ID and confirmed line items required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -46,10 +46,15 @@ export async function POST(request: NextRequest) {
 
         if (item.action === 'create') {
           // Create new material
-          if (!item.parsedName || !item.parsedUnit || item.parsedPrice === undefined || item.parsedQuantity === undefined) {
+          if (
+            !item.parsedName ||
+            !item.parsedUnit ||
+            item.parsedPrice === undefined ||
+            item.parsedQuantity === undefined
+          ) {
             errors.push({
               item,
-              error: 'Missing required fields for creating material'
+              error: 'Missing required fields for creating material',
             })
             continue
           }
@@ -66,12 +71,12 @@ export async function POST(request: NextRequest) {
             currency: invoice.currency || 'AUD',
             reorderPoint: Math.floor(item.parsedQuantity * 0.2), // Default: 20% of initial stock
             supplier: invoice.supplier,
-            tags: []
+            tags: [],
           }
 
           const newMaterial = await materials.createMaterial(
             tenant.id,
-            newMaterialData
+            newMaterialData,
           )
 
           // Update material with invoice tracking
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest) {
             newMaterial.id,
             invoiceId,
             0, // No additional stock since we just created it
-            item.parsedPrice
+            item.parsedPrice,
           )
 
           createdMaterialIds.push(newMaterial.id)
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
           if (item.parsedQuantity === undefined) {
             errors.push({
               item,
-              error: 'Missing quantity for updating material'
+              error: 'Missing quantity for updating material',
             })
             continue
           }
@@ -99,7 +104,7 @@ export async function POST(request: NextRequest) {
             item.materialId,
             invoiceId,
             item.parsedQuantity,
-            item.parsedPrice
+            item.parsedPrice,
           )
 
           updatedMaterialIds.push(item.materialId)
@@ -107,7 +112,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         errors.push({
           item,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         })
       }
     }
@@ -115,7 +120,7 @@ export async function POST(request: NextRequest) {
     // Update invoice with material IDs
     const allMaterialIds = [...createdMaterialIds, ...updatedMaterialIds]
     await invoices.updateInvoice(tenant.id, invoiceId, {
-      materialIds: allMaterialIds
+      materialIds: allMaterialIds,
     })
 
     return NextResponse.json({
@@ -125,20 +130,21 @@ export async function POST(request: NextRequest) {
       totalProcessed: createdMaterialIds.length + updatedMaterialIds.length,
       errors: errors.length,
       errorDetails: errors.length > 0 ? errors : undefined,
-      message: `Successfully processed ${createdMaterialIds.length + updatedMaterialIds.length} materials${errors.length > 0 ? ` with ${errors.length} errors` : ''}`
+      message: `Successfully processed ${createdMaterialIds.length + updatedMaterialIds.length} materials${errors.length > 0 ? ` with ${errors.length} errors` : ''}`,
     })
   } catch (error) {
     console.error('Error confirming invoice items:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred'
 
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to save materials from invoice',
         details: errorMessage,
-        code: 'CONFIRMATION_FAILED'
+        code: 'CONFIRMATION_FAILED',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -147,17 +153,39 @@ export async function POST(request: NextRequest) {
  * Helper: Determine material category from name (simple heuristic)
  * Can be improved with better categorization logic
  */
-function determineCategoryFromName(name: string): CreateMaterialInput['category'] {
+function determineCategoryFromName(
+  name: string,
+): CreateMaterialInput['category'] {
   const lowerName = name.toLowerCase()
 
   if (lowerName.includes('wire')) return 'wire'
   if (lowerName.includes('chain')) return 'chain'
-  if (lowerName.includes('finding') || lowerName.includes('clasp') || lowerName.includes('hook')) return 'finding'
+  if (
+    lowerName.includes('finding') ||
+    lowerName.includes('clasp') ||
+    lowerName.includes('hook')
+  )
+    return 'finding'
   if (lowerName.includes('bead')) return 'bead'
-  if (lowerName.includes('stone') || lowerName.includes('gem') || lowerName.includes('crystal')) return 'stone'
-  if (lowerName.includes('silver') || lowerName.includes('gold') || lowerName.includes('metal')) return 'metal'
+  if (
+    lowerName.includes('stone') ||
+    lowerName.includes('gem') ||
+    lowerName.includes('crystal')
+  )
+    return 'stone'
+  if (
+    lowerName.includes('silver') ||
+    lowerName.includes('gold') ||
+    lowerName.includes('metal')
+  )
+    return 'metal'
   if (lowerName.includes('tool') || lowerName.includes('plier')) return 'tool'
-  if (lowerName.includes('box') || lowerName.includes('bag') || lowerName.includes('packaging')) return 'packaging'
+  if (
+    lowerName.includes('box') ||
+    lowerName.includes('bag') ||
+    lowerName.includes('packaging')
+  )
+    return 'packaging'
 
   return 'other'
 }

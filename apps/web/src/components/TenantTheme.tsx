@@ -1,5 +1,9 @@
+import {
+  getDefaultWebsiteDesign,
+  getGoogleFontsUrl,
+  getTypographyConfig,
+} from '@madebuy/shared/src/constants/typography'
 import type { Tenant } from '@madebuy/shared/src/types/tenant'
-import { getTypographyConfig, getGoogleFontsUrl, getDefaultWebsiteDesign } from '@madebuy/shared/src/constants/typography'
 
 interface TenantThemeProps {
   tenant: Tenant
@@ -25,10 +29,15 @@ export function TenantTheme({ tenant, children }: TenantThemeProps) {
     <>
       {/* Load Google Fonts */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
       <link href={googleFontsUrl} rel="stylesheet" />
 
       {/* Inject CSS Variables and Theme Styles */}
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Theme CSS variables are safely constructed from validated color values */}
       <style
         dangerouslySetInnerHTML={{
           __html: `

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Plus, FolderOpen, Trash2, Edit, Eye, EyeOff, Star } from 'lucide-react'
 import type { Collection } from '@madebuy/shared'
+import { Edit, Eye, EyeOff, FolderOpen, Plus, Star, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 export default function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([])
@@ -11,7 +11,7 @@ export default function CollectionsPage() {
 
   useEffect(() => {
     fetchCollections()
-  }, [])
+  }, [fetchCollections])
 
   async function fetchCollections() {
     try {
@@ -76,7 +76,9 @@ export default function CollectionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
-          <p className="text-gray-500 mt-1">Organize products into themed collections</p>
+          <p className="text-gray-500 mt-1">
+            Organize products into themed collections
+          </p>
         </div>
         <Link
           href="/dashboard/collections/new"
@@ -91,8 +93,12 @@ export default function CollectionsPage() {
       {collections.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No collections yet</h3>
-          <p className="text-gray-500 mb-4">Create collections to group and showcase your products.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No collections yet
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Create collections to group and showcase your products.
+          </p>
           <Link
             href="/dashboard/collections/new"
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -117,7 +123,9 @@ export default function CollectionsPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{collection.name}</h3>
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {collection.name}
+                    </h3>
                     <p className="text-sm text-gray-500 mt-1">
                       {collection.pieceIds.length} products
                     </p>
@@ -135,7 +143,9 @@ export default function CollectionsPage() {
                 </div>
 
                 {collection.description && (
-                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">{collection.description}</p>
+                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                    {collection.description}
+                  </p>
                 )}
 
                 {/* Actions */}
@@ -148,7 +158,11 @@ export default function CollectionsPage() {
                     Edit
                   </Link>
                   <button
-                    onClick={() => togglePublished(collection.id, collection.isPublished)}
+                    type="button"
+                    type="button"
+                    onClick={() =>
+                      togglePublished(collection.id, collection.isPublished)
+                    }
                     className={`p-2 rounded-lg transition-colors ${
                       collection.isPublished
                         ? 'text-green-600 hover:bg-green-50'
@@ -156,10 +170,21 @@ export default function CollectionsPage() {
                     }`}
                     title={collection.isPublished ? 'Unpublish' : 'Publish'}
                   >
-                    {collection.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    {collection.isPublished ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
                   </button>
                   <button
-                    onClick={() => toggleFeatured(collection.id, collection.isFeatured || false)}
+                    type="button"
+                    type="button"
+                    onClick={() =>
+                      toggleFeatured(
+                        collection.id,
+                        collection.isFeatured || false,
+                      )
+                    }
                     className={`p-2 rounded-lg transition-colors ${
                       collection.isFeatured
                         ? 'text-amber-500 hover:bg-amber-50'
@@ -167,9 +192,13 @@ export default function CollectionsPage() {
                     }`}
                     title={collection.isFeatured ? 'Unfeature' : 'Feature'}
                   >
-                    <Star className={`h-4 w-4 ${collection.isFeatured ? 'fill-amber-500' : ''}`} />
+                    <Star
+                      className={`h-4 w-4 ${collection.isFeatured ? 'fill-amber-500' : ''}`}
+                    />
                   </button>
                   <button
+                    type="button"
+                    type="button"
                     onClick={() => deleteCollection(collection.id)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"

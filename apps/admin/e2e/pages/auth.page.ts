@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 /**
  * Page Object for Authentication pages (Login, Register, Forgot Password)
@@ -26,14 +26,20 @@ export class AuthPage {
     this.emailInput = page.getByLabel(/email/i)
     this.passwordInput = page.getByLabel(/^password$/i)
     this.loginButton = page.getByRole('button', { name: /sign in|log in/i })
-    this.errorMessage = page.locator('[role="alert"]').or(page.getByText(/invalid|incorrect|error/i))
+    this.errorMessage = page
+      .locator('[role="alert"]')
+      .or(page.getByText(/invalid|incorrect|error/i))
     this.forgotPasswordLink = page.getByRole('link', { name: /forgot|reset/i })
-    this.registerLink = page.getByRole('link', { name: /register|sign up|create/i })
+    this.registerLink = page.getByRole('link', {
+      name: /register|sign up|create/i,
+    })
 
     // Register form
     this.nameInput = page.getByLabel(/name/i)
     this.confirmPasswordInput = page.getByLabel(/confirm password/i)
-    this.registerButton = page.getByRole('button', { name: /register|sign up|create/i })
+    this.registerButton = page.getByRole('button', {
+      name: /register|sign up|create/i,
+    })
   }
 
   /**
@@ -72,7 +78,10 @@ export class AuthPage {
   /**
    * Login and wait for dashboard redirect
    */
-  async loginAndWaitForDashboard(email: string, password: string): Promise<void> {
+  async loginAndWaitForDashboard(
+    email: string,
+    password: string,
+  ): Promise<void> {
     await this.login(email, password)
     await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 15000 })
   }
@@ -129,7 +138,9 @@ export class AuthPage {
    */
   async submitForgotPassword(email: string): Promise<void> {
     await this.emailInput.fill(email)
-    const submitButton = this.page.getByRole('button', { name: /send|reset|submit/i })
+    const submitButton = this.page.getByRole('button', {
+      name: /send|reset|submit/i,
+    })
     await submitButton.click()
   }
 
@@ -138,7 +149,7 @@ export class AuthPage {
    */
   async waitForResetSuccess(): Promise<void> {
     await expect(
-      this.page.getByText(/email sent|check your email|password reset/i)
+      this.page.getByText(/email sent|check your email|password reset/i),
     ).toBeVisible({ timeout: 10000 })
   }
 }

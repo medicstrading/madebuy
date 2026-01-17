@@ -4,15 +4,20 @@
  */
 
 export type ImportJobStatus =
-  | 'uploaded'    // File uploaded, waiting for validation
-  | 'validating'  // Validation in progress
-  | 'validated'   // Validation complete, ready for import
-  | 'processing'  // Import in progress
-  | 'completed'   // Import finished successfully
-  | 'failed'      // Import failed with errors
-  | 'cancelled'   // Import cancelled by user
+  | 'uploaded' // File uploaded, waiting for validation
+  | 'validating' // Validation in progress
+  | 'validated' // Validation complete, ready for import
+  | 'processing' // Import in progress
+  | 'completed' // Import finished successfully
+  | 'failed' // Import failed with errors
+  | 'cancelled' // Import cancelled by user
 
-export type ImportSource = 'madebuy' | 'shopify' | 'etsy' | 'woocommerce' | 'custom'
+export type ImportSource =
+  | 'madebuy'
+  | 'shopify'
+  | 'etsy'
+  | 'woocommerce'
+  | 'custom'
 
 /**
  * ImportJob - Tracks a CSV import operation
@@ -25,8 +30,8 @@ export interface ImportJob {
 
   // File info
   filename: string
-  fileKey: string          // R2 storage key
-  fileSize: number         // in bytes
+  fileKey: string // R2 storage key
+  fileSize: number // in bytes
   rowCount: number
 
   // Column mapping (for custom imports)
@@ -47,8 +52,8 @@ export interface ImportJob {
   imagesDownloaded: number
 
   // Configuration
-  updateExisting: boolean   // Update products that already exist (match by handle/SKU)
-  skipErrors: boolean       // Continue importing even if some rows fail
+  updateExisting: boolean // Update products that already exist (match by handle/SKU)
+  skipErrors: boolean // Continue importing even if some rows fail
 
   createdAt: Date
   updatedAt: Date
@@ -58,8 +63,8 @@ export interface ImportJob {
  * Column mapping for custom imports
  */
 export interface ColumnMapping {
-  handle?: string         // Column name that maps to handle/slug
-  name?: string           // Column name that maps to product name
+  handle?: string // Column name that maps to handle/slug
+  name?: string // Column name that maps to product name
   description?: string
   price?: string
   stock?: string
@@ -80,7 +85,7 @@ export interface ImportPreview {
   variantsDetected: number
   imagesDetected: number
   detectedSource: ImportSource
-  sampleRows: ParsedRow[]  // First 5 rows for preview
+  sampleRows: ParsedRow[] // First 5 rows for preview
   detectedColumns: string[]
   suggestedMapping?: ColumnMapping
 }
@@ -102,7 +107,7 @@ export interface ParsedRow {
   sku?: string
   imageUrl?: string
   imagePosition?: number
-  raw: Record<string, string>  // Original row data
+  raw: Record<string, string> // Original row data
 }
 
 /**
@@ -190,4 +195,10 @@ export const REQUIRED_COLUMNS = ['handle', 'name'] as const
 /**
  * Valid product statuses
  */
-export const VALID_STATUSES = ['draft', 'available', 'sold', 'reserved', 'archived'] as const
+export const VALID_STATUSES = [
+  'draft',
+  'available',
+  'sold',
+  'reserved',
+  'archived',
+] as const

@@ -1,20 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import {
-  Users,
-  DollarSign,
-  ShoppingBag,
-  TrendingUp,
-  Search,
-  Download,
-  Filter,
-  Mail,
-  Calendar,
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
+  Download,
+  Mail,
+  Search,
+  ShoppingBag,
+  TrendingUp,
+  Users,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface Customer {
   id: string
@@ -59,12 +57,12 @@ export default function CustomersPage() {
   const [filter, setFilter] = useState<'all' | 'subscribed' | 'repeat'>('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [sortBy, setSortBy] = useState<'spent' | 'orders' | 'recent'>('spent')
+  const [_sortBy, setSortBy] = useState<'spent' | 'orders' | 'recent'>('spent')
 
   useEffect(() => {
     fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filter, sortBy])
+  }, [fetchData])
 
   async function fetchData() {
     setLoading(true)
@@ -143,9 +141,13 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-500 mt-1">Manage your customer base and track lifetime value</p>
+          <p className="text-gray-500 mt-1">
+            Manage your customer base and track lifetime value
+          </p>
         </div>
         <button
+          type="button"
+          type="button"
           onClick={exportCustomers}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
@@ -189,18 +191,32 @@ export default function CustomersPage() {
       {/* Top Customers */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-base font-semibold text-gray-900">Top Customers by LTV</h2>
+          <h2 className="text-base font-semibold text-gray-900">
+            Top Customers by LTV
+          </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Lifetime Value</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Predicted LTV</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Orders</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Avg Order</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Last Order</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Lifetime Value
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Predicted LTV
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Orders
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Avg Order
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Last Order
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -213,8 +229,12 @@ export default function CustomersPage() {
                           {index + 1}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{customer.name}</p>
-                          <p className="text-xs text-gray-500">{customer.email}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {customer.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {customer.email}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -239,8 +259,12 @@ export default function CustomersPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No customers yet. Customers will appear here after their first order.
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    No customers yet. Customers will appear here after their
+                    first order.
                   </td>
                 </tr>
               )}
@@ -253,7 +277,9 @@ export default function CustomersPage() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h2 className="text-base font-semibold text-gray-900">All Customers</h2>
+            <h2 className="text-base font-semibold text-gray-900">
+              All Customers
+            </h2>
             <div className="flex items-center gap-3">
               {/* Search */}
               <div className="relative">
@@ -271,7 +297,9 @@ export default function CustomersPage() {
               {/* Filter */}
               <select
                 value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
+                onChange={(e) =>
+                  setFilter(e.target.value as 'all' | 'subscribed' | 'repeat')
+                }
                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Customers</option>
@@ -286,9 +314,13 @@ export default function CustomersPage() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Customer
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   <button
+                    type="button"
+                    type="button"
                     onClick={() => setSortBy('orders')}
                     className="flex items-center gap-1 ml-auto hover:text-gray-700"
                   >
@@ -298,6 +330,8 @@ export default function CustomersPage() {
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   <button
+                    type="button"
+                    type="button"
                     onClick={() => setSortBy('spent')}
                     className="flex items-center gap-1 ml-auto hover:text-gray-700"
                   >
@@ -305,10 +339,16 @@ export default function CustomersPage() {
                     <ArrowUpDown className="h-3 w-3" />
                   </button>
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Source</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Source
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   <button
+                    type="button"
+                    type="button"
                     onClick={() => setSortBy('recent')}
                     className="flex items-center gap-1 ml-auto hover:text-gray-700"
                   >
@@ -321,7 +361,10 @@ export default function CustomersPage() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     Loading...
                   </td>
                 </tr>
@@ -330,8 +373,12 @@ export default function CustomersPage() {
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{customer.name}</p>
-                        <p className="text-xs text-gray-500">{customer.email}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {customer.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {customer.email}
+                        </p>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-600">
@@ -362,7 +409,10 @@ export default function CustomersPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     No customers found.
                   </td>
                 </tr>
@@ -379,6 +429,8 @@ export default function CustomersPage() {
             </p>
             <div className="flex items-center gap-2">
               <button
+                type="button"
+                type="button"
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
                 className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
@@ -386,6 +438,8 @@ export default function CustomersPage() {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
+                type="button"
+                type="button"
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
                 className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
@@ -409,7 +463,7 @@ function StatCard({
 }: {
   title: string
   value: string | number
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   color: 'blue' | 'green' | 'purple' | 'amber'
   subtitle?: string
 }) {

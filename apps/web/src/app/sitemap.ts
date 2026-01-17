@@ -1,5 +1,5 @@
-import { MetadataRoute } from 'next'
-import { tenants, pieces } from '@madebuy/db'
+import { pieces, tenants } from '@madebuy/db'
+import type { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const activeTenants = await tenants.listTenants()
 
   // Tenant storefront pages
-  const tenantPages: MetadataRoute.Sitemap = activeTenants.map(tenant => ({
+  const tenantPages: MetadataRoute.Sitemap = activeTenants.map((tenant) => ({
     url: `${siteUrl}/${tenant.slug}`,
     lastModified: tenant.updatedAt || tenant.createdAt || new Date(),
     changeFrequency: 'daily' as const,
@@ -42,7 +42,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const tenant of activeTenants) {
     try {
-      const tenantPieces = await pieces.listPieces(tenant.id, { status: 'available' })
+      const tenantPieces = await pieces.listPieces(tenant.id, {
+        status: 'available',
+      })
 
       for (const piece of tenantPieces) {
         const slug = piece.websiteSlug || piece.slug || piece.id
@@ -54,7 +56,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
       }
     } catch (error) {
-      console.error(`Failed to fetch products for tenant ${tenant.slug}:`, error)
+      console.error(
+        `Failed to fetch products for tenant ${tenant.slug}:`,
+        error,
+      )
     }
   }
 

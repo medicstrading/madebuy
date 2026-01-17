@@ -1,7 +1,12 @@
-import { Resend } from 'resend'
-import type { Tenant, Newsletter, NewsletterTemplate, Order } from '@madebuy/shared'
 import type { LowStockPiece } from '@madebuy/db'
+import type {
+  Newsletter,
+  NewsletterTemplate,
+  Order,
+  Tenant,
+} from '@madebuy/shared'
 import { renderShippedEmail } from '@madebuy/shared'
+import { Resend } from 'resend'
 
 let resend: Resend | null = null
 
@@ -38,7 +43,7 @@ interface SendNewsletterResult {
 function buildNewsletterHtml(
   newsletter: Newsletter,
   template: NewsletterTemplate,
-  tenant: Tenant
+  tenant: Tenant,
 ): string {
   const { header, colors, footer, sections } = template
   const logoUrl = tenant.logoMediaId ? '' : '' // Logo URL would need to be fetched from media storage
@@ -68,24 +73,36 @@ function buildNewsletterHtml(
         ${escapeHtml(newsletter.content)}
       </div>
 
-      ${newsletter.images && newsletter.images.length > 0 ? `
+      ${
+        newsletter.images && newsletter.images.length > 0
+          ? `
         <div style="margin-top: 20px;">
-          ${newsletter.images.map(img => `
+          ${newsletter.images
+            .map(
+              (img) => `
             <div style="margin-bottom: 15px;">
               <!-- Image would need URL resolved from mediaId: ${img.mediaId} -->
               ${img.caption ? `<p style="color: ${colors.text}; font-size: 14px; margin-top: 5px; text-align: center;">${img.caption}</p>` : ''}
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${sections.showCtaButton && sections.ctaButtonUrl ? `
+      ${
+        sections.showCtaButton && sections.ctaButtonUrl
+          ? `
         <div style="text-align: center; margin-top: 30px;">
           <a href="${sections.ctaButtonUrl}" style="display: inline-block; background-color: ${colors.accent}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
             ${sections.ctaButtonText || 'Shop Now'}
           </a>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
     </div>
 
     <!-- Footer -->
@@ -94,13 +111,17 @@ function buildNewsletterHtml(
       ${footer.signatureName ? `<p style="margin: 5px 0; font-weight: bold;">${footer.signatureName}</p>` : ''}
       ${footer.signatureTitle ? `<p style="margin: 0; font-size: 14px; color: #6b7280;">${footer.signatureTitle}</p>` : ''}
 
-      ${footer.showSocialLinks && (tenant.instagram || tenant.facebook) ? `
+      ${
+        footer.showSocialLinks && (tenant.instagram || tenant.facebook)
+          ? `
         <div style="margin-top: 20px;">
           ${tenant.instagram ? `<a href="https://instagram.com/${tenant.instagram}" style="color: ${colors.primary}; margin: 0 10px;">Instagram</a>` : ''}
           ${tenant.facebook ? `<a href="https://facebook.com/${tenant.facebook}" style="color: ${colors.primary}; margin: 0 10px;">Facebook</a>` : ''}
           ${tenant.tiktok ? `<a href="https://tiktok.com/@${tenant.tiktok}" style="color: ${colors.primary}; margin: 0 10px;">TikTok</a>` : ''}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       ${footer.footerText ? `<p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">${footer.footerText}</p>` : ''}
 
@@ -121,7 +142,7 @@ export async function sendNewsletter(
   newsletter: Newsletter,
   template: NewsletterTemplate,
   tenant: Tenant,
-  recipients: Array<{ email: string; name?: string }>
+  recipients: Array<{ email: string; name?: string }>,
 ): Promise<SendNewsletterResult> {
   const client = getResendClient()
 
@@ -134,7 +155,10 @@ export async function sendNewsletter(
     }
   }
 
-  const fromEmail = tenant.email || process.env.DEFAULT_FROM_EMAIL || 'newsletter@madebuy.com.au'
+  const fromEmail =
+    tenant.email ||
+    process.env.DEFAULT_FROM_EMAIL ||
+    'newsletter@madebuy.com.au'
   const fromName = tenant.businessName || 'Newsletter'
   const htmlContent = buildNewsletterHtml(newsletter, template, tenant)
 
@@ -153,7 +177,7 @@ export async function sendNewsletter(
           to: recipient.email,
           subject: newsletter.subject,
           html: htmlContent,
-        }))
+        })),
       )
 
       // Check for individual failures in the batch
@@ -164,7 +188,10 @@ export async function sendNewsletter(
       if (result.error) {
         // Batch failed entirely
         batch.forEach((recipient) => {
-          errors.push({ email: recipient.email, error: result.error?.message || 'Batch send failed' })
+          errors.push({
+            email: recipient.email,
+            error: result.error?.message || 'Batch send failed',
+          })
         })
       }
     } catch (error) {
@@ -197,14 +224,18 @@ interface ShippingEmailData {
 /**
  * Send shipping notification email to customer
  */
-export async function sendShippingNotificationEmail(data: ShippingEmailData): Promise<{
+export async function sendShippingNotificationEmail(
+  data: ShippingEmailData,
+): Promise<{
   success: boolean
   error?: string
 }> {
   const client = getResendClient()
 
   if (!client) {
-    console.warn('Resend API key not configured, skipping shipping notification email')
+    console.warn(
+      'Resend API key not configured, skipping shipping notification email',
+    )
     return {
       success: false,
       error: 'Email service not configured',
@@ -215,7 +246,9 @@ export async function sendShippingNotificationEmail(data: ShippingEmailData): Pr
   let estimatedDelivery: string | undefined
   if (data.estimatedDeliveryDays) {
     const deliveryDate = new Date()
-    deliveryDate.setDate(deliveryDate.getDate() + data.estimatedDeliveryDays.max)
+    deliveryDate.setDate(
+      deliveryDate.getDate() + data.estimatedDeliveryDays.max,
+    )
     estimatedDelivery = deliveryDate.toISOString()
   }
 
@@ -228,7 +261,7 @@ export async function sendShippingNotificationEmail(data: ShippingEmailData): Pr
     trackingUrl: data.trackingUrl,
     carrier: data.carrier,
     estimatedDelivery,
-    items: data.order.items.map(item => ({
+    items: data.order.items.map((item) => ({
       name: item.name,
       quantity: item.quantity,
       imageUrl: item.imageUrl,
@@ -242,7 +275,10 @@ export async function sendShippingNotificationEmail(data: ShippingEmailData): Pr
   const { subject, html, text } = renderShippedEmail(emailData, baseUrl)
 
   // Determine from email
-  const fromEmail = process.env.SHIPPING_FROM_EMAIL || process.env.DEFAULT_FROM_EMAIL || 'shipping@madebuy.com.au'
+  const fromEmail =
+    process.env.SHIPPING_FROM_EMAIL ||
+    process.env.DEFAULT_FROM_EMAIL ||
+    'shipping@madebuy.com.au'
   const fromName = data.tenant.businessName
 
   try {
@@ -302,7 +338,9 @@ function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
   const shopName = tenant.businessName || 'Our Shop'
   const brandColor = tenant.primaryColor || '#3B82F6'
 
-  const itemsHtml = cart.items.map(item => `
+  const itemsHtml = cart.items
+    .map(
+      (item) => `
     <tr>
       <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
         <div style="display: flex; align-items: center;">
@@ -317,7 +355,9 @@ function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
         $${(item.price / 100).toFixed(2)}
       </td>
     </tr>
-  `).join('')
+  `,
+    )
+    .join('')
 
   return `
 <!DOCTYPE html>
@@ -383,11 +423,15 @@ function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
         <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">
           If you have any questions, please reply to this email.
         </p>
-        ${data.unsubscribeUrl ? `
+        ${
+          data.unsubscribeUrl
+            ? `
         <p style="margin: 16px 0 0 0; font-size: 11px; color: #9ca3af;">
           Don't want to receive these emails? <a href="${data.unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a>
         </p>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
   </div>
@@ -399,7 +443,9 @@ function buildAbandonedCartEmailHtml(data: AbandonedCartEmailData): string {
 /**
  * Send abandoned cart recovery email
  */
-export async function sendAbandonedCartEmail(data: AbandonedCartEmailData): Promise<{
+export async function sendAbandonedCartEmail(
+  data: AbandonedCartEmailData,
+): Promise<{
   success: boolean
   error?: string
 }> {
@@ -407,11 +453,13 @@ export async function sendAbandonedCartEmail(data: AbandonedCartEmailData): Prom
 
   if (!client) {
     // In development mode without Resend, log to console
-    console.log('[EMAIL] Abandoned cart recovery email (not sent - no Resend API key):')
+    console.log(
+      '[EMAIL] Abandoned cart recovery email (not sent - no Resend API key):',
+    )
     console.log(`  To: ${data.cart.customerEmail}`)
     console.log(`  Recovery URL: ${data.recoveryUrl}`)
     console.log(`  Cart Total: $${(data.cart.total / 100).toFixed(2)}`)
-    console.log(`  Items: ${data.cart.items.map(i => i.name).join(', ')}`)
+    console.log(`  Items: ${data.cart.items.map((i) => i.name).join(', ')}`)
     return {
       success: true, // Return success in dev mode for testing
     }
@@ -478,12 +526,17 @@ function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
   const shopName = tenant.businessName || 'Our Shop'
   const brandColor = tenant.primaryColor || '#3B82F6'
 
-  const itemsHtml = order.items.slice(0, 3).map(item => `
+  const itemsHtml = order.items
+    .slice(0, 3)
+    .map(
+      (item) => `
     <div style="display: inline-block; margin-right: 12px; margin-bottom: 12px; text-align: center;">
       ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />` : ''}
       <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</p>
     </div>
-  `).join('')
+  `,
+    )
+    .join('')
 
   return `
 <!DOCTYPE html>
@@ -537,11 +590,15 @@ function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
         <p style="margin: 0; font-size: 12px; color: #9ca3af;">
           Thank you for shopping with ${shopName}!
         </p>
-        ${data.unsubscribeUrl ? `
+        ${
+          data.unsubscribeUrl
+            ? `
         <p style="margin: 16px 0 0 0; font-size: 11px; color: #9ca3af;">
           Don't want to receive these emails? <a href="${data.unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a>
         </p>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
   </div>
@@ -556,7 +613,9 @@ function buildReviewRequestEmailHtml(data: ReviewRequestEmailData): string {
  * Reviews are now submitted directly on product pages after email verification.
  * Keeping for reference.
  */
-export async function sendReviewRequestEmail(data: ReviewRequestEmailData): Promise<{
+export async function sendReviewRequestEmail(
+  data: ReviewRequestEmailData,
+): Promise<{
   success: boolean
   error?: string
 }> {
@@ -620,12 +679,14 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
   const { tenant, pieces, dashboardUrl } = data
   const shopName = tenant.businessName || 'Your Shop'
 
-  const itemsHtml = pieces.map(piece => {
-    const stockStatus = piece.stock === 0
-      ? '<span style="color: #dc2626; font-weight: 600;">OUT OF STOCK</span>'
-      : `<span style="color: #d97706; font-weight: 600;">${piece.stock} left</span>`
+  const itemsHtml = pieces
+    .map((piece) => {
+      const stockStatus =
+        piece.stock === 0
+          ? '<span style="color: #dc2626; font-weight: 600;">OUT OF STOCK</span>'
+          : `<span style="color: #d97706; font-weight: 600;">${piece.stock} left</span>`
 
-    return `
+      return `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
         <div>
@@ -641,10 +702,11 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
       </td>
     </tr>
   `
-  }).join('')
+    })
+    .join('')
 
-  const outOfStockCount = pieces.filter(p => p.stock === 0).length
-  const lowStockCount = pieces.filter(p => p.stock > 0).length
+  const outOfStockCount = pieces.filter((p) => p.stock === 0).length
+  const lowStockCount = pieces.filter((p) => p.stock > 0).length
 
   return `
 <!DOCTYPE html>
@@ -673,18 +735,26 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
 
         <!-- Summary -->
         <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-          ${outOfStockCount > 0 ? `
+          ${
+            outOfStockCount > 0
+              ? `
           <div style="flex: 1; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; text-align: center;">
             <p style="margin: 0; font-size: 24px; font-weight: 700; color: #dc2626;">${outOfStockCount}</p>
             <p style="margin: 4px 0 0 0; font-size: 12px; color: #991b1b;">Out of Stock</p>
           </div>
-          ` : ''}
-          ${lowStockCount > 0 ? `
+          `
+              : ''
+          }
+          ${
+            lowStockCount > 0
+              ? `
           <div style="flex: 1; background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; text-align: center;">
             <p style="margin: 0; font-size: 24px; font-weight: 700; color: #d97706;">${lowStockCount}</p>
             <p style="margin: 4px 0 0 0; font-size: 12px; color: #92400e;">Low Stock</p>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <!-- Items Table -->
@@ -730,7 +800,9 @@ function buildLowStockAlertEmailHtml(data: LowStockAlertEmailData): string {
 /**
  * Send low stock alert email to tenant
  */
-export async function sendLowStockAlertEmail(data: LowStockAlertEmailData): Promise<{
+export async function sendLowStockAlertEmail(
+  data: LowStockAlertEmailData,
+): Promise<{
   success: boolean
   error?: string
 }> {
@@ -741,8 +813,10 @@ export async function sendLowStockAlertEmail(data: LowStockAlertEmailData): Prom
     console.log('[EMAIL] Low stock alert email (not sent - no Resend API key):')
     console.log(`  To: ${data.tenant.email}`)
     console.log(`  Items: ${data.pieces.length}`)
-    console.log(`  Out of stock: ${data.pieces.filter(p => p.stock === 0).length}`)
-    console.log(`  Low stock: ${data.pieces.filter(p => p.stock > 0).length}`)
+    console.log(
+      `  Out of stock: ${data.pieces.filter((p) => p.stock === 0).length}`,
+    )
+    console.log(`  Low stock: ${data.pieces.filter((p) => p.stock > 0).length}`)
     return {
       success: true, // Return success in dev mode for testing
     }
@@ -789,11 +863,15 @@ export interface SendPasswordResetEmailParams {
 /**
  * Build password reset email HTML
  */
-function buildPasswordResetEmailHtml(data: SendPasswordResetEmailParams): string {
+function buildPasswordResetEmailHtml(
+  data: SendPasswordResetEmailParams,
+): string {
   const { resetToken, businessName } = data
   const baseUrl = process.env.NEXTAUTH_URL
   if (!baseUrl) {
-    throw new Error('NEXTAUTH_URL environment variable is required for password reset emails')
+    throw new Error(
+      'NEXTAUTH_URL environment variable is required for password reset emails',
+    )
   }
   const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(resetToken)}`
 
@@ -863,7 +941,9 @@ function buildPasswordResetEmailHtml(data: SendPasswordResetEmailParams): string
 /**
  * Send password reset email with reset link
  */
-export async function sendPasswordResetEmail(data: SendPasswordResetEmailParams): Promise<{
+export async function sendPasswordResetEmail(
+  data: SendPasswordResetEmailParams,
+): Promise<{
   success: boolean
   error?: string
 }> {
@@ -873,7 +953,9 @@ export async function sendPasswordResetEmail(data: SendPasswordResetEmailParams)
     // In development mode without Resend, log to console
     console.log('[EMAIL] Password reset email (not sent - no Resend API key):')
     console.log(`  To: ${data.to}`)
-    console.log(`  Reset URL: ${process.env.NEXTAUTH_URL}/reset-password?token=[REDACTED]`)
+    console.log(
+      `  Reset URL: ${process.env.NEXTAUTH_URL}/reset-password?token=[REDACTED]`,
+    )
     return {
       success: true, // Return success in dev mode for testing
     }

@@ -1,10 +1,10 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
+import { useState } from 'react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -67,7 +67,7 @@ export default function RegisterPage() {
         router.push('/dashboard/onboarding')
         router.refresh()
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred. Please try again.')
       setLoading(false)
     }
@@ -78,7 +78,9 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="bg-white px-8 py-10 shadow-lg rounded-lg">
           <h1 className="text-3xl font-bold text-center mb-2">MadeBuy</h1>
-          <p className="text-gray-600 text-center mb-8">Create your seller account</p>
+          <p className="text-gray-600 text-center mb-8">
+            Create your seller account
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
@@ -88,7 +90,10 @@ export default function RegisterPage() {
             )}
 
             <div>
-              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="businessName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Business Name
               </label>
               <input
@@ -106,7 +111,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email
               </label>
               <input
@@ -121,7 +129,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Password
               </label>
               <input
@@ -140,7 +151,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Confirm Password
               </label>
               <input
@@ -155,6 +169,7 @@ export default function RegisterPage() {
             </div>
 
             <button
+              type="button"
               type="submit"
               disabled={loading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -166,7 +181,10 @@ export default function RegisterPage() {
 
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+            <Link
+              href="/login"
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
               Sign in
             </Link>
           </p>

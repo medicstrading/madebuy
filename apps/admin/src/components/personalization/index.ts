@@ -1,1 +1,4 @@
-export { PersonalizationEditor, default as PersonalizationEditorDefault } from './PersonalizationEditor'
+export {
+  default as PersonalizationEditorDefault,
+  PersonalizationEditor,
+} from './PersonalizationEditor'

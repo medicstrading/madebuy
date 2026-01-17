@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { transactions, tenants } from '@madebuy/db'
+import { tenants, transactions } from '@madebuy/db'
 import { getCurrentQuarter } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/reports/gst
@@ -29,10 +29,14 @@ export async function GET(request: NextRequest) {
 
     // Check if tenant is GST registered
     if (!fullTenant.taxSettings?.gstRegistered) {
-      return NextResponse.json({
-        error: 'GST reporting is only available for GST-registered businesses. Please enable GST in your tax settings.',
-        code: 'GST_NOT_REGISTERED',
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error:
+            'GST reporting is only available for GST-registered businesses. Please enable GST in your tax settings.',
+          code: 'GST_NOT_REGISTERED',
+        },
+        { status: 400 },
+      )
     }
 
     // Get quarter from query params or use current quarter
@@ -41,10 +45,13 @@ export async function GET(request: NextRequest) {
 
     // Validate quarter format
     if (!/^\d{4}-Q[1-4]$/.test(quarter)) {
-      return NextResponse.json({
-        error: 'Invalid quarter format. Use YYYY-QN (e.g., 2024-Q1)',
-        code: 'INVALID_QUARTER_FORMAT',
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Invalid quarter format. Use YYYY-QN (e.g., 2024-Q1)',
+          code: 'INVALID_QUARTER_FORMAT',
+        },
+        { status: 400 },
+      )
     }
 
     // Get the GST rate from tenant settings
@@ -54,14 +61,17 @@ export async function GET(request: NextRequest) {
     const report = await transactions.getQuarterlyGSTReport(
       tenant.id,
       quarter,
-      gstRate
+      gstRate,
     )
 
     if (!report) {
-      return NextResponse.json({
-        error: 'Failed to generate GST report',
-        code: 'REPORT_GENERATION_FAILED',
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Failed to generate GST report',
+          code: 'REPORT_GENERATION_FAILED',
+        },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({
@@ -76,7 +86,7 @@ export async function GET(request: NextRequest) {
     console.error('Error generating GST report:', error)
     return NextResponse.json(
       { error: 'Failed to generate GST report' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

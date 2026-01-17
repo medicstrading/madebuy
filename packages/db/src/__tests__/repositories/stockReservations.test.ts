@@ -4,7 +4,7 @@
  * that provide backwards compatibility during checkout
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import * as stockReservations from '../../repositories/stubs'
 
 describe('StockReservations Stubs', () => {
@@ -16,7 +16,7 @@ describe('StockReservations Stubs', () => {
         2,
         'session-789',
         30,
-        'variant-001'
+        'variant-001',
       )
 
       expect(reservation).toBeDefined()
@@ -30,7 +30,7 @@ describe('StockReservations Stubs', () => {
         'any-tenant',
         'any-piece',
         1000,
-        'any-session'
+        'any-session',
       )
 
       expect(reservation).toBeTruthy()

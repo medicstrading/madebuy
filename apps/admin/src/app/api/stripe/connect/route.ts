@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { tenants } from '@madebuy/db'
+import type {
+  CreateStripeConnectInput,
+  StripeConnectStatus,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
-import { tenants } from '@madebuy/db'
-import type { StripeConnectStatus, CreateStripeConnectInput } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -38,13 +41,18 @@ export async function GET() {
       payoutsEnabled: account.payouts_enabled ?? false,
       onboardingComplete: account.details_submitted ?? false,
       detailsSubmitted: account.details_submitted ?? false,
-      businessType: account.business_type as 'individual' | 'company' | undefined,
-      requirements: account.requirements ? {
-        currentlyDue: account.requirements.currently_due ?? [],
-        eventuallyDue: account.requirements.eventually_due ?? [],
-        pastDue: account.requirements.past_due ?? [],
-        disabledReason: account.requirements.disabled_reason ?? undefined,
-      } : undefined,
+      businessType: account.business_type as
+        | 'individual'
+        | 'company'
+        | undefined,
+      requirements: account.requirements
+        ? {
+            currentlyDue: account.requirements.currently_due ?? [],
+            eventuallyDue: account.requirements.eventually_due ?? [],
+            pastDue: account.requirements.past_due ?? [],
+            disabledReason: account.requirements.disabled_reason ?? undefined,
+          }
+        : undefined,
       createdAt: tenant.paymentConfig?.stripe?.createdAt ?? new Date(),
       updatedAt: new Date(),
     }
@@ -60,7 +68,7 @@ export async function GET() {
     console.error('Failed to get Stripe Connect status:', error)
     return NextResponse.json(
       { error: 'Failed to fetch Stripe Connect status' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (tenant.paymentConfig?.stripe?.connectAccountId) {
       return NextResponse.json(
         { error: 'Stripe Connect account already exists' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -90,7 +98,7 @@ export async function POST(request: NextRequest) {
     if (!businessType || !['individual', 'company'].includes(businessType)) {
       return NextResponse.json(
         { error: 'Invalid business type. Must be "individual" or "company"' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -130,13 +138,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       accountId: account.id,
       status: 'pending',
-      message: 'Stripe Connect account created. Complete onboarding to start accepting payments.',
+      message:
+        'Stripe Connect account created. Complete onboarding to start accepting payments.',
     })
   } catch (error) {
     console.error('Failed to create Stripe Connect account:', error)
     return NextResponse.json(
       { error: 'Failed to create Stripe Connect account' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -155,7 +164,7 @@ export async function DELETE() {
     if (!tenant.paymentConfig?.stripe?.connectAccountId) {
       return NextResponse.json(
         { error: 'No Stripe Connect account to disconnect' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -170,7 +179,7 @@ export async function DELETE() {
     console.error('Failed to disconnect Stripe Connect:', error)
     return NextResponse.json(
       { error: 'Failed to disconnect Stripe Connect' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -178,11 +187,16 @@ export async function DELETE() {
 /**
  * Determine account status from Stripe account object
  */
-function getAccountStatus(account: Stripe.Account): StripeConnectStatus['status'] {
+function getAccountStatus(
+  account: Stripe.Account,
+): StripeConnectStatus['status'] {
   if (account.requirements?.disabled_reason) {
     return 'disabled'
   }
-  if (account.requirements?.currently_due?.length || account.requirements?.past_due?.length) {
+  if (
+    account.requirements?.currently_due?.length ||
+    account.requirements?.past_due?.length
+  ) {
     return 'restricted'
   }
   if (account.charges_enabled && account.payouts_enabled) {

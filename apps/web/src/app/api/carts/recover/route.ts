@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { abandonedCarts, discounts, getDatabase, tenants } from '@madebuy/db'
 import { nanoid } from 'nanoid'
-import { abandonedCarts, discounts, tenants, getDatabase } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * POST /api/carts/recover
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!cartId || !tenantId) {
       return NextResponse.json(
         { success: false, error: 'Missing required parameters' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!cart) {
       return NextResponse.json(
         { success: false, error: 'Cart not found or expired' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     if (cart.recovered) {
       return NextResponse.json(
         { success: false, error: 'This cart has already been recovered' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
 
     // Check if cart was abandoned more than 24 hours ago (eligible for discount)
     const abandonedAt = new Date(cart.abandonedAt)
-    const hoursAbandoned = (Date.now() - abandonedAt.getTime()) / (1000 * 60 * 60)
+    const hoursAbandoned =
+      (Date.now() - abandonedAt.getTime()) / (1000 * 60 * 60)
     const eligibleForDiscount = hoursAbandoned >= 24
 
     let discountCode: string | undefined
@@ -78,7 +79,9 @@ export async function POST(request: NextRequest) {
         })
 
         discountCode = code
-        console.log(`[CART RECOVERY] Created discount code ${code} for cart ${cartId}`)
+        console.log(
+          `[CART RECOVERY] Created discount code ${code} for cart ${cartId}`,
+        )
       } catch (error) {
         // Don't fail recovery if discount creation fails
         console.error('Failed to create recovery discount:', error)
@@ -88,7 +91,9 @@ export async function POST(request: NextRequest) {
     // Mark cart as recovered
     await abandonedCarts.markCartRecovered(tenantId, cart.sessionId)
 
-    console.log(`[CART RECOVERY] Cart ${cartId} recovered for tenant ${tenantId}`)
+    console.log(
+      `[CART RECOVERY] Cart ${cartId} recovered for tenant ${tenantId}`,
+    )
 
     return NextResponse.json({
       success: true,
@@ -96,12 +101,11 @@ export async function POST(request: NextRequest) {
       discountCode,
       discountPercentage,
     })
-
   } catch (error) {
     console.error('Cart recovery error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

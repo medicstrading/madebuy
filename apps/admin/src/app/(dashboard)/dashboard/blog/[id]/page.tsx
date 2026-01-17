@@ -1,9 +1,9 @@
-import { requireTenant } from '@/lib/session'
-import { media, blog } from '@madebuy/db'
-import { BlogEditor } from '@/components/blog/BlogEditor'
-import Link from 'next/link'
+import { blog, media } from '@madebuy/db'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { BlogEditor } from '@/components/blog/BlogEditor'
+import { requireTenant } from '@/lib/session'
 
 export default async function EditBlogPostPage({
   params,
@@ -35,7 +35,9 @@ export default async function EditBlogPostPage({
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Edit Blog Post</h1>
-        <p className="mt-2 text-gray-600">Update your blog post content and settings</p>
+        <p className="mt-2 text-gray-600">
+          Update your blog post content and settings
+        </p>
       </div>
 
       <BlogEditor

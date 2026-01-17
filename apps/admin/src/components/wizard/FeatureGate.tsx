@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, Sparkles, ArrowRight } from 'lucide-react'
+import { ArrowRight, Lock, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 interface FeatureGateProps {
@@ -68,7 +68,8 @@ export function FeatureGate({
         </h3>
 
         <p className="mt-2 max-w-sm text-sm text-gray-600">
-          {teaserDescription || `This feature is available on the ${PLAN_NAMES[requiredPlan]} plan and above.`}
+          {teaserDescription ||
+            `This feature is available on the ${PLAN_NAMES[requiredPlan]} plan and above.`}
         </p>
 
         <div className="mt-4 flex items-baseline gap-1">

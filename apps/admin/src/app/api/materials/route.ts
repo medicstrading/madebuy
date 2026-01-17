@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { materials } from '@madebuy/db'
-import { CreateMaterialInput } from '@madebuy/shared'
+import type { CreateMaterialInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET() {
   try {
@@ -22,7 +22,10 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching materials:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -41,6 +44,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ material }, { status: 201 })
   } catch (error) {
     console.error('Error creating material:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

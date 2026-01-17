@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { ExternalLink, Check, Loader2, ShoppingBag, ArrowRight } from 'lucide-react'
 import type { MarketplacePlatform } from '@madebuy/shared'
+import { ArrowRight, Check, Loader2 } from 'lucide-react'
+import { useState } from 'react'
 
 interface MarketplaceConnectPromptProps {
   platform: MarketplacePlatform
@@ -55,10 +55,18 @@ export function MarketplaceConnectPrompt({
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-200 mb-4`}>
+          <div
+            className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-gray-200 mb-4`}
+          >
             {platform === 'ebay' ? (
-              <svg viewBox="0 0 24 24" className="h-10 w-10">
-                <text x="1" y="17" fontSize="12" fontWeight="bold" fontFamily="Arial, sans-serif">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-10 w-10">
+                <text
+                  x="1"
+                  y="17"
+                  fontSize="12"
+                  fontWeight="bold"
+                  fontFamily="Arial, sans-serif"
+                >
                   <tspan fill="#E53238">e</tspan>
                   <tspan fill="#0064D2">b</tspan>
                   <tspan fill="#F5AF02">a</tspan>
@@ -66,26 +74,33 @@ export function MarketplaceConnectPrompt({
                 </text>
               </svg>
             ) : (
-              <svg viewBox="0 0 24 24" className="h-10 w-10" fill="#F56400">
-                <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z"/>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-10 w-10"
+                fill="#F56400"
+              >
+                <path d="M8.559 3.891H4.729v7.618h3.652v1.176H4.729v7.437h4.013c.551 0 1.006-.181 1.365-.545.358-.363.538-.804.538-1.324v-.363h1.176v1.544c0 .803-.272 1.486-.816 2.048-.544.562-1.21.844-1.997.844H3.552V2.345h5.372c.787 0 1.453.282 1.997.845.544.562.816 1.244.816 2.047v1.545H10.56v-.363c0-.52-.18-.962-.538-1.324-.359-.364-.814-.545-1.365-.545h-.098v-.659z" />
               </svg>
             )}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Connect to {platformName}
           </h1>
-          <p className="text-gray-600">
-            {description}
-          </p>
+          <p className="text-gray-600">{description}</p>
         </div>
 
         {/* Features */}
-        <div className={`rounded-xl ${colors.bgLight} ${colors.border} border p-6 mb-6`}>
+        <div
+          className={`rounded-xl ${colors.bgLight} ${colors.border} border p-6 mb-6`}
+        >
           <h3 className="font-semibold text-gray-900 mb-4">What you can do:</h3>
           <ul className="space-y-3">
             {features.map((feature, index) => (
               <li key={index} className="flex items-start gap-3">
-                <div className={`flex-shrink-0 h-5 w-5 rounded-full ${colors.bg} flex items-center justify-center mt-0.5`}>
+                <div
+                  className={`flex-shrink-0 h-5 w-5 rounded-full ${colors.bg} flex items-center justify-center mt-0.5`}
+                >
                   <Check className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-gray-700">{feature}</span>
@@ -103,6 +118,7 @@ export function MarketplaceConnectPrompt({
 
         {/* Connect Button */}
         <button
+          type="button"
           onClick={handleConnect}
           disabled={isConnecting}
           className={`w-full flex items-center justify-center gap-2 ${colors.bg} ${colors.hover} text-white rounded-lg px-6 py-3 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}

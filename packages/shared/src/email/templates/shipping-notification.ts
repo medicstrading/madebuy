@@ -25,12 +25,16 @@ export interface ShippingNotificationData {
 
 // Common styles for all emails
 const STYLES = {
-  container: 'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;',
-  header: 'background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;',
+  container:
+    'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;',
+  header:
+    'background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;',
   headerTitle: 'color: white; margin: 0; font-size: 24px;',
   body: 'background: #fff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 12px 12px;',
-  button: 'display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;',
-  infoBox: 'background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;',
+  button:
+    'display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;',
+  infoBox:
+    'background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;',
   footer: 'text-align: center; color: #999; font-size: 12px; margin-top: 20px;',
 }
 
@@ -58,19 +62,23 @@ function formatDate(dateStr: string): string {
  */
 export function renderShippedEmail(
   data: ShippingNotificationData,
-  baseUrl: string = 'https://madebuy.com.au'
+  baseUrl: string = 'https://madebuy.com.au',
 ): { subject: string; html: string; text: string } {
   const trackingPageUrl = getTrackingPageUrl(baseUrl, data.trackingNumber)
 
   const subject = `Your order from ${data.shopName} is on its way!`
 
-  const itemsListHtml = data.items.map(item => `
+  const itemsListHtml = data.items
+    .map(
+      (item) => `
     <tr>
       <td style="padding: 8px 0;">
         ${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}
       </td>
     </tr>
-  `).join('')
+  `,
+    )
+    .join('')
 
   const html = `
 <!DOCTYPE html>
@@ -99,12 +107,16 @@ export function renderShippedEmail(
           <td style="padding: 8px 0; color: #666;">Carrier</td>
           <td style="padding: 8px 0; text-align: right;">${data.carrier}</td>
         </tr>
-        ${data.estimatedDelivery ? `
+        ${
+          data.estimatedDelivery
+            ? `
         <tr>
           <td style="padding: 8px 0; color: #666;">Estimated Delivery</td>
           <td style="padding: 8px 0; text-align: right; font-weight: bold;">${formatDate(data.estimatedDelivery)}</td>
         </tr>
-        ` : ''}
+        `
+            : ''
+        }
       </table>
     </div>
 
@@ -119,12 +131,16 @@ export function renderShippedEmail(
       </table>
     </div>
 
-    ${data.trackingUrl ? `
+    ${
+      data.trackingUrl
+        ? `
     <p style="text-align: center; font-size: 14px; color: #666;">
       You can also track your package directly on the carrier's website:<br>
       <a href="${data.trackingUrl}" style="color: #7c3aed;">Track on ${data.carrier}</a>
     </p>
-    ` : ''}
+    `
+        : ''
+    }
 
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
 
@@ -157,7 +173,7 @@ Track your package: ${trackingPageUrl}
 ${data.trackingUrl ? `Track on ${data.carrier}: ${data.trackingUrl}` : ''}
 
 ITEMS IN THIS SHIPMENT
-${data.items.map(item => `- ${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}`).join('\n')}
+${data.items.map((item) => `- ${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}`).join('\n')}
 
 ---
 Order #${data.orderNumber}
@@ -174,7 +190,7 @@ Thank you for shopping with MadeBuy sellers!
  */
 export function renderOutForDeliveryEmail(
   data: ShippingNotificationData,
-  baseUrl: string = 'https://madebuy.com.au'
+  baseUrl: string = 'https://madebuy.com.au',
 ): { subject: string; html: string; text: string } {
   const trackingPageUrl = getTrackingPageUrl(baseUrl, data.trackingNumber)
 
@@ -265,7 +281,7 @@ Thank you for shopping with MadeBuy sellers!
  */
 export function renderDeliveredEmail(
   data: ShippingNotificationData,
-  baseUrl: string = 'https://madebuy.com.au'
+  baseUrl: string = 'https://madebuy.com.au',
 ): { subject: string; html: string; text: string } {
   const subject = `Your order from ${data.shopName} has been delivered!`
 
@@ -295,13 +311,17 @@ export function renderDeliveredEmail(
     <div style="${STYLES.infoBox}">
       <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #666;">Items delivered</h3>
       <table style="width: 100%;">
-        ${data.items.map(item => `
+        ${data.items
+          .map(
+            (item) => `
         <tr>
           <td style="padding: 8px 0;">
             ${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}
           </td>
         </tr>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </table>
     </div>
 
@@ -338,7 +358,7 @@ Your order from ${data.shopName} has been delivered!
 Your package is waiting for you.
 
 ITEMS DELIVERED
-${data.items.map(item => `- ${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}`).join('\n')}
+${data.items.map((item) => `- ${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}`).join('\n')}
 
 Loving your purchase? Consider leaving a review to help other shoppers!
 
@@ -357,7 +377,7 @@ Thank you for supporting Australian makers on MadeBuy!
  */
 export function renderDeliveryFailedEmail(
   data: ShippingNotificationData,
-  baseUrl: string = 'https://madebuy.com.au'
+  baseUrl: string = 'https://madebuy.com.au',
 ): { subject: string; html: string; text: string } {
   const trackingPageUrl = getTrackingPageUrl(baseUrl, data.trackingNumber)
 

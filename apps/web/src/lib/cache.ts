@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 
 // Re-export cached tenant functions from tenant.ts for backwards compatibility
 export {
+  getTenantByDomain as getCachedTenantByDomain,
   getTenantById as getCachedTenantById,
   getTenantBySlug as getCachedTenantBySlug,
-  getTenantByDomain as getCachedTenantByDomain,
 } from './tenant'
 
 /**
@@ -35,7 +35,7 @@ export const CachePresets = {
  */
 export function withCacheHeaders(
   response: NextResponse,
-  preset: keyof typeof CachePresets = 'publicShort'
+  preset: keyof typeof CachePresets = 'publicShort',
 ): NextResponse {
   response.headers.set('Cache-Control', CachePresets[preset])
   return response
@@ -49,7 +49,7 @@ export function cachedJsonResponse<T>(
   options: {
     status?: number
     cache?: keyof typeof CachePresets
-  } = {}
+  } = {},
 ): NextResponse {
   const response = NextResponse.json(data, { status: options.status || 200 })
   return withCacheHeaders(response, options.cache || 'publicShort')

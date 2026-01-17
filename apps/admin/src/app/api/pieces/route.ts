@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { materials, pieces } from '@madebuy/db'
+import {
+  type CreatePieceInput,
+  isMadeBuyError,
+  toErrorResponse,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { pieces, materials } from '@madebuy/db'
-import { checkCanAddPiece, getSubscriptionSummary } from '@/lib/subscription-check'
-import { CreatePieceInput, isMadeBuyError, toErrorResponse } from '@madebuy/shared'
+import {
+  checkCanAddPiece,
+  getSubscriptionSummary,
+} from '@/lib/subscription-check'
 
 /**
  * Helper to create standardized error responses
@@ -11,9 +18,13 @@ function errorResponse(
   message: string,
   code: string,
   status: number,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ) {
-  const body: { error: string; code: string; details?: Record<string, unknown> } = { error: message, code }
+  const body: {
+    error: string
+    code: string
+    details?: Record<string, unknown>
+  } = { error: message, code }
   if (details) {
     body.details = details
   }
@@ -44,7 +55,12 @@ export async function GET() {
     console.error('Error fetching pieces:', error)
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return errorResponse(msg, code, statusCode, details as Record<string, unknown> | undefined)
+      return errorResponse(
+        msg,
+        code,
+        statusCode,
+        details as Record<string, unknown> | undefined,
+      )
     }
     return errorResponse('Internal server error', 'INTERNAL_ERROR', 500)
   }
@@ -65,16 +81,23 @@ export async function POST(request: NextRequest) {
         canAdd.message || 'Subscription limit reached',
         'SUBSCRIPTION_LIMIT',
         403,
-        { upgradeRequired: canAdd.upgradeRequired, requiredPlan: canAdd.requiredPlan }
+        {
+          upgradeRequired: canAdd.upgradeRequired,
+          requiredPlan: canAdd.requiredPlan,
+        },
       )
     }
 
     const data: CreatePieceInput = await request.json()
 
     // If piece has materialsUsed, fetch the materials catalog for COGS calculation
-    let materialsCatalog = undefined
+    let materialsCatalog
     if (data.materialsUsed && data.materialsUsed.length > 0) {
-      const { materials: allMaterials } = await materials.listMaterials(tenant.id, {}, { limit: 500 })
+      const { materials: allMaterials } = await materials.listMaterials(
+        tenant.id,
+        {},
+        { limit: 500 },
+      )
       materialsCatalog = allMaterials
     }
 
@@ -85,7 +108,12 @@ export async function POST(request: NextRequest) {
     console.error('Error creating piece:', error)
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return errorResponse(msg, code, statusCode, details as Record<string, unknown> | undefined)
+      return errorResponse(
+        msg,
+        code,
+        statusCode,
+        details as Record<string, unknown> | undefined,
+      )
     }
     return errorResponse('Internal server error', 'INTERNAL_ERROR', 500)
   }

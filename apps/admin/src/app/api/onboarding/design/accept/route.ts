@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
 import type {
-  WebsiteTemplate,
   HeaderConfig,
   NavLink,
   WebsitePage,
+  WebsiteTemplate,
 } from '@madebuy/shared'
 import { getDefaultPages } from '@madebuy/shared'
+import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
 
 /**
  * Maps scanner template recommendations to actual WebsiteTemplate types
@@ -15,12 +15,12 @@ import { getDefaultPages } from '@madebuy/shared'
 function mapToWebsiteTemplate(recommended: string): WebsiteTemplate {
   const templateMap: Record<string, WebsiteTemplate> = {
     'e-commerce': 'classic-store',
-    'portfolio': 'portfolio',
+    portfolio: 'portfolio',
     'landing-page': 'landing-page',
     'blog-magazine': 'magazine',
     // Fallback direct mappings
     'classic-store': 'classic-store',
-    'magazine': 'magazine',
+    magazine: 'magazine',
   }
   return templateMap[recommended] || 'classic-store'
 }
@@ -34,19 +34,13 @@ export async function POST(): Promise<NextResponse> {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get tenant
     const tenant = await tenants.getTenantById(user.id)
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     // Check if there's a design to accept
@@ -54,7 +48,7 @@ export async function POST(): Promise<NextResponse> {
     if (!designImport?.extractedDesign) {
       return NextResponse.json(
         { error: 'No design to accept. Please scan a website first.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -76,22 +70,28 @@ export async function POST(): Promise<NextResponse> {
       showCart: true,
       sticky: true,
       // Convert extracted nav items to NavLinks
-      navLinks: extracted.navigation?.items.slice(0, 6).map((item: { label: string; href: string }, index: number) => ({
-        id: `nav-${index}`,
-        label: item.label,
-        url: item.href.startsWith('/') ? item.href : `/${item.href}`,
-        openInNewTab: false,
-      })) as NavLink[] | undefined,
+      navLinks: extracted.navigation?.items
+        .slice(0, 6)
+        .map((item: { label: string; href: string }, index: number) => ({
+          id: `nav-${index}`,
+          label: item.label,
+          url: item.href.startsWith('/') ? item.href : `/${item.href}`,
+          openInNewTab: false,
+        })) as NavLink[] | undefined,
     }
 
     // Build update object
     const updates: Record<string, unknown> = {
       // Update branding colors if extracted
-      ...(extracted.colors.primary && { primaryColor: extracted.colors.primary }),
+      ...(extracted.colors.primary && {
+        primaryColor: extracted.colors.primary,
+      }),
       ...(extracted.colors.accent && { accentColor: extracted.colors.accent }),
 
       // Update logo if downloaded
-      ...(extracted.logo?.downloadedMediaId && { logoMediaId: extracted.logo.downloadedMediaId }),
+      ...(extracted.logo?.downloadedMediaId && {
+        logoMediaId: extracted.logo.downloadedMediaId,
+      }),
 
       // Update website design with full configuration
       websiteDesign: {
@@ -141,7 +141,7 @@ export async function POST(): Promise<NextResponse> {
     console.error('Accept design error:', error)
     return NextResponse.json(
       { error: 'Failed to apply design' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { collections } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,14 +13,14 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(pieceIds) || pieceIds.length === 0) {
       return NextResponse.json(
         { error: 'pieceIds must be a non-empty array' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!collectionId && !newCollectionName) {
       return NextResponse.json(
         { error: 'Either collectionId or newCollectionName is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (pieceIds.length > 100) {
       return NextResponse.json(
         { error: 'Maximum 100 pieces can be added at once' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -44,11 +44,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify collection exists
-    const collection = await collections.getCollectionById(tenant.id, targetCollectionId)
+    const collection = await collections.getCollectionById(
+      tenant.id,
+      targetCollectionId,
+    )
     if (!collection) {
       return NextResponse.json(
         { error: 'Collection not found' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -58,10 +61,15 @@ export async function POST(request: NextRequest) {
 
     for (const pieceId of pieceIds) {
       try {
-        await collections.addPieceToCollection(tenant.id, targetCollectionId, pieceId)
+        await collections.addPieceToCollection(
+          tenant.id,
+          targetCollectionId,
+          pieceId,
+        )
         addedCount++
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+        const errorMessage =
+          err instanceof Error ? err.message : 'Unknown error'
         console.error(`Failed to add piece ${pieceId} to collection:`, err)
         failedPieces.push({ pieceId, error: errorMessage })
       }
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
     console.error('Bulk collection error:', error)
     return NextResponse.json(
       { error: 'Failed to add pieces to collection' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

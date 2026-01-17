@@ -5,27 +5,38 @@
  * This should be called from the order creation webhook after successful payment.
  */
 
-import type { Order, OrderItem, Piece, CreateDownloadRecordInput } from '../types'
+import type {
+  CreateDownloadRecordInput,
+  Order,
+  OrderItem,
+  Piece,
+} from '../types'
 
 /**
  * Determine if an order item is for a digital product
  */
 export function isDigitalOrderItem(piece: Piece): boolean {
-  return piece.digital?.isDigital === true && (piece.digital?.files?.length ?? 0) > 0
+  return (
+    piece.digital?.isDigital === true && (piece.digital?.files?.length ?? 0) > 0
+  )
 }
 
 /**
  * Check if an order contains any digital products
  */
-export function orderHasDigitalItems(items: Array<{ isDigital?: boolean }>): boolean {
-  return items.some(item => item.isDigital)
+export function orderHasDigitalItems(
+  items: Array<{ isDigital?: boolean }>,
+): boolean {
+  return items.some((item) => item.isDigital)
 }
 
 /**
  * Check if an order contains ONLY digital products (no shipping needed)
  */
-export function orderIsDigitalOnly(items: Array<{ isDigital?: boolean }>): boolean {
-  return items.length > 0 && items.every(item => item.isDigital)
+export function orderIsDigitalOnly(
+  items: Array<{ isDigital?: boolean }>,
+): boolean {
+  return items.length > 0 && items.every((item) => item.isDigital)
 }
 
 /**
@@ -33,9 +44,9 @@ export function orderIsDigitalOnly(items: Array<{ isDigital?: boolean }>): boole
  */
 export function buildDownloadRecordInput(
   order: Order,
-  item: OrderItem,
+  _item: OrderItem,
   piece: Piece,
-  index: number
+  index: number,
 ): CreateDownloadRecordInput {
   const digitalConfig = piece.digital!
 
@@ -60,7 +71,11 @@ export function getDownloadPageUrl(baseUrl: string, token: string): string {
 /**
  * Generate download API URL for a specific file
  */
-export function getFileDownloadUrl(baseUrl: string, token: string, fileId: string): string {
+export function getFileDownloadUrl(
+  baseUrl: string,
+  token: string,
+  fileId: string,
+): string {
   return `${baseUrl}/api/downloads/${token}?file=${fileId}`
 }
 
@@ -89,10 +104,12 @@ export function buildDownloadEmailHtml(data: DownloadEmailData): string {
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+    return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
   }
 
-  const fileListHtml = data.files.map(file => `
+  const fileListHtml = data.files
+    .map(
+      (file) => `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #eee;">
         <strong>${file.name}</strong><br>
@@ -102,7 +119,9 @@ export function buildDownloadEmailHtml(data: DownloadEmailData): string {
         <a href="${file.directDownloadUrl}" style="display: inline-block; background: #7c3aed; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Download</a>
       </td>
     </tr>
-  `).join('')
+  `,
+    )
+    .join('')
 
   const expiryNote = data.expiryDate
     ? `<p style="color: #666; font-size: 14px;">This link expires on ${data.expiryDate.toLocaleDateString('en-AU', { dateStyle: 'long' })}.</p>`
@@ -165,12 +184,15 @@ export function buildDownloadEmailText(data: DownloadEmailData): string {
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+    return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
   }
 
-  const fileList = data.files.map(file =>
-    `- ${file.name} (${formatFileSize(file.sizeBytes)})\n  Download: ${file.directDownloadUrl}`
-  ).join('\n\n')
+  const fileList = data.files
+    .map(
+      (file) =>
+        `- ${file.name} (${formatFileSize(file.sizeBytes)})\n  Download: ${file.directDownloadUrl}`,
+    )
+    .join('\n\n')
 
   let text = `Your Download is Ready!
 

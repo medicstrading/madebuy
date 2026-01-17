@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { getDatabase } from '@madebuy/db'
-import type { WizardState, WizardDraft } from '@/components/wizard/types'
+import { type NextRequest, NextResponse } from 'next/server'
+import type { WizardDraft, WizardState } from '@/components/wizard/types'
+import { getCurrentTenant } from '@/lib/session'
 
 function errorResponse(message: string, code: string, status: number) {
   return NextResponse.json({ error: message, code }, { status })
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
           createdAt: now,
         },
       },
-      { upsert: true }
+      { upsert: true },
     )
 
     return NextResponse.json({ success: true })

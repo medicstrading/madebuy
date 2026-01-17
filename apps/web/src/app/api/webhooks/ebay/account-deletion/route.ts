@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import { getDatabase } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * eBay Marketplace Account Deletion Webhook
@@ -27,7 +27,10 @@ export async function GET(request: NextRequest) {
   const challengeCode = request.nextUrl.searchParams.get('challenge_code')
 
   if (!challengeCode) {
-    return NextResponse.json({ error: 'Missing challenge_code' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Missing challenge_code' },
+      { status: 400 },
+    )
   }
 
   if (!VERIFICATION_TOKEN) {
@@ -36,7 +39,8 @@ export async function GET(request: NextRequest) {
   }
 
   // Build the endpoint URL (must match exactly what's registered with eBay)
-  const endpoint = process.env.EBAY_DELETION_ENDPOINT_URL ||
+  const endpoint =
+    process.env.EBAY_DELETION_ENDPOINT_URL ||
     `${process.env.NEXT_PUBLIC_WEB_URL || 'https://madebuy.com.au'}/api/webhooks/ebay/account-deletion`
 
   // Create challenge response hash
@@ -93,7 +97,9 @@ export async function POST(request: NextRequest) {
     // Extract user info from notification.data
     const notification = body.notification
     if (!notification?.data) {
-      console.error('Invalid eBay deletion notification - missing notification.data')
+      console.error(
+        'Invalid eBay deletion notification - missing notification.data',
+      )
       return new NextResponse(null, { status: 400 })
     }
 
@@ -115,7 +121,6 @@ export async function POST(request: NextRequest) {
 
     // Return success - eBay accepts 200, 201, 202, or 204
     return new NextResponse(null, { status: 200 })
-
   } catch (error) {
     console.error('eBay account deletion webhook error:', error)
     // Still return 200 to acknowledge receipt - we'll handle errors internally
@@ -141,7 +146,9 @@ async function handleEbayDataDeletion(request: EbayDeletionRequest) {
   const db = await getDatabase()
   const { userId, username, eiasToken, notificationId, eventDate } = request
 
-  console.log(`Processing eBay data deletion - notificationId: ${notificationId}`)
+  console.log(
+    `Processing eBay data deletion - notificationId: ${notificationId}`,
+  )
 
   // Build query to match any of the identifiers
   const userQuery = {
@@ -149,22 +156,21 @@ async function handleEbayDataDeletion(request: EbayDeletionRequest) {
       ...(userId ? [{ 'ebayConnection.userId': userId }] : []),
       ...(username ? [{ 'ebayConnection.username': username }] : []),
       ...(eiasToken ? [{ 'ebayConnection.eiasToken': eiasToken }] : []),
-    ].filter(Boolean)
+    ].filter(Boolean),
   }
 
   // Only proceed if we have at least one identifier
   if (userQuery.$or.length > 0) {
     // Remove eBay connection data from tenants
-    const tenantResult = await db.collection('tenants').updateMany(
-      userQuery,
-      {
-        $unset: { ebayConnection: '' },
-        $set: { updatedAt: new Date() }
-      }
-    )
+    const tenantResult = await db.collection('tenants').updateMany(userQuery, {
+      $unset: { ebayConnection: '' },
+      $set: { updatedAt: new Date() },
+    })
 
     if (tenantResult.modifiedCount > 0) {
-      console.log(`Removed eBay connection from ${tenantResult.modifiedCount} tenant(s)`)
+      console.log(
+        `Removed eBay connection from ${tenantResult.modifiedCount} tenant(s)`,
+      )
     }
 
     // Remove any eBay-specific publish records
@@ -173,13 +179,17 @@ async function handleEbayDataDeletion(request: EbayDeletionRequest) {
       $or: [
         ...(userId ? [{ 'platformData.userId': userId }] : []),
         ...(username ? [{ 'platformData.username': username }] : []),
-      ].filter(Boolean)
+      ].filter(Boolean),
     }
 
     if (publishQuery.$or.length > 0) {
-      const publishResult = await db.collection('publish_records').deleteMany(publishQuery)
+      const publishResult = await db
+        .collection('publish_records')
+        .deleteMany(publishQuery)
       if (publishResult.deletedCount > 0) {
-        console.log(`Deleted ${publishResult.deletedCount} eBay publish record(s)`)
+        console.log(
+          `Deleted ${publishResult.deletedCount} eBay publish record(s)`,
+        )
       }
     }
 
@@ -188,11 +198,13 @@ async function handleEbayDataDeletion(request: EbayDeletionRequest) {
       $or: [
         ...(userId ? [{ ebayUserId: userId }] : []),
         ...(username ? [{ ebayUsername: username }] : []),
-      ].filter(Boolean)
+      ].filter(Boolean),
     }
 
     if (listingsQuery.$or.length > 0) {
-      const listingsResult = await db.collection('ebay_listings').deleteMany(listingsQuery)
+      const listingsResult = await db
+        .collection('ebay_listings')
+        .deleteMany(listingsQuery)
       if (listingsResult.deletedCount > 0) {
         console.log(`Deleted ${listingsResult.deletedCount} eBay listing(s)`)
       }
@@ -208,7 +220,7 @@ async function handleEbayDataDeletion(request: EbayDeletionRequest) {
     ebayUsername: username,
     ebayEiasToken: eiasToken,
     processedAt: new Date(),
-    status: 'completed'
+    status: 'completed',
   })
 
   console.log('eBay data deletion completed successfully')

@@ -1,9 +1,9 @@
-import { getCurrentTenant } from '@/lib/session'
 import { materials } from '@madebuy/db'
-import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { notFound, redirect } from 'next/navigation'
 import { MaterialForm } from '@/components/materials/MaterialForm'
+import { getCurrentTenant } from '@/lib/session'
 
 interface PageProps {
   params: {

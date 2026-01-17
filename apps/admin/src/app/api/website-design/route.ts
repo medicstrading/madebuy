@@ -1,25 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
-import { validateWebsiteDesignUpdate, canUseBlog, canCustomizeLayout } from '@/lib/website-design'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
+import {
+  canCustomizeLayout,
+  canUseBlog,
+  validateWebsiteDesignUpdate,
+} from '@/lib/website-design'
 
 export async function GET() {
   try {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const tenant = await tenants.getTenantById(user.id)
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -31,7 +29,7 @@ export async function GET() {
     console.error('Failed to get website design:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -41,10 +39,7 @@ export async function PATCH(request: NextRequest) {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -66,17 +61,17 @@ export async function PATCH(request: NextRequest) {
     // Get current tenant to merge websiteDesign
     const tenant = await tenants.getTenantById(user.id)
     if (!tenant) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
     // Validate plan access for template/pages (requires Pro+)
-    if ((template !== undefined || pages !== undefined) && !canCustomizeLayout(tenant)) {
+    if (
+      (template !== undefined || pages !== undefined) &&
+      !canCustomizeLayout(tenant)
+    ) {
       return NextResponse.json(
         { error: 'Template customization requires Pro plan or higher.' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
@@ -90,10 +85,7 @@ export async function PATCH(request: NextRequest) {
     })
 
     if (!validation.valid) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: validation.error }, { status: 403 })
     }
 
     // Validate blog access separately
@@ -101,7 +93,7 @@ export async function PATCH(request: NextRequest) {
       if (!canUseBlog(tenant)) {
         return NextResponse.json(
           { error: 'Blog feature requires Business plan or higher.' },
-          { status: 403 }
+          { status: 403 },
         )
       }
     }
@@ -183,7 +175,7 @@ export async function PATCH(request: NextRequest) {
     console.error('Failed to update website design:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

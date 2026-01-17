@@ -8,9 +8,9 @@ export type NewsletterCropMode = 'auto' | 'manual'
 export type NewsletterOrientation = 'landscape' | 'portrait'
 
 export interface NewsletterManualCrop {
-  zoom: number    // 1.0 to 3.0
-  panX: number    // 0-1 normalized (0.5 = centered)
-  panY: number    // 0-1 normalized (0.5 = centered)
+  zoom: number // 1.0 to 3.0
+  panX: number // 0-1 normalized (0.5 = centered)
+  panY: number // 0-1 normalized (0.5 = centered)
 }
 
 export interface NewsletterImage {

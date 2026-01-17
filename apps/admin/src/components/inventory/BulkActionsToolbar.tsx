@@ -1,22 +1,22 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-  ChevronDown,
-  Check,
-  X,
-  Trash2,
-  Tag,
-  Star,
-  Globe,
-  DollarSign,
-  Package,
-  FileEdit,
-  RefreshCw,
-  AlertTriangle,
-} from 'lucide-react'
 import type { PieceStatus } from '@madebuy/shared'
+import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  DollarSign,
+  FileEdit,
+  Globe,
+  Package,
+  RefreshCw,
+  Star,
+  Tag,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
 
 interface BulkActionsToolbarProps {
   selectedIds: Set<string>
@@ -64,8 +64,12 @@ export function BulkActionsToolbar({
 
   // Modal form states
   const [selectedStatus, setSelectedStatus] = useState<PieceStatus>('available')
-  const [priceType, setPriceType] = useState<'percentage' | 'fixed'>('percentage')
-  const [priceDirection, setPriceDirection] = useState<'increase' | 'decrease'>('increase')
+  const [priceType, setPriceType] = useState<'percentage' | 'fixed'>(
+    'percentage',
+  )
+  const [priceDirection, setPriceDirection] = useState<'increase' | 'decrease'>(
+    'increase',
+  )
   const [priceValue, setPriceValue] = useState('')
   const [stockValue, setStockValue] = useState('')
   const [stockUnlimited, setStockUnlimited] = useState(false)
@@ -107,7 +111,7 @@ export function BulkActionsToolbar({
         setIsSubmitting(false)
       }
     },
-    [selectedIds, onActionComplete, router]
+    [selectedIds, onActionComplete, router],
   )
 
   const handleStatusChange = () => {
@@ -120,7 +124,7 @@ export function BulkActionsToolbar({
 
   const handlePriceChange = () => {
     const value = parseFloat(priceValue)
-    if (isNaN(value) || value <= 0) {
+    if (Number.isNaN(value) || value <= 0) {
       setError('Please enter a valid positive number')
       return
     }
@@ -136,7 +140,7 @@ export function BulkActionsToolbar({
       executeBulkAction('updateStock', { stock: 'unlimited' })
     } else {
       const value = parseInt(stockValue, 10)
-      if (isNaN(value) || value < 0) {
+      if (Number.isNaN(value) || value < 0) {
         setError('Please enter a valid stock number')
         return
       }
@@ -184,6 +188,7 @@ export function BulkActionsToolbar({
         </span>
 
         <button
+          type="button"
           onClick={onClearSelection}
           className="text-blue-600 hover:text-blue-800 text-sm"
         >
@@ -195,6 +200,7 @@ export function BulkActionsToolbar({
         {/* Bulk Actions Dropdown */}
         <div className="relative">
           <button
+            type="button"
             onClick={() => setShowDropdown(!showDropdown)}
             className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
@@ -258,7 +264,8 @@ export function BulkActionsToolbar({
       {activeModal === 'status' && (
         <Modal title="Change Status" onClose={closeModal}>
           <p className="text-sm text-gray-600 mb-4">
-            Update status for {selectedCount} piece{selectedCount !== 1 ? 's' : ''}.
+            Update status for {selectedCount} piece
+            {selectedCount !== 1 ? 's' : ''}.
           </p>
           <select
             value={selectedStatus}
@@ -293,7 +300,8 @@ export function BulkActionsToolbar({
                 Delete {selectedCount} piece{selectedCount !== 1 ? 's' : ''}?
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                This action cannot be undone. All associated media will be unlinked.
+                This action cannot be undone. All associated media will be
+                unlinked.
               </p>
             </div>
           </div>
@@ -312,7 +320,8 @@ export function BulkActionsToolbar({
       {activeModal === 'price' && (
         <Modal title="Update Prices" onClose={closeModal}>
           <p className="text-sm text-gray-600 mb-4">
-            Adjust prices for {selectedCount} piece{selectedCount !== 1 ? 's' : ''}.
+            Adjust prices for {selectedCount} piece
+            {selectedCount !== 1 ? 's' : ''}.
           </p>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -322,7 +331,9 @@ export function BulkActionsToolbar({
                 </label>
                 <select
                   value={priceType}
-                  onChange={(e) => setPriceType(e.target.value as 'percentage' | 'fixed')}
+                  onChange={(e) =>
+                    setPriceType(e.target.value as 'percentage' | 'fixed')
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="percentage">Percentage (%)</option>
@@ -335,7 +346,9 @@ export function BulkActionsToolbar({
                 </label>
                 <select
                   value={priceDirection}
-                  onChange={(e) => setPriceDirection(e.target.value as 'increase' | 'decrease')}
+                  onChange={(e) =>
+                    setPriceDirection(e.target.value as 'increase' | 'decrease')
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="increase">Increase</option>
@@ -351,7 +364,9 @@ export function BulkActionsToolbar({
                 type="number"
                 value={priceValue}
                 onChange={(e) => setPriceValue(e.target.value)}
-                placeholder={priceType === 'percentage' ? 'e.g., 10' : 'e.g., 5.00'}
+                placeholder={
+                  priceType === 'percentage' ? 'e.g., 10' : 'e.g., 5.00'
+                }
                 min="0"
                 step={priceType === 'percentage' ? '1' : '0.01'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -372,7 +387,8 @@ export function BulkActionsToolbar({
       {activeModal === 'stock' && (
         <Modal title="Update Stock" onClose={closeModal}>
           <p className="text-sm text-gray-600 mb-4">
-            Set stock level for {selectedCount} piece{selectedCount !== 1 ? 's' : ''}.
+            Set stock level for {selectedCount} piece
+            {selectedCount !== 1 ? 's' : ''}.
           </p>
           <div className="space-y-4">
             <label className="flex items-center gap-2">
@@ -414,7 +430,8 @@ export function BulkActionsToolbar({
       {activeModal === 'featured' && (
         <Modal title="Set Featured" onClose={closeModal}>
           <p className="text-sm text-gray-600 mb-4">
-            Update featured status for {selectedCount} piece{selectedCount !== 1 ? 's' : ''}.
+            Update featured status for {selectedCount} piece
+            {selectedCount !== 1 ? 's' : ''}.
           </p>
           <div className="space-y-2">
             <label className="flex items-center gap-2">
@@ -452,7 +469,8 @@ export function BulkActionsToolbar({
       {activeModal === 'published' && (
         <Modal title="Set Published" onClose={closeModal}>
           <p className="text-sm text-gray-600 mb-4">
-            Update website visibility for {selectedCount} piece{selectedCount !== 1 ? 's' : ''}.
+            Update website visibility for {selectedCount} piece
+            {selectedCount !== 1 ? 's' : ''}.
           </p>
           <div className="space-y-2">
             <label className="flex items-center gap-2">
@@ -473,7 +491,9 @@ export function BulkActionsToolbar({
                 onChange={() => setPublishedValue(false)}
                 className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">Unpublish from Website</span>
+              <span className="text-sm text-gray-700">
+                Unpublish from Website
+              </span>
             </label>
           </div>
           {error && <ErrorMessage message={error} />}
@@ -490,7 +510,8 @@ export function BulkActionsToolbar({
       {activeModal === 'tags' && (
         <Modal title="Manage Tags" onClose={closeModal}>
           <p className="text-sm text-gray-600 mb-4">
-            Add or remove tags for {selectedCount} piece{selectedCount !== 1 ? 's' : ''}.
+            Add or remove tags for {selectedCount} piece
+            {selectedCount !== 1 ? 's' : ''}.
           </p>
           <div className="space-y-4">
             <div className="flex gap-4">
@@ -556,6 +577,7 @@ function DropdownItem({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 ${
         destructive ? 'text-red-600' : 'text-gray-700'
@@ -582,6 +604,7 @@ function Modal({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           <button
+            type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
           >
@@ -610,6 +633,7 @@ function ModalActions({
   return (
     <div className="mt-6 flex justify-end gap-3">
       <button
+        type="button"
         onClick={onCancel}
         disabled={isSubmitting}
         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -617,6 +641,7 @@ function ModalActions({
         Cancel
       </button>
       <button
+        type="button"
         onClick={onConfirm}
         disabled={isSubmitting}
         className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 ${

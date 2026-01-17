@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test'
-import { TestCustomer } from '../fixtures'
+import type { Locator, Page } from '@playwright/test'
+import type { TestCustomer } from '../fixtures'
 
 /**
  * Page Object for the Checkout page
@@ -75,28 +75,36 @@ export class CheckoutPage {
     this.countrySelect = page.getByLabel(/country/i)
 
     // Shipping options
-    this.shippingOptions = page.locator('[data-testid="shipping-option"]')
+    this.shippingOptions = page
+      .locator('[data-testid="shipping-option"]')
       .or(page.locator('[name="shipping"]'))
-    this.standardShipping = page.getByLabel(/standard/i)
+    this.standardShipping = page
+      .getByLabel(/standard/i)
       .or(page.locator('[value="standard"]'))
-    this.expressShipping = page.getByLabel(/express/i)
+    this.expressShipping = page
+      .getByLabel(/express/i)
       .or(page.locator('[value="express"]'))
 
     // Payment
-    this.cardNumberInput = page.getByLabel(/card number/i)
+    this.cardNumberInput = page
+      .getByLabel(/card number/i)
       .or(page.locator('[name="cardNumber"]'))
-    this.cardExpiryInput = page.getByLabel(/expir/i)
+    this.cardExpiryInput = page
+      .getByLabel(/expir/i)
       .or(page.locator('[name="cardExpiry"]'))
-    this.cardCvcInput = page.getByLabel(/cvc|cvv|security/i)
+    this.cardCvcInput = page
+      .getByLabel(/cvc|cvv|security/i)
       .or(page.locator('[name="cardCvc"]'))
 
     // Order summary
-    this.orderItems = page.locator('[data-testid="order-item"]')
+    this.orderItems = page
+      .locator('[data-testid="order-item"]')
       .or(page.locator('.order-item'))
     this.subtotal = page.getByText(/subtotal/i).locator('..')
     this.shippingCost = page.getByText(/shipping/i).locator('..')
     this.discount = page.getByText(/discount/i).locator('..')
-    this.total = page.locator('[data-testid="order-total"]')
+    this.total = page
+      .locator('[data-testid="order-total"]')
       .or(page.getByText(/^total$/i).locator('..'))
 
     // Order notes
@@ -105,13 +113,18 @@ export class CheckoutPage {
     this.giftMessageInput = page.getByLabel(/gift message/i)
 
     // Actions
-    this.placeOrderButton = page.getByRole('button', { name: /place order|pay|submit|complete/i })
+    this.placeOrderButton = page.getByRole('button', {
+      name: /place order|pay|submit|complete/i,
+    })
     this.backToCartLink = page.getByRole('link', { name: /back|cart/i })
 
     // Messages
-    this.validationErrors = page.locator('.error, [class*="error"], [role="alert"]')
+    this.validationErrors = page.locator(
+      '.error, [class*="error"], [role="alert"]',
+    )
     this.successMessage = page.getByText(/order placed|thank you|success/i)
-    this.errorMessage = page.getByText(/error|failed|unable/i)
+    this.errorMessage = page
+      .getByText(/error|failed|unable/i)
       .or(page.locator('[role="alert"]'))
 
     // Stripe
@@ -144,16 +157,16 @@ export class CheckoutPage {
    * Fill customer information
    */
   async fillCustomerInfo(customer: Partial<TestCustomer>): Promise<void> {
-    if (customer.email && await this.emailInput.isVisible()) {
+    if (customer.email && (await this.emailInput.isVisible())) {
       await this.emailInput.fill(customer.email)
     }
-    if (customer.firstName && await this.firstNameInput.isVisible()) {
+    if (customer.firstName && (await this.firstNameInput.isVisible())) {
       await this.firstNameInput.fill(customer.firstName)
     }
-    if (customer.lastName && await this.lastNameInput.isVisible()) {
+    if (customer.lastName && (await this.lastNameInput.isVisible())) {
       await this.lastNameInput.fill(customer.lastName)
     }
-    if (customer.phone && await this.phoneInput.isVisible()) {
+    if (customer.phone && (await this.phoneInput.isVisible())) {
       await this.phoneInput.fill(customer.phone)
     }
   }
@@ -162,26 +175,26 @@ export class CheckoutPage {
    * Fill shipping address
    */
   async fillShippingAddress(address: TestCustomer['address']): Promise<void> {
-    if (address.line1 && await this.addressLine1Input.isVisible()) {
+    if (address.line1 && (await this.addressLine1Input.isVisible())) {
       await this.addressLine1Input.fill(address.line1)
     }
-    if (address.line2 && await this.addressLine2Input.isVisible()) {
+    if (address.line2 && (await this.addressLine2Input.isVisible())) {
       await this.addressLine2Input.fill(address.line2)
     }
-    if (address.city && await this.cityInput.isVisible()) {
+    if (address.city && (await this.cityInput.isVisible())) {
       await this.cityInput.fill(address.city)
     }
-    if (address.state && await this.stateInput.isVisible()) {
+    if (address.state && (await this.stateInput.isVisible())) {
       try {
         await this.stateInput.selectOption(address.state)
       } catch {
         await this.stateInput.fill(address.state)
       }
     }
-    if (address.postalCode && await this.postalCodeInput.isVisible()) {
+    if (address.postalCode && (await this.postalCodeInput.isVisible())) {
       await this.postalCodeInput.fill(address.postalCode)
     }
-    if (address.country && await this.countrySelect.isVisible()) {
+    if (address.country && (await this.countrySelect.isVisible())) {
       await this.countrySelect.selectOption(address.country)
     }
   }
@@ -200,9 +213,12 @@ export class CheckoutPage {
    * Select shipping option
    */
   async selectShipping(option: 'standard' | 'express'): Promise<void> {
-    if (option === 'standard' && await this.standardShipping.isVisible()) {
+    if (option === 'standard' && (await this.standardShipping.isVisible())) {
       await this.standardShipping.check()
-    } else if (option === 'express' && await this.expressShipping.isVisible()) {
+    } else if (
+      option === 'express' &&
+      (await this.expressShipping.isVisible())
+    ) {
       await this.expressShipping.check()
     }
   }
@@ -235,14 +251,17 @@ export class CheckoutPage {
    * Check if place order is enabled
    */
   async isPlaceOrderEnabled(): Promise<boolean> {
-    return !await this.placeOrderButton.isDisabled()
+    return !(await this.placeOrderButton.isDisabled())
   }
 
   /**
    * Check if there are validation errors
    */
   async hasValidationErrors(): Promise<boolean> {
-    return this.validationErrors.first().isVisible({ timeout: 3000 }).catch(() => false)
+    return this.validationErrors
+      .first()
+      .isVisible({ timeout: 3000 })
+      .catch(() => false)
   }
 
   /**
@@ -262,10 +281,12 @@ export class CheckoutPage {
    * Check if order was successful
    */
   async wasOrderSuccessful(): Promise<boolean> {
-    return this.successMessage.isVisible({ timeout: 10000 }).catch(() => false)
-      || this.page.url().includes('/success')
-      || this.page.url().includes('/confirmation')
-      || this.page.url().includes('/thank-you')
+    return (
+      this.successMessage.isVisible({ timeout: 10000 }).catch(() => false) ||
+      this.page.url().includes('/success') ||
+      this.page.url().includes('/confirmation') ||
+      this.page.url().includes('/thank-you')
+    )
   }
 
   /**

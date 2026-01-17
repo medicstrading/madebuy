@@ -1,8 +1,8 @@
+import { ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ImageIcon } from 'lucide-react'
-import type { SectionProps } from './SectionRenderer'
 import { sanitizeHtml } from '@/lib/sanitize'
+import type { SectionProps } from './SectionRenderer'
 
 export function TextImage({ settings, tenant, tenantSlug }: SectionProps) {
   const title = settings.title
@@ -43,6 +43,7 @@ export function TextImage({ settings, tenant, tenantSlug }: SectionProps) {
         </h2>
       )}
       {content && (
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Rich text content is sanitized with sanitizeHtml() before rendering
         <div
           className="text-lg text-gray-600 leading-relaxed mb-8 prose prose-gray max-w-none"
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}

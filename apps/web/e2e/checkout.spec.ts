@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * Checkout E2E tests for MadeBuy Web (Storefront)
@@ -26,7 +26,8 @@ test.describe('Storefront', () => {
       await page.goto(`/${testTenant}`, { waitUntil: 'domcontentloaded' })
       await page.waitForLoadState('networkidle')
       const bodyText = await page.locator('body').innerText()
-      tenantExists = !bodyText.includes('Shop not found') &&
+      tenantExists =
+        !bodyText.includes('Shop not found') &&
         !(bodyText.includes('404') && bodyText.includes('Page Not Found'))
     } finally {
       await page.close()
@@ -36,7 +37,10 @@ test.describe('Storefront', () => {
   // Skip individual tests if tenant doesn't exist
   test.beforeEach(async ({}, testInfo) => {
     if (!tenantExists) {
-      testInfo.skip(true, `Test tenant "${testTenant}" not found in database - skipping storefront tests`)
+      testInfo.skip(
+        true,
+        `Test tenant "${testTenant}" not found in database - skipping storefront tests`,
+      )
     }
   })
 
@@ -59,16 +63,27 @@ test.describe('Storefront', () => {
       await page.waitForLoadState('networkidle')
 
       // Look for product cards/items - multiple possible selectors
-      const productCards = page.locator('[data-testid="product-card"]')
+      const productCards = page
+        .locator('[data-testid="product-card"]')
         .or(page.locator('.product-card'))
         .or(page.locator('article'))
         .or(page.locator('[class*="product"]'))
         .or(page.locator('a[href*="/"]').filter({ hasText: /\$|AUD/ })) // Links with prices
 
       // Either products exist, empty state message, or just valid page content
-      const hasProducts = await productCards.first().isVisible().catch(() => false)
-      const hasEmptyState = await page.getByText(/no products|coming soon|empty|shop|browse/i).isVisible().catch(() => false)
-      const hasValidContent = await page.locator('main, [role="main"], header').first().isVisible().catch(() => false)
+      const hasProducts = await productCards
+        .first()
+        .isVisible()
+        .catch(() => false)
+      const hasEmptyState = await page
+        .getByText(/no products|coming soon|empty|shop|browse/i)
+        .isVisible()
+        .catch(() => false)
+      const hasValidContent = await page
+        .locator('main, [role="main"], header')
+        .first()
+        .isVisible()
+        .catch(() => false)
 
       // Test passes if we have products, empty state, or valid page structure
       expect(hasProducts || hasEmptyState || hasValidContent).toBeTruthy()
@@ -76,7 +91,10 @@ test.describe('Storefront', () => {
   })
 
   test.describe('Product Page', () => {
-    test.skip(!process.env.E2E_TEST_PRODUCT_SLUG, 'Test product slug not configured')
+    test.skip(
+      !process.env.E2E_TEST_PRODUCT_SLUG,
+      'Test product slug not configured',
+    )
 
     const productSlug = process.env.E2E_TEST_PRODUCT_SLUG || 'test-product'
 
@@ -87,7 +105,10 @@ test.describe('Storefront', () => {
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
       // Should have price
-      const priceVisible = await page.getByText(/\$|AUD|price/i).isVisible().catch(() => false)
+      const priceVisible = await page
+        .getByText(/\$|AUD|price/i)
+        .isVisible()
+        .catch(() => false)
       expect(priceVisible).toBeTruthy()
     })
 
@@ -95,7 +116,9 @@ test.describe('Storefront', () => {
       await page.goto(`/${testTenant}/product/${productSlug}`)
 
       // Should have add to cart button
-      const addButton = page.getByRole('button', { name: /add to cart|add to bag/i })
+      const addButton = page.getByRole('button', {
+        name: /add to cart|add to bag/i,
+      })
       await expect(addButton).toBeVisible()
     })
   })
@@ -108,11 +131,19 @@ test.describe('Storefront', () => {
       await expect(page).toHaveURL(/\/cart/)
 
       // Should show cart heading
-      await expect(page.getByRole('heading', { name: /shopping cart/i })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: /shopping cart/i }),
+      ).toBeVisible()
 
       // Should show cart content or empty message ("Your cart is empty")
-      const hasEmptyCart = await page.getByText(/your cart is empty/i).isVisible().catch(() => false)
-      const hasOrderSummary = await page.getByText(/order summary/i).isVisible().catch(() => false)
+      const hasEmptyCart = await page
+        .getByText(/your cart is empty/i)
+        .isVisible()
+        .catch(() => false)
+      const hasOrderSummary = await page
+        .getByText(/order summary/i)
+        .isVisible()
+        .catch(() => false)
 
       expect(hasEmptyCart || hasOrderSummary).toBeTruthy()
     })
@@ -124,9 +155,18 @@ test.describe('Storefront', () => {
       await page.waitForLoadState('networkidle')
 
       // Should show total or subtotal (even if $0 for empty cart)
-      const hasTotalSection = await page.getByText(/total|subtotal/i).isVisible().catch(() => false)
-      const hasEmptyCart = await page.getByText(/your cart is empty/i).isVisible().catch(() => false)
-      const hasCartHeading = await page.getByRole('heading', { name: /shopping cart/i }).isVisible().catch(() => false)
+      const hasTotalSection = await page
+        .getByText(/total|subtotal/i)
+        .isVisible()
+        .catch(() => false)
+      const hasEmptyCart = await page
+        .getByText(/your cart is empty/i)
+        .isVisible()
+        .catch(() => false)
+      const hasCartHeading = await page
+        .getByRole('heading', { name: /shopping cart/i })
+        .isVisible()
+        .catch(() => false)
 
       expect(hasTotalSection || hasEmptyCart || hasCartHeading).toBeTruthy()
     })
@@ -143,12 +183,16 @@ test.describe('Storefront', () => {
       await page.waitForLoadState('networkidle')
 
       // Find checkout button
-      const checkoutButton = page.getByRole('button', { name: /checkout|proceed/i })
+      const checkoutButton = page
+        .getByRole('button', { name: /checkout|proceed/i })
         .or(page.getByRole('link', { name: /checkout|proceed/i }))
 
       // If cart is empty or no checkout button, skip
       if (!(await checkoutButton.isVisible())) {
-        const isEmpty = await page.getByText(/cart is empty/i).isVisible().catch(() => false)
+        const isEmpty = await page
+          .getByText(/cart is empty/i)
+          .isVisible()
+          .catch(() => false)
         test.skip(isEmpty, 'Cart is empty - add products first')
         return
       }
@@ -159,7 +203,8 @@ test.describe('Storefront', () => {
       // Should be on checkout page or redirect to Stripe
       await page.waitForTimeout(2000)
 
-      const onCheckoutPage = page.url().includes('/checkout') || page.url().includes('stripe.com')
+      const onCheckoutPage =
+        page.url().includes('/checkout') || page.url().includes('stripe.com')
       expect(onCheckoutPage).toBeTruthy()
     })
 
@@ -183,16 +228,27 @@ test.describe('Storefront', () => {
       }
 
       // Should have customer info fields
-      const hasEmailField = await page.getByLabel(/email/i).isVisible().catch(() => false)
-      const hasNameField = await page.getByLabel(/name/i).isVisible().catch(() => false)
+      const hasEmailField = await page
+        .getByLabel(/email/i)
+        .isVisible()
+        .catch(() => false)
+      const hasNameField = await page
+        .getByLabel(/name/i)
+        .isVisible()
+        .catch(() => false)
 
       // Or if using Stripe Checkout, we get redirected there
       const onStripe = page.url().includes('stripe.com')
 
       // Or the checkout form is just showing loading/processing
-      const hasCheckoutHeading = await page.getByRole('heading', { name: /checkout/i }).isVisible().catch(() => false)
+      const hasCheckoutHeading = await page
+        .getByRole('heading', { name: /checkout/i })
+        .isVisible()
+        .catch(() => false)
 
-      expect(hasEmailField || hasNameField || onStripe || hasCheckoutHeading).toBeTruthy()
+      expect(
+        hasEmailField || hasNameField || onStripe || hasCheckoutHeading,
+      ).toBeTruthy()
     })
 
     test('should validate required checkout fields', async ({ page }) => {
@@ -207,13 +263,17 @@ test.describe('Storefront', () => {
       }
 
       // Try to submit empty form
-      const submitButton = page.getByRole('button', { name: /pay|place order|submit/i })
+      const submitButton = page.getByRole('button', {
+        name: /pay|place order|submit/i,
+      })
 
       if (await submitButton.isVisible()) {
         await submitButton.click()
 
         // Should show validation errors
-        const hasError = await page.getByText(/required|invalid|enter/i).isVisible()
+        const hasError = await page
+          .getByText(/required|invalid|enter/i)
+          .isVisible()
           .catch(() => true) // Form validation may prevent submission entirely
 
         expect(hasError).toBeTruthy()
@@ -232,7 +292,8 @@ test.describe('Storefront', () => {
       expect(bodyHeight).toBeGreaterThan(200)
 
       // Navigation should be accessible (possibly via hamburger menu)
-      const nav = page.getByRole('navigation')
+      const nav = page
+        .getByRole('navigation')
         .or(page.getByRole('button', { name: /menu/i }))
 
       await expect(nav.first()).toBeVisible()
@@ -258,7 +319,10 @@ test.describe('Error Handling', () => {
 
     // Should show 404 or error in page content
     const content = await page.content()
-    const is404 = content.includes('404') || content.includes('not found') || content.includes('Shop not found')
+    const is404 =
+      content.includes('404') ||
+      content.includes('not found') ||
+      content.includes('Shop not found')
     const wasRedirected = !page.url().includes('nonexistent-tenant-12345')
 
     expect(is404 || wasRedirected).toBeTruthy()
@@ -266,7 +330,9 @@ test.describe('Error Handling', () => {
 
   test('should handle invalid product gracefully', async ({ page }) => {
     // Skip if no valid tenant exists
-    const testResponse = await page.goto(`/${testTenant}`, { waitUntil: 'domcontentloaded' })
+    const _testResponse = await page.goto(`/${testTenant}`, {
+      waitUntil: 'domcontentloaded',
+    })
     const testContent = await page.content()
     if (testContent.includes('Shop not found')) {
       test.skip(true, 'Test tenant not found - skipping product error test')
@@ -278,7 +344,10 @@ test.describe('Error Handling', () => {
 
     // Should show 404 or error in page content
     const content = await page.content()
-    const is404 = content.includes('404') || content.includes('not found') || content.includes('Product not found')
+    const is404 =
+      content.includes('404') ||
+      content.includes('not found') ||
+      content.includes('Product not found')
     const wasRedirected = !page.url().includes('nonexistent-product-xyz123')
 
     expect(is404 || wasRedirected).toBeTruthy()

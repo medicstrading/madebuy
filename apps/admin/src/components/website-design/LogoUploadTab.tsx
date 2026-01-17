@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Upload, Loader2, Image as ImageIcon, X } from 'lucide-react'
+import { Image as ImageIcon, Loader2, Upload, X } from 'lucide-react'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 export function LogoUploadTab() {
@@ -72,7 +72,7 @@ export function LogoUploadTab() {
 
       if (response.ok) {
         const data = await response.json()
-        const media = data.media || data  // Handle both response formats
+        const media = data.media || data // Handle both response formats
         setLogo({
           mediaId: media.id,
           url: media.variants.original.url,
@@ -143,7 +143,9 @@ export function LogoUploadTab() {
         {/* Current Logo Preview */}
         {logo.url ? (
           <div className="mb-6">
-            <p className="mb-3 text-sm font-medium text-gray-700">Current Logo</p>
+            <p className="mb-3 text-sm font-medium text-gray-700">
+              Current Logo
+            </p>
             <div className="relative inline-block">
               <div className="overflow-hidden rounded-lg border-2 border-gray-200 bg-white p-4">
                 <div className="relative h-20 w-auto">
@@ -157,6 +159,7 @@ export function LogoUploadTab() {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={handleRemoveLogo}
                 className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-colors hover:bg-red-600"
                 title="Remove logo"
@@ -202,9 +205,13 @@ export function LogoUploadTab() {
 
         {/* Guidelines */}
         <div className="mt-6 rounded-lg border border-blue-100 bg-blue-50 p-4">
-          <h3 className="mb-2 text-sm font-semibold text-blue-900">Logo Guidelines</h3>
+          <h3 className="mb-2 text-sm font-semibold text-blue-900">
+            Logo Guidelines
+          </h3>
           <ul className="space-y-1 text-sm text-blue-800">
-            <li>• Use PNG format with transparent background for best results</li>
+            <li>
+              • Use PNG format with transparent background for best results
+            </li>
             <li>• Recommended size: 200x60px (landscape orientation)</li>
             <li>• Maximum file size: 5MB</li>
             <li>• Logo will be displayed in the storefront header</li>
@@ -215,9 +222,12 @@ export function LogoUploadTab() {
         {/* Save Button */}
         <div className="mt-6 flex items-center justify-end gap-3 border-t pt-6">
           {isSaved && (
-            <p className="text-sm font-medium text-green-600">✓ Logo saved successfully!</p>
+            <p className="text-sm font-medium text-green-600">
+              ✓ Logo saved successfully!
+            </p>
           )}
           <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving || !logo.mediaId}
             className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -237,7 +247,9 @@ export function LogoUploadTab() {
       {/* Logo Preview in Context */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="mb-4 text-lg font-semibold text-gray-900">Preview</h3>
-        <p className="mb-4 text-sm text-gray-600">How your logo will appear in the storefront header</p>
+        <p className="mb-4 text-sm text-gray-600">
+          How your logo will appear in the storefront header
+        </p>
 
         {/* Mock Header Preview */}
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
@@ -254,15 +266,22 @@ export function LogoUploadTab() {
                   />
                 </div>
               ) : (
-                <h1 className="text-2xl font-bold text-gray-900">Your Store Name</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Your Store Name
+                </h1>
               )}
-              <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white">
+              <button
+                type="button"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
+              >
                 Cart
               </button>
             </div>
           </div>
           <div className="bg-gray-50 p-8 text-center">
-            <p className="text-sm text-gray-500">Storefront content appears here...</p>
+            <p className="text-sm text-gray-500">
+              Storefront content appears here...
+            </p>
           </div>
         </div>
       </div>

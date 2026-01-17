@@ -1,21 +1,25 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import type { PersonalizationConfig, PersonalizationField, PersonalizationFieldType } from '@madebuy/shared'
+import type {
+  PersonalizationConfig,
+  PersonalizationField,
+  PersonalizationFieldType,
+} from '@madebuy/shared'
 import {
-  Plus,
-  Trash2,
-  GripVertical,
-  Save,
-  Loader2,
-  ToggleLeft,
-  ToggleRight,
-  HelpCircle,
   ChevronDown,
   ChevronUp,
   Clock,
+  GripVertical,
+  HelpCircle,
+  Loader2,
+  Plus,
+  Save,
+  ToggleLeft,
+  ToggleRight,
+  Trash2,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
 
 interface PersonalizationConfigEditorProps {
   pieceId: string
@@ -23,9 +27,17 @@ interface PersonalizationConfigEditorProps {
   initialConfig?: PersonalizationConfig
 }
 
-const FIELD_TYPES: { value: PersonalizationFieldType; label: string; description: string }[] = [
+const FIELD_TYPES: {
+  value: PersonalizationFieldType
+  label: string
+  description: string
+}[] = [
   { value: 'text', label: 'Text', description: 'Single line text input' },
-  { value: 'textarea', label: 'Long Text', description: 'Multi-line text area' },
+  {
+    value: 'textarea',
+    label: 'Long Text',
+    description: 'Multi-line text area',
+  },
   { value: 'select', label: 'Dropdown', description: 'Select from options' },
   { value: 'checkbox', label: 'Checkbox', description: 'Yes/No toggle' },
   { value: 'number', label: 'Number', description: 'Numeric input' },
@@ -60,11 +72,13 @@ export function PersonalizationConfigEditor({
   // Config state
   const [enabled, setEnabled] = useState(initialConfig?.enabled ?? false)
   const [fields, setFields] = useState<PersonalizationField[]>(
-    initialConfig?.fields ?? []
+    initialConfig?.fields ?? [],
   )
-  const [instructions, setInstructions] = useState(initialConfig?.instructions ?? '')
+  const [instructions, setInstructions] = useState(
+    initialConfig?.instructions ?? '',
+  )
   const [processingDays, setProcessingDays] = useState<number | undefined>(
-    initialConfig?.processingDays
+    initialConfig?.processingDays,
   )
 
   // Field expansion state
@@ -73,33 +87,42 @@ export function PersonalizationConfigEditor({
   const addField = useCallback(() => {
     const newField = createEmptyField()
     newField.displayOrder = fields.length
-    setFields(prev => [...prev, newField])
+    setFields((prev) => [...prev, newField])
     setExpandedField(newField.id)
   }, [fields.length])
 
-  const removeField = useCallback((fieldId: string) => {
-    setFields(prev => prev.filter(f => f.id !== fieldId))
-    if (expandedField === fieldId) {
-      setExpandedField(null)
-    }
-  }, [expandedField])
+  const removeField = useCallback(
+    (fieldId: string) => {
+      setFields((prev) => prev.filter((f) => f.id !== fieldId))
+      if (expandedField === fieldId) {
+        setExpandedField(null)
+      }
+    },
+    [expandedField],
+  )
 
-  const updateField = useCallback((fieldId: string, updates: Partial<PersonalizationField>) => {
-    setFields(prev => prev.map(f =>
-      f.id === fieldId ? { ...f, ...updates } : f
-    ))
-  }, [])
+  const updateField = useCallback(
+    (fieldId: string, updates: Partial<PersonalizationField>) => {
+      setFields((prev) =>
+        prev.map((f) => (f.id === fieldId ? { ...f, ...updates } : f)),
+      )
+    },
+    [],
+  )
 
   const moveField = useCallback((fieldId: string, direction: 'up' | 'down') => {
-    setFields(prev => {
-      const index = prev.findIndex(f => f.id === fieldId)
+    setFields((prev) => {
+      const index = prev.findIndex((f) => f.id === fieldId)
       if (index === -1) return prev
       if (direction === 'up' && index === 0) return prev
       if (direction === 'down' && index === prev.length - 1) return prev
 
       const newFields = [...prev]
       const swapIndex = direction === 'up' ? index - 1 : index + 1
-      ;[newFields[index], newFields[swapIndex]] = [newFields[swapIndex], newFields[index]]
+      ;[newFields[index], newFields[swapIndex]] = [
+        newFields[swapIndex],
+        newFields[index],
+      ]
 
       // Update display orders
       return newFields.map((f, i) => ({ ...f, displayOrder: i }))
@@ -118,7 +141,10 @@ export function PersonalizationConfigEditor({
           if (!field.name.trim()) {
             throw new Error(`Please provide a name for all fields`)
           }
-          if (field.type === 'select' && (!field.options || field.options.length === 0)) {
+          if (
+            field.type === 'select' &&
+            (!field.options || field.options.length === 0)
+          ) {
             throw new Error(`Field "${field.name}" needs at least one option`)
           }
         }
@@ -157,10 +183,15 @@ export function PersonalizationConfigEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Personalization Options</h2>
-          <p className="text-sm text-gray-500">Allow customers to customize "{pieceName}"</p>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Personalization Options
+          </h2>
+          <p className="text-sm text-gray-500">
+            Allow customers to customize "{pieceName}"
+          </p>
         </div>
         <button
+          type="button"
           onClick={() => setEnabled(!enabled)}
           className="flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors"
           style={{
@@ -173,7 +204,9 @@ export function PersonalizationConfigEditor({
           ) : (
             <ToggleLeft className="h-5 w-5 text-gray-400" />
           )}
-          <span className={enabled ? 'text-green-700 font-medium' : 'text-gray-600'}>
+          <span
+            className={enabled ? 'text-green-700 font-medium' : 'text-gray-600'}
+          >
             {enabled ? 'Enabled' : 'Disabled'}
           </span>
         </button>
@@ -207,7 +240,11 @@ export function PersonalizationConfigEditor({
               type="number"
               min={0}
               value={processingDays ?? ''}
-              onChange={(e) => setProcessingDays(e.target.value ? parseInt(e.target.value) : undefined)}
+              onChange={(e) =>
+                setProcessingDays(
+                  e.target.value ? parseInt(e.target.value, 10) : undefined,
+                )
+              }
               placeholder="0"
               className="w-32 rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
@@ -219,8 +256,11 @@ export function PersonalizationConfigEditor({
           {/* Fields */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-700">Personalization Fields</h3>
+              <h3 className="text-sm font-medium text-gray-700">
+                Personalization Fields
+              </h3>
               <button
+                type="button"
                 type="button"
                 onClick={addField}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
@@ -233,8 +273,11 @@ export function PersonalizationConfigEditor({
             {fields.length === 0 ? (
               <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                 <HelpCircle className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">No fields configured yet</p>
+                <p className="text-sm text-gray-500">
+                  No fields configured yet
+                </p>
                 <button
+                  type="button"
                   type="button"
                   onClick={addField}
                   className="mt-3 text-sm text-blue-600 hover:text-blue-700"
@@ -249,7 +292,11 @@ export function PersonalizationConfigEditor({
                     key={field.id}
                     field={field}
                     isExpanded={expandedField === field.id}
-                    onToggle={() => setExpandedField(expandedField === field.id ? null : field.id)}
+                    onToggle={() =>
+                      setExpandedField(
+                        expandedField === field.id ? null : field.id,
+                      )
+                    }
                     onUpdate={(updates) => updateField(field.id, updates)}
                     onRemove={() => removeField(field.id)}
                     onMoveUp={() => moveField(field.id, 'up')}
@@ -267,6 +314,7 @@ export function PersonalizationConfigEditor({
       {/* Save Button */}
       <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving}
           className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -280,12 +328,12 @@ export function PersonalizationConfigEditor({
         </button>
 
         {success && (
-          <span className="text-sm text-green-600 font-medium">Saved successfully!</span>
+          <span className="text-sm text-green-600 font-medium">
+            Saved successfully!
+          </span>
         )}
 
-        {error && (
-          <span className="text-sm text-red-600">{error}</span>
-        )}
+        {error && <span className="text-sm text-red-600">{error}</span>}
       </div>
     </div>
   )
@@ -347,16 +395,23 @@ function FieldEditor({
               {field.name || 'Untitled Field'}
             </span>
             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-              {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
+              {FIELD_TYPES.find((t) => t.value === field.type)?.label ||
+                field.type}
             </span>
             {field.required && (
-              <span className="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded">Required</span>
+              <span className="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                Required
+              </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
+            type="button"
             onClick={onMoveUp}
             disabled={isFirst}
             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
@@ -364,6 +419,7 @@ function FieldEditor({
             <ChevronUp className="h-4 w-4" />
           </button>
           <button
+            type="button"
             onClick={onMoveDown}
             disabled={isLast}
             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
@@ -371,6 +427,7 @@ function FieldEditor({
             <ChevronDown className="h-4 w-4" />
           </button>
           <button
+            type="button"
             onClick={onRemove}
             className="p-1 text-gray-400 hover:text-red-500 ml-2"
           >
@@ -404,10 +461,12 @@ function FieldEditor({
               </label>
               <select
                 value={field.type}
-                onChange={(e) => onUpdate({ type: e.target.value as PersonalizationFieldType })}
+                onChange={(e) =>
+                  onUpdate({ type: e.target.value as PersonalizationFieldType })
+                }
                 className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               >
-                {FIELD_TYPES.map(type => (
+                {FIELD_TYPES.map((type) => (
                   <option key={type.value} value={type.value}>
                     {type.label} - {type.description}
                   </option>
@@ -425,7 +484,9 @@ function FieldEditor({
               <input
                 type="text"
                 value={field.placeholder || ''}
-                onChange={(e) => onUpdate({ placeholder: e.target.value || undefined })}
+                onChange={(e) =>
+                  onUpdate({ placeholder: e.target.value || undefined })
+                }
                 placeholder="Placeholder text..."
                 className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
@@ -437,7 +498,9 @@ function FieldEditor({
               <input
                 type="text"
                 value={field.helpText || ''}
-                onChange={(e) => onUpdate({ helpText: e.target.value || undefined })}
+                onChange={(e) =>
+                  onUpdate({ helpText: e.target.value || undefined })
+                }
                 placeholder="Instructions for customer..."
                 className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
@@ -455,7 +518,13 @@ function FieldEditor({
                   type="number"
                   min={0}
                   value={field.minLength ?? ''}
-                  onChange={(e) => onUpdate({ minLength: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    onUpdate({
+                      minLength: e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : undefined,
+                    })
+                  }
                   className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -467,7 +536,13 @@ function FieldEditor({
                   type="number"
                   min={0}
                   value={field.maxLength ?? ''}
-                  onChange={(e) => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    onUpdate({
+                      maxLength: e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : undefined,
+                    })
+                  }
                   className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -477,29 +552,53 @@ function FieldEditor({
           {field.type === 'number' && (
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Min</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Min
+                </label>
                 <input
                   type="number"
                   value={field.min ?? ''}
-                  onChange={(e) => onUpdate({ min: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    onUpdate({
+                      min: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    })
+                  }
                   className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max
+                </label>
                 <input
                   type="number"
                   value={field.max ?? ''}
-                  onChange={(e) => onUpdate({ max: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    onUpdate({
+                      max: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    })
+                  }
                   className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Step</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Step
+                </label>
                 <input
                   type="number"
                   value={field.step ?? ''}
-                  onChange={(e) => onUpdate({ step: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    onUpdate({
+                      step: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    })
+                  }
                   className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -522,6 +621,7 @@ function FieldEditor({
                     />
                     <button
                       type="button"
+                      type="button"
                       onClick={() => removeOption(idx)}
                       className="p-2 text-gray-400 hover:text-red-500"
                     >
@@ -534,11 +634,14 @@ function FieldEditor({
                     type="text"
                     value={newOption}
                     onChange={(e) => setNewOption(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOption())}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && (e.preventDefault(), addOption())
+                    }
                     placeholder="Add option..."
                     className="flex-1 rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                   <button
+                    type="button"
                     type="button"
                     onClick={addOption}
                     className="p-2 text-blue-600 hover:text-blue-700"
@@ -559,7 +662,13 @@ function FieldEditor({
                 type="number"
                 min={1}
                 value={field.maxFileSizeMB ?? ''}
-                onChange={(e) => onUpdate({ maxFileSizeMB: e.target.value ? parseInt(e.target.value) : undefined })}
+                onChange={(e) =>
+                  onUpdate({
+                    maxFileSizeMB: e.target.value
+                      ? parseInt(e.target.value, 10)
+                      : undefined,
+                  })
+                }
                 placeholder="10"
                 className="w-32 rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
@@ -577,13 +686,19 @@ function FieldEditor({
                 min={0}
                 step={0.01}
                 value={field.priceAdjustment ? field.priceAdjustment / 100 : ''}
-                onChange={(e) => onUpdate({
-                  priceAdjustment: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : undefined
-                })}
+                onChange={(e) =>
+                  onUpdate({
+                    priceAdjustment: e.target.value
+                      ? Math.round(parseFloat(e.target.value) * 100)
+                      : undefined,
+                  })
+                }
                 placeholder="0.00"
                 className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
-              <p className="mt-1 text-xs text-gray-500">Extra charge for this personalization</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Extra charge for this personalization
+              </p>
             </div>
 
             <div className="flex items-center">

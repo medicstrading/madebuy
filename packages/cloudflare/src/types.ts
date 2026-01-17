@@ -32,7 +32,13 @@ export interface CloudflareError {
 export interface CloudflareZone {
   id: string
   name: string
-  status: 'active' | 'pending' | 'initializing' | 'moved' | 'deleted' | 'deactivated'
+  status:
+    | 'active'
+    | 'pending'
+    | 'initializing'
+    | 'moved'
+    | 'deleted'
+    | 'deactivated'
   paused: boolean
   type: 'full' | 'partial'
   development_mode: number
@@ -84,7 +90,15 @@ export interface CreateZoneParams {
 }
 
 // DNS Record types
-export type DnsRecordType = 'A' | 'AAAA' | 'CNAME' | 'TXT' | 'MX' | 'NS' | 'SRV' | 'CAA'
+export type DnsRecordType =
+  | 'A'
+  | 'AAAA'
+  | 'CNAME'
+  | 'TXT'
+  | 'MX'
+  | 'NS'
+  | 'SRV'
+  | 'CAA'
 
 export interface CloudflareDnsRecord {
   id: string
@@ -137,9 +151,25 @@ export interface CloudflareSslSettings {
 }
 
 export interface CloudflareSslVerification {
-  certificate_status: 'active' | 'pending_validation' | 'pending_issuance' | 'pending_deployment' | 'pending_deletion' | 'deleted' | 'validation_timed_out' | 'issuance_timed_out' | 'deployment_timed_out' | 'deletion_timed_out'
+  certificate_status:
+    | 'active'
+    | 'pending_validation'
+    | 'pending_issuance'
+    | 'pending_deployment'
+    | 'pending_deletion'
+    | 'deleted'
+    | 'validation_timed_out'
+    | 'issuance_timed_out'
+    | 'deployment_timed_out'
+    | 'deletion_timed_out'
   verification_type: 'http' | 'cname' | 'txt' | 'email'
-  verification_status: 'active' | 'pending' | 'initializing' | 'expired' | 'inactive' | 'deleted'
+  verification_status:
+    | 'active'
+    | 'pending'
+    | 'initializing'
+    | 'expired'
+    | 'inactive'
+    | 'deleted'
   hostname: string
   signature: string
 }

@@ -1,8 +1,8 @@
-import { requireTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
-import { BlogEditor } from '@/components/blog/BlogEditor'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { BlogEditor } from '@/components/blog/BlogEditor'
+import { requireTenant } from '@/lib/session'
 
 export default async function NewBlogPostPage() {
   const tenant = await requireTenant()
@@ -24,13 +24,12 @@ export default async function NewBlogPostPage() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">New Blog Post</h1>
-        <p className="mt-2 text-gray-600">Create a new blog post for your website</p>
+        <p className="mt-2 text-gray-600">
+          Create a new blog post for your website
+        </p>
       </div>
 
-      <BlogEditor
-        tenantId={tenant.id}
-        availableMedia={allMedia}
-      />
+      <BlogEditor tenantId={tenant.id} availableMedia={allMedia} />
     </div>
   )
 }

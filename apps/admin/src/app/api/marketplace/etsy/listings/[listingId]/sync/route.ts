@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { marketplace, pieces } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ listingId: string }>
@@ -12,7 +12,7 @@ interface RouteParams {
  * Sync an Etsy listing - Coming Soon
  * For now, just updates local lastSyncedAt timestamp
  */
-export async function POST(request: NextRequest, context: RouteParams) {
+export async function POST(_request: NextRequest, context: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -27,7 +27,10 @@ export async function POST(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'etsy') {
-      return NextResponse.json({ error: 'Not an Etsy listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an Etsy listing' },
+        { status: 400 },
+      )
     }
 
     // Get piece for current price/stock
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest, context: RouteParams) {
       tenant.id,
       listingId,
       piece.price,
-      piece.stock ?? 1
+      piece.stock ?? 1,
     )
 
     return NextResponse.json({
@@ -52,6 +55,9 @@ export async function POST(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error syncing Etsy listing:', error)
-    return NextResponse.json({ error: 'Failed to sync listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to sync listing' },
+      { status: 500 },
+    )
   }
 }

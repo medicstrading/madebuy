@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { marketplace, pieces, media } from '@madebuy/db'
+import { marketplace, media, pieces } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
-  getEbayApiUrl,
   type EbayInventoryItem,
   type EbayPackageWeightAndSize,
+  getEbayApiUrl,
 } from '@/lib/marketplace/ebay'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ listingId: string }>
@@ -16,7 +16,7 @@ interface RouteParams {
  *
  * Force sync a listing with current piece data
  */
-export async function POST(request: NextRequest, context: RouteParams) {
+export async function POST(_request: NextRequest, context: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -32,11 +32,17 @@ export async function POST(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'ebay') {
-      return NextResponse.json({ error: 'Not an eBay listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an eBay listing' },
+        { status: 400 },
+      )
     }
 
     // Check eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
     }
@@ -55,14 +61,14 @@ export async function POST(request: NextRequest, context: RouteParams) {
     if (!sku || !offerId) {
       return NextResponse.json(
         { error: 'Missing eBay inventory data, please recreate listing' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!listingPrice) {
       return NextResponse.json(
         { error: 'Piece must have a price to sync to eBay' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -118,7 +124,9 @@ export async function POST(request: NextRequest, context: RouteParams) {
 
     // Update inventory
     const inventoryResponse = await fetch(
-      getEbayApiUrl(`/sell/inventory/v1/inventory_item/${encodeURIComponent(sku)}`),
+      getEbayApiUrl(
+        `/sell/inventory/v1/inventory_item/${encodeURIComponent(sku)}`,
+      ),
       {
         method: 'PUT',
         headers: {
@@ -128,7 +136,7 @@ export async function POST(request: NextRequest, context: RouteParams) {
           'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
         },
         body: JSON.stringify(inventoryPayload),
-      }
+      },
     )
 
     if (!inventoryResponse.ok) {
@@ -139,12 +147,12 @@ export async function POST(request: NextRequest, context: RouteParams) {
         tenant.id,
         listingId,
         'error',
-        `Sync failed: ${JSON.stringify(errorData)}`
+        `Sync failed: ${JSON.stringify(errorData)}`,
       )
 
       return NextResponse.json(
         { error: 'Failed to sync inventory' },
-        { status: inventoryResponse.status }
+        { status: inventoryResponse.status },
       )
     }
 
@@ -167,7 +175,7 @@ export async function POST(request: NextRequest, context: RouteParams) {
             },
           },
         }),
-      }
+      },
     )
 
     if (!offerResponse.ok) {
@@ -178,17 +186,22 @@ export async function POST(request: NextRequest, context: RouteParams) {
         tenant.id,
         listingId,
         'error',
-        `Price sync failed: ${JSON.stringify(errorData)}`
+        `Price sync failed: ${JSON.stringify(errorData)}`,
       )
 
       return NextResponse.json(
         { error: 'Inventory synced but price update failed' },
-        { status: 207 }
+        { status: 207 },
       )
     }
 
     // Mark as synced
-    await marketplace.markListingSynced(tenant.id, listingId, listingPrice, listingQuantity)
+    await marketplace.markListingSynced(
+      tenant.id,
+      listingId,
+      listingPrice,
+      listingQuantity,
+    )
     await marketplace.updateListingStatus(tenant.id, listingId, 'active')
 
     return NextResponse.json({
@@ -198,6 +211,9 @@ export async function POST(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error syncing eBay listing:', error)
-    return NextResponse.json({ error: 'Failed to sync listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to sync listing' },
+      { status: 500 },
+    )
   }
 }

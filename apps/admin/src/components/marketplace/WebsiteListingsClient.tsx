@@ -1,28 +1,28 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import {
-  Globe,
-  Package,
-  Eye,
-  Pencil,
-  MoreHorizontal,
-  CheckCircle,
-  Clock,
-  ShoppingBag,
-  Loader2,
-  ExternalLink,
-  ChevronDown,
-  Check,
-  Star,
-  FolderOpen,
-  Plus,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { Piece, PieceStatus } from '@madebuy/shared'
+import {
+  Check,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  ExternalLink,
+  Eye,
+  FolderOpen,
+  Globe,
+  Loader2,
+  MoreHorizontal,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingBag,
+  Star,
+} from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface PieceWithThumbnail extends Piece {
   thumbnailUrl?: string
@@ -43,11 +43,34 @@ interface WebsiteListingsClientProps {
 
 type FilterTab = 'all' | PieceStatus
 
-const statusConfig: Record<PieceStatus, { label: string; color: string; bgColor: string; icon: typeof CheckCircle }> = {
-  draft: { label: 'Draft', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: Clock },
-  available: { label: 'Available', color: 'text-emerald-700', bgColor: 'bg-emerald-50', icon: CheckCircle },
-  reserved: { label: 'Reserved', color: 'text-amber-700', bgColor: 'bg-amber-50', icon: Clock },
-  sold: { label: 'Sold', color: 'text-blue-700', bgColor: 'bg-blue-50', icon: ShoppingBag },
+const statusConfig: Record<
+  PieceStatus,
+  { label: string; color: string; bgColor: string; icon: typeof CheckCircle }
+> = {
+  draft: {
+    label: 'Draft',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100',
+    icon: Clock,
+  },
+  available: {
+    label: 'Available',
+    color: 'text-emerald-700',
+    bgColor: 'bg-emerald-50',
+    icon: CheckCircle,
+  },
+  reserved: {
+    label: 'Reserved',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-50',
+    icon: Clock,
+  },
+  sold: {
+    label: 'Sold',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-50',
+    icon: ShoppingBag,
+  },
 }
 
 const filterTabs: { value: FilterTab; label: string }[] = [
@@ -58,43 +81,60 @@ const filterTabs: { value: FilterTab; label: string }[] = [
   { value: 'draft', label: 'Draft' },
 ]
 
-export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCollectionsMap }: WebsiteListingsClientProps) {
+export function WebsiteListingsClient({
+  pieces,
+  tenantSlug,
+  collections,
+  pieceCollectionsMap,
+}: WebsiteListingsClientProps) {
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null)
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null)
-  const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState<string | null>(null)
-  const [togglingFeatured, setTogglingFeatured] = useState<Set<string>>(new Set())
-  const [updatingCollections, setUpdatingCollections] = useState<Set<string>>(new Set())
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(
+    null,
+  )
+  const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState<
+    string | null
+  >(null)
+  const [togglingFeatured, setTogglingFeatured] = useState<Set<string>>(
+    new Set(),
+  )
+  const [updatingCollections, setUpdatingCollections] = useState<Set<string>>(
+    new Set(),
+  )
   const [collectionInput, setCollectionInput] = useState('')
   const [creatingCollection, setCreatingCollection] = useState(false)
 
   // Local state for optimistic collection updates
-  const [localCollectionsMap, setLocalCollectionsMap] = useState(pieceCollectionsMap)
+  const [localCollectionsMap, setLocalCollectionsMap] =
+    useState(pieceCollectionsMap)
 
   // Filter pieces based on active tab
   const filteredPieces = useMemo(() => {
     if (activeFilter === 'all') return pieces
-    return pieces.filter(p => p.status === activeFilter)
+    return pieces.filter((p) => p.status === activeFilter)
   }, [pieces, activeFilter])
 
   // Calculate stats
-  const stats = useMemo(() => ({
-    total: pieces.length,
-    available: pieces.filter(p => p.status === 'available').length,
-    reserved: pieces.filter(p => p.status === 'reserved').length,
-    sold: pieces.filter(p => p.status === 'sold').length,
-    draft: pieces.filter(p => p.status === 'draft').length,
-  }), [pieces])
+  const stats = useMemo(
+    () => ({
+      total: pieces.length,
+      available: pieces.filter((p) => p.status === 'available').length,
+      reserved: pieces.filter((p) => p.status === 'reserved').length,
+      sold: pieces.filter((p) => p.status === 'sold').length,
+      draft: pieces.filter((p) => p.status === 'draft').length,
+    }),
+    [pieces],
+  )
 
   // Selection handlers
   const toggleSelectAll = () => {
     if (selectedIds.size === filteredPieces.length) {
       setSelectedIds(new Set())
     } else {
-      setSelectedIds(new Set(filteredPieces.map(p => p.id)))
+      setSelectedIds(new Set(filteredPieces.map((p) => p.id)))
     }
   }
 
@@ -111,12 +151,13 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
   // Update piece status - if multiple selected, update all of them
   const updateStatus = async (pieceId: string, newStatus: PieceStatus) => {
     // If this piece is selected and there are multiple selections, update all selected
-    const idsToUpdate = selectedIds.has(pieceId) && selectedIds.size > 1
-      ? Array.from(selectedIds)
-      : [pieceId]
+    const idsToUpdate =
+      selectedIds.has(pieceId) && selectedIds.size > 1
+        ? Array.from(selectedIds)
+        : [pieceId]
 
     // Mark all as updating
-    idsToUpdate.forEach(id => setUpdatingIds(prev => new Set(prev).add(id)))
+    idsToUpdate.forEach((id) => setUpdatingIds((prev) => new Set(prev).add(id)))
     setStatusDropdownOpen(null)
     setActionMenuOpen(null)
 
@@ -153,11 +194,13 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
     } catch (err: any) {
       alert(`Failed to update: ${err.message}`)
     } finally {
-      idsToUpdate.forEach(id => setUpdatingIds(prev => {
-        const next = new Set(prev)
-        next.delete(id)
-        return next
-      }))
+      idsToUpdate.forEach((id) =>
+        setUpdatingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        }),
+      )
     }
   }
 
@@ -165,19 +208,23 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
   const filteredCollections = useMemo(() => {
     if (!collectionInput.trim()) return collections
     const search = collectionInput.toLowerCase()
-    return collections.filter(c => c.name.toLowerCase().includes(search))
+    return collections.filter((c) => c.name.toLowerCase().includes(search))
   }, [collections, collectionInput])
 
   // Check if typed name matches an existing collection exactly
   const exactCollectionMatch = collections.find(
-    c => c.name.toLowerCase() === collectionInput.trim().toLowerCase()
+    (c) => c.name.toLowerCase() === collectionInput.trim().toLowerCase(),
   )
 
   // Create new collection and add piece(s) to it
-  const createCollectionAndAdd = async (pieceId: string, collectionName: string) => {
-    const idsToUpdate = selectedIds.has(pieceId) && selectedIds.size > 1
-      ? Array.from(selectedIds)
-      : [pieceId]
+  const createCollectionAndAdd = async (
+    pieceId: string,
+    collectionName: string,
+  ) => {
+    const idsToUpdate =
+      selectedIds.has(pieceId) && selectedIds.size > 1
+        ? Array.from(selectedIds)
+        : [pieceId]
 
     setCreatingCollection(true)
     try {
@@ -210,7 +257,7 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
 
   // Toggle featured status
   const toggleFeatured = async (pieceId: string, currentFeatured: boolean) => {
-    setTogglingFeatured(prev => new Set(prev).add(pieceId))
+    setTogglingFeatured((prev) => new Set(prev).add(pieceId))
 
     try {
       const response = await fetch(`/api/pieces/${pieceId}`, {
@@ -228,7 +275,7 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
     } catch (err: any) {
       alert(`Failed to update: ${err.message}`)
     } finally {
-      setTogglingFeatured(prev => {
+      setTogglingFeatured((prev) => {
         const next = new Set(prev)
         next.delete(pieceId)
         return next
@@ -237,31 +284,39 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
   }
 
   // Toggle collection membership - if multiple selected, update all of them
-  const toggleCollection = async (pieceId: string, collectionId: string, isCurrentlyIn: boolean) => {
+  const toggleCollection = async (
+    pieceId: string,
+    collectionId: string,
+    isCurrentlyIn: boolean,
+  ) => {
     // If this piece is selected and there are multiple selections, update all selected
-    const idsToUpdate = selectedIds.has(pieceId) && selectedIds.size > 1
-      ? Array.from(selectedIds)
-      : [pieceId]
+    const idsToUpdate =
+      selectedIds.has(pieceId) && selectedIds.size > 1
+        ? Array.from(selectedIds)
+        : [pieceId]
 
     // Mark all as updating
-    idsToUpdate.forEach(id => {
+    idsToUpdate.forEach((id) => {
       const key = `${id}-${collectionId}`
-      setUpdatingCollections(prev => new Set(prev).add(key))
+      setUpdatingCollections((prev) => new Set(prev).add(key))
     })
 
     // Optimistic update for all pieces
-    setLocalCollectionsMap(prev => {
+    setLocalCollectionsMap((prev) => {
       const updated = { ...prev }
-      const collection = collections.find(c => c.id === collectionId)
+      const collection = collections.find((c) => c.id === collectionId)
 
-      idsToUpdate.forEach(id => {
+      idsToUpdate.forEach((id) => {
         const current = updated[id] || []
         if (isCurrentlyIn) {
-          updated[id] = current.filter(c => c.id !== collectionId)
+          updated[id] = current.filter((c) => c.id !== collectionId)
         } else if (collection) {
           // Only add if not already in
-          if (!current.some(c => c.id === collectionId)) {
-            updated[id] = [...current, { id: collection.id, name: collection.name }]
+          if (!current.some((c) => c.id === collectionId)) {
+            updated[id] = [
+              ...current,
+              { id: collection.id, name: collection.name },
+            ]
           }
         }
       })
@@ -291,7 +346,10 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
           const response = await fetch(`/api/pieces/${id}/collections`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ collectionId, action: isCurrentlyIn ? 'remove' : 'add' }),
+            body: JSON.stringify({
+              collectionId,
+              action: isCurrentlyIn ? 'remove' : 'add',
+            }),
           })
 
           if (!response.ok) {
@@ -310,9 +368,9 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
     } catch (err: any) {
       alert(`Failed to update collections: ${err.message}`)
     } finally {
-      idsToUpdate.forEach(id => {
+      idsToUpdate.forEach((id) => {
         const key = `${id}-${collectionId}`
-        setUpdatingCollections(prev => {
+        setUpdatingCollections((prev) => {
           const next = new Set(prev)
           next.delete(key)
           return next
@@ -321,7 +379,10 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
     }
   }
 
-  const formatCurrency = (amount: number | undefined, currency: string = 'AUD') => {
+  const formatCurrency = (
+    amount: number | undefined,
+    currency: string = 'AUD',
+  ) => {
     if (amount === undefined) return '—'
     return new Intl.NumberFormat('en-AU', {
       style: 'currency',
@@ -360,11 +421,15 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
         </div>
         <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-sm">
           <p className="text-sm font-medium text-emerald-600">Available</p>
-          <p className="mt-1 text-3xl font-bold text-emerald-700">{stats.available}</p>
+          <p className="mt-1 text-3xl font-bold text-emerald-700">
+            {stats.available}
+          </p>
         </div>
         <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-4 shadow-sm">
           <p className="text-sm font-medium text-amber-600">Reserved</p>
-          <p className="mt-1 text-3xl font-bold text-amber-700">{stats.reserved}</p>
+          <p className="mt-1 text-3xl font-bold text-amber-700">
+            {stats.reserved}
+          </p>
         </div>
         <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 shadow-sm">
           <p className="text-sm font-medium text-blue-600">Sold</p>
@@ -375,15 +440,16 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
       {/* Filter Tabs + Bulk Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          {filterTabs.map(tab => (
+          {filterTabs.map((tab) => (
             <button
+              type="button"
               key={tab.value}
               onClick={() => setActiveFilter(tab.value)}
               className={cn(
                 'rounded-md px-4 py-2 text-sm font-medium transition-all',
                 activeFilter === tab.value
                   ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900',
               )}
             >
               {tab.label}
@@ -406,6 +472,7 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
               Use any row's dropdown to update all selected
             </span>
             <button
+              type="button"
               onClick={() => setSelectedIds(new Set())}
               className="ml-2 text-xs text-blue-500 hover:text-blue-700 underline"
             >
@@ -420,7 +487,9 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
         <div className="rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
           <Package className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">
-            {activeFilter === 'all' ? 'No products yet' : `No ${activeFilter} products`}
+            {activeFilter === 'all'
+              ? 'No products yet'
+              : `No ${activeFilter} products`}
           </h3>
           <p className="mt-2 text-sm text-gray-500">
             {activeFilter === 'all'
@@ -445,7 +514,10 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                 <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedIds.size === filteredPieces.length && filteredPieces.length > 0}
+                    checked={
+                      selectedIds.size === filteredPieces.length &&
+                      filteredPieces.length > 0
+                    }
                     onChange={toggleSelectAll}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
@@ -471,7 +543,7 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {filteredPieces.map(piece => {
+              {filteredPieces.map((piece) => {
                 const status = statusConfig[piece.status]
                 const StatusIcon = status.icon
                 const isUpdating = updatingIds.has(piece.id)
@@ -482,7 +554,7 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                     key={piece.id}
                     className={cn(
                       'group transition-colors',
-                      isSelected ? 'bg-blue-50/50' : 'hover:bg-gray-50'
+                      isSelected ? 'bg-blue-50/50' : 'hover:bg-gray-50',
                     )}
                   >
                     <td className="px-4 py-3">
@@ -526,24 +598,37 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                     <td className="px-4 py-3">
                       <div className="relative">
                         <button
-                          onClick={() => setCollectionsDropdownOpen(collectionsDropdownOpen === piece.id ? null : piece.id)}
+                          type="button"
+                          onClick={() =>
+                            setCollectionsDropdownOpen(
+                              collectionsDropdownOpen === piece.id
+                                ? null
+                                : piece.id,
+                            )
+                          }
                           className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
                         >
                           {(() => {
-                            const pieceCollections = localCollectionsMap[piece.id] || []
+                            const pieceCollections =
+                              localCollectionsMap[piece.id] || []
                             if (pieceCollections.length === 0) {
                               return (
                                 <span className="flex items-center gap-1 text-gray-400 hover:text-gray-600">
                                   <FolderOpen className="h-4 w-4" />
-                                  <span className="text-xs">Add to collection</span>
+                                  <span className="text-xs">
+                                    Add to collection
+                                  </span>
                                 </span>
                               )
                             }
-                            const displayCollections = pieceCollections.slice(0, 2)
+                            const displayCollections = pieceCollections.slice(
+                              0,
+                              2,
+                            )
                             const moreCount = pieceCollections.length - 2
                             return (
                               <div className="flex flex-wrap items-center gap-1">
-                                {displayCollections.map(c => (
+                                {displayCollections.map((c) => (
                                   <span
                                     key={c.id}
                                     className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700"
@@ -552,7 +637,9 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                                   </span>
                                 ))}
                                 {moreCount > 0 && (
-                                  <span className="text-xs text-gray-500">+{moreCount}</span>
+                                  <span className="text-xs text-gray-500">
+                                    +{moreCount}
+                                  </span>
                                 )}
                               </div>
                             )
@@ -577,60 +664,96 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                                 <input
                                   type="text"
                                   value={collectionInput}
-                                  onChange={(e) => setCollectionInput(e.target.value)}
+                                  onChange={(e) =>
+                                    setCollectionInput(e.target.value)
+                                  }
                                   onClick={(e) => e.stopPropagation()}
                                   onMouseDown={(e) => e.stopPropagation()}
                                   onKeyDown={(e) => {
                                     e.stopPropagation()
-                                    if (e.key === 'Enter' && collectionInput.trim() && !exactCollectionMatch) {
-                                      createCollectionAndAdd(piece.id, collectionInput)
+                                    if (
+                                      e.key === 'Enter' &&
+                                      collectionInput.trim() &&
+                                      !exactCollectionMatch
+                                    ) {
+                                      createCollectionAndAdd(
+                                        piece.id,
+                                        collectionInput,
+                                      )
                                     }
                                   }}
                                   placeholder="Type collection name..."
                                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                                  autoFocus
                                 />
 
                                 {/* Create new collection option */}
-                                {collectionInput.trim() && !exactCollectionMatch && (
-                                  <button
-                                    onClick={() => createCollectionAndAdd(piece.id, collectionInput)}
-                                    disabled={creatingCollection}
-                                    className="mt-2 flex w-full items-center gap-2 rounded-md bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
-                                  >
-                                    {creatingCollection ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Plus className="h-4 w-4" />
-                                    )}
-                                    Create "{collectionInput.trim()}"
-                                  </button>
-                                )}
+                                {collectionInput.trim() &&
+                                  !exactCollectionMatch && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        createCollectionAndAdd(
+                                          piece.id,
+                                          collectionInput,
+                                        )
+                                      }
+                                      disabled={creatingCollection}
+                                      className="mt-2 flex w-full items-center gap-2 rounded-md bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
+                                    >
+                                      {creatingCollection ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Plus className="h-4 w-4" />
+                                      )}
+                                      Create "{collectionInput.trim()}"
+                                    </button>
+                                  )}
 
                                 {/* Existing collections */}
                                 {filteredCollections.length > 0 && (
                                   <>
                                     <p className="mt-2 px-1 py-1 text-xs font-semibold text-gray-400 uppercase">
-                                      {collectionInput.trim() ? 'Matching' : 'Existing'} Collections
+                                      {collectionInput.trim()
+                                        ? 'Matching'
+                                        : 'Existing'}{' '}
+                                      Collections
                                     </p>
                                     <div className="max-h-40 overflow-y-auto">
-                                      {filteredCollections.map(collection => {
-                                        const isIn = (localCollectionsMap[piece.id] || []).some(c => c.id === collection.id)
-                                        const isUpdating = updatingCollections.has(`${piece.id}-${collection.id}`)
+                                      {filteredCollections.map((collection) => {
+                                        const isIn = (
+                                          localCollectionsMap[piece.id] || []
+                                        ).some((c) => c.id === collection.id)
+                                        const isUpdating =
+                                          updatingCollections.has(
+                                            `${piece.id}-${collection.id}`,
+                                          )
                                         return (
                                           <button
+                                            type="button"
                                             key={collection.id}
-                                            onClick={() => toggleCollection(piece.id, collection.id, isIn)}
+                                            onClick={() =>
+                                              toggleCollection(
+                                                piece.id,
+                                                collection.id,
+                                                isIn,
+                                              )
+                                            }
                                             disabled={isUpdating}
                                             className={cn(
                                               'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
-                                              isIn ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50'
+                                              isIn
+                                                ? 'bg-purple-50 text-purple-700'
+                                                : 'text-gray-700 hover:bg-gray-50',
                                             )}
                                           >
-                                            <div className={cn(
-                                              'flex h-4 w-4 items-center justify-center rounded border',
-                                              isIn ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
-                                            )}>
+                                            <div
+                                              className={cn(
+                                                'flex h-4 w-4 items-center justify-center rounded border',
+                                                isIn
+                                                  ? 'border-purple-600 bg-purple-600'
+                                                  : 'border-gray-300',
+                                              )}
+                                            >
                                               {isUpdating ? (
                                                 <Loader2 className="h-3 w-3 animate-spin text-white" />
                                               ) : isIn ? (
@@ -645,9 +768,12 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                                   </>
                                 )}
 
-                                {filteredCollections.length === 0 && !collectionInput.trim() && (
-                                  <p className="mt-2 px-2 py-2 text-sm text-gray-500">No collections yet. Type to create one.</p>
-                                )}
+                                {filteredCollections.length === 0 &&
+                                  !collectionInput.trim() && (
+                                    <p className="mt-2 px-2 py-2 text-sm text-gray-500">
+                                      No collections yet. Type to create one.
+                                    </p>
+                                  )}
                               </div>
                             </div>
                           </>
@@ -657,13 +783,20 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                     {/* Featured */}
                     <td className="px-4 py-3 text-center">
                       <button
-                        onClick={() => toggleFeatured(piece.id, piece.isFeatured)}
+                        type="button"
+                        onClick={() =>
+                          toggleFeatured(piece.id, piece.isFeatured)
+                        }
                         disabled={togglingFeatured.has(piece.id)}
                         className={cn(
                           'transition-colors',
-                          togglingFeatured.has(piece.id) && 'opacity-50'
+                          togglingFeatured.has(piece.id) && 'opacity-50',
                         )}
-                        title={piece.isFeatured ? 'Remove from featured' : 'Add to featured'}
+                        title={
+                          piece.isFeatured
+                            ? 'Remove from featured'
+                            : 'Add to featured'
+                        }
                       >
                         {togglingFeatured.has(piece.id) ? (
                           <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
@@ -673,7 +806,7 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                               'h-5 w-5 transition-colors',
                               piece.isFeatured
                                 ? 'fill-amber-400 text-amber-400'
-                                : 'text-gray-300 hover:text-amber-400'
+                                : 'text-gray-300 hover:text-amber-400',
                             )}
                           />
                         )}
@@ -683,14 +816,19 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                       {/* Status dropdown */}
                       <div className="relative">
                         <button
-                          onClick={() => setStatusDropdownOpen(statusDropdownOpen === piece.id ? null : piece.id)}
+                          type="button"
+                          onClick={() =>
+                            setStatusDropdownOpen(
+                              statusDropdownOpen === piece.id ? null : piece.id,
+                            )
+                          }
                           disabled={isUpdating}
                           className={cn(
                             'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all',
                             status.bgColor,
                             status.color,
                             'hover:ring-2 hover:ring-offset-1',
-                            isUpdating && 'opacity-50'
+                            isUpdating && 'opacity-50',
                           )}
                         >
                           {isUpdating ? (
@@ -710,25 +848,35 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                             />
                             <div className="absolute left-0 z-20 mt-1 w-40 origin-top-left rounded-lg border border-gray-200 bg-white shadow-lg">
                               <div className="py-1">
-                                {(['available', 'reserved', 'sold', 'draft'] as PieceStatus[]).map(s => {
+                                {(
+                                  [
+                                    'available',
+                                    'reserved',
+                                    'sold',
+                                    'draft',
+                                  ] as PieceStatus[]
+                                ).map((s) => {
                                   const cfg = statusConfig[s]
                                   const Icon = cfg.icon
                                   const isActive = piece.status === s
 
                                   return (
                                     <button
+                                      type="button"
                                       key={s}
                                       onClick={() => updateStatus(piece.id, s)}
                                       className={cn(
                                         'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors',
                                         isActive
                                           ? `${cfg.bgColor} ${cfg.color}`
-                                          : 'text-gray-700 hover:bg-gray-50'
+                                          : 'text-gray-700 hover:bg-gray-50',
                                       )}
                                     >
                                       <Icon className="h-4 w-4" />
                                       {cfg.label}
-                                      {isActive && <Check className="ml-auto h-4 w-4" />}
+                                      {isActive && (
+                                        <Check className="ml-auto h-4 w-4" />
+                                      )}
                                     </button>
                                   )
                                 })}
@@ -741,7 +889,12 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                     <td className="px-4 py-3 text-right">
                       <div className="relative">
                         <button
-                          onClick={() => setActionMenuOpen(actionMenuOpen === piece.id ? null : piece.id)}
+                          type="button"
+                          onClick={() =>
+                            setActionMenuOpen(
+                              actionMenuOpen === piece.id ? null : piece.id,
+                            )
+                          }
                           className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                         >
                           <MoreHorizontal className="h-4 w-4" />
@@ -763,32 +916,43 @@ export function WebsiteListingsClient({ pieces, tenantSlug, collections, pieceCo
                                   <Pencil className="h-4 w-4" />
                                   Edit Product
                                 </Link>
-                                {piece.isPublishedToWebsite && piece.websiteSlug && (
-                                  <a
-                                    href={`https://${tenantSlug}.madebuy.com.au/${piece.websiteSlug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                    onClick={() => setActionMenuOpen(null)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                    View on Store
-                                  </a>
-                                )}
+                                {piece.isPublishedToWebsite &&
+                                  piece.websiteSlug && (
+                                    <a
+                                      href={`https://${tenantSlug}.madebuy.com.au/${piece.websiteSlug}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                      onClick={() => setActionMenuOpen(null)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                      View on Store
+                                    </a>
+                                  )}
                                 <div className="my-1 border-t border-gray-100" />
-                                {(['available', 'reserved', 'sold', 'draft'] as PieceStatus[])
-                                  .filter(s => s !== piece.status)
-                                  .map(s => {
+                                {(
+                                  [
+                                    'available',
+                                    'reserved',
+                                    'sold',
+                                    'draft',
+                                  ] as PieceStatus[]
+                                )
+                                  .filter((s) => s !== piece.status)
+                                  .map((s) => {
                                     const cfg = statusConfig[s]
                                     const Icon = cfg.icon
                                     return (
                                       <button
+                                        type="button"
                                         key={s}
-                                        onClick={() => updateStatus(piece.id, s)}
+                                        onClick={() =>
+                                          updateStatus(piece.id, s)
+                                        }
                                         className={cn(
                                           'flex w-full items-center gap-2 px-4 py-2 text-sm',
                                           cfg.color,
-                                          'hover:bg-gray-50'
+                                          'hover:bg-gray-50',
                                         )}
                                       >
                                         <Icon className="h-4 w-4" />

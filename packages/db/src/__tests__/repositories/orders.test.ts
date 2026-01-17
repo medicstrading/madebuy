@@ -3,9 +3,9 @@
  * Covers order creation, status transitions, and idempotency
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { seedMockCollection, getMockCollectionData } from '../setup'
+import { beforeEach, describe, expect, it } from 'vitest'
 import * as orders from '../../repositories/orders'
+import { getMockCollectionData, seedMockCollection } from '../setup'
 
 describe('Orders Repository', () => {
   const tenantId = 'tenant-123'
@@ -28,7 +28,7 @@ describe('Orders Repository', () => {
     ],
     subtotal: 199.98,
     shipping: 9.95,
-    tax: 20.00,
+    tax: 20.0,
     discount: 0,
     total: 229.93,
     currency: 'AUD',
@@ -57,7 +57,13 @@ describe('Orders Repository', () => {
           customerEmail: 'test@example.com',
           customerName: 'Test User',
           items: [
-            { pieceId: 'piece-1', name: 'Ring', price: 100, quantity: 2, category: 'Jewelry' },
+            {
+              pieceId: 'piece-1',
+              name: 'Ring',
+              price: 100,
+              quantity: 2,
+              category: 'Jewelry',
+            },
           ],
           shippingAddress: {
             line1: '456 Test Ave',
@@ -69,7 +75,7 @@ describe('Orders Repository', () => {
           shippingMethod: 'standard',
           shippingType: 'domestic',
         },
-        { shipping: 10, tax: 20, discount: 5 }
+        { shipping: 10, tax: 20, discount: 5 },
       )
 
       expect(order).toBeDefined()
@@ -88,7 +94,15 @@ describe('Orders Repository', () => {
         {
           customerEmail: 'test1@example.com',
           customerName: 'Test 1',
-          items: [{ pieceId: 'piece-1', name: 'Item', price: 50, quantity: 1, category: 'General' }],
+          items: [
+            {
+              pieceId: 'piece-1',
+              name: 'Item',
+              price: 50,
+              quantity: 1,
+              category: 'General',
+            },
+          ],
           shippingAddress: {
             line1: '1 Test St',
             city: 'Sydney',
@@ -99,7 +113,7 @@ describe('Orders Repository', () => {
           shippingMethod: 'standard',
           shippingType: 'domestic',
         },
-        { shipping: 5, tax: 5 }
+        { shipping: 5, tax: 5 },
       )
 
       const order2 = await orders.createOrder(
@@ -107,7 +121,15 @@ describe('Orders Repository', () => {
         {
           customerEmail: 'test2@example.com',
           customerName: 'Test 2',
-          items: [{ pieceId: 'piece-2', name: 'Item', price: 60, quantity: 1, category: 'General' }],
+          items: [
+            {
+              pieceId: 'piece-2',
+              name: 'Item',
+              price: 60,
+              quantity: 1,
+              category: 'General',
+            },
+          ],
           shippingAddress: {
             line1: '2 Test St',
             city: 'Sydney',
@@ -118,7 +140,7 @@ describe('Orders Repository', () => {
           shippingMethod: 'standard',
           shippingType: 'domestic',
         },
-        { shipping: 5, tax: 6 }
+        { shipping: 5, tax: 6 },
       )
 
       expect(order1.orderNumber).not.toBe(order2.orderNumber)
@@ -130,7 +152,15 @@ describe('Orders Repository', () => {
         {
           customerEmail: 'test@example.com',
           customerName: 'Test',
-          items: [{ pieceId: 'piece-1', name: 'Item', price: 100, quantity: 1, category: 'General' }],
+          items: [
+            {
+              pieceId: 'piece-1',
+              name: 'Item',
+              price: 100,
+              quantity: 1,
+              category: 'General',
+            },
+          ],
           shippingAddress: {
             line1: '1 Test St',
             city: 'Sydney',
@@ -141,7 +171,7 @@ describe('Orders Repository', () => {
           shippingMethod: 'standard',
           shippingType: 'domestic',
         },
-        { shipping: 10, tax: 10, stripeSessionId: 'cs_test_unique_123' }
+        { shipping: 10, tax: 10, stripeSessionId: 'cs_test_unique_123' },
       )
 
       expect(order.stripeSessionId).toBe('cs_test_unique_123')
@@ -193,14 +223,20 @@ describe('Orders Repository', () => {
     })
 
     it('should return order by Stripe session ID', async () => {
-      const order = await orders.getOrderByStripeSessionId(tenantId, 'cs_test_123')
+      const order = await orders.getOrderByStripeSessionId(
+        tenantId,
+        'cs_test_123',
+      )
 
       expect(order).toBeDefined()
       expect(order?.stripeSessionId).toBe('cs_test_123')
     })
 
     it('should return null for unknown session ID', async () => {
-      const order = await orders.getOrderByStripeSessionId(tenantId, 'cs_unknown')
+      const order = await orders.getOrderByStripeSessionId(
+        tenantId,
+        'cs_unknown',
+      )
 
       expect(order).toBeNull()
     })
@@ -210,9 +246,25 @@ describe('Orders Repository', () => {
     beforeEach(() => {
       seedMockCollection('orders', [
         mockOrderData,
-        { ...mockOrderData, id: 'order-2', orderNumber: 'ORD-2', status: 'processing' },
-        { ...mockOrderData, id: 'order-3', orderNumber: 'ORD-3', status: 'shipped', paymentStatus: 'paid' },
-        { ...mockOrderData, id: 'order-4', orderNumber: 'ORD-4', customerEmail: 'other@example.com' },
+        {
+          ...mockOrderData,
+          id: 'order-2',
+          orderNumber: 'ORD-2',
+          status: 'processing',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-3',
+          orderNumber: 'ORD-3',
+          status: 'shipped',
+          paymentStatus: 'paid',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-4',
+          orderNumber: 'ORD-4',
+          customerEmail: 'other@example.com',
+        },
       ])
     })
 
@@ -235,7 +287,9 @@ describe('Orders Repository', () => {
     })
 
     it('should filter by customer email', async () => {
-      const list = await orders.listOrders(tenantId, { customerEmail: 'customer@example.com' })
+      const list = await orders.listOrders(tenantId, {
+        customerEmail: 'customer@example.com',
+      })
 
       expect(list).toHaveLength(3)
     })
@@ -256,7 +310,7 @@ describe('Orders Repository', () => {
       await orders.updateOrderStatus(tenantId, 'order-456', 'processing')
 
       const data = getMockCollectionData('orders')
-      const updated = data.find(o => o.id === 'order-456')
+      const updated = data.find((o) => o.id === 'order-456')
 
       expect(updated?.status).toBe('processing')
       expect(updated?.updatedAt).toBeInstanceOf(Date)
@@ -266,7 +320,7 @@ describe('Orders Repository', () => {
       await orders.updateOrderPaymentStatus(tenantId, 'order-456', 'paid')
 
       const data = getMockCollectionData('orders')
-      const updated = data.find(o => o.id === 'order-456')
+      const updated = data.find((o) => o.id === 'order-456')
 
       expect(updated?.paymentStatus).toBe('paid')
     })
@@ -274,15 +328,15 @@ describe('Orders Repository', () => {
     it('should allow full status flow: pending -> processing -> shipped -> delivered', async () => {
       await orders.updateOrderStatus(tenantId, 'order-456', 'processing')
       let data = getMockCollectionData('orders')
-      expect(data.find(o => o.id === 'order-456')?.status).toBe('processing')
+      expect(data.find((o) => o.id === 'order-456')?.status).toBe('processing')
 
       await orders.updateOrderStatus(tenantId, 'order-456', 'shipped')
       data = getMockCollectionData('orders')
-      expect(data.find(o => o.id === 'order-456')?.status).toBe('shipped')
+      expect(data.find((o) => o.id === 'order-456')?.status).toBe('shipped')
 
       await orders.updateOrderStatus(tenantId, 'order-456', 'delivered')
       data = getMockCollectionData('orders')
-      expect(data.find(o => o.id === 'order-456')?.status).toBe('delivered')
+      expect(data.find((o) => o.id === 'order-456')?.status).toBe('delivered')
     })
   })
 
@@ -298,7 +352,7 @@ describe('Orders Repository', () => {
       })
 
       const data = getMockCollectionData('orders')
-      const updated = data.find(o => o.id === 'order-456')
+      const updated = data.find((o) => o.id === 'order-456')
 
       expect(updated?.customerNotes).toBe('Please gift wrap')
       expect(updated?.trackingNumber).toBe('TRACK123')
@@ -338,11 +392,36 @@ describe('Orders Repository', () => {
     beforeEach(() => {
       seedMockCollection('orders', [
         { ...mockOrderData, status: 'pending' },
-        { ...mockOrderData, id: 'order-2', orderNumber: 'ORD-2', status: 'pending' },
-        { ...mockOrderData, id: 'order-3', orderNumber: 'ORD-3', status: 'processing' },
-        { ...mockOrderData, id: 'order-4', orderNumber: 'ORD-4', status: 'shipped' },
-        { ...mockOrderData, id: 'order-5', orderNumber: 'ORD-5', status: 'delivered' },
-        { ...mockOrderData, id: 'order-6', orderNumber: 'ORD-6', status: 'delivered' },
+        {
+          ...mockOrderData,
+          id: 'order-2',
+          orderNumber: 'ORD-2',
+          status: 'pending',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-3',
+          orderNumber: 'ORD-3',
+          status: 'processing',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-4',
+          orderNumber: 'ORD-4',
+          status: 'shipped',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-5',
+          orderNumber: 'ORD-5',
+          status: 'delivered',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-6',
+          orderNumber: 'ORD-6',
+          status: 'delivered',
+        },
       ])
     })
 
@@ -360,9 +439,24 @@ describe('Orders Repository', () => {
   describe('Bulk Operations', () => {
     beforeEach(() => {
       seedMockCollection('orders', [
-        { ...mockOrderData, id: 'order-1', orderNumber: 'ORD-1', status: 'pending' },
-        { ...mockOrderData, id: 'order-2', orderNumber: 'ORD-2', status: 'pending' },
-        { ...mockOrderData, id: 'order-3', orderNumber: 'ORD-3', status: 'pending' },
+        {
+          ...mockOrderData,
+          id: 'order-1',
+          orderNumber: 'ORD-1',
+          status: 'pending',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-2',
+          orderNumber: 'ORD-2',
+          status: 'pending',
+        },
+        {
+          ...mockOrderData,
+          id: 'order-3',
+          orderNumber: 'ORD-3',
+          status: 'pending',
+        },
       ])
     })
 
@@ -370,19 +464,23 @@ describe('Orders Repository', () => {
       const count = await orders.bulkUpdateOrderStatus(
         tenantId,
         ['order-1', 'order-2'],
-        'processing'
+        'processing',
       )
 
       expect(count).toBe(2)
 
       const data = getMockCollectionData('orders')
-      expect(data.find(o => o.id === 'order-1')?.status).toBe('processing')
-      expect(data.find(o => o.id === 'order-2')?.status).toBe('processing')
-      expect(data.find(o => o.id === 'order-3')?.status).toBe('pending')
+      expect(data.find((o) => o.id === 'order-1')?.status).toBe('processing')
+      expect(data.find((o) => o.id === 'order-2')?.status).toBe('processing')
+      expect(data.find((o) => o.id === 'order-3')?.status).toBe('pending')
     })
 
     it('should return 0 for empty array', async () => {
-      const count = await orders.bulkUpdateOrderStatus(tenantId, [], 'processing')
+      const count = await orders.bulkUpdateOrderStatus(
+        tenantId,
+        [],
+        'processing',
+      )
 
       expect(count).toBe(0)
     })
@@ -422,7 +520,7 @@ describe('Orders Repository', () => {
       await orders.markReviewRequestSent(tenantId, 'order-1')
 
       const data = getMockCollectionData('orders')
-      const updated = data.find(o => o.id === 'order-1')
+      const updated = data.find((o) => o.id === 'order-1')
 
       expect(updated?.reviewRequestSentAt).toBeInstanceOf(Date)
     })

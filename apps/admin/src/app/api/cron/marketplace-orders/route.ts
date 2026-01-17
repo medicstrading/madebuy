@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
-import { marketplace, tenants, pieces } from '@madebuy/db'
-import type { MarketplaceConnection, CreateMarketplaceOrderInput } from '@madebuy/shared'
-import { getEbayApiUrl, getEbayDomain, type EbayOrder } from '@/lib/marketplace/ebay'
+import { timingSafeEqual } from 'node:crypto'
+import { marketplace, pieces, tenants } from '@madebuy/db'
+import type {
+  CreateMarketplaceOrderInput,
+  MarketplaceConnection,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import {
+  type EbayOrder,
+  getEbayApiUrl,
+  getEbayDomain,
+} from '@/lib/marketplace/ebay'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -69,7 +76,7 @@ export async function GET(request: NextRequest) {
       // Get active eBay connection
       const ebayConnection = await marketplace.getConnectionByMarketplace(
         tenant.id,
-        'ebay'
+        'ebay',
       )
 
       if (ebayConnection?.status === 'connected') {
@@ -83,7 +90,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(
-      `[CRON] Order import completed: ${importedCount} imported, ${errorCount} errors`
+      `[CRON] Order import completed: ${importedCount} imported, ${errorCount} errors`,
     )
 
     return NextResponse.json({
@@ -96,10 +103,11 @@ export async function GET(request: NextRequest) {
     console.error('[CRON] Order import error:', error)
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to import orders',
+        error:
+          error instanceof Error ? error.message : 'Failed to import orders',
         success: false,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -109,7 +117,7 @@ export async function GET(request: NextRequest) {
  */
 async function importEbayOrders(
   tenantId: string,
-  connection: MarketplaceConnection
+  connection: MarketplaceConnection,
 ): Promise<ImportResult[]> {
   const results: ImportResult[] = []
 
@@ -133,12 +141,15 @@ async function importEbayOrders(
           'Content-Language': 'en_AU',
           'X-EBAY-C-MARKETPLACE-ID': 'EBAY_AU',
         },
-      }
+      },
     )
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error(`[CRON] eBay order fetch failed for tenant ${tenantId}:`, errorData)
+      console.error(
+        `[CRON] eBay order fetch failed for tenant ${tenantId}:`,
+        errorData,
+      )
       return [
         {
           tenantId,
@@ -154,7 +165,7 @@ async function importEbayOrders(
     const orders = data.orders || []
 
     console.log(
-      `[CRON] Found ${orders.length} eBay orders for tenant ${tenantId}`
+      `[CRON] Found ${orders.length} eBay orders for tenant ${tenantId}`,
     )
 
     for (const ebayOrder of orders) {
@@ -165,7 +176,10 @@ async function importEbayOrders(
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
   } catch (error) {
-    console.error(`[CRON] Error importing eBay orders for tenant ${tenantId}:`, error)
+    console.error(
+      `[CRON] Error importing eBay orders for tenant ${tenantId}:`,
+      error,
+    )
     results.push({
       tenantId,
       marketplace: 'ebay',
@@ -183,13 +197,17 @@ async function importEbayOrders(
  */
 async function importSingleEbayOrder(
   tenantId: string,
-  ebayOrder: EbayOrder
+  ebayOrder: EbayOrder,
 ): Promise<ImportResult> {
   const externalOrderId = ebayOrder.orderId
 
   try {
     // Check if already imported
-    const existing = await marketplace.isOrderImported(tenantId, 'ebay', externalOrderId)
+    const existing = await marketplace.isOrderImported(
+      tenantId,
+      'ebay',
+      externalOrderId,
+    )
     if (existing) {
       return {
         tenantId,
@@ -209,11 +227,15 @@ async function importSingleEbayOrder(
     for (const item of orderInput.items) {
       if (item.pieceId) {
         try {
-          const success = await pieces.decrementStock(tenantId, item.pieceId, item.quantity)
+          const success = await pieces.decrementStock(
+            tenantId,
+            item.pieceId,
+            item.quantity,
+          )
           if (!success) {
             const errorMsg = `Insufficient stock or piece not found for quantity ${item.quantity}`
             console.error(
-              `[CRON] Stock decrement failed for piece ${item.pieceId} (order ${externalOrderId}): ${errorMsg}`
+              `[CRON] Stock decrement failed for piece ${item.pieceId} (order ${externalOrderId}): ${errorMsg}`,
             )
             stockSyncErrors.push({
               pieceId: item.pieceId,
@@ -221,10 +243,11 @@ async function importSingleEbayOrder(
             })
           }
         } catch (stockError) {
-          const errorMsg = stockError instanceof Error ? stockError.message : 'Unknown error'
+          const errorMsg =
+            stockError instanceof Error ? stockError.message : 'Unknown error'
           console.error(
             `[CRON] Stock decrement error for piece ${item.pieceId} (order ${externalOrderId}):`,
-            stockError
+            stockError,
           )
           stockSyncErrors.push({
             pieceId: item.pieceId,
@@ -244,10 +267,12 @@ async function importSingleEbayOrder(
 
     if (stockSyncErrors.length > 0) {
       console.warn(
-        `[CRON] Imported eBay order ${externalOrderId} for tenant ${tenantId} with ${stockSyncErrors.length} stock sync error(s)`
+        `[CRON] Imported eBay order ${externalOrderId} for tenant ${tenantId} with ${stockSyncErrors.length} stock sync error(s)`,
       )
     } else {
-      console.log(`[CRON] Imported eBay order ${externalOrderId} for tenant ${tenantId}`)
+      console.log(
+        `[CRON] Imported eBay order ${externalOrderId} for tenant ${tenantId}`,
+      )
     }
 
     return {
@@ -258,7 +283,10 @@ async function importSingleEbayOrder(
       orderId: order.id,
     }
   } catch (error) {
-    console.error(`[CRON] Error importing eBay order ${externalOrderId}:`, error)
+    console.error(
+      `[CRON] Error importing eBay order ${externalOrderId}:`,
+      error,
+    )
     return {
       tenantId,
       marketplace: 'ebay',
@@ -274,7 +302,7 @@ async function importSingleEbayOrder(
  */
 async function mapEbayOrderToMadeBuy(
   tenantId: string,
-  ebayOrder: EbayOrder
+  ebayOrder: EbayOrder,
 ): Promise<CreateMarketplaceOrderInput> {
   // Map order items and try to match with MadeBuy pieces
   const items = await Promise.all(
@@ -285,7 +313,7 @@ async function mapEbayOrderToMadeBuy(
         const listing = await marketplace.getListingByExternalId(
           tenantId,
           'ebay',
-          item.legacyItemId
+          item.legacyItemId,
         )
         if (listing) {
           pieceId = listing.pieceId
@@ -304,13 +332,16 @@ async function mapEbayOrderToMadeBuy(
         totalPrice: unitPrice * quantity,
         sku: item.sku,
       }
-    })
+    }),
   )
 
   // Calculate totals
-  const subtotal = items.reduce((sum: number, item: any) => sum + item.totalPrice, 0)
+  const subtotal = items.reduce(
+    (sum: number, item: any) => sum + item.totalPrice,
+    0,
+  )
   const shippingCost = parseFloat(
-    ebayOrder.pricingSummary?.deliveryCost?.value || '0'
+    ebayOrder.pricingSummary?.deliveryCost?.value || '0',
   )
   const tax = parseFloat(ebayOrder.pricingSummary?.tax?.value || '0')
   const total = parseFloat(ebayOrder.pricingSummary?.total?.value || '0')
@@ -366,8 +397,9 @@ async function mapEbayOrderToMadeBuy(
           street2:
             ebayOrder.fulfillmentStartInstructions[0].shippingStep.shipTo
               .contactAddress?.addressLine2,
-          city: ebayOrder.fulfillmentStartInstructions[0].shippingStep.shipTo
-            .contactAddress?.city || '',
+          city:
+            ebayOrder.fulfillmentStartInstructions[0].shippingStep.shipTo
+              .contactAddress?.city || '',
           state:
             ebayOrder.fulfillmentStartInstructions[0].shippingStep.shipTo
               .contactAddress?.stateOrProvince,
@@ -385,9 +417,7 @@ async function mapEbayOrderToMadeBuy(
     tax,
     total,
     currency: ebayOrder.pricingSummary?.total?.currency || 'AUD',
-    marketplaceFees: parseFloat(
-      ebayOrder.totalFeeBasisAmount?.value || '0'
-    ),
+    marketplaceFees: parseFloat(ebayOrder.totalFeeBasisAmount?.value || '0'),
     orderDate: new Date(ebayOrder.creationDate),
     paidAt: ebayOrder.orderPaymentStatus === 'PAID' ? new Date() : undefined,
     rawData: ebayOrder as unknown as Record<string, unknown>,

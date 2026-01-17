@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, type ReactNode } from 'react'
 import type { RegionalSettings } from '@madebuy/shared'
+import { createContext, type ReactNode, useContext, useEffect } from 'react'
 import { setRegionalContext } from '@/lib/utils'
 
 interface RegionalContextValue {
@@ -20,7 +20,10 @@ interface RegionalProviderProps {
   settings: RegionalSettings | null
 }
 
-export function RegionalProvider({ children, settings }: RegionalProviderProps) {
+export function RegionalProvider({
+  children,
+  settings,
+}: RegionalProviderProps) {
   // Sync settings to the utils module for server-side and non-React code
   useEffect(() => {
     setRegionalContext(settings)

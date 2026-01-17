@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { marketplace } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Etsy OAuth Token Endpoint
@@ -30,14 +30,14 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Etsy OAuth error:', error, errorDescription)
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent(errorDescription || error)}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent(errorDescription || error)}`,
       )
     }
 
     // Validate required params
     if (!code || !state) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Missing authorization code or state')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Missing authorization code or state')}`,
       )
     }
 
@@ -49,14 +49,14 @@ export async function GET(request: NextRequest) {
     const oauthState = await marketplace.verifyOAuthState(nonce)
     if (!oauthState) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Invalid or expired OAuth state. Please try again.')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Invalid or expired OAuth state. Please try again.')}`,
       )
     }
 
     // Verify this is an Etsy OAuth state
     if (oauthState.marketplace !== 'etsy') {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('OAuth state mismatch')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('OAuth state mismatch')}`,
       )
     }
 
@@ -64,14 +64,14 @@ export async function GET(request: NextRequest) {
     const codeVerifier = oauthState.codeVerifier
     if (!codeVerifier) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Missing code verifier. Please try again.')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Missing code verifier. Please try again.')}`,
       )
     }
 
     // Check credentials
     if (!ETSY_CLIENT_ID || !ETSY_REDIRECT_URI) {
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Etsy integration not configured')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Etsy integration not configured')}`,
       )
     }
 
@@ -93,9 +93,13 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text()
-      console.error('Etsy token exchange failed:', tokenResponse.status, errorData)
+      console.error(
+        'Etsy token exchange failed:',
+        tokenResponse.status,
+        errorData,
+      )
       return NextResponse.redirect(
-        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Failed to connect to Etsy. Please try again.')}`
+        `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Failed to connect to Etsy. Please try again.')}`,
       )
     }
 
@@ -116,7 +120,7 @@ export async function GET(request: NextRequest) {
       // First, get user ID
       const userResponse = await fetch(`${ETSY_API_URL}/application/users/me`, {
         headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
+          Authorization: `Bearer ${tokenData.access_token}`,
           'x-api-key': ETSY_CLIENT_ID,
         },
       })
@@ -127,12 +131,15 @@ export async function GET(request: NextRequest) {
 
         // Then get the user's shop
         if (userId) {
-          const shopResponse = await fetch(`${ETSY_API_URL}/application/users/${userId}/shops`, {
-            headers: {
-              'Authorization': `Bearer ${tokenData.access_token}`,
-              'x-api-key': ETSY_CLIENT_ID,
+          const shopResponse = await fetch(
+            `${ETSY_API_URL}/application/users/${userId}/shops`,
+            {
+              headers: {
+                Authorization: `Bearer ${tokenData.access_token}`,
+                'x-api-key': ETSY_CLIENT_ID,
+              },
             },
-          })
+          )
 
           if (shopResponse.ok) {
             const shopData = await shopResponse.json()
@@ -143,7 +150,10 @@ export async function GET(request: NextRequest) {
               shopName = shop.shop_name
             }
           } else {
-            console.warn('Could not fetch Etsy shop:', await shopResponse.text())
+            console.warn(
+              'Could not fetch Etsy shop:',
+              await shopResponse.text(),
+            )
           }
         }
       } else {
@@ -157,7 +167,7 @@ export async function GET(request: NextRequest) {
     // Check for existing connection
     const existingConnection = await marketplace.getConnectionByMarketplace(
       oauthState.tenantId,
-      'etsy'
+      'etsy',
     )
 
     if (existingConnection) {
@@ -167,7 +177,7 @@ export async function GET(request: NextRequest) {
         existingConnection.id,
         tokenData.access_token,
         tokenData.refresh_token,
-        expiresAt
+        expiresAt,
       )
     } else {
       // Create new connection
@@ -184,13 +194,11 @@ export async function GET(request: NextRequest) {
 
     // Redirect back to settings with success
     const returnUrl = oauthState.returnUrl || '/dashboard/marketplace'
-    return NextResponse.redirect(
-      `${APP_URL}${returnUrl}?success=etsy`
-    )
+    return NextResponse.redirect(`${APP_URL}${returnUrl}?success=etsy`)
   } catch (error) {
     console.error('Etsy OAuth callback error:', error)
     return NextResponse.redirect(
-      `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('An unexpected error occurred')}`
+      `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('An unexpected error occurred')}`,
     )
   }
 }

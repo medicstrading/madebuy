@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Search, Folder, Check } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import type { Piece } from '@madebuy/shared'
+import { Folder, Search, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface LinkMediaModalProps {
   isOpen: boolean
@@ -22,8 +22,8 @@ export function LinkMediaModal({
   const [linking, setLinking] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredPieces = pieces.filter(p =>
-    p.piece.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPieces = pieces.filter((p) =>
+    p.piece.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const handleLink = async (pieceId: string) => {
@@ -64,6 +64,7 @@ export function LinkMediaModal({
             <h2 className="text-xl font-bold text-gray-900">Link to Piece</h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
@@ -98,6 +99,7 @@ export function LinkMediaModal({
             <div className="space-y-2">
               {filteredPieces.map(({ piece, mediaCount }) => (
                 <button
+                  type="button"
                   key={piece.id}
                   onClick={() => handleLink(piece.id)}
                   disabled={linking}
@@ -130,6 +132,7 @@ export function LinkMediaModal({
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
           <button
+            type="button"
             onClick={onClose}
             disabled={linking}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"

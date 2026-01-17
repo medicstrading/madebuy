@@ -1,25 +1,28 @@
+import type { TestimonialItem } from '@madebuy/shared'
 import { Star } from 'lucide-react'
 import type { SectionProps } from './SectionRenderer'
-import type { TestimonialItem } from '@madebuy/shared'
 
 // Default testimonials if none provided
 const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   {
     id: '1',
     name: 'Happy Customer',
-    content: 'Absolutely beautiful craftsmanship! The attention to detail is incredible.',
+    content:
+      'Absolutely beautiful craftsmanship! The attention to detail is incredible.',
     rating: 5,
   },
   {
     id: '2',
     name: 'Satisfied Buyer',
-    content: 'Exceeded my expectations. Fast shipping and the quality is outstanding.',
+    content:
+      'Exceeded my expectations. Fast shipping and the quality is outstanding.',
     rating: 5,
   },
   {
     id: '3',
     name: 'Repeat Customer',
-    content: "I've purchased multiple pieces and they're all stunning. Highly recommend!",
+    content:
+      "I've purchased multiple pieces and they're all stunning. Highly recommend!",
     rating: 5,
   },
 ]
@@ -27,7 +30,9 @@ const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
 export function Testimonials({ settings, tenant }: SectionProps) {
   const title = settings.title || 'What Our Customers Say'
   const subtitle = settings.subtitle
-  const testimonials = settings.testimonials?.length ? settings.testimonials : DEFAULT_TESTIMONIALS
+  const testimonials = settings.testimonials?.length
+    ? settings.testimonials
+    : DEFAULT_TESTIMONIALS
   const displayStyle = settings.displayStyle || 'cards'
 
   return (
@@ -38,9 +43,7 @@ export function Testimonials({ settings, tenant }: SectionProps) {
           {title}
         </h2>
         {subtitle && (
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {subtitle}
-          </p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
@@ -102,13 +105,17 @@ export function Testimonials({ settings, tenant }: SectionProps) {
                 ) : (
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: tenant.primaryColor || '#3b82f6' }}
+                    style={{
+                      backgroundColor: tenant.primaryColor || '#3b82f6',
+                    }}
                   >
                     {testimonial.name.charAt(0)}
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-gray-900">{testimonial.name}</p>
+                  <p className="font-medium text-gray-900">
+                    {testimonial.name}
+                  </p>
                   {testimonial.role && (
                     <p className="text-sm text-gray-500">{testimonial.role}</p>
                   )}

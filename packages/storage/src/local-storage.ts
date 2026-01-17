@@ -1,8 +1,9 @@
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import type { MediaVariant } from '@madebuy/shared'
 
-const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(process.cwd(), 'public', 'uploads')
+const UPLOADS_DIR =
+  process.env.UPLOADS_DIR || path.join(process.cwd(), 'public', 'uploads')
 const PUBLIC_URL_BASE = process.env.PUBLIC_URL_BASE || '/uploads'
 
 export interface UploadOptions {
@@ -17,7 +18,9 @@ export interface UploadOptions {
  * Upload file to local filesystem storage
  * Files are stored in: public/uploads/{tenantId}/{timestamp}-{fileName}
  */
-export async function uploadToLocal(options: UploadOptions): Promise<MediaVariant> {
+export async function uploadToLocal(
+  options: UploadOptions,
+): Promise<MediaVariant> {
   const { tenantId, fileName, buffer, contentType } = options
 
   // Create tenant directory if it doesn't exist
@@ -54,11 +57,12 @@ export async function deleteFromLocal(key: string): Promise<void> {
 
   try {
     await fs.unlink(filePath)
-  } catch (error: any) {
-    if (error.code !== 'ENOENT') {
-      throw error
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      // File doesn't exist, ignore
+      return
     }
-    // File doesn't exist, ignore
+    throw error
   }
 }
 

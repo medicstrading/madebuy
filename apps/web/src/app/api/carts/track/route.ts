@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
 import { abandonedCarts } from '@madebuy/db'
-import { cookies } from 'next/headers'
 import { nanoid } from 'nanoid'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 // Get or create a session ID for cart tracking
 function getSessionId(): string {
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     if (!tenantId) {
       return NextResponse.json(
         { error: 'tenantId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -33,7 +33,10 @@ export async function POST(request: Request) {
     // If this is an email-only update (checkout form email capture)
     if (customerEmail && (!items || items.length === 0)) {
       // Check if we have an existing cart for this session
-      const existingCart = await abandonedCarts.getAbandonedCartBySession(tenantId, sessionId)
+      const existingCart = await abandonedCarts.getAbandonedCartBySession(
+        tenantId,
+        sessionId,
+      )
 
       if (existingCart) {
         // Update existing cart with email
@@ -44,11 +47,20 @@ export async function POST(request: Request) {
           total: existingCart.total,
           currency: existingCart.currency,
         })
-        return NextResponse.json({ success: true, tracked: true, sessionId, emailUpdated: true })
+        return NextResponse.json({
+          success: true,
+          tracked: true,
+          sessionId,
+          emailUpdated: true,
+        })
       }
 
       // No existing cart to update
-      return NextResponse.json({ success: true, tracked: false, reason: 'no_cart_to_update' })
+      return NextResponse.json({
+        success: true,
+        tracked: false,
+        reason: 'no_cart_to_update',
+      })
     }
 
     // Don't track empty carts (without email update)
@@ -76,9 +88,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, tracked: true, sessionId })
   } catch (error) {
     console.error('Error tracking cart:', error)
-    return NextResponse.json(
-      { error: 'Failed to track cart' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to track cart' }, { status: 500 })
   }
 }

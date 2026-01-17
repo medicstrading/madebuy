@@ -1,19 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import type { PageType, WebsitePage } from '@madebuy/shared'
 import {
-  X,
-  ShoppingBag,
+  generatePageId,
+  generateSectionId,
+  validatePageSlug,
+} from '@madebuy/shared'
+import {
+  BookOpen,
+  Check,
+  FileText,
+  HelpCircle,
+  Image,
   Info,
   Mail,
-  BookOpen,
-  Image,
-  HelpCircle,
-  FileText,
-  Check,
+  ShoppingBag,
+  X,
 } from 'lucide-react'
-import type { PageType, WebsitePage } from '@madebuy/shared'
-import { generatePageId, generateSectionId, validatePageSlug } from '@madebuy/shared'
+import { useState } from 'react'
 
 interface AddPageModalProps {
   isOpen: boolean
@@ -39,8 +43,20 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: ShoppingBag,
     defaultSlug: 'shop',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Shop' } },
-      { id: '', type: 'product-grid', order: 2, enabled: true, settings: { columns: 4, showCategories: true, showPrices: true } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small', title: 'Shop' },
+      },
+      {
+        id: '',
+        type: 'product-grid',
+        order: 2,
+        enabled: true,
+        settings: { columns: 4, showCategories: true, showPrices: true },
+      },
     ],
   },
   {
@@ -50,9 +66,27 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: Info,
     defaultSlug: 'about',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'About' } },
-      { id: '', type: 'about', order: 2, enabled: true, settings: { showSocialLinks: true } },
-      { id: '', type: 'text-image', order: 3, enabled: true, settings: { imagePosition: 'right' } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small', title: 'About' },
+      },
+      {
+        id: '',
+        type: 'about',
+        order: 2,
+        enabled: true,
+        settings: { showSocialLinks: true },
+      },
+      {
+        id: '',
+        type: 'text-image',
+        order: 3,
+        enabled: true,
+        settings: { imagePosition: 'right' },
+      },
     ],
   },
   {
@@ -62,8 +96,20 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: Mail,
     defaultSlug: 'contact',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Contact' } },
-      { id: '', type: 'contact', order: 2, enabled: true, settings: { showContactForm: true, showEmail: true, showPhone: true } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small', title: 'Contact' },
+      },
+      {
+        id: '',
+        type: 'contact',
+        order: 2,
+        enabled: true,
+        settings: { showContactForm: true, showEmail: true, showPhone: true },
+      },
     ],
   },
   {
@@ -73,8 +119,25 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: BookOpen,
     defaultSlug: 'blog',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Blog' } },
-      { id: '', type: 'blog-preview', order: 2, enabled: true, settings: { postLimit: 12, layout: 'grid', showExcerpt: true, showDate: true } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small', title: 'Blog' },
+      },
+      {
+        id: '',
+        type: 'blog-preview',
+        order: 2,
+        enabled: true,
+        settings: {
+          postLimit: 12,
+          layout: 'grid',
+          showExcerpt: true,
+          showDate: true,
+        },
+      },
     ],
   },
   {
@@ -84,8 +147,20 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: Image,
     defaultSlug: 'gallery',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Gallery' } },
-      { id: '', type: 'gallery', order: 2, enabled: true, settings: { galleryStyle: 'masonry', galleryColumns: 3 } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small', title: 'Gallery' },
+      },
+      {
+        id: '',
+        type: 'gallery',
+        order: 2,
+        enabled: true,
+        settings: { galleryStyle: 'masonry', galleryColumns: 3 },
+      },
     ],
   },
   {
@@ -95,8 +170,20 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: HelpCircle,
     defaultSlug: 'faq',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small', title: 'Frequently Asked Questions' } },
-      { id: '', type: 'faq', order: 2, enabled: true, settings: { faqStyle: 'accordion' } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small', title: 'Frequently Asked Questions' },
+      },
+      {
+        id: '',
+        type: 'faq',
+        order: 2,
+        enabled: true,
+        settings: { faqStyle: 'accordion' },
+      },
     ],
   },
   {
@@ -106,13 +193,24 @@ const PAGE_TEMPLATES: PageTemplate[] = [
     icon: FileText,
     defaultSlug: '',
     defaultSections: [
-      { id: '', type: 'hero-simple', order: 1, enabled: true, settings: { height: 'small' } },
+      {
+        id: '',
+        type: 'hero-simple',
+        order: 1,
+        enabled: true,
+        settings: { height: 'small' },
+      },
       { id: '', type: 'text-image', order: 2, enabled: true, settings: {} },
     ],
   },
 ]
 
-export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddPageModalProps) {
+export function AddPageModal({
+  isOpen,
+  onClose,
+  onAddPage,
+  existingPages,
+}: AddPageModalProps) {
   const [selectedType, setSelectedType] = useState<PageType | null>(null)
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
@@ -120,12 +218,12 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
 
   if (!isOpen) return null
 
-  const selectedTemplate = PAGE_TEMPLATES.find(t => t.type === selectedType)
+  const selectedTemplate = PAGE_TEMPLATES.find((t) => t.type === selectedType)
 
   // Check if page type already exists (for non-custom types)
   const isTypeUsed = (type: PageType) => {
     if (type === 'custom') return false
-    return existingPages.some(p => p.type === type)
+    return existingPages.some((p) => p.type === type)
   }
 
   const handleSelectType = (template: PageTemplate) => {
@@ -144,18 +242,22 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
   }
 
   const handleSlugChange = (value: string) => {
-    const normalized = value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+    const normalized = value
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
     setSlug(normalized)
 
     const validation = validatePageSlug(normalized, existingPages)
-    setSlugError(validation.valid ? null : (validation.error || null))
+    setSlugError(validation.valid ? null : validation.error || null)
   }
 
   const handleCreate = () => {
     if (!selectedTemplate || !title.trim() || slugError) return
 
     // Generate unique IDs for sections
-    const sections = selectedTemplate.defaultSections.map(section => ({
+    const sections = selectedTemplate.defaultSections.map((section) => ({
       ...section,
       id: generateSectionId(),
       settings: {
@@ -193,10 +295,15 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Add New Page</h2>
-            <p className="text-sm text-gray-500">Choose a page type to get started</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Add New Page
+            </h2>
+            <p className="text-sm text-gray-500">
+              Choose a page type to get started
+            </p>
           </div>
           <button
+            type="button"
             onClick={handleClose}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
@@ -215,6 +322,7 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
 
                 return (
                   <button
+                    type="button"
                     key={template.type}
                     onClick={() => !used && handleSelectType(template)}
                     disabled={used}
@@ -230,14 +338,18 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{template.name}</span>
+                        <span className="font-medium text-gray-900">
+                          {template.name}
+                        </span>
                         {used && (
                           <span className="text-xs px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded">
                             Already added
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5">{template.description}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {template.description}
+                      </p>
                     </div>
                   </button>
                 )
@@ -254,8 +366,12 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
                       <selectedTemplate.icon className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <span className="font-medium text-blue-900">{selectedTemplate.name}</span>
-                      <p className="text-sm text-blue-700">{selectedTemplate.description}</p>
+                      <span className="font-medium text-blue-900">
+                        {selectedTemplate.name}
+                      </span>
+                      <p className="text-sm text-blue-700">
+                        {selectedTemplate.description}
+                      </p>
                     </div>
                   </>
                 )}
@@ -284,7 +400,9 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
                   Page URL
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">yourstore.madebuy.com/</span>
+                  <span className="text-sm text-gray-500">
+                    yourstore.madebuy.com/
+                  </span>
                   <input
                     type="text"
                     value={slug}
@@ -310,6 +428,7 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
 
               {/* Change Type Button */}
               <button
+                type="button"
                 onClick={() => setSelectedType(null)}
                 className="text-sm text-blue-600 hover:text-blue-700"
               >
@@ -323,12 +442,14 @@ export function AddPageModal({ isOpen, onClose, onAddPage, existingPages }: AddP
         {selectedType && (
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
             <button
+              type="button"
               onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleCreate}
               disabled={!title.trim() || !!slugError}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * Bulk Operations E2E tests for MadeBuy Admin
@@ -54,7 +54,8 @@ test.describe('Inventory Bulk Operations', () => {
       await checkboxes.nth(1).click()
 
       // Should show selection indicator
-      const selectionText = page.getByText(/1 selected|1 item/i)
+      const selectionText = page
+        .getByText(/1 selected|1 item/i)
         .or(page.getByText('(1 selected)'))
 
       await expect(selectionText).toBeVisible({ timeout: 5000 })
@@ -95,20 +96,25 @@ test.describe('Inventory Bulk Operations', () => {
       await checkboxes.nth(1).click()
 
       // Find and click clear button
-      const clearButton = page.getByRole('button', { name: /clear/i })
+      const clearButton = page
+        .getByRole('button', { name: /clear/i })
         .or(page.getByText('Clear'))
 
       if (await clearButton.isVisible()) {
         await clearButton.click()
 
         // Selection indicator should be gone
-        await expect(page.getByText(/selected/i)).not.toBeVisible({ timeout: 5000 })
+        await expect(page.getByText(/selected/i)).not.toBeVisible({
+          timeout: 5000,
+        })
       }
     })
   })
 
   test.describe('Bulk Actions Toolbar', () => {
-    test('should show bulk actions toolbar when items selected', async ({ page }) => {
+    test('should show bulk actions toolbar when items selected', async ({
+      page,
+    }) => {
       await page.goto('/dashboard/inventory')
       await page.waitForLoadState('networkidle')
 
@@ -151,9 +157,10 @@ test.describe('Inventory Bulk Operations', () => {
       const deleteOption = page.getByText(/delete/i)
       const featuredOption = page.getByText(/featured/i)
 
-      const hasOptions = await statusOption.isVisible() ||
-                         await deleteOption.isVisible() ||
-                         await featuredOption.isVisible()
+      const hasOptions =
+        (await statusOption.isVisible()) ||
+        (await deleteOption.isVisible()) ||
+        (await featuredOption.isVisible())
 
       expect(hasOptions).toBeTruthy()
     })
@@ -178,7 +185,8 @@ test.describe('Inventory Bulk Operations', () => {
       await page.getByText(/change status/i).click()
 
       // Modal should appear with status options
-      const statusDropdown = page.getByRole('combobox')
+      const statusDropdown = page
+        .getByRole('combobox')
         .or(page.locator('select'))
 
       await expect(statusDropdown).toBeVisible({ timeout: 5000 })
@@ -210,12 +218,16 @@ test.describe('Inventory Bulk Operations', () => {
       }
 
       // Confirm
-      const confirmButton = page.getByRole('button', { name: /confirm|update|apply/i })
+      const confirmButton = page.getByRole('button', {
+        name: /confirm|update|apply/i,
+      })
       await confirmButton.click()
 
       // Should complete without error (success toast or modal closes)
       await page.waitForLoadState('networkidle')
-      const errorVisible = await page.getByText(/error|failed/i).isVisible()
+      const errorVisible = await page
+        .getByText(/error|failed/i)
+        .isVisible()
         .catch(() => false)
 
       expect(errorVisible).toBeFalsy()
@@ -243,7 +255,9 @@ test.describe('Inventory Bulk Operations', () => {
       await page.getByText(/delete selected/i).click()
 
       // Should show confirmation
-      const confirmText = page.getByText(/are you sure|cannot be undone|confirm/i)
+      const confirmText = page.getByText(
+        /are you sure|cannot be undone|confirm/i,
+      )
       await expect(confirmText).toBeVisible({ timeout: 5000 })
 
       // Cancel to avoid deletion
@@ -276,7 +290,9 @@ test.describe('Inventory Bulk Operations', () => {
       await page.getByText(/featured/i).click()
 
       // Select the option and confirm
-      const confirmButton = page.getByRole('button', { name: /confirm|update|apply/i })
+      const confirmButton = page.getByRole('button', {
+        name: /confirm|update|apply/i,
+      })
       if (await confirmButton.isVisible()) {
         await confirmButton.click()
 
@@ -284,7 +300,9 @@ test.describe('Inventory Bulk Operations', () => {
         await page.waitForLoadState('networkidle')
 
         // Selection should be cleared (no "selected" text)
-        const selectionVisible = await page.getByText(/\d+ selected/i).isVisible()
+        const _selectionVisible = await page
+          .getByText(/\d+ selected/i)
+          .isVisible()
           .catch(() => false)
 
         // If modal is still open, close it first

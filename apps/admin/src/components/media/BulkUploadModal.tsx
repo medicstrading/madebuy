@@ -1,13 +1,19 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { useDropzone } from 'react-dropzone'
-import {
-  Upload, X, Loader2, CheckCircle2, AlertCircle,
-  Plus, Clock, Play
-} from 'lucide-react'
 import type { Piece } from '@madebuy/shared'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  Play,
+  Plus,
+  Upload,
+  X,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useDropzone } from 'react-dropzone'
 
 interface UploadFile {
   file: File
@@ -29,7 +35,11 @@ interface BulkUploadModalProps {
   pieces: Piece[]
 }
 
-export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProps) {
+export function BulkUploadModal({
+  isOpen,
+  onClose,
+  pieces,
+}: BulkUploadModalProps) {
   const router = useRouter()
   const [files, setFiles] = useState<UploadFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -43,22 +53,25 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
     const k = 1024
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+    return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
   }
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: UploadFile[] = acceptedFiles.map(file => ({
-      file,
-      id: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
-      previewUrl: URL.createObjectURL(file),
-      fileName: file.name,
-      fileSize: formatFileSize(file.size),
-      isVideo: file.type.startsWith('video/'),
-      status: 'pending' as const,
-      progress: 0,
-    }))
-    setFiles(prev => [...prev, ...newFiles])
-  }, [])
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const newFiles: UploadFile[] = acceptedFiles.map((file) => ({
+        file,
+        id: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        previewUrl: URL.createObjectURL(file),
+        fileName: file.name,
+        fileSize: formatFileSize(file.size),
+        isVideo: file.type.startsWith('video/'),
+        status: 'pending' as const,
+        progress: 0,
+      }))
+      setFiles((prev) => [...prev, ...newFiles])
+    },
+    [formatFileSize],
+  )
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
@@ -69,7 +82,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
       'image/gif': ['.gif'],
       'video/mp4': ['.mp4'],
       'video/quicktime': ['.mov'],
-      'video/webm': ['.webm']
+      'video/webm': ['.webm'],
     },
     maxSize: 100 * 1024 * 1024, // 100MB max
     multiple: true,
@@ -78,7 +91,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
   // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
-      files.forEach(f => URL.revokeObjectURL(f.previewUrl))
+      files.forEach((f) => URL.revokeObjectURL(f.previewUrl))
     }
   }, [files])
 
@@ -99,7 +112,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
       }
       if (e.ctrlKey && e.key === 'a') {
         e.preventDefault()
-        setSelectedFileIds(files.map(f => f.id))
+        setSelectedFileIds(files.map((f) => f.id))
       }
       if (e.key === 'Enter' && !isUploading && files.length > 0) {
         handleUploadAll()
@@ -108,20 +121,28 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, isUploading, files])
+  }, [isOpen, isUploading, files, handleUploadAll, onClose])
 
   // Assign piece to file
   const handleFileAssign = (fileId: string, pieceId: string) => {
     if (pieceId === '__unassigned__') {
-      setFiles(prev => prev.map(f =>
-        f.id === fileId ? { ...f, pieceId: undefined, pieceName: undefined } : f
-      ))
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId
+            ? { ...f, pieceId: undefined, pieceName: undefined }
+            : f,
+        ),
+      )
     } else {
-      const piece = pieces.find(p => p.id === pieceId)
+      const piece = pieces.find((p) => p.id === pieceId)
       if (piece) {
-        setFiles(prev => prev.map(f =>
-          f.id === fileId ? { ...f, pieceId: piece.id, pieceName: piece.name } : f
-        ))
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? { ...f, pieceId: piece.id, pieceName: piece.name }
+              : f,
+          ),
+        )
       }
     }
   }
@@ -129,15 +150,23 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
   // Bulk assign selected files to a piece
   const handleBulkAssign = (pieceId: string) => {
     if (pieceId === '__unassigned__') {
-      setFiles(prev => prev.map(f =>
-        selectedFileIds.includes(f.id) ? { ...f, pieceId: undefined, pieceName: undefined } : f
-      ))
+      setFiles((prev) =>
+        prev.map((f) =>
+          selectedFileIds.includes(f.id)
+            ? { ...f, pieceId: undefined, pieceName: undefined }
+            : f,
+        ),
+      )
     } else {
-      const piece = pieces.find(p => p.id === pieceId)
+      const piece = pieces.find((p) => p.id === pieceId)
       if (piece) {
-        setFiles(prev => prev.map(f =>
-          selectedFileIds.includes(f.id) ? { ...f, pieceId: piece.id, pieceName: piece.name } : f
-        ))
+        setFiles((prev) =>
+          prev.map((f) =>
+            selectedFileIds.includes(f.id)
+              ? { ...f, pieceId: piece.id, pieceName: piece.name }
+              : f,
+          ),
+        )
       }
     }
     setSelectedFileIds([])
@@ -147,11 +176,13 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
     fileId: string,
     status: UploadFile['status'],
     progress: number,
-    error?: string
+    error?: string,
   ) => {
-    setFiles(prev => prev.map(f =>
-      f.id === fileId ? { ...f, status, progress, error } : f
-    ))
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.id === fileId ? { ...f, status, progress, error } : f,
+      ),
+    )
   }
 
   // Upload all files
@@ -160,7 +191,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
     setSuccessCount(0)
     setErrorCount(0)
 
-    const queue = [...files.filter(f => f.status !== 'success')]
+    const queue = [...files.filter((f) => f.status !== 'success')]
     const concurrent = 3
 
     const uploadNext = async () => {
@@ -188,17 +219,15 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
           }
 
           updateFileStatus(file.id, 'success', 100)
-          setSuccessCount(prev => prev + 1)
+          setSuccessCount((prev) => prev + 1)
         } catch (error: any) {
           updateFileStatus(file.id, 'error', 0, error.message)
-          setErrorCount(prev => prev + 1)
+          setErrorCount((prev) => prev + 1)
         }
       }
     }
 
-    await Promise.all(
-      Array.from({ length: concurrent }, () => uploadNext())
-    )
+    await Promise.all(Array.from({ length: concurrent }, () => uploadNext()))
 
     setIsUploading(false)
 
@@ -209,7 +238,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
   }
 
   const handleClose = () => {
-    files.forEach(f => URL.revokeObjectURL(f.previewUrl))
+    files.forEach((f) => URL.revokeObjectURL(f.previewUrl))
     setFiles([])
     setSelectedFileIds([])
     setSuccessCount(0)
@@ -219,29 +248,33 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
   }
 
   const toggleFileSelection = (fileId: string) => {
-    setSelectedFileIds(prev =>
+    setSelectedFileIds((prev) =>
       prev.includes(fileId)
-        ? prev.filter(id => id !== fileId)
-        : [...prev, fileId]
+        ? prev.filter((id) => id !== fileId)
+        : [...prev, fileId],
     )
   }
 
   const removeFile = (fileId: string) => {
-    const file = files.find(f => f.id === fileId)
+    const file = files.find((f) => f.id === fileId)
     if (file) URL.revokeObjectURL(file.previewUrl)
-    setFiles(prev => prev.filter(f => f.id !== fileId))
-    setSelectedFileIds(prev => prev.filter(id => id !== fileId))
+    setFiles((prev) => prev.filter((f) => f.id !== fileId))
+    setSelectedFileIds((prev) => prev.filter((id) => id !== fileId))
   }
 
   if (!isOpen) return null
 
-  const unassignedCount = files.filter(f => !f.pieceId).length
-  const allFilesSuccess = files.length > 0 && files.every(f => f.status === 'success')
+  const unassignedCount = files.filter((f) => !f.pieceId).length
+  const allFilesSuccess =
+    files.length > 0 && files.every((f) => f.status === 'success')
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={!isUploading ? handleClose : undefined} />
+      <div
+        className="absolute inset-0 bg-black/60"
+        onClick={!isUploading ? handleClose : undefined}
+      />
 
       {/* Modal */}
       <div className="absolute inset-4 md:inset-8 bg-white rounded-xl flex flex-col max-h-screen shadow-2xl">
@@ -255,11 +288,14 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
             {isUploading && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{successCount} of {files.length} uploaded</span>
+                <span>
+                  {successCount} of {files.length} uploaded
+                </span>
               </div>
             )}
           </div>
           <button
+            type="button"
             ref={closeButtonRef}
             onClick={handleClose}
             disabled={isUploading}
@@ -291,13 +327,15 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                     Drop images or videos here, or click to browse
                   </p>
                   <p className="text-sm text-gray-500">
-                    JPG, PNG, WebP, GIF up to 10MB &bull; MP4, MOV, WebM up to 100MB
+                    JPG, PNG, WebP, GIF up to 10MB &bull; MP4, MOV, WebM up to
+                    100MB
                   </p>
                 </div>
               </div>
             </div>
           ) : (
             <button
+              type="button"
               onClick={open}
               className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4"
             >
@@ -314,10 +352,12 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                 <div className="sticky top-0 z-10 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-sm font-medium text-blue-900">
-                      {selectedFileIds.length} file{selectedFileIds.length !== 1 ? 's' : ''} selected
+                      {selectedFileIds.length} file
+                      {selectedFileIds.length !== 1 ? 's' : ''} selected
                     </span>
                     <div className="flex items-center gap-3">
                       <button
+                        type="button"
                         onClick={() => setSelectedFileIds([])}
                         className="text-sm text-blue-700 hover:text-blue-800"
                       >
@@ -328,10 +368,14 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                         defaultValue=""
                         className="text-sm px-3 py-1.5 border border-blue-300 rounded-lg bg-white"
                       >
-                        <option value="" disabled>Assign to...</option>
+                        <option value="" disabled>
+                          Assign to...
+                        </option>
                         <option value="__unassigned__">Unlinked</option>
-                        {pieces.map(piece => (
-                          <option key={piece.id} value={piece.id}>{piece.name}</option>
+                        {pieces.map((piece) => (
+                          <option key={piece.id} value={piece.id}>
+                            {piece.name}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -390,9 +434,12 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                             <p className="text-sm font-medium text-gray-900 truncate">
                               {file.fileName}
                             </p>
-                            <p className="text-xs text-gray-500">{file.fileSize}</p>
+                            <p className="text-xs text-gray-500">
+                              {file.fileSize}
+                            </p>
                           </div>
                           <button
+                            type="button"
                             onClick={() => removeFile(file.id)}
                             disabled={isUploading}
                             className="p-1 hover:bg-gray-200 rounded disabled:opacity-50"
@@ -403,10 +450,18 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
 
                         {/* Status */}
                         <div className="flex items-center gap-2 mb-2">
-                          {file.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-blue-600" />}
-                          {file.status === 'pending' && <Clock className="w-4 h-4 text-gray-400" />}
-                          {file.status === 'success' && <CheckCircle2 className="w-4 h-4 text-green-600" />}
-                          {file.status === 'error' && <AlertCircle className="w-4 h-4 text-red-600" />}
+                          {file.status === 'uploading' && (
+                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                          )}
+                          {file.status === 'pending' && (
+                            <Clock className="w-4 h-4 text-gray-400" />
+                          )}
+                          {file.status === 'success' && (
+                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          )}
+                          {file.status === 'error' && (
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                          )}
                           <span className="text-xs text-gray-600">
                             {file.status === 'pending' && 'Ready'}
                             {file.status === 'uploading' && 'Uploading...'}
@@ -416,11 +471,14 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                         </div>
 
                         {/* Progress Bar */}
-                        {(file.status === 'uploading' || file.status === 'success') && (
+                        {(file.status === 'uploading' ||
+                          file.status === 'success') && (
                           <div className="h-1 bg-gray-200 rounded-full overflow-hidden mb-2">
                             <div
                               className={`h-full transition-all ${
-                                file.status === 'success' ? 'bg-green-500' : 'bg-blue-500'
+                                file.status === 'success'
+                                  ? 'bg-green-500'
+                                  : 'bg-blue-500'
                               }`}
                               style={{ width: `${file.progress}%` }}
                             />
@@ -431,13 +489,19 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                         {file.status !== 'success' && (
                           <select
                             value={file.pieceId || '__unassigned__'}
-                            onChange={(e) => handleFileAssign(file.id, e.target.value)}
+                            onChange={(e) =>
+                              handleFileAssign(file.id, e.target.value)
+                            }
                             disabled={isUploading}
                             className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded-lg disabled:opacity-50"
                           >
-                            <option value="__unassigned__">Unlinked (organize later)</option>
-                            {pieces.map(piece => (
-                              <option key={piece.id} value={piece.id}>{piece.name}</option>
+                            <option value="__unassigned__">
+                              Unlinked (organize later)
+                            </option>
+                            {pieces.map((piece) => (
+                              <option key={piece.id} value={piece.id}>
+                                {piece.name}
+                              </option>
                             ))}
                           </select>
                         )}
@@ -463,6 +527,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
             </div>
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={handleClose}
                 disabled={isUploading}
                 className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors font-medium disabled:opacity-50"
@@ -470,6 +535,7 @@ export function BulkUploadModal({ isOpen, onClose, pieces }: BulkUploadModalProp
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleUploadAll}
                 disabled={isUploading || files.length === 0}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { media, pieces } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { pieces, media } from '@madebuy/db'
 
 // Link media to a piece
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -16,7 +16,10 @@ export async function POST(
     const { mediaId } = await request.json()
 
     if (!mediaId) {
-      return NextResponse.json({ error: 'mediaId is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'mediaId is required' },
+        { status: 400 },
+      )
     }
 
     // Get the piece
@@ -58,7 +61,7 @@ export async function POST(
     console.error('Error linking media to piece:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -66,7 +69,7 @@ export async function POST(
 // Unlink media from a piece
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -78,7 +81,10 @@ export async function DELETE(
     const mediaId = searchParams.get('mediaId')
 
     if (!mediaId) {
-      return NextResponse.json({ error: 'mediaId is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'mediaId is required' },
+        { status: 400 },
+      )
     }
 
     // Get the piece
@@ -94,7 +100,7 @@ export async function DELETE(
 
     // Remove media from piece's mediaIds
     const currentMediaIds = piece.mediaIds || []
-    const newMediaIds = currentMediaIds.filter(id => id !== mediaId)
+    const newMediaIds = currentMediaIds.filter((id) => id !== mediaId)
 
     const updateData: any = {
       mediaIds: newMediaIds,
@@ -112,7 +118,7 @@ export async function DELETE(
     console.error('Error unlinking media from piece:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

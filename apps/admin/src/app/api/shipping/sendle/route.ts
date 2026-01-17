@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/session'
 import { tenants } from '@madebuy/db'
 import type { SendleSettings } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
 
 /**
  * GET /api/shipping/sendle
@@ -38,7 +38,7 @@ export async function GET() {
     console.error('Failed to get Sendle settings:', error)
     return NextResponse.json(
       { error: 'Failed to get shipping settings' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -55,14 +55,24 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { apiKey, senderId, environment, pickupAddress, freeShippingThreshold } = body
+    const {
+      apiKey,
+      senderId,
+      environment,
+      pickupAddress,
+      freeShippingThreshold,
+    } = body
 
     // Validate required fields (only if updating Sendle settings)
     // freeShippingThreshold can be updated independently
-    if (apiKey !== undefined && senderId !== undefined && (!apiKey || !senderId)) {
+    if (
+      apiKey !== undefined &&
+      senderId !== undefined &&
+      (!apiKey || !senderId)
+    ) {
       return NextResponse.json(
         { error: 'API Key and Sender ID are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -70,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (environment !== 'sandbox' && environment !== 'production') {
       return NextResponse.json(
         { error: 'Invalid environment. Must be "sandbox" or "production"' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -101,11 +111,15 @@ export async function POST(request: NextRequest) {
     // Handle free shipping threshold (can be updated independently)
     if (freeShippingThreshold !== undefined) {
       // Convert to number (cents) or null to disable
-      const threshold = freeShippingThreshold === null || freeShippingThreshold === ''
-        ? undefined
-        : Math.round(Number(freeShippingThreshold))
+      const threshold =
+        freeShippingThreshold === null || freeShippingThreshold === ''
+          ? undefined
+          : Math.round(Number(freeShippingThreshold))
 
-      if (threshold === undefined || (typeof threshold === 'number' && threshold >= 0)) {
+      if (
+        threshold === undefined ||
+        (typeof threshold === 'number' && threshold >= 0)
+      ) {
         updates.freeShippingThreshold = threshold || undefined
       }
     }
@@ -130,7 +144,7 @@ export async function POST(request: NextRequest) {
     console.error('Failed to save Sendle settings:', error)
     return NextResponse.json(
       { error: 'Failed to save shipping settings' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

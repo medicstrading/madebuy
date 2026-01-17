@@ -1,15 +1,15 @@
-import type { Page, Route } from '@playwright/test'
 import type {
-  Tenant,
-  Piece,
-  Material,
-  Order,
   Customer,
+  Material,
   MediaItem,
-  PieceStatus,
+  Order,
   OrderStatus,
   PaymentStatus,
+  Piece,
+  PieceStatus,
+  Tenant,
 } from '@madebuy/shared'
+import type { Page, Route } from '@playwright/test'
 
 /**
  * API Mocking Utilities for MadeBuy Admin E2E Tests
@@ -91,7 +91,9 @@ export function createMockPiece(overrides: Partial<Piece> = {}): Piece {
 /**
  * Generate mock material data
  */
-export function createMockMaterial(overrides: Partial<Material> = {}): Material {
+export function createMockMaterial(
+  overrides: Partial<Material> = {},
+): Material {
   const id = overrides.id || `material-${Date.now()}`
   return {
     id,
@@ -119,7 +121,8 @@ export function createMockOrder(overrides: Partial<Order> = {}): Order {
   return {
     id,
     tenantId: overrides.tenantId || 'tenant-1',
-    orderNumber: overrides.orderNumber || `MB-2025-${Math.floor(Math.random() * 10000)}`,
+    orderNumber:
+      overrides.orderNumber || `MB-2025-${Math.floor(Math.random() * 10000)}`,
     customerEmail: overrides.customerEmail || 'customer@example.com',
     customerName: overrides.customerName || 'Test Customer',
     items: overrides.items || [
@@ -157,7 +160,9 @@ export function createMockOrder(overrides: Partial<Order> = {}): Order {
 /**
  * Generate mock customer data
  */
-export function createMockCustomer(overrides: Partial<Customer> = {}): Customer {
+export function createMockCustomer(
+  overrides: Partial<Customer> = {},
+): Customer {
   const id = overrides.id || `customer-${Date.now()}`
   const email = overrides.email || `customer-${Date.now()}@example.com`
   return {
@@ -204,8 +209,18 @@ export function createMockMedia(overrides: Partial<MediaItem> = {}): MediaItem {
     type: overrides.type || 'image',
     variants: overrides.variants || {
       original: { r2Key, url, width: 1920, height: 1080 },
-      large: { r2Key: `${r2Key}-large`, url: `${url}-large`, width: 1200, height: 675 },
-      thumb: { r2Key: `${r2Key}-thumb`, url: `${url}-thumb`, width: 300, height: 169 },
+      large: {
+        r2Key: `${r2Key}-large`,
+        url: `${url}-large`,
+        width: 1200,
+        height: 675,
+      },
+      thumb: {
+        r2Key: `${r2Key}-thumb`,
+        url: `${url}-thumb`,
+        width: 300,
+        height: 169,
+      },
     },
     platformOptimized: overrides.platformOptimized || [],
     tags: overrides.tags || [],
@@ -228,7 +243,7 @@ export function createMockMedia(overrides: Partial<MediaItem> = {}): MediaItem {
  */
 export async function mockAuthenticatedSession(
   page: Page,
-  tenant: Partial<Tenant> = {}
+  tenant: Partial<Tenant> = {},
 ): Promise<void> {
   const mockTenant = createMockTenant(tenant)
 
@@ -262,7 +277,7 @@ export async function mockAuthenticatedSession(
  */
 export async function mockPiecesListApi(
   page: Page,
-  pieces: Piece[] = []
+  pieces: Piece[] = [],
 ): Promise<void> {
   await page.route('**/api/pieces', async (route: Route) => {
     if (route.request().method() === 'GET') {
@@ -283,7 +298,7 @@ export async function mockPiecesListApi(
 export async function mockPieceDetailApi(
   page: Page,
   pieceId: string,
-  piece: Piece
+  piece: Piece,
 ): Promise<void> {
   await page.route(`**/api/pieces/${pieceId}`, async (route: Route) => {
     if (route.request().method() === 'GET') {
@@ -303,7 +318,7 @@ export async function mockPieceDetailApi(
  */
 export async function mockPieceCreateApi(
   page: Page,
-  createdPiece: Piece
+  createdPiece: Piece,
 ): Promise<void> {
   await page.route('**/api/pieces', async (route: Route) => {
     if (route.request().method() === 'POST') {
@@ -324,10 +339,13 @@ export async function mockPieceCreateApi(
 export async function mockPieceUpdateApi(
   page: Page,
   pieceId: string,
-  updatedPiece: Piece
+  updatedPiece: Piece,
 ): Promise<void> {
   await page.route(`**/api/pieces/${pieceId}`, async (route: Route) => {
-    if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
+    if (
+      route.request().method() === 'PUT' ||
+      route.request().method() === 'PATCH'
+    ) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -344,7 +362,7 @@ export async function mockPieceUpdateApi(
  */
 export async function mockPieceDeleteApi(
   page: Page,
-  pieceId: string
+  pieceId: string,
 ): Promise<void> {
   await page.route(`**/api/pieces/${pieceId}`, async (route: Route) => {
     if (route.request().method() === 'DELETE') {
@@ -364,7 +382,7 @@ export async function mockPieceDeleteApi(
  */
 export async function mockMaterialsApi(
   page: Page,
-  materials: Material[] = []
+  materials: Material[] = [],
 ): Promise<void> {
   await page.route('**/api/materials', async (route: Route) => {
     if (route.request().method() === 'GET') {
@@ -384,7 +402,7 @@ export async function mockMaterialsApi(
  */
 export async function mockOrdersApi(
   page: Page,
-  orders: Order[] = []
+  orders: Order[] = [],
 ): Promise<void> {
   await page.route('**/api/orders', async (route: Route) => {
     if (route.request().method() === 'GET') {
@@ -405,7 +423,7 @@ export async function mockOrdersApi(
 export async function mockOrderDetailApi(
   page: Page,
   orderId: string,
-  order: Order
+  order: Order,
 ): Promise<void> {
   await page.route(`**/api/orders/${orderId}`, async (route: Route) => {
     if (route.request().method() === 'GET') {
@@ -425,7 +443,7 @@ export async function mockOrderDetailApi(
  */
 export async function mockCustomersApi(
   page: Page,
-  customers: Customer[] = []
+  customers: Customer[] = [],
 ): Promise<void> {
   await page.route('**/api/customers', async (route: Route) => {
     if (route.request().method() === 'GET') {
@@ -445,7 +463,7 @@ export async function mockCustomersApi(
  */
 export async function mockMediaUploadApi(
   page: Page,
-  uploadedMedia: MediaItem
+  uploadedMedia: MediaItem,
 ): Promise<void> {
   await page.route('**/api/media/upload', async (route: Route) => {
     if (route.request().method() === 'POST') {
@@ -465,7 +483,7 @@ export async function mockMediaUploadApi(
  */
 export async function mockBulkOperationsApi(
   page: Page,
-  result: { success: number; failed: number; errors?: string[] }
+  result: { success: number; failed: number; errors?: string[] },
 ): Promise<void> {
   await page.route('**/api/pieces/bulk', async (route: Route) => {
     if (route.request().method() === 'POST') {
@@ -487,7 +505,7 @@ export async function mockApiError(
   page: Page,
   urlPattern: string | RegExp,
   status: number = 500,
-  errorMessage: string = 'Internal Server Error'
+  errorMessage: string = 'Internal Server Error',
 ): Promise<void> {
   await page.route(urlPattern, async (route: Route) => {
     await route.fulfill({
@@ -514,7 +532,7 @@ export async function setupMockedApi(
     materials?: Material[]
     orders?: Order[]
     customers?: Customer[]
-  } = {}
+  } = {},
 ): Promise<void> {
   // Mock authentication
   await mockAuthenticatedSession(page, options.tenant)

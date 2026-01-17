@@ -390,7 +390,10 @@ export const MARKETPLACE_LABELS: Record<MarketplacePlatform, string> = {
   etsy: 'Etsy',
 }
 
-export const MARKETPLACE_LISTING_STATUS_LABELS: Record<MarketplaceListingStatus, string> = {
+export const MARKETPLACE_LISTING_STATUS_LABELS: Record<
+  MarketplaceListingStatus,
+  string
+> = {
   draft: 'Draft',
   pending: 'Pending',
   active: 'Active',
@@ -399,7 +402,10 @@ export const MARKETPLACE_LISTING_STATUS_LABELS: Record<MarketplaceListingStatus,
   out_of_stock: 'Out of Stock',
 }
 
-export const MARKETPLACE_ORDER_STATUS_LABELS: Record<MarketplaceOrderStatus, string> = {
+export const MARKETPLACE_ORDER_STATUS_LABELS: Record<
+  MarketplaceOrderStatus,
+  string
+> = {
   pending: 'Pending',
   paid: 'Paid',
   shipped: 'Shipped',

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { discounts, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 /**
@@ -27,22 +27,21 @@ export async function POST(request: NextRequest) {
       (pieceIds !== undefined && !Array.isArray(pieceIds)) ||
       (customerEmail !== undefined && typeof customerEmail !== 'string')
     ) {
-      return NextResponse.json(
-        { error: 'Invalid input type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input type' }, { status: 400 })
     }
 
     // Validate required fields
     if (!tenantId || !code || orderTotal === undefined) {
       return NextResponse.json(
         { error: 'Missing required fields: tenantId, code, orderTotal' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Validate tenant exists
-    const tenant = await tenants.getTenantById(tenantId) || await tenants.getTenantBySlug(tenantId)
+    const tenant =
+      (await tenants.getTenantById(tenantId)) ||
+      (await tenants.getTenantBySlug(tenantId))
     if (!tenant) {
       return NextResponse.json({ error: 'Invalid tenant' }, { status: 400 })
     }
@@ -53,7 +52,7 @@ export async function POST(request: NextRequest) {
       code,
       orderTotal,
       pieceIds || [],
-      customerEmail
+      customerEmail,
     )
 
     return NextResponse.json(result)
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
     console.error('Discount validation error:', error)
     return NextResponse.json(
       { error: 'Failed to validate discount code' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

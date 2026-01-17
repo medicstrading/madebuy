@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, Loader2 } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 
 interface CartRecoveryProps {
   tenant: string
@@ -35,22 +35,25 @@ interface RecoveryResponse {
  * 3. Optionally applies discount code (for 24h+ abandoned carts)
  * 4. Marks cart as recovered
  */
-export function CartRecovery({ tenant, tenantId, onRecovered }: CartRecoveryProps) {
+export function CartRecovery({
+  tenant,
+  tenantId,
+  onRecovered,
+}: CartRecoveryProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const recoveryId = searchParams?.get('recover') ?? null
 
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error'
+  >('idle')
   const [message, setMessage] = useState<string>('')
-  const [discountApplied, setDiscountApplied] = useState<{ code: string; percentage: number } | null>(null)
+  const [discountApplied, setDiscountApplied] = useState<{
+    code: string
+    percentage: number
+  } | null>(null)
 
-  useEffect(() => {
-    if (!recoveryId) return
-
-    recoverCart()
-  }, [recoveryId])
-
-  const recoverCart = async () => {
+  const recoverCart = useCallback(async () => {
     setStatus('loading')
 
     try {
@@ -81,7 +84,9 @@ export function CartRecovery({ tenant, tenantId, onRecovered }: CartRecoveryProp
             code: data.discountCode,
             percentage: data.discountPercentage,
           })
-          setMessage(`Cart restored! ${data.discountPercentage}% discount code applied.`)
+          setMessage(
+            `Cart restored! ${data.discountPercentage}% discount code applied.`,
+          )
         } else {
           setMessage('Your cart has been restored!')
         }
@@ -101,7 +106,13 @@ export function CartRecovery({ tenant, tenantId, onRecovered }: CartRecoveryProp
       setStatus('error')
       setMessage('Failed to recover cart. Please try again.')
     }
-  }
+  }, [recoveryId, tenantId, onRecovered, router, tenant])
+
+  useEffect(() => {
+    if (!recoveryId) return
+
+    recoverCart()
+  }, [recoveryId, recoverCart])
 
   // Don't render anything if no recovery ID
   if (!recoveryId || status === 'idle') {
@@ -124,7 +135,8 @@ export function CartRecovery({ tenant, tenantId, onRecovered }: CartRecoveryProp
             <span className="text-green-700 font-medium">{message}</span>
             {discountApplied && (
               <p className="text-green-600 text-sm mt-1">
-                Use code <strong>{discountApplied.code}</strong> at checkout for {discountApplied.percentage}% off!
+                Use code <strong>{discountApplied.code}</strong> at checkout for{' '}
+                {discountApplied.percentage}% off!
               </p>
             )}
           </div>

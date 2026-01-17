@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 /**
  * Page Object for the Admin Dashboard
@@ -30,8 +30,12 @@ export class DashboardPage {
     this.page = page
 
     // Navigation
-    this.sidebarNav = page.getByRole('navigation').or(page.locator('[data-testid="sidebar"]'))
-    this.inventoryLink = page.getByRole('link', { name: /inventory|pieces|products/i })
+    this.sidebarNav = page
+      .getByRole('navigation')
+      .or(page.locator('[data-testid="sidebar"]'))
+    this.inventoryLink = page.getByRole('link', {
+      name: /inventory|pieces|products/i,
+    })
     this.materialsLink = page.getByRole('link', { name: /materials|supplies/i })
     this.ordersLink = page.getByRole('link', { name: /orders/i })
     this.customersLink = page.getByRole('link', { name: /customers/i })
@@ -40,20 +44,26 @@ export class DashboardPage {
     this.analyticsLink = page.getByRole('link', { name: /analytics|reports/i })
 
     // Header
-    this.userMenu = page.getByRole('button', { name: /account|profile|menu/i })
+    this.userMenu = page
+      .getByRole('button', { name: /account|profile|menu/i })
       .or(page.locator('[data-testid="user-menu"]'))
-    this.logoutButton = page.getByRole('button', { name: /logout|sign out/i })
+    this.logoutButton = page
+      .getByRole('button', { name: /logout|sign out/i })
       .or(page.getByText(/logout|sign out/i))
-    this.notificationsButton = page.getByRole('button', { name: /notifications/i })
+    this.notificationsButton = page
+      .getByRole('button', { name: /notifications/i })
       .or(page.locator('[data-testid="notifications"]'))
 
     // Dashboard content
-    this.statsCards = page.locator('[data-testid="stats-card"]')
+    this.statsCards = page
+      .locator('[data-testid="stats-card"]')
       .or(page.locator('.stats-card'))
       .or(page.locator('[class*="stat"]'))
-    this.recentOrders = page.locator('[data-testid="recent-orders"]')
+    this.recentOrders = page
+      .locator('[data-testid="recent-orders"]')
       .or(page.getByText(/recent orders/i).locator('..'))
-    this.quickActions = page.locator('[data-testid="quick-actions"]')
+    this.quickActions = page
+      .locator('[data-testid="quick-actions"]')
       .or(page.getByText(/quick actions/i).locator('..'))
   }
 
@@ -158,8 +168,10 @@ export class DashboardPage {
    */
   async waitForLoad(): Promise<void> {
     await expect(this.page).toHaveURL(/\/dashboard/)
-    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-      // Network idle timeout is ok, page might have ongoing polling
-    })
+    await this.page
+      .waitForLoadState('networkidle', { timeout: 10000 })
+      .catch(() => {
+        // Network idle timeout is ok, page might have ongoing polling
+      })
   }
 }

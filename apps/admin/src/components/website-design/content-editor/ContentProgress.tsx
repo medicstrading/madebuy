@@ -33,11 +33,15 @@ export function ContentProgress({ complete, total }: ContentProgressProps) {
           ) : (
             <Circle className="w-4 h-4 text-gray-300" />
           )}
-          <span className={`text-sm font-medium ${isComplete ? 'text-emerald-600' : 'text-gray-700'}`}>
+          <span
+            className={`text-sm font-medium ${isComplete ? 'text-emerald-600' : 'text-gray-700'}`}
+          >
             {complete} of {total} sections
           </span>
         </div>
-        <span className={`text-sm font-semibold ${isComplete ? 'text-emerald-600' : 'text-indigo-600'}`}>
+        <span
+          className={`text-sm font-semibold ${isComplete ? 'text-emerald-600' : 'text-indigo-600'}`}
+        >
           {percent}%
         </span>
       </div>

@@ -1,6 +1,6 @@
-import { requireTenant } from '@/lib/session'
 import { disputes } from '@madebuy/db'
-import { AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { requireTenant } from '@/lib/session'
 import { DisputesTable } from './DisputesTable'
 
 export default async function DisputesPage() {
@@ -9,7 +9,7 @@ export default async function DisputesPage() {
   // Fetch stats and disputes in parallel
   const [stats, allDisputes] = await Promise.all([
     disputes.getDisputeStats(tenant.id),
-    disputes.listDisputes(tenant.id)
+    disputes.listDisputes(tenant.id),
   ])
 
   return (
@@ -41,12 +41,7 @@ export default async function DisputesPage() {
           icon={CheckCircle}
           color="green"
         />
-        <StatCard
-          title="Lost"
-          value={stats.lost}
-          icon={XCircle}
-          color="gray"
-        />
+        <StatCard title="Lost" value={stats.lost} icon={XCircle} color="gray" />
       </div>
 
       {stats.needsResponse > 0 && (
@@ -55,11 +50,14 @@ export default async function DisputesPage() {
             <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-red-800">
-                Action Required: {stats.needsResponse} dispute{stats.needsResponse > 1 ? 's' : ''} need{stats.needsResponse === 1 ? 's' : ''} your response
+                Action Required: {stats.needsResponse} dispute
+                {stats.needsResponse > 1 ? 's' : ''} need
+                {stats.needsResponse === 1 ? 's' : ''} your response
               </h3>
               <p className="mt-1 text-sm text-red-700">
-                Submit evidence before the deadline or you will automatically lose the dispute.
-                Click on a dispute to respond via the Stripe Dashboard.
+                Submit evidence before the deadline or you will automatically
+                lose the dispute. Click on a dispute to respond via the Stripe
+                Dashboard.
               </p>
             </div>
           </div>
@@ -69,7 +67,9 @@ export default async function DisputesPage() {
       {allDisputes.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <CheckCircle className="mx-auto h-12 w-12 text-green-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No disputes</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No disputes
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
             Great news! You have no chargebacks or disputes.
           </p>
@@ -86,7 +86,7 @@ function StatCard({
   value,
   icon: Icon,
   color,
-  urgent = false
+  urgent = false,
 }: {
   title: string
   value: number
@@ -102,11 +102,15 @@ function StatCard({
   }
 
   return (
-    <div className={`rounded-lg bg-white p-4 shadow ${urgent ? 'ring-2 ring-red-500' : ''}`}>
+    <div
+      className={`rounded-lg bg-white p-4 shadow ${urgent ? 'ring-2 ring-red-500' : ''}`}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className={`mt-1 text-2xl font-bold ${urgent ? 'text-red-600' : 'text-gray-900'}`}>
+          <p
+            className={`mt-1 text-2xl font-bold ${urgent ? 'text-red-600' : 'text-gray-900'}`}
+          >
             {value}
           </p>
         </div>

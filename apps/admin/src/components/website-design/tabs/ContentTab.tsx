@@ -1,14 +1,26 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import type {
+  PageSection,
+  WebsitePage,
+} from '@madebuy/shared/src/types/template'
 import {
-  Home, ShoppingBag, User, Mail, BookOpen, Image as ImageIcon,
-  HelpCircle, FileText, ChevronRight, Check, Circle, Plus, Eye,
-  Loader2
+  BookOpen,
+  Check,
+  ChevronRight,
+  Circle,
+  FileText,
+  HelpCircle,
+  Home,
+  Image as ImageIcon,
+  Mail,
+  Plus,
+  ShoppingBag,
+  User,
 } from 'lucide-react'
-import type { WebsitePage, PageSection } from '@madebuy/shared/src/types/template'
-import { PageContentEditor } from '../content-editor/PageContentEditor'
+import { useState } from 'react'
 import { ContentProgress } from '../content-editor/ContentProgress'
+import { PageContentEditor } from '../content-editor/PageContentEditor'
 
 interface ContentTabProps {
   pages: WebsitePage[]
@@ -17,7 +29,10 @@ interface ContentTabProps {
   onAddPage?: () => void
 }
 
-const PAGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const PAGE_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   home: Home,
   shop: ShoppingBag,
   about: User,
@@ -28,7 +43,10 @@ const PAGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   custom: FileText,
 }
 
-function calculatePageCompletion(page: WebsitePage): { complete: number; total: number } {
+function calculatePageCompletion(page: WebsitePage): {
+  complete: number
+  total: number
+} {
   let complete = 0
   let total = 0
 
@@ -43,7 +61,10 @@ function calculatePageCompletion(page: WebsitePage): { complete: number; total: 
   return { complete, total }
 }
 
-function calculateTotalCompletion(pages: WebsitePage[]): { complete: number; total: number } {
+function calculateTotalCompletion(pages: WebsitePage[]): {
+  complete: number
+  total: number
+} {
   let complete = 0
   let total = 0
 
@@ -56,22 +77,30 @@ function calculateTotalCompletion(pages: WebsitePage[]): { complete: number; tot
   return { complete, total }
 }
 
-export function ContentTab({ pages, onPagesChange, tenantSlug, onAddPage }: ContentTabProps) {
-  const [selectedPageId, setSelectedPageId] = useState<string>(pages[0]?.id || '')
+export function ContentTab({
+  pages,
+  onPagesChange,
+  tenantSlug,
+  onAddPage,
+}: ContentTabProps) {
+  const [selectedPageId, setSelectedPageId] = useState<string>(
+    pages[0]?.id || '',
+  )
 
-  const selectedPage = pages.find(p => p.id === selectedPageId)
+  const selectedPage = pages.find((p) => p.id === selectedPageId)
   const totalCompletion = calculateTotalCompletion(pages)
-  const progressPercent = totalCompletion.total > 0
-    ? Math.round((totalCompletion.complete / totalCompletion.total) * 100)
-    : 0
+  const _progressPercent =
+    totalCompletion.total > 0
+      ? Math.round((totalCompletion.complete / totalCompletion.total) * 100)
+      : 0
 
   const handleSectionChange = (pageId: string, updatedSection: PageSection) => {
-    const updatedPages = pages.map(page => {
+    const updatedPages = pages.map((page) => {
       if (page.id !== pageId) return page
       return {
         ...page,
-        sections: page.sections.map(section =>
-          section.id === updatedSection.id ? updatedSection : section
+        sections: page.sections.map((section) =>
+          section.id === updatedSection.id ? updatedSection : section,
         ),
       }
     })
@@ -91,55 +120,64 @@ export function ContentTab({ pages, onPagesChange, tenantSlug, onAddPage }: Cont
 
         {/* Page List */}
         <nav className="space-y-1">
-          {pages.filter(p => p.enabled).map((page) => {
-            const Icon = PAGE_ICONS[page.type] || FileText
-            const isSelected = page.id === selectedPageId
-            const completion = calculatePageCompletion(page)
-            const isComplete = completion.total > 0 && completion.complete === completion.total
+          {pages
+            .filter((p) => p.enabled)
+            .map((page) => {
+              const Icon = PAGE_ICONS[page.type] || FileText
+              const isSelected = page.id === selectedPageId
+              const completion = calculatePageCompletion(page)
+              const isComplete =
+                completion.total > 0 && completion.complete === completion.total
 
-            return (
-              <button
-                key={page.id}
-                onClick={() => setSelectedPageId(page.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                  isSelected
-                    ? 'bg-indigo-50 text-indigo-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {/* Completion indicator */}
-                <div className="flex-shrink-0">
-                  {isComplete ? (
-                    <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  ) : (
-                    <Circle className={`w-5 h-5 ${isSelected ? 'text-indigo-400' : 'text-gray-300'}`} />
+              return (
+                <button
+                  type="button"
+                  key={page.id}
+                  onClick={() => setSelectedPageId(page.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                    isSelected
+                      ? 'bg-indigo-50 text-indigo-700 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {/* Completion indicator */}
+                  <div className="flex-shrink-0">
+                    {isComplete ? (
+                      <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    ) : (
+                      <Circle
+                        className={`w-5 h-5 ${isSelected ? 'text-indigo-400' : 'text-gray-300'}`}
+                      />
+                    )}
+                  </div>
+
+                  {/* Page icon and name */}
+                  <Icon
+                    className={`w-4 h-4 ${isSelected ? 'text-indigo-500' : 'text-gray-400'}`}
+                  />
+                  <span className="flex-1 truncate">{page.title}</span>
+
+                  {/* Progress indicator */}
+                  {completion.total > 0 && !isComplete && (
+                    <span className="text-xs text-gray-400">
+                      {completion.complete}/{completion.total}
+                    </span>
                   )}
-                </div>
 
-                {/* Page icon and name */}
-                <Icon className={`w-4 h-4 ${isSelected ? 'text-indigo-500' : 'text-gray-400'}`} />
-                <span className="flex-1 truncate">{page.title}</span>
-
-                {/* Progress indicator */}
-                {completion.total > 0 && !isComplete && (
-                  <span className="text-xs text-gray-400">
-                    {completion.complete}/{completion.total}
-                  </span>
-                )}
-
-                {isSelected && (
-                  <ChevronRight className="w-4 h-4 text-indigo-400" />
-                )}
-              </button>
-            )
-          })}
+                  {isSelected && (
+                    <ChevronRight className="w-4 h-4 text-indigo-400" />
+                  )}
+                </button>
+              )
+            })}
         </nav>
 
         {/* Add Page Button */}
         {onAddPage && (
           <button
+            type="button"
             onClick={onAddPage}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
           >
@@ -165,7 +203,9 @@ export function ContentTab({ pages, onPagesChange, tenantSlug, onAddPage }: Cont
         {selectedPage ? (
           <PageContentEditor
             page={selectedPage}
-            onSectionChange={(section) => handleSectionChange(selectedPage.id, section)}
+            onSectionChange={(section) =>
+              handleSectionChange(selectedPage.id, section)
+            }
             tenantSlug={tenantSlug}
           />
         ) : (

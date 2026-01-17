@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { customers } from '@madebuy/db'
+import type { Customer, CustomerWithOrders } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -17,7 +18,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const includeOrders = searchParams.get('includeOrders') === 'true'
 
-    let customer
+    let customer: Customer | CustomerWithOrders | null
     if (includeOrders) {
       customer = await customers.getCustomerWithOrders(tenant.id, id)
     } else {
@@ -31,13 +32,16 @@ export async function GET(
     return NextResponse.json({ customer })
   } catch (error) {
     console.error('Error fetching customer:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -48,7 +52,14 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { name, phone, notes, tags, emailSubscribed, preferredContactMethod } = body
+    const {
+      name,
+      phone,
+      notes,
+      tags,
+      emailSubscribed,
+      preferredContactMethod,
+    } = body
 
     const existing = await customers.getCustomerById(tenant.id, id)
     if (!existing) {
@@ -61,7 +72,8 @@ export async function PATCH(
     if (notes !== undefined) updates.notes = notes
     if (tags !== undefined) updates.tags = tags
     if (emailSubscribed !== undefined) updates.emailSubscribed = emailSubscribed
-    if (preferredContactMethod !== undefined) updates.preferredContactMethod = preferredContactMethod
+    if (preferredContactMethod !== undefined)
+      updates.preferredContactMethod = preferredContactMethod
 
     await customers.updateCustomer(tenant.id, id, updates)
     const updated = await customers.getCustomerById(tenant.id, id)
@@ -69,13 +81,16 @@ export async function PATCH(
     return NextResponse.json({ customer: updated })
   } catch (error) {
     console.error('Error updating customer:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -96,6 +111,9 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting customer:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

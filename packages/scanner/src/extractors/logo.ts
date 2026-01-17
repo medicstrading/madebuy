@@ -1,7 +1,7 @@
-import type { CheerioAPI, Cheerio } from 'cheerio'
+import type { Cheerio, CheerioAPI } from 'cheerio'
 import type { AnyNode } from 'domhandler'
-import type { LogoExtractionResult, LogoSource } from '../types'
 import { resolveUrl } from '../fetcher'
+import type { LogoExtractionResult, LogoSource } from '../types'
 
 // Logo detection selectors in priority order
 const LOGO_SELECTORS: { selector: string; source: LogoSource }[] = [
@@ -11,17 +11,44 @@ const LOGO_SELECTORS: { selector: string; source: LogoSource }[] = [
   { selector: 'img[class*="logo" i]', source: 'header-logo-class' },
   { selector: 'header a > img:first-of-type', source: 'header-link-img' },
   { selector: 'nav a > img:first-of-type', source: 'header-link-img' },
-  { selector: '[class*="navbar" i] a > img:first-of-type', source: 'header-link-img' },
+  {
+    selector: '[class*="navbar" i] a > img:first-of-type',
+    source: 'header-link-img',
+  },
   { selector: '#logo img', source: 'header-logo-class' },
   { selector: '.logo img', source: 'header-logo-class' },
 ]
 
-const FALLBACK_SELECTORS: { selector: string; source: LogoSource; attr?: string }[] = [
-  { selector: 'meta[property="og:image"]', source: 'og-image', attr: 'content' },
-  { selector: 'link[rel="icon"][sizes="192x192"]', source: 'large-favicon', attr: 'href' },
-  { selector: 'link[rel="icon"][sizes="180x180"]', source: 'large-favicon', attr: 'href' },
-  { selector: 'link[rel="apple-touch-icon"]', source: 'apple-touch-icon', attr: 'href' },
-  { selector: 'link[rel="apple-touch-icon-precomposed"]', source: 'apple-touch-icon', attr: 'href' },
+const FALLBACK_SELECTORS: {
+  selector: string
+  source: LogoSource
+  attr?: string
+}[] = [
+  {
+    selector: 'meta[property="og:image"]',
+    source: 'og-image',
+    attr: 'content',
+  },
+  {
+    selector: 'link[rel="icon"][sizes="192x192"]',
+    source: 'large-favicon',
+    attr: 'href',
+  },
+  {
+    selector: 'link[rel="icon"][sizes="180x180"]',
+    source: 'large-favicon',
+    attr: 'href',
+  },
+  {
+    selector: 'link[rel="apple-touch-icon"]',
+    source: 'apple-touch-icon',
+    attr: 'href',
+  },
+  {
+    selector: 'link[rel="apple-touch-icon-precomposed"]',
+    source: 'apple-touch-icon',
+    attr: 'href',
+  },
 ]
 
 /**
@@ -29,7 +56,7 @@ const FALLBACK_SELECTORS: { selector: string; source: LogoSource; attr?: string 
  */
 export function extractLogo(
   $: CheerioAPI,
-  baseUrl: string
+  baseUrl: string,
 ): LogoExtractionResult {
   // Try main logo selectors first
   for (const { selector, source } of LOGO_SELECTORS) {
@@ -43,7 +70,9 @@ export function extractLogo(
   }
 
   // Check for SVG logos in header
-  const svgLogo = $('header svg[class*="logo" i], [class*="logo" i] svg').first()
+  const svgLogo = $(
+    'header svg[class*="logo" i], [class*="logo" i] svg',
+  ).first()
   if (svgLogo.length > 0) {
     // SVG logos can't be easily downloaded, but we can note they exist
     return {
@@ -90,10 +119,10 @@ export function extractLogo(
  * Extracts logo info from an img element
  */
 function extractFromImgElement(
-  $: CheerioAPI,
+  _$: CheerioAPI,
   element: Cheerio<AnyNode>,
   baseUrl: string,
-  source: LogoSource
+  source: LogoSource,
 ): LogoExtractionResult {
   // Get src attribute (handle srcset, data-src, etc.)
   let rawUrl = element.attr('src')
@@ -145,7 +174,7 @@ function extractFromImgElement(
  * Parses srcset and returns highest resolution URL
  */
 function parseHighestResFromSrcset(srcset: string): string | null {
-  const entries = srcset.split(',').map(entry => {
+  const entries = srcset.split(',').map((entry) => {
     const parts = entry.trim().split(/\s+/)
     const url = parts[0]
     const descriptor = parts[1] || '1x'
@@ -171,7 +200,7 @@ function parseHighestResFromSrcset(srcset: string): string | null {
  */
 export async function downloadLogo(
   logoUrl: string,
-  timeout = 10000
+  timeout = 10000,
 ): Promise<{ buffer: Buffer; contentType: string } | null> {
   try {
     const controller = new AbortController()
@@ -181,7 +210,7 @@ export async function downloadLogo(
       signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MadeBuy/1.0)',
-        'Accept': 'image/*',
+        Accept: 'image/*',
       },
     })
 
@@ -222,7 +251,12 @@ export async function downloadLogo(
  */
 export function detectContentType(buffer: Buffer): string {
   // Check magic bytes
-  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
     return 'image/png'
   }
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
@@ -231,10 +265,18 @@ export function detectContentType(buffer: Buffer): string {
   if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
     return 'image/gif'
   }
-  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+  if (
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46
+  ) {
     return 'image/webp'
   }
-  if (buffer.toString('utf8', 0, 5) === '<?xml' || buffer.toString('utf8', 0, 4) === '<svg') {
+  if (
+    buffer.toString('utf8', 0, 5) === '<?xml' ||
+    buffer.toString('utf8', 0, 4) === '<svg'
+  ) {
     return 'image/svg+xml'
   }
 

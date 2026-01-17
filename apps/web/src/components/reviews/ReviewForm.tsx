@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Star, Upload, X, Loader2, Send } from 'lucide-react'
+import { Loader2, Send, Star, Upload, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface ReviewFormProps {
   pieceId: string
@@ -148,7 +148,11 @@ export function ReviewForm({
     if (!files) return
 
     const newPhotos: PhotoUpload[] = []
-    for (let i = 0; i < files.length && photos.length + newPhotos.length < 5; i++) {
+    for (
+      let i = 0;
+      i < files.length && photos.length + newPhotos.length < 5;
+      i++
+    ) {
       const file = files[i]
       if (file.size > 5 * 1024 * 1024) {
         setError('Photos must be under 5MB each')
@@ -161,17 +165,17 @@ export function ReviewForm({
       })
     }
 
-    setPhotos(prev => [...prev, ...newPhotos])
+    setPhotos((prev) => [...prev, ...newPhotos])
     e.target.value = '' // Reset input
   }
 
   const handlePhotoRemove = (id: string) => {
-    setPhotos(prev => {
-      const photo = prev.find(p => p.id === id)
+    setPhotos((prev) => {
+      const photo = prev.find((p) => p.id === id)
       if (photo) {
         URL.revokeObjectURL(photo.preview)
       }
-      return prev.filter(p => p.id !== id)
+      return prev.filter((p) => p.id !== id)
     })
   }
 
@@ -216,7 +220,7 @@ export function ReviewForm({
       }
 
       // Cleanup photo previews
-      photos.forEach(p => URL.revokeObjectURL(p.preview))
+      photos.forEach((p) => URL.revokeObjectURL(p.preview))
 
       // Clear the saved draft on successful submission
       clearDraft()
@@ -238,7 +242,8 @@ export function ReviewForm({
         <h2 className="text-xl font-semibold text-gray-900">Write a Review</h2>
         {pieceName && (
           <p className="mt-1 text-sm text-gray-500">
-            Share your thoughts about <span className="font-medium">{pieceName}</span>
+            Share your thoughts about{' '}
+            <span className="font-medium">{pieceName}</span>
           </p>
         )}
       </div>
@@ -254,7 +259,10 @@ export function ReviewForm({
 
       {/* Error Message */}
       {error && (
-        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 p-4">
+        <div
+          role="alert"
+          className="rounded-lg bg-red-50 border border-red-200 p-4"
+        >
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
@@ -264,17 +272,13 @@ export function ReviewForm({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Rating <span className="text-red-500">*</span>
         </label>
-        <div
-          className="flex gap-1"
-          onMouseLeave={() => setHoverRating(0)}
-        >
+        <div className="flex gap-1" onMouseLeave={() => setHoverRating(0)}>
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
-              type="button"
               onClick={() => {
                 setRating(star)
-                setTouched(prev => ({ ...prev, rating: true }))
+                setTouched((prev) => ({ ...prev, rating: true }))
                 setError(null)
               }}
               onMouseEnter={() => setHoverRating(star)}
@@ -310,7 +314,10 @@ export function ReviewForm({
 
       {/* Title (optional) */}
       <div>
-        <label htmlFor="review-title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="review-title"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Title (optional)
         </label>
         <input
@@ -326,14 +333,17 @@ export function ReviewForm({
 
       {/* Review Text */}
       <div>
-        <label htmlFor="review-text" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="review-text"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Your Review <span className="text-red-500">*</span>
         </label>
         <textarea
           id="review-text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onBlur={() => setTouched(prev => ({ ...prev, text: true }))}
+          onBlur={() => setTouched((prev) => ({ ...prev, text: true }))}
           placeholder="Tell us what you liked or didn't like about this product..."
           rows={4}
           minLength={10}
@@ -367,7 +377,6 @@ export function ReviewForm({
                 className="h-20 w-20 rounded-lg object-cover border border-gray-200"
               />
               <button
-                type="button"
                 onClick={() => handlePhotoRemove(photo.id)}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-label="Remove photo"
@@ -399,7 +408,6 @@ export function ReviewForm({
       <div className="flex gap-3 pt-2">
         {onCancel && (
           <button
-            type="button"
             onClick={onCancel}
             disabled={isSubmitting}
             className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
@@ -429,9 +437,13 @@ export function ReviewForm({
       {/* Validation Summary */}
       {!canSubmit && (touched.rating || touched.text) && (
         <p className="text-center text-sm text-gray-500">
-          {!isRatingValid && !isTextValid && 'Please select a rating and write your review'}
+          {!isRatingValid &&
+            !isTextValid &&
+            'Please select a rating and write your review'}
           {!isRatingValid && isTextValid && 'Please select a star rating'}
-          {isRatingValid && !isTextValid && 'Please write at least 10 characters'}
+          {isRatingValid &&
+            !isTextValid &&
+            'Please write at least 10 characters'}
         </p>
       )}
     </form>

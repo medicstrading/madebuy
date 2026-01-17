@@ -1,6 +1,12 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import './globals.css'
-import { WebVitals } from '@/components/analytics/WebVitals'
+
+// Dynamically import WebVitals with SSR disabled to prevent context issues during static generation
+const WebVitals = dynamic(
+  () => import('@/components/analytics/WebVitals').then((mod) => mod.WebVitals),
+  { ssr: false }
+)
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
 
@@ -9,8 +15,16 @@ export const metadata: Metadata = {
     default: 'MadeBuy - Handmade Marketplace',
     template: '%s | MadeBuy',
   },
-  description: 'Discover unique handmade products from talented Australian makers. Zero transaction fees, beautiful storefronts.',
-  keywords: ['handmade', 'marketplace', 'Australian makers', 'artisan', 'crafts', 'unique gifts'],
+  description:
+    'Discover unique handmade products from talented Australian makers. Zero transaction fees, beautiful storefronts.',
+  keywords: [
+    'handmade',
+    'marketplace',
+    'Australian makers',
+    'artisan',
+    'crafts',
+    'unique gifts',
+  ],
   authors: [{ name: 'MadeBuy' }],
   creator: 'MadeBuy',
   metadataBase: new URL(siteUrl),
@@ -20,12 +34,14 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: 'MadeBuy',
     title: 'MadeBuy - Handmade Marketplace',
-    description: 'Discover unique handmade products from talented Australian makers.',
+    description:
+      'Discover unique handmade products from talented Australian makers.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'MadeBuy - Handmade Marketplace',
-    description: 'Discover unique handmade products from talented Australian makers.',
+    description:
+      'Discover unique handmade products from talented Australian makers.',
   },
   robots: {
     index: true,

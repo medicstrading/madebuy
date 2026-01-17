@@ -1,21 +1,39 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, ExternalLink, Globe, Sparkles, FileText, Palette, Menu } from 'lucide-react'
-import { DomainTab } from '@/components/website-design/tabs/DomainTab'
-import { TemplateTab } from '@/components/website-design/tabs/TemplateTab'
-import { ContentTab } from '@/components/website-design/tabs/ContentTab'
-import { BrandingTab } from '@/components/website-design/tabs/BrandingTab'
-import { HeaderFooterTab } from '@/components/website-design/tabs/HeaderFooterTab'
-import { CustomBuilderView } from '@/components/website-design/custom-builder/CustomBuilderView'
-import type { Tenant, WebsitePage, WebsiteTemplate, HeaderConfig, FooterConfig } from '@madebuy/shared'
+import type {
+  FooterConfig,
+  HeaderConfig,
+  Tenant,
+  WebsitePage,
+  WebsiteTemplate,
+} from '@madebuy/shared'
 import type { TypographyPreset } from '@madebuy/shared/src/constants/typography'
-import { getDefaultPages, createCustomPage } from '@madebuy/shared/src/types/template'
+import { createCustomPage } from '@madebuy/shared/src/types/template'
+import {
+  ExternalLink,
+  FileText,
+  Globe,
+  Loader2,
+  Menu,
+  Palette,
+  Sparkles,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CustomBuilderView } from '@/components/website-design/custom-builder/CustomBuilderView'
+import { BrandingTab } from '@/components/website-design/tabs/BrandingTab'
+import { ContentTab } from '@/components/website-design/tabs/ContentTab'
+import { DomainTab } from '@/components/website-design/tabs/DomainTab'
+import { HeaderFooterTab } from '@/components/website-design/tabs/HeaderFooterTab'
+import { TemplateTab } from '@/components/website-design/tabs/TemplateTab'
 
 type TabId = 'domain' | 'template' | 'content' | 'branding' | 'header-footer'
 type ViewMode = 'tabs' | 'custom-builder'
 
-const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const TABS: {
+  id: TabId
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}[] = [
   { id: 'domain', label: 'Your Domain', icon: Globe },
   { id: 'template', label: 'Choose Your Look', icon: Sparkles },
   { id: 'content', label: 'Your Content', icon: FileText },
@@ -33,7 +51,8 @@ export default function WebsiteDesignPage() {
   const [activeTab, setActiveTab] = useState<TabId>('domain')
 
   // Template & pages
-  const [currentTemplate, setCurrentTemplate] = useState<WebsiteTemplate | null>(null)
+  const [currentTemplate, setCurrentTemplate] =
+    useState<WebsiteTemplate | null>(null)
   const [pages, setPages] = useState<WebsitePage[]>([])
 
   // Branding
@@ -120,7 +139,10 @@ export default function WebsiteDesignPage() {
   }
 
   // Template selection
-  const handleSelectTemplate = (template: WebsiteTemplate, templatePages: WebsitePage[]) => {
+  const handleSelectTemplate = (
+    template: WebsiteTemplate,
+    templatePages: WebsitePage[],
+  ) => {
     setCurrentTemplate(template)
     setPages(templatePages)
     saveDesign({ template, pages: templatePages })
@@ -214,7 +236,9 @@ export default function WebsiteDesignPage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div>
-            <h1 className="text-2xl font-serif text-gray-900">Website Design</h1>
+            <h1 className="text-2xl font-serif text-gray-900">
+              Website Design
+            </h1>
             <p className="text-gray-500 text-sm mt-0.5">
               Build and customize your beautiful storefront
             </p>
@@ -226,7 +250,7 @@ export default function WebsiteDesignPage() {
                 Saving...
               </span>
             )}
-{tenant?.slug ? (
+            {tenant?.slug ? (
               <a
                 href={storefrontUrl}
                 target="_blank"
@@ -251,7 +275,7 @@ export default function WebsiteDesignPage() {
         <div className="max-w-7xl mx-auto">
           <nav className="flex gap-1">
             {TABS.map((tab, index) => {
-              const Icon = tab.icon
+              const _Icon = tab.icon
               const isActive = activeTab === tab.id
               const isCompleted = (() => {
                 switch (tab.id) {
@@ -260,13 +284,16 @@ export default function WebsiteDesignPage() {
                   case 'template':
                     return !!currentTemplate || pages.length > 0
                   case 'content':
-                    return pages.some(p =>
-                      p.sections.some(s => s.settings?.isContentComplete)
+                    return pages.some((p) =>
+                      p.sections.some((s) => s.settings?.isContentComplete),
                     )
                   case 'branding':
                     return !!logoUrl || primaryColor !== '#4F46E5'
                   case 'header-footer':
-                    return headerConfig.style !== 'default' || footerConfig.style !== 'default'
+                    return (
+                      headerConfig.style !== 'default' ||
+                      footerConfig.style !== 'default'
+                    )
                   default:
                     return false
                 }
@@ -274,25 +301,30 @@ export default function WebsiteDesignPage() {
 
               return (
                 <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
                     flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 -mb-px transition-colors
-                    ${isActive
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ${
+                      isActive
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }
                   `}
                 >
-                  <span className={`
+                  <span
+                    className={`
                     flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold
-                    ${isActive
-                      ? 'bg-indigo-100 text-indigo-600'
-                      : isCompleted
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-gray-100 text-gray-500'
+                    ${
+                      isActive
+                        ? 'bg-indigo-100 text-indigo-600'
+                        : isCompleted
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-gray-100 text-gray-500'
                     }
-                  `}>
+                  `}
+                  >
                     {isCompleted && !isActive ? '✓' : index + 1}
                   </span>
                   <span>{tab.label}</span>
@@ -305,9 +337,7 @@ export default function WebsiteDesignPage() {
 
       {/* Tab Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {activeTab === 'domain' && (
-          <DomainTab tenant={tenant} />
-        )}
+        {activeTab === 'domain' && <DomainTab tenant={tenant} />}
 
         {activeTab === 'template' && (
           <TemplateTab

@@ -1,6 +1,6 @@
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import { downloads, pieces } from '@madebuy/db'
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { getTenantById } from '@/lib/tenant'
 import { DownloadPageClient } from './DownloadPageClient'
 
@@ -8,7 +8,9 @@ interface DownloadPageProps {
   params: Promise<{ token: string }>
 }
 
-export async function generateMetadata({ params }: DownloadPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: DownloadPageProps): Promise<Metadata> {
   const { token } = await params
 
   // Get download record
@@ -52,8 +54,10 @@ export default async function DownloadPage({ params }: DownloadPageProps) {
   const tenant = await getTenantById(record.tenantId)
 
   // Check status
-  const isExpired = record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)
-  const limitReached = record.maxDownloads && record.downloadCount >= record.maxDownloads
+  const isExpired =
+    record.tokenExpiresAt && new Date() > new Date(record.tokenExpiresAt)
+  const limitReached =
+    record.maxDownloads && record.downloadCount >= record.maxDownloads
 
   let status: 'valid' | 'expired' | 'revoked' | 'limit_reached' = 'valid'
   let statusMessage: string | undefined
@@ -98,10 +102,12 @@ export default async function DownloadPage({ params }: DownloadPageProps) {
       description: piece.description,
     },
 
-    seller: tenant ? {
-      name: tenant.businessName || 'Seller',
-      slug: tenant.slug,
-    } : null,
+    seller: tenant
+      ? {
+          name: tenant.businessName || 'Seller',
+          slug: tenant.slug,
+        }
+      : null,
 
     files,
     fileCount: files.length,
@@ -111,13 +117,17 @@ export default async function DownloadPage({ params }: DownloadPageProps) {
     maxDownloads: record.maxDownloads,
     downloadsRemaining,
 
-    expiresAt: record.tokenExpiresAt ? new Date(record.tokenExpiresAt).toISOString() : null,
+    expiresAt: record.tokenExpiresAt
+      ? new Date(record.tokenExpiresAt).toISOString()
+      : null,
     hasExpiry: !!record.tokenExpiresAt,
 
-    license: piece.digital.licenseType ? {
-      type: piece.digital.licenseType,
-      text: piece.digital.licenseText,
-    } : null,
+    license: piece.digital.licenseType
+      ? {
+          type: piece.digital.licenseType,
+          text: piece.digital.licenseText,
+        }
+      : null,
 
     customer: {
       name: record.customerName,

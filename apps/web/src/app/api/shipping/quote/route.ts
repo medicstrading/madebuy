@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { tenants, pieces } from '@madebuy/db'
+import { pieces, tenants } from '@madebuy/db'
 import { createSendleClient } from '@madebuy/shipping'
+import { type NextRequest, NextResponse } from 'next/server'
 
 // Simple unique ID generator using built-in crypto
 const generateId = () => crypto.randomUUID().slice(0, 8)
@@ -47,7 +47,7 @@ interface ShippingQuote {
   id: string
   carrier: string
   service: string
-  price: number  // Price in cents for consistency
+  price: number // Price in cents for consistency
   currency: string
   estimatedDays: {
     min: number
@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Detect request format
-    const isNewFormat = 'tenantId' in body && 'items' in body && 'destination' in body
+    const isNewFormat =
+      'tenantId' in body && 'items' in body && 'destination' in body
 
     if (isNewFormat) {
       return handleNewFormat(body as QuoteRequestNew)
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
     console.error('Failed to get shipping quotes:', error)
     return NextResponse.json(
       { error: 'Failed to get shipping quotes' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -91,26 +92,24 @@ export async function POST(request: NextRequest) {
 async function handleNewFormat(body: QuoteRequestNew) {
   // Validate required fields
   if (!body.tenantId) {
-    return NextResponse.json(
-      { error: 'tenantId is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'tenantId is required' }, { status: 400 })
   }
 
-  if (!body.destination?.postcode || !body.destination?.suburb || !body.destination?.state) {
+  if (
+    !body.destination?.postcode ||
+    !body.destination?.suburb ||
+    !body.destination?.state
+  ) {
     return NextResponse.json(
       { error: 'Destination address (postcode, suburb, state) is required' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
   // Get tenant by ID
   const tenant = await tenants.getTenantById(body.tenantId)
   if (!tenant) {
-    return NextResponse.json(
-      { error: 'Tenant not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
   }
 
   // Calculate total weight, dimensions, and cart total from all items
@@ -133,7 +132,8 @@ async function handleNewFormat(body: QuoteRequestNew) {
       totalHeight += (piece.shippingHeight || 5) * qty
 
       // Calculate cart total for free shipping (price in cents)
-      const priceCents = item.price || (piece.price ? Math.round(piece.price * 100) : 0)
+      const priceCents =
+        item.price || (piece.price ? Math.round(piece.price * 100) : 0)
       cartTotalCents += priceCents * qty
     } else {
       // Default weights if piece not found
@@ -165,7 +165,7 @@ async function handleNewFormat(body: QuoteRequestNew) {
     maxLength,
     maxWidth,
     totalHeight,
-    cartTotalCents
+    cartTotalCents,
   )
 }
 
@@ -177,24 +177,25 @@ async function handleLegacyFormat(body: QuoteRequestLegacy) {
   if (!body.tenantSlug) {
     return NextResponse.json(
       { error: 'tenantSlug is required' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
-  if (!body.destinationPostcode || !body.destinationSuburb || !body.destinationState) {
+  if (
+    !body.destinationPostcode ||
+    !body.destinationSuburb ||
+    !body.destinationState
+  ) {
     return NextResponse.json(
       { error: 'Destination address (postcode, suburb, state) is required' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
   // Get tenant by slug
   const tenant = await tenants.getTenantBySlug(body.tenantSlug)
   if (!tenant) {
-    return NextResponse.json(
-      { error: 'Tenant not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
   }
 
   // Get parcel dimensions
@@ -229,7 +230,7 @@ async function handleLegacyFormat(body: QuoteRequestLegacy) {
     weightGrams,
     lengthCm,
     widthCm,
-    heightCm
+    heightCm,
   )
 }
 
@@ -246,17 +247,22 @@ async function getQuotes(
   lengthCm: number,
   widthCm: number,
   heightCm: number,
-  cartTotalCents: number = 0 // Cart total for free shipping calculation
+  cartTotalCents: number = 0, // Cart total for free shipping calculation
 ) {
   // Calculate free shipping eligibility
   const freeShippingThreshold = tenant.freeShippingThreshold || null
-  const freeShippingEligible = freeShippingThreshold && cartTotalCents >= freeShippingThreshold
+  const freeShippingEligible =
+    freeShippingThreshold && cartTotalCents >= freeShippingThreshold
   const amountUntilFreeShipping = freeShippingThreshold
     ? Math.max(0, freeShippingThreshold - cartTotalCents)
     : null
 
   // Check if Sendle is configured
-  if (!tenant.sendleSettings?.isConnected || !tenant.sendleSettings.apiKey || !tenant.sendleSettings.senderId) {
+  if (
+    !tenant.sendleSettings?.isConnected ||
+    !tenant.sendleSettings.apiKey ||
+    !tenant.sendleSettings.senderId
+  ) {
     // Return fallback flat-rate if Sendle not configured
     const quotes = createFallbackQuotes(freeShippingEligible)
     return NextResponse.json({
@@ -309,17 +315,19 @@ async function getQuotes(
     })
 
     // Transform Sendle quotes to our format
-    let quotes: ShippingQuote[] = (sendleResponse.quotes || []).map((q: any, index: number) => ({
-      id: `sendle-${index}-${generateId()}`,
-      carrier: 'Sendle',
-      service: q.plan_name,
-      price: freeShippingEligible ? 0 : q.price_in_cents, // Free if eligible
-      currency: 'AUD',
-      estimatedDays: q.estimated_delivery_days || { min: 2, max: 7 },
-      features: freeShippingEligible
-        ? [...(q.features || []), 'Free shipping applied']
-        : (q.features || []),
-    }))
+    let quotes: ShippingQuote[] = (sendleResponse.quotes || []).map(
+      (q: any, index: number) => ({
+        id: `sendle-${index}-${generateId()}`,
+        carrier: 'Sendle',
+        service: q.plan_name,
+        price: freeShippingEligible ? 0 : q.price_in_cents, // Free if eligible
+        currency: 'AUD',
+        estimatedDays: q.estimated_delivery_days || { min: 2, max: 7 },
+        features: freeShippingEligible
+          ? [...(q.features || []), 'Free shipping applied']
+          : q.features || [],
+      }),
+    )
 
     // Sort by price (cheapest first)
     quotes.sort((a, b) => a.price - b.price)
@@ -338,7 +346,7 @@ async function getQuotes(
           estimatedDays: cheapestQuote.estimatedDays,
           features: ['Free shipping for qualifying orders'],
         },
-        ...quotes.filter(q => q.price > 0), // Keep paid options as alternatives
+        ...quotes.filter((q) => q.price > 0), // Keep paid options as alternatives
       ]
     }
 
@@ -377,7 +385,9 @@ async function getQuotes(
 /**
  * Create fallback shipping quotes when Sendle is unavailable
  */
-function createFallbackQuotes(freeShippingEligible: boolean = false): ShippingQuote[] {
+function createFallbackQuotes(
+  freeShippingEligible: boolean = false,
+): ShippingQuote[] {
   // If free shipping eligible, return free option first
   if (freeShippingEligible) {
     return [
@@ -438,15 +448,26 @@ export async function GET(request: NextRequest) {
     destinationSuburb: searchParams.get('suburb') || '',
     destinationState: searchParams.get('state') || '',
     pieceId: searchParams.get('pieceId') || undefined,
-    weightGrams: searchParams.get('weight') ? parseInt(searchParams.get('weight')!) : undefined,
+    weightGrams: searchParams.get('weight')
+      ? parseInt(searchParams.get('weight')!, 10)
+      : undefined,
   }
 
   // Validate
-  if (!body.tenantSlug || !body.destinationPostcode || !body.destinationSuburb || !body.destinationState) {
-    return NextResponse.json({
-      error: 'Missing required parameters',
-      usage: 'GET /api/shipping/quote?tenant=SLUG&postcode=4000&suburb=BRISBANE&state=QLD&pieceId=xxx',
-    }, { status: 400 })
+  if (
+    !body.tenantSlug ||
+    !body.destinationPostcode ||
+    !body.destinationSuburb ||
+    !body.destinationState
+  ) {
+    return NextResponse.json(
+      {
+        error: 'Missing required parameters',
+        usage:
+          'GET /api/shipping/quote?tenant=SLUG&postcode=4000&suburb=BRISBANE&state=QLD&pieceId=xxx',
+      },
+      { status: 400 },
+    )
   }
 
   // Forward to legacy handler

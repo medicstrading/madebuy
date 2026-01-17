@@ -1,4 +1,4 @@
-import { ScanErrorCode, ERROR_MESSAGES } from './types'
+import { ERROR_MESSAGES, ScanErrorCode } from './types'
 
 export interface FetchOptions {
   url: string
@@ -47,8 +47,9 @@ export async function fetchHtml(options: FetchOptions): Promise<FetchResult> {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MadeBuy/1.0; +https://madebuy.com.au)',
-        'Accept': 'text/html,application/xhtml+xml',
+        'User-Agent':
+          'Mozilla/5.0 (compatible; MadeBuy/1.0; +https://madebuy.com.au)',
+        Accept: 'text/html,application/xhtml+xml',
         'Accept-Language': 'en-AU,en;q=0.9',
       },
       redirect: 'follow',
@@ -60,11 +61,17 @@ export async function fetchHtml(options: FetchOptions): Promise<FetchResult> {
       if (response.status === 403 || response.status === 401) {
         throw new ScannerError(ScanErrorCode.BLOCKED)
       }
-      throw new ScannerError(ScanErrorCode.FETCH_FAILED, `HTTP ${response.status}`)
+      throw new ScannerError(
+        ScanErrorCode.FETCH_FAILED,
+        `HTTP ${response.status}`,
+      )
     }
 
     const contentType = response.headers.get('content-type') || ''
-    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) {
+    if (
+      !contentType.includes('text/html') &&
+      !contentType.includes('application/xhtml')
+    ) {
       throw new ScannerError(ScanErrorCode.INVALID_HTML, 'Response is not HTML')
     }
 
@@ -102,7 +109,10 @@ export async function fetchHtml(options: FetchOptions): Promise<FetchResult> {
 /**
  * Fetches external CSS stylesheets (up to 3)
  */
-export async function fetchStylesheets(urls: string[], timeout = 5000): Promise<string[]> {
+export async function fetchStylesheets(
+  urls: string[],
+  timeout = 5000,
+): Promise<string[]> {
   const cssContents: string[] = []
   const limitedUrls = urls.slice(0, 3) // Only fetch first 3
 
@@ -128,7 +138,7 @@ export async function fetchStylesheets(urls: string[], timeout = 5000): Promise<
       } catch {
         // Silently ignore failed stylesheet fetches
       }
-    })
+    }),
   )
 
   return cssContents
@@ -141,20 +151,26 @@ function extractStylesheetUrls(html: string, baseUrl: string): string[] {
   const urls: string[] = []
 
   // Match <link rel="stylesheet" href="...">
-  const linkRegex = /<link[^>]+rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi
-  const linkRegex2 = /<link[^>]+href=["']([^"']+)["'][^>]*rel=["']stylesheet["'][^>]*>/gi
+  const linkRegex =
+    /<link[^>]+rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi
+  const linkRegex2 =
+    /<link[^>]+href=["']([^"']+)["'][^>]*rel=["']stylesheet["'][^>]*>/gi
 
-  let match
-  while ((match = linkRegex.exec(html)) !== null) {
+  let match: RegExpExecArray | null = null
+  match = linkRegex.exec(html)
+  while (match !== null) {
     urls.push(resolveUrl(match[1], baseUrl))
+    match = linkRegex.exec(html)
   }
-  while ((match = linkRegex2.exec(html)) !== null) {
+  match = linkRegex2.exec(html)
+  while (match !== null) {
     urls.push(resolveUrl(match[1], baseUrl))
+    match = linkRegex2.exec(html)
   }
 
   // Filter to only external stylesheets (not inline or data URIs)
-  return urls.filter(url =>
-    url.startsWith('http://') || url.startsWith('https://')
+  return urls.filter(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
   )
 }
 

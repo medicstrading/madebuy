@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 
 function ResetPasswordForm() {
   const router = useRouter()
@@ -58,7 +58,7 @@ function ResetPasswordForm() {
       setTimeout(() => {
         router.push('/login')
       }, 2000)
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -71,14 +71,20 @@ function ResetPasswordForm() {
         <div className="w-full max-w-md">
           <div className="bg-white px-8 py-10 shadow-lg rounded-lg">
             <h1 className="text-3xl font-bold text-center mb-2">MadeBuy</h1>
-            <p className="text-gray-600 text-center mb-8">Reset your password</p>
+            <p className="text-gray-600 text-center mb-8">
+              Reset your password
+            </p>
 
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-6">
-              Invalid or missing reset token. Please request a new password reset.
+              Invalid or missing reset token. Please request a new password
+              reset.
             </div>
 
             <div className="text-center">
-              <Link href="/forgot-password" className="text-blue-600 hover:text-blue-800 font-medium">
+              <Link
+                href="/forgot-password"
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
                 Request new reset link
               </Link>
             </div>
@@ -93,7 +99,9 @@ function ResetPasswordForm() {
       <div className="w-full max-w-md">
         <div className="bg-white px-8 py-10 shadow-lg rounded-lg">
           <h1 className="text-3xl font-bold text-center mb-2">MadeBuy</h1>
-          <p className="text-gray-600 text-center mb-8">Create a new password</p>
+          <p className="text-gray-600 text-center mb-8">
+            Create a new password
+          </p>
 
           {success ? (
             <div className="space-y-6">
@@ -111,7 +119,10 @@ function ResetPasswordForm() {
               )}
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   New password
                 </label>
                 <input
@@ -126,7 +137,10 @@ function ResetPasswordForm() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Confirm new password
                 </label>
                 <input
@@ -151,6 +165,7 @@ function ResetPasswordForm() {
               </div>
 
               <button
+                type="button"
                 type="submit"
                 disabled={loading}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -160,7 +175,10 @@ function ResetPasswordForm() {
 
               <p className="text-center text-sm text-gray-600">
                 Remember your password?{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
                   Sign in
                 </Link>
               </p>
@@ -174,11 +192,13 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="text-gray-600">Loading...</div>
+        </div>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   )

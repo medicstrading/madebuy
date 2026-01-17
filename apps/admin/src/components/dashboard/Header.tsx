@@ -1,8 +1,8 @@
 'use client'
 
-import { signOut } from 'next-auth/react'
-import { LogOut, ExternalLink, Search, Bell, Menu } from 'lucide-react'
+import { Bell, ExternalLink, LogOut, Menu, Search } from 'lucide-react'
 import Link from 'next/link'
+import { signOut } from 'next-auth/react'
 
 interface HeaderProps {
   user: {
@@ -28,6 +28,7 @@ export function Header({ user, tenant, onMenuClick }: HeaderProps) {
         {/* Hamburger menu - mobile only */}
         {onMenuClick && (
           <button
+            type="button"
             onClick={onMenuClick}
             className="lg:hidden flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
           >
@@ -51,7 +52,10 @@ export function Header({ user, tenant, onMenuClick }: HeaderProps) {
       {/* Actions */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Notification Bell */}
-        <button className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
+        <button
+          type="button"
+          className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+        >
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 h-2 w-2 rounded-full bg-red-500" />
         </button>
@@ -80,12 +84,15 @@ export function Header({ user, tenant, onMenuClick }: HeaderProps) {
             </span>
           </div>
           <div className="text-sm">
-            <p className="font-medium text-gray-900">{user.name || user.email}</p>
+            <p className="font-medium text-gray-900">
+              {user.name || user.email}
+            </p>
           </div>
         </div>
 
         {/* Sign Out */}
         <button
+          type="button"
           onClick={() => signOut({ callbackUrl: '/login' })}
           className="flex items-center gap-2 rounded-lg border border-gray-200 px-2 sm:px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
           title="Sign out"

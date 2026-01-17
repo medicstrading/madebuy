@@ -91,7 +91,7 @@ export interface FallbackOrigin {
 export class CustomHostnamesApi {
   constructor(
     private client: CloudflareClient,
-    private zoneId: string
+    private zoneId: string,
   ) {}
 
   /**
@@ -109,18 +109,18 @@ export class CustomHostnamesApi {
         type: 'dv',
         settings: {
           min_tls_version: '1.2',
-          early_hints: 'on'
-        }
+          early_hints: 'on',
+        },
       },
       custom_metadata: {
         tenant_id: tenantId,
-        created_by: 'madebuy'
-      }
+        created_by: 'madebuy',
+      },
     }
 
     const response = await this.client.post<CustomHostname>(
       `/zones/${this.zoneId}/custom_hostnames`,
-      params
+      params,
     )
     return response.result
   }
@@ -133,7 +133,7 @@ export class CustomHostnamesApi {
    */
   async get(hostnameId: string): Promise<CustomHostname> {
     const response = await this.client.get<CustomHostname>(
-      `/zones/${this.zoneId}/custom_hostnames/${hostnameId}`
+      `/zones/${this.zoneId}/custom_hostnames/${hostnameId}`,
     )
     return response.result
   }
@@ -147,7 +147,7 @@ export class CustomHostnamesApi {
   async getByHostname(hostname: string): Promise<CustomHostname | null> {
     const response = await this.client.get<CustomHostname[]>(
       `/zones/${this.zoneId}/custom_hostnames`,
-      { hostname }
+      { hostname },
     )
     return response.result.length > 0 ? response.result[0] : null
   }
@@ -174,12 +174,12 @@ export class CustomHostnamesApi {
 
     const response = await this.client.get<CustomHostname[]>(
       `/zones/${this.zoneId}/custom_hostnames`,
-      queryParams
+      queryParams,
     )
 
     return {
       hostnames: response.result,
-      total: response.result_info?.total_count ?? response.result.length
+      total: response.result_info?.total_count ?? response.result.length,
     }
   }
 
@@ -190,7 +190,7 @@ export class CustomHostnamesApi {
    */
   async delete(hostnameId: string): Promise<void> {
     await this.client.delete<{ id: string }>(
-      `/zones/${this.zoneId}/custom_hostnames/${hostnameId}`
+      `/zones/${this.zoneId}/custom_hostnames/${hostnameId}`,
     )
   }
 
@@ -207,9 +207,9 @@ export class CustomHostnamesApi {
       {
         ssl: {
           method: 'http',
-          type: 'dv'
-        }
-      }
+          type: 'dv',
+        },
+      },
     )
     return response.result
   }
@@ -223,11 +223,11 @@ export class CustomHostnamesApi {
    */
   async updateMetadata(
     hostnameId: string,
-    metadata: Record<string, string>
+    metadata: Record<string, string>,
   ): Promise<CustomHostname> {
     const response = await this.client.patch<CustomHostname>(
       `/zones/${this.zoneId}/custom_hostnames/${hostnameId}`,
-      { custom_metadata: metadata }
+      { custom_metadata: metadata },
     )
     return response.result
   }
@@ -238,7 +238,7 @@ export class CustomHostnamesApi {
    */
   async getFallbackOrigin(): Promise<FallbackOrigin> {
     const response = await this.client.get<FallbackOrigin>(
-      `/zones/${this.zoneId}/custom_hostnames/fallback_origin`
+      `/zones/${this.zoneId}/custom_hostnames/fallback_origin`,
     )
     return response.result
   }
@@ -251,7 +251,7 @@ export class CustomHostnamesApi {
   async setFallbackOrigin(origin: string): Promise<FallbackOrigin> {
     const response = await this.client.put<FallbackOrigin>(
       `/zones/${this.zoneId}/custom_hostnames/fallback_origin`,
-      { origin }
+      { origin },
     )
     return response.result
   }
@@ -261,7 +261,7 @@ export class CustomHostnamesApi {
    */
   async deleteFallbackOrigin(): Promise<void> {
     await this.client.delete<void>(
-      `/zones/${this.zoneId}/custom_hostnames/fallback_origin`
+      `/zones/${this.zoneId}/custom_hostnames/fallback_origin`,
     )
   }
 
@@ -289,14 +289,14 @@ export class CustomHostnamesApi {
       issues.push(`SSL status: ${hostname.ssl.status}`)
 
       if (hostname.ssl.validation_errors?.length) {
-        hostname.ssl.validation_errors.forEach(err => {
+        hostname.ssl.validation_errors.forEach((err) => {
           issues.push(`SSL error: ${err.message}`)
         })
       }
     }
 
     if (hostname.verification_errors?.length) {
-      hostname.verification_errors.forEach(err => {
+      hostname.verification_errors.forEach((err) => {
         issues.push(`Verification error: ${err}`)
       })
     }
@@ -305,7 +305,7 @@ export class CustomHostnamesApi {
       ready: hostname.status === 'active' && hostname.ssl.status === 'active',
       status: hostname.status,
       sslStatus: hostname.ssl.status,
-      issues
+      issues,
     }
   }
 }
@@ -318,7 +318,7 @@ export class CustomHostnamesApi {
  */
 export function createCustomHostnamesApi(
   client: CloudflareClient,
-  zoneId: string
+  zoneId: string,
 ): CustomHostnamesApi {
   return new CustomHostnamesApi(client, zoneId)
 }
@@ -334,14 +334,14 @@ export function mapCloudflareStatus(hostname: CustomHostname): {
   if (hostname.status === 'blocked') {
     return {
       domainStatus: 'error',
-      message: 'Domain is blocked. Please contact support.'
+      message: 'Domain is blocked. Please contact support.',
     }
   }
 
   if (hostname.ssl.validation_errors?.length) {
     return {
       domainStatus: 'error',
-      message: hostname.ssl.validation_errors[0].message
+      message: hostname.ssl.validation_errors[0].message,
     }
   }
 
@@ -349,7 +349,7 @@ export function mapCloudflareStatus(hostname: CustomHostname): {
   if (hostname.status === 'active' && hostname.ssl.status === 'active') {
     return {
       domainStatus: 'active',
-      message: 'Domain is active and SSL is working'
+      message: 'Domain is active and SSL is working',
     }
   }
 
@@ -360,21 +360,25 @@ export function mapCloudflareStatus(hostname: CustomHostname): {
     if (sslStatus === 'pending_validation') {
       return {
         domainStatus: 'pending_cname',
-        message: 'Waiting for DNS. Add a CNAME record pointing to shops.madebuy.com.au'
+        message:
+          'Waiting for DNS. Add a CNAME record pointing to shops.madebuy.com.au',
       }
     }
 
-    if (sslStatus === 'pending_issuance' || sslStatus === 'pending_deployment') {
+    if (
+      sslStatus === 'pending_issuance' ||
+      sslStatus === 'pending_deployment'
+    ) {
       return {
         domainStatus: 'pending_ssl',
-        message: 'DNS verified. SSL certificate is being provisioned...'
+        message: 'DNS verified. SSL certificate is being provisioned...',
       }
     }
 
     if (sslStatus === 'initializing') {
       return {
         domainStatus: 'pending_cname',
-        message: 'Setting up domain. This may take a few minutes...'
+        message: 'Setting up domain. This may take a few minutes...',
       }
     }
   }
@@ -383,13 +387,14 @@ export function mapCloudflareStatus(hostname: CustomHostname): {
   if (hostname.status === 'pending') {
     return {
       domainStatus: 'pending_cname',
-      message: 'Waiting for CNAME record. Point your domain to shops.madebuy.com.au'
+      message:
+        'Waiting for CNAME record. Point your domain to shops.madebuy.com.au',
     }
   }
 
   // Unknown state
   return {
     domainStatus: 'error',
-    message: `Unexpected status: ${hostname.status} / ${hostname.ssl.status}`
+    message: `Unexpected status: ${hostname.status} / ${hostname.ssl.status}`,
   }
 }

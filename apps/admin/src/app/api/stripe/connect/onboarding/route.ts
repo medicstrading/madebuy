@@ -1,7 +1,7 @@
+import type { StripeOnboardingResponse } from '@madebuy/shared'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
-import type { StripeOnboardingResponse } from '@madebuy/shared'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -22,7 +22,7 @@ export async function POST() {
     if (!connectAccountId) {
       return NextResponse.json(
         { error: 'No Stripe Connect account found. Create one first.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -45,7 +45,7 @@ export async function POST() {
     console.error('Failed to create onboarding link:', error)
     return NextResponse.json(
       { error: 'Failed to create onboarding link' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

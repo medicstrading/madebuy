@@ -11,7 +11,7 @@ export interface DownloadEvent {
   userAgent: string
   success: boolean
   error?: string
-  fileId: string              // Which file was downloaded
+  fileId: string // Which file was downloaded
 }
 
 /**
@@ -21,29 +21,29 @@ export interface DownloadRecord {
   id: string
   tenantId: string
   orderId: string
-  orderItemId: string         // Specific item in the order
-  pieceId: string             // The digital product
+  orderItemId: string // Specific item in the order
+  pieceId: string // The digital product
 
   // Access control
-  downloadToken: string       // Secure token for download URL (32 bytes, base64url)
-  tokenExpiresAt?: Date       // When the token expires (null = never)
+  downloadToken: string // Secure token for download URL (32 bytes, base64url)
+  tokenExpiresAt?: Date // When the token expires (null = never)
 
   // Customer info (denormalized for quick access)
   customerEmail: string
   customerName: string
 
   // Limits
-  downloadCount: number       // Current total downloads across all files
-  maxDownloads?: number       // Maximum allowed downloads (null = unlimited)
+  downloadCount: number // Current total downloads across all files
+  maxDownloads?: number // Maximum allowed downloads (null = unlimited)
 
   // Per-file download tracking
-  fileDownloads: Record<string, number>  // fileId -> download count
+  fileDownloads: Record<string, number> // fileId -> download count
 
   // Tracking
   downloads: DownloadEvent[]
 
   // Status
-  isRevoked: boolean          // Manually disabled by seller
+  isRevoked: boolean // Manually disabled by seller
   revokedAt?: Date
   revokedReason?: string
 
@@ -62,7 +62,7 @@ export interface CreateDownloadRecordInput {
   customerEmail: string
   customerName: string
   maxDownloads?: number
-  expiryDays?: number         // Days until token expires
+  expiryDays?: number // Days until token expires
 }
 
 /**
@@ -70,7 +70,12 @@ export interface CreateDownloadRecordInput {
  */
 export interface DownloadValidationResult {
   valid: boolean
-  error?: 'expired' | 'limit_reached' | 'revoked' | 'not_found' | 'file_not_found'
+  error?:
+    | 'expired'
+    | 'limit_reached'
+    | 'revoked'
+    | 'not_found'
+    | 'file_not_found'
   errorMessage?: string
 
   // If valid, includes the info needed to serve the file
@@ -85,7 +90,7 @@ export interface DownloadValidationResult {
   }
 
   // Download stats for display
-  downloadsRemaining?: number | null  // null = unlimited
+  downloadsRemaining?: number | null // null = unlimited
 }
 
 /**

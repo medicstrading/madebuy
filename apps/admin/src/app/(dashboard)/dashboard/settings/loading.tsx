@@ -7,7 +7,10 @@ export default function SettingsLoading() {
       {/* Settings sections */}
       <div className="space-y-6">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="rounded-xl border border-gray-200 bg-white p-6">
+          <div
+            key={i}
+            className="rounded-xl border border-gray-200 bg-white p-6"
+          >
             <div className="h-6 w-40 bg-gray-100 rounded mb-4" />
             <div className="space-y-4">
               <div className="h-10 bg-gray-100 rounded" />

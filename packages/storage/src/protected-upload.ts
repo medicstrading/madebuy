@@ -1,7 +1,7 @@
+import type { MediaVariant } from '@madebuy/shared'
 import sharp from 'sharp'
 import phash from 'sharp-phash'
 import { uploadToR2 } from './r2'
-import type { MediaVariant } from '@madebuy/shared'
 
 export interface ProtectedUploadOptions {
   tenantId: string
@@ -25,7 +25,7 @@ export interface ProtectedUploadResult {
  * 4. Store original with access control
  */
 export async function uploadProtectedImage(
-  options: ProtectedUploadOptions
+  options: ProtectedUploadOptions,
 ): Promise<ProtectedUploadResult> {
   const { tenantId, fileName, buffer, contentType, metadata } = options
 
@@ -166,7 +166,11 @@ export function compareHashes(hash1: string, hash2: string): number {
  * Check if two images are likely the same or derivatives
  * Hamming distance < 10 indicates high similarity
  */
-export function areImagesSimilar(hash1: string, hash2: string, threshold = 10): boolean {
+export function areImagesSimilar(
+  hash1: string,
+  hash2: string,
+  threshold = 10,
+): boolean {
   const distance = compareHashes(hash1, hash2)
   return distance < threshold
 }

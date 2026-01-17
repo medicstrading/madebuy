@@ -1,9 +1,16 @@
 'use client'
 
-import { CheckCircle, ExternalLink, Plus, Eye, Edit, Share2 } from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
 import type { MediaItem, SocialPlatform } from '@madebuy/shared'
+import {
+  CheckCircle,
+  Edit,
+  ExternalLink,
+  Eye,
+  Plus,
+  Share2,
+} from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface CompleteStepProps {
   pieceName: string
@@ -64,7 +71,10 @@ export function CompleteStep({
         <div className="mx-auto max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl border border-gray-100">
           <div className="relative aspect-square">
             <Image
-              src={primaryMedia.variants.large?.url || primaryMedia.variants.original.url}
+              src={
+                primaryMedia.variants.large?.url ||
+                primaryMedia.variants.original.url
+              }
               alt={pieceName}
               fill
               className="object-cover"
@@ -108,7 +118,9 @@ export function CompleteStep({
         {/* Etsy */}
         {marketplaces.etsy && (
           <StatusRow
-            icon={<div className="h-5 w-5 animate-pulse rounded-full bg-orange-400" />}
+            icon={
+              <div className="h-5 w-5 animate-pulse rounded-full bg-orange-400" />
+            }
             label="Etsy"
             status="Syncing..."
             statusColor="text-orange-600"
@@ -118,7 +130,9 @@ export function CompleteStep({
         {/* eBay */}
         {marketplaces.ebay && (
           <StatusRow
-            icon={<div className="h-5 w-5 animate-pulse rounded-full bg-blue-400" />}
+            icon={
+              <div className="h-5 w-5 animate-pulse rounded-full bg-blue-400" />
+            }
             label="eBay"
             status="Syncing..."
             statusColor="text-blue-600"
@@ -126,7 +140,7 @@ export function CompleteStep({
         )}
 
         {/* Social platforms */}
-        {socialPlatforms.map(platform => (
+        {socialPlatforms.map((platform) => (
           <StatusRow
             key={platform}
             icon={
@@ -171,6 +185,7 @@ export function CompleteStep({
           />
           <button
             type="button"
+            type="button"
             onClick={onAddAnother}
             className="flex flex-col items-center gap-2 rounded-xl bg-white border-2 border-dashed border-gray-300 p-4 text-gray-600 hover:border-purple-400 hover:text-purple-600 transition-colors"
           >
@@ -190,6 +205,7 @@ export function CompleteStep({
         </Link>
         <button
           type="button"
+          type="button"
           onClick={onAddAnother}
           className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md transition-all"
         >
@@ -208,7 +224,13 @@ interface StatusRowProps {
   action?: React.ReactNode
 }
 
-function StatusRow({ icon, label, status, statusColor, action }: StatusRowProps) {
+function StatusRow({
+  icon,
+  label,
+  status,
+  statusColor,
+  action,
+}: StatusRowProps) {
   return (
     <div className="flex items-center justify-between rounded-xl bg-white border border-gray-100 p-4">
       <div className="flex items-center gap-3">

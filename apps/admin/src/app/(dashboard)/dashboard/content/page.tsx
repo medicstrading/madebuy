@@ -1,6 +1,6 @@
-import { requireTenant } from '@/lib/session'
-import { publish, blog } from '@madebuy/db'
+import { blog, publish } from '@madebuy/db'
 import { ContentPageClient } from '@/components/content/ContentPageClient'
+import { requireTenant } from '@/lib/session'
 
 export const metadata = {
   title: 'Content - MadeBuy Admin',
@@ -18,20 +18,22 @@ export default async function ContentPage() {
   // Compute stats
   const publishStats = {
     total: publishRecords.length,
-    published: publishRecords.filter(p => p.status === 'published').length,
-    scheduled: publishRecords.filter(p => p.status === 'scheduled').length,
-    draft: publishRecords.filter(p => p.status === 'draft').length,
+    published: publishRecords.filter((p) => p.status === 'published').length,
+    scheduled: publishRecords.filter((p) => p.status === 'scheduled').length,
+    draft: publishRecords.filter((p) => p.status === 'draft').length,
   }
 
   const blogStats = {
     total: blogPosts.length,
-    published: blogPosts.filter(p => p.status === 'published').length,
-    drafts: blogPosts.filter(p => p.status === 'draft').length,
+    published: blogPosts.filter((p) => p.status === 'published').length,
+    drafts: blogPosts.filter((p) => p.status === 'draft').length,
     totalViews: blogPosts.reduce((sum, p) => sum + p.views, 0),
   }
 
   // Check if social accounts are connected
-  const hasSocialConnections = !!(tenant.socialConnections && tenant.socialConnections.length > 0)
+  const hasSocialConnections = !!(
+    tenant.socialConnections && tenant.socialConnections.length > 0
+  )
 
   return (
     <ContentPageClient

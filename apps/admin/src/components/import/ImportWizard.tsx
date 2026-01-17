@@ -1,27 +1,26 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import {
-  Upload,
-  FileText,
-  CheckCircle,
-  AlertCircle,
-  AlertTriangle,
-  Loader2,
-  Download,
-  ChevronRight,
-  ArrowLeft,
-  X,
-  MapPin,
-} from 'lucide-react'
 import type {
+  ColumnMapping,
+  ImportError,
   ImportJob,
   ImportPreview,
-  ImportError,
-  ImportWarning,
-  ColumnMapping,
   ImportSource,
+  ImportWarning,
 } from '@madebuy/shared'
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle,
+  ChevronRight,
+  Download,
+  FileText,
+  Loader2,
+  MapPin,
+  Upload,
+} from 'lucide-react'
+import { useCallback, useState } from 'react'
 
 interface ImportWizardProps {
   onComplete?: () => void
@@ -63,7 +62,7 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
   const [skipErrors, setSkipErrors] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [_isProcessing, setIsProcessing] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -99,17 +98,20 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
   }
 
   // Handle drag and drop
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
 
-    const file = e.dataTransfer.files[0]
-    if (file && file.name.endsWith('.csv')) {
-      handleFileUpload(file)
-    } else {
-      setUploadError('Please upload a CSV file')
-    }
-  }, [])
+      const file = e.dataTransfer.files[0]
+      if (file?.name.endsWith('.csv')) {
+        handleFileUpload(file)
+      } else {
+        setUploadError('Please upload a CSV file')
+      }
+    },
+    [handleFileUpload],
+  )
 
   // Handle file input
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +150,9 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
       setWarnings(data.warnings || [])
       setStep('preview')
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'Validation failed')
+      setUploadError(
+        error instanceof Error ? error.message : 'Validation failed',
+      )
     } finally {
       setIsValidating(false)
     }
@@ -213,25 +217,27 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
                   step === s
                     ? 'bg-blue-600 text-white'
-                    : ['upload', 'mapping', 'preview', 'complete'].indexOf(step) > i
+                    : ['upload', 'mapping', 'preview', 'complete'].indexOf(
+                          step,
+                        ) > i
                       ? 'bg-green-100 text-green-600'
                       : 'bg-gray-100 text-gray-400'
                 }`}
               >
-                {['upload', 'mapping', 'preview', 'complete'].indexOf(step) > i ? (
+                {['upload', 'mapping', 'preview', 'complete'].indexOf(step) >
+                i ? (
                   <CheckCircle className="h-5 w-5" />
                 ) : (
                   i + 1
                 )}
               </div>
-              {i < 3 && (
-                <ChevronRight className="mx-2 h-4 w-4 text-gray-300" />
-              )}
+              {i < 3 && <ChevronRight className="mx-2 h-4 w-4 text-gray-300" />}
             </div>
           ))}
         </div>
         {step !== 'upload' && step !== 'processing' && (
           <button
+            type="button"
             onClick={handleReset}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
@@ -319,7 +325,8 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
             <div>
               <p className="font-medium text-gray-900">{job.filename}</p>
               <p className="text-sm text-gray-500">
-                {job.rowCount} rows detected • {SOURCE_LABELS[job.source]} format
+                {job.rowCount} rows detected • {SOURCE_LABELS[job.source]}{' '}
+                format
               </p>
             </div>
           </div>
@@ -343,14 +350,15 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
                 >
                   <div>
                     <span className="font-medium text-gray-900">{label}</span>
-                    {required && (
-                      <span className="ml-1 text-red-500">*</span>
-                    )}
+                    {required && <span className="ml-1 text-red-500">*</span>}
                   </div>
                   <select
                     value={mapping[key as keyof ColumnMapping] || ''}
                     onChange={(e) =>
-                      handleMappingChange(key as keyof ColumnMapping, e.target.value)
+                      handleMappingChange(
+                        key as keyof ColumnMapping,
+                        e.target.value,
+                      )
                     }
                     className="w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
@@ -378,9 +386,12 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
                   className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <div>
-                  <p className="font-medium text-gray-900">Update existing products</p>
+                  <p className="font-medium text-gray-900">
+                    Update existing products
+                  </p>
                   <p className="text-sm text-gray-500">
-                    Products with matching handle/slug will be updated instead of skipped
+                    Products with matching handle/slug will be updated instead
+                    of skipped
                   </p>
                 </div>
               </label>
@@ -392,9 +403,12 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
                   className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <div>
-                  <p className="font-medium text-gray-900">Skip rows with errors</p>
+                  <p className="font-medium text-gray-900">
+                    Skip rows with errors
+                  </p>
                   <p className="text-sm text-gray-500">
-                    Continue importing other products even if some rows have errors
+                    Continue importing other products even if some rows have
+                    errors
                   </p>
                 </div>
               </label>
@@ -404,6 +418,7 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
           {/* Actions */}
           <div className="flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setStep('upload')}
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
@@ -411,6 +426,7 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
               Back
             </button>
             <button
+              type="button"
               onClick={handleValidate}
               disabled={!mapping.handle || !mapping.name || isValidating}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -471,7 +487,9 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
               <div className="max-h-48 overflow-y-auto p-4">
                 {errors.slice(0, 20).map((error, i) => (
                   <div key={i} className="flex gap-2 py-1 text-sm text-red-700">
-                    <span className="font-mono text-red-500">Row {error.row}:</span>
+                    <span className="font-mono text-red-500">
+                      Row {error.row}:
+                    </span>
                     <span>{error.message}</span>
                   </div>
                 ))}
@@ -495,8 +513,13 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
               </div>
               <div className="max-h-48 overflow-y-auto p-4">
                 {warnings.slice(0, 10).map((warning, i) => (
-                  <div key={i} className="flex gap-2 py-1 text-sm text-yellow-700">
-                    <span className="font-mono text-yellow-600">Row {warning.row}:</span>
+                  <div
+                    key={i}
+                    className="flex gap-2 py-1 text-sm text-yellow-700"
+                  >
+                    <span className="font-mono text-yellow-600">
+                      Row {warning.row}:
+                    </span>
                     <span>{warning.message}</span>
                   </div>
                 ))}
@@ -514,7 +537,9 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
             <div className="rounded-xl border border-gray-200 bg-white">
               <div className="border-b border-gray-100 px-6 py-4">
                 <h3 className="font-semibold text-gray-900">Preview</h3>
-                <p className="text-sm text-gray-500">First 5 products to be imported</p>
+                <p className="text-sm text-gray-500">
+                  First 5 products to be imported
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -543,7 +568,9 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
                         <td className="whitespace-nowrap px-4 py-3 font-mono text-sm text-gray-900">
                           {row.handle}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{row.name}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {row.name}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {row.price ? `$${row.price.toFixed(2)}` : '-'}
                         </td>
@@ -564,6 +591,7 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
           {/* Actions */}
           <div className="flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setStep('mapping')}
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
@@ -571,6 +599,7 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
               Back to Mapping
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
               disabled={errors.length > 0 && !skipErrors}
               className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -585,7 +614,9 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
       {step === 'processing' && (
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className="h-16 w-16 animate-spin text-blue-600" />
-          <p className="mt-6 text-xl font-medium text-gray-900">Importing Products...</p>
+          <p className="mt-6 text-xl font-medium text-gray-900">
+            Importing Products...
+          </p>
           <p className="mt-2 text-gray-500">
             This may take a few minutes. Please don&apos;t close this page.
           </p>
@@ -598,7 +629,9 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
-            <p className="mt-4 text-xl font-medium text-gray-900">Import Complete!</p>
+            <p className="mt-4 text-xl font-medium text-gray-900">
+              Import Complete!
+            </p>
           </div>
 
           {/* Results */}
@@ -632,6 +665,7 @@ export function ImportWizard({ onComplete }: ImportWizardProps) {
           {/* Actions */}
           <div className="flex items-center justify-center gap-4 pt-4">
             <button
+              type="button"
               onClick={handleReset}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 font-medium text-gray-700 hover:bg-gray-50"
             >

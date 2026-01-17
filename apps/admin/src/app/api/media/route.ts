@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { media } from '@madebuy/db'
+import { NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET() {
   try {
@@ -15,6 +15,9 @@ export async function GET() {
     return NextResponse.json({ media: allMedia })
   } catch (error) {
     console.error('Error fetching media:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

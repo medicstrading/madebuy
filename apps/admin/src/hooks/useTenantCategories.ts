@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import type { Tenant, MakerType } from '@madebuy/shared/src/types/tenant'
 import {
   getTenantCategories,
   getTenantMaterialCategories,
   MAKER_CATEGORY_PRESETS,
   MAKER_MATERIAL_PRESETS,
 } from '@madebuy/shared/src/constants/makerPresets'
+import type { MakerType, Tenant } from '@madebuy/shared/src/types/tenant'
+import { useEffect, useState } from 'react'
 
 interface UseTenantCategoriesResult {
   // Product categories
@@ -50,7 +50,7 @@ export function useTenantCategories(): UseTenantCategoriesResult {
       } else {
         setError('Failed to load categories')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to load categories')
     } finally {
       setIsLoading(false)
@@ -59,18 +59,28 @@ export function useTenantCategories(): UseTenantCategoriesResult {
 
   useEffect(() => {
     fetchTenant()
-  }, [])
+  }, [fetchTenant])
 
   // Calculate categories
   const makerType = tenant?.makerType
   const customProductCategories = tenant?.customCategories || []
   const customMaterialCategories = tenant?.customMaterialCategories || []
 
-  const presetProductCategories = makerType ? MAKER_CATEGORY_PRESETS[makerType] : []
-  const presetMaterialCategories = makerType ? MAKER_MATERIAL_PRESETS[makerType] : []
+  const presetProductCategories = makerType
+    ? MAKER_CATEGORY_PRESETS[makerType]
+    : []
+  const presetMaterialCategories = makerType
+    ? MAKER_MATERIAL_PRESETS[makerType]
+    : []
 
-  const productCategories = getTenantCategories(makerType, customProductCategories)
-  const materialCategories = getTenantMaterialCategories(makerType, customMaterialCategories)
+  const productCategories = getTenantCategories(
+    makerType,
+    customProductCategories,
+  )
+  const materialCategories = getTenantMaterialCategories(
+    makerType,
+    customMaterialCategories,
+  )
 
   return {
     productCategories,

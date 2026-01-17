@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Upload, X, FileText, AlertCircle, CheckCircle } from 'lucide-react'
 import type { DigitalFile } from '@madebuy/shared'
+import { AlertCircle, CheckCircle, FileText, Upload, X } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 
 interface FileUploaderProps {
   pieceId: string
@@ -16,21 +16,56 @@ const MAX_FILE_SIZE = 250 * 1024 * 1024
 // Allowed extensions for display
 const ALLOWED_EXTENSIONS = [
   // Documents
-  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv', '.md',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.txt',
+  '.csv',
+  '.md',
   // Archives
-  '.zip', '.rar', '.7z', '.gz', '.tar',
+  '.zip',
+  '.rar',
+  '.7z',
+  '.gz',
+  '.tar',
   // Images
-  '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.tiff', '.bmp',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.svg',
+  '.tiff',
+  '.bmp',
   // Audio
-  '.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a',
+  '.mp3',
+  '.wav',
+  '.ogg',
+  '.flac',
+  '.aac',
+  '.m4a',
   // Video
-  '.mp4', '.webm', '.mov', '.avi', '.mkv',
+  '.mp4',
+  '.webm',
+  '.mov',
+  '.avi',
+  '.mkv',
   // Design
-  '.psd', '.eps', '.ai',
+  '.psd',
+  '.eps',
+  '.ai',
   // E-books
-  '.epub', '.mobi',
+  '.epub',
+  '.mobi',
   // Fonts
-  '.ttf', '.otf', '.woff', '.woff2',
+  '.ttf',
+  '.otf',
+  '.woff',
+  '.woff2',
 ]
 
 // Format file size
@@ -39,12 +74,16 @@ function formatFileSize(bytes: number): string {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
 }
 
 type UploadState = 'idle' | 'selected' | 'uploading' | 'complete' | 'error'
 
-export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps) {
+export function FileUploader({
+  pieceId,
+  onComplete,
+  onClose,
+}: FileUploaderProps) {
   const [state, setState] = useState<UploadState>('idle')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [displayName, setDisplayName] = useState('')
@@ -63,7 +102,9 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
 
     // Validate size
     if (file.size > MAX_FILE_SIZE) {
-      setError(`File too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`)
+      setError(
+        `File too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`,
+      )
       return
     }
 
@@ -84,22 +125,28 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
   }, [])
 
   // Handle drop
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setDragActive(false)
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0])
-    }
-  }, [handleFileSelect])
+      if (e.dataTransfer.files?.[0]) {
+        handleFileSelect(e.dataTransfer.files[0])
+      }
+    },
+    [handleFileSelect],
+  )
 
   // Handle input change
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileSelect(e.target.files[0])
-    }
-  }, [handleFileSelect])
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files?.[0]) {
+        handleFileSelect(e.target.files[0])
+      }
+    },
+    [handleFileSelect],
+  )
 
   // Upload file
   const uploadFile = useCallback(async () => {
@@ -149,7 +196,9 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
           } else {
             try {
               const response = JSON.parse(xhr.responseText)
-              reject(new Error(response.error || `Upload failed (${xhr.status})`))
+              reject(
+                new Error(response.error || `Upload failed (${xhr.status})`),
+              )
             } catch {
               reject(new Error(`Upload failed (${xhr.status})`))
             }
@@ -168,7 +217,9 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
         xhr.send(formData)
 
         // Store xhr for cancellation
-        abortControllerRef.current = { abort: () => xhr.abort() } as AbortController
+        abortControllerRef.current = {
+          abort: () => xhr.abort(),
+        } as AbortController
       })
     } catch (err) {
       setState('error')
@@ -205,8 +256,11 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
       <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-900">Upload Digital File</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Upload Digital File
+          </h3>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
           >
@@ -251,7 +305,8 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
                 <span className="text-purple-600">browse</span>
               </p>
               <p className="mt-2 text-xs text-gray-500">
-                PDF, ZIP, images, audio, video up to {formatFileSize(MAX_FILE_SIZE)}
+                PDF, ZIP, images, audio, video up to{' '}
+                {formatFileSize(MAX_FILE_SIZE)}
               </p>
             </div>
           )}
@@ -270,6 +325,7 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={reset}
                   className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
                 >
@@ -339,6 +395,7 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
               </div>
 
               <button
+                type="button"
                 onClick={cancelUpload}
                 className="w-full rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
@@ -353,7 +410,9 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
-              <p className="text-lg font-medium text-gray-900">Upload Complete!</p>
+              <p className="text-lg font-medium text-gray-900">
+                Upload Complete!
+              </p>
               <p className="mt-1 text-sm text-gray-500">
                 Your file has been added to the product
               </p>
@@ -365,12 +424,14 @@ export function FileUploader({ pieceId, onComplete, onClose }: FileUploaderProps
         {(state === 'idle' || state === 'selected' || state === 'error') && (
           <div className="flex gap-3 border-t border-gray-200 px-6 py-4">
             <button
+              type="button"
               onClick={onClose}
               className="flex-1 rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={uploadFile}
               disabled={!selectedFile || !displayName.trim()}
               className="flex-1 rounded-lg bg-purple-600 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"

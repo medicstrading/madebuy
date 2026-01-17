@@ -1,7 +1,13 @@
 'use client'
 
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  ExternalLink,
+} from 'lucide-react'
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Copy, Check, ExternalLink } from 'lucide-react'
 
 interface DnsInstructionsProps {
   domain: string
@@ -104,7 +110,9 @@ export function DnsInstructions({
     <div className="space-y-6">
       {/* Simple instruction */}
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <h4 className="font-medium text-blue-900 mb-2">Add these DNS records</h4>
+        <h4 className="font-medium text-blue-900 mb-2">
+          Add these DNS records
+        </h4>
         <p className="text-sm text-blue-800">
           Go to your domain registrar and add these 2 records:
         </p>
@@ -133,11 +141,13 @@ export function DnsInstructions({
             {records.map((record, idx) => (
               <tr key={idx}>
                 <td className="whitespace-nowrap px-4 py-3">
-                  <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
-                    record.type === 'CNAME'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-purple-100 text-purple-800'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
+                      record.type === 'CNAME'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                    }`}
+                  >
                     {record.type}
                   </span>
                 </td>
@@ -149,6 +159,7 @@ export function DnsInstructions({
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right">
                   <button
+                    type="button"
                     onClick={() => copyToClipboard(record.value)}
                     className="inline-flex items-center gap-1 rounded px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                     title="Copy value"
@@ -184,6 +195,7 @@ export function DnsInstructions({
               className="rounded-lg border border-gray-200 overflow-hidden"
             >
               <button
+                type="button"
                 onClick={() =>
                   setExpandedGuide(expandedGuide === guide.id ? null : guide.id)
                 }
@@ -224,7 +236,8 @@ export function DnsInstructions({
       {/* Timing notice */}
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
         <p className="text-sm text-gray-600">
-          <strong>DNS changes usually take 15 minutes to 48 hours.</strong> We will check automatically and notify you when your domain is ready.
+          <strong>DNS changes usually take 15 minutes to 48 hours.</strong> We
+          will check automatically and notify you when your domain is ready.
         </p>
       </div>
     </div>

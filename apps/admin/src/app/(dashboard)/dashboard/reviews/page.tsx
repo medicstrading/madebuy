@@ -1,9 +1,16 @@
-import { requireTenant } from '@/lib/session'
-import { reviews, pieces } from '@madebuy/db'
-import { formatDate } from '@/lib/utils'
-import { Star, MessageSquare, CheckCircle, XCircle, Clock, ExternalLink } from 'lucide-react'
+import { pieces, reviews } from '@madebuy/db'
+import type { Piece, Review, ReviewStatus } from '@madebuy/shared'
+import {
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  MessageSquare,
+  Star,
+  XCircle,
+} from 'lucide-react'
 import Link from 'next/link'
-import type { Review, ReviewStatus, Piece } from '@madebuy/shared'
+import { requireTenant } from '@/lib/session'
+import { formatDate } from '@/lib/utils'
 
 interface PageProps {
   searchParams: { status?: string; page?: string }
@@ -31,13 +38,15 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   ])
 
   // Create a map of pieceId to piece for quick lookup
-  const pieceMap = new Map(allPieces.map(p => [p.id, p]))
+  const pieceMap = new Map(allPieces.map((p) => [p.id, p]))
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
-        <p className="mt-2 text-gray-600">Moderate customer reviews for your products</p>
+        <p className="mt-2 text-gray-600">
+          Moderate customer reviews for your products
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -48,40 +57,53 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
           icon={Clock}
           color="yellow"
         />
-        <StatCard
-          title="Approved"
-          value={0}
-          icon={CheckCircle}
-          color="green"
-        />
-        <StatCard
-          title="Rejected"
-          value={0}
-          icon={XCircle}
-          color="red"
-        />
+        <StatCard title="Approved" value={0} icon={CheckCircle} color="green" />
+        <StatCard title="Rejected" value={0} icon={XCircle} color="red" />
       </div>
 
       {/* Status Filter */}
       <div className="mb-6 flex gap-2">
-        <StatusFilterLink status={undefined} current={statusFilter} label="All" />
-        <StatusFilterLink status="pending" current={statusFilter} label="Pending" />
-        <StatusFilterLink status="approved" current={statusFilter} label="Approved" />
-        <StatusFilterLink status="rejected" current={statusFilter} label="Rejected" />
+        <StatusFilterLink
+          status={undefined}
+          current={statusFilter}
+          label="All"
+        />
+        <StatusFilterLink
+          status="pending"
+          current={statusFilter}
+          label="Pending"
+        />
+        <StatusFilterLink
+          status="approved"
+          current={statusFilter}
+          label="Approved"
+        />
+        <StatusFilterLink
+          status="rejected"
+          current={statusFilter}
+          label="Rejected"
+        />
       </div>
 
       {allReviews.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No reviews yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No reviews yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
-            Customer reviews will appear here when customers leave feedback on their purchases.
+            Customer reviews will appear here when customers leave feedback on
+            their purchases.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {allReviews.map((review) => (
-            <ReviewCard key={review.id} review={review} piece={pieceMap.get(review.pieceId)} />
+            <ReviewCard
+              key={review.id}
+              review={review}
+              piece={pieceMap.get(review.pieceId)}
+            />
           ))}
         </div>
       )}
@@ -131,7 +153,9 @@ function StatusFilterLink({
   label: string
 }) {
   const isActive = status === current
-  const href = status ? `/dashboard/reviews?status=${status}` : '/dashboard/reviews'
+  const href = status
+    ? `/dashboard/reviews?status=${status}`
+    : '/dashboard/reviews'
 
   return (
     <a
@@ -169,12 +193,16 @@ function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
             <StarRating rating={review.rating} />
             <ReviewStatusBadge status={review.status} />
             {review.isVerifiedPurchase && (
-              <span className="text-xs text-green-600 font-medium">Verified Purchase</span>
+              <span className="text-xs text-green-600 font-medium">
+                Verified Purchase
+              </span>
             )}
           </div>
 
           {review.title && (
-            <h3 className="mt-2 text-lg font-medium text-gray-900">{review.title}</h3>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">
+              {review.title}
+            </h3>
           )}
 
           <p className="mt-2 text-gray-700">{review.text}</p>
@@ -200,8 +228,12 @@ function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
 
           {review.sellerResponse && (
             <div className="mt-4 rounded-lg bg-gray-50 p-4">
-              <p className="text-sm font-medium text-gray-700">Your Response:</p>
-              <p className="mt-1 text-sm text-gray-600">{review.sellerResponse}</p>
+              <p className="text-sm font-medium text-gray-700">
+                Your Response:
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                {review.sellerResponse}
+              </p>
             </div>
           )}
         </div>
@@ -211,6 +243,7 @@ function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
             <form action={`/api/reviews/${review.id}/moderate`} method="POST">
               <input type="hidden" name="status" value="approved" />
               <button
+                type="button"
                 type="submit"
                 className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
               >
@@ -221,6 +254,7 @@ function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
             <form action={`/api/reviews/${review.id}/moderate`} method="POST">
               <input type="hidden" name="status" value="rejected" />
               <button
+                type="button"
                 type="submit"
                 className="flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
               >

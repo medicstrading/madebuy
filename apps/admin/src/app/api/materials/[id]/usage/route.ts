@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { materials } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -18,7 +18,7 @@ export async function POST(
     if (!pieceId || !quantityUsed || quantityUsed <= 0) {
       return NextResponse.json(
         { error: 'pieceId and quantityUsed > 0 are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -27,15 +27,20 @@ export async function POST(
       tenant.id,
       pieceId,
       params.id,
-      quantityUsed
+      quantityUsed,
     )
 
     return NextResponse.json({ usage })
   } catch (error) {
     console.error('Material usage error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to record material usage' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to record material usage',
+      },
+      { status: 500 },
     )
   }
 }

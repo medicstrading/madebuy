@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { captionStyles } from '@madebuy/db'
 import type { SocialPlatform } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 const VALID_PLATFORMS: SocialPlatform[] = [
   'instagram',
@@ -21,8 +21,8 @@ function isValidPlatform(platform: string): platform is SocialPlatform {
  * Get all example posts for a platform
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -42,7 +42,7 @@ export async function GET(
     console.error('Error fetching examples:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -53,7 +53,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -68,8 +68,15 @@ export async function POST(
 
     const { content, source = 'user' } = await request.json()
 
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return NextResponse.json({ error: 'Content is required' }, { status: 400 })
+    if (
+      !content ||
+      typeof content !== 'string' ||
+      content.trim().length === 0
+    ) {
+      return NextResponse.json(
+        { error: 'Content is required' },
+        { status: 400 },
+      )
     }
 
     // Check example count limit (max 10)
@@ -77,7 +84,7 @@ export async function POST(
     if (existing.length >= 10) {
       return NextResponse.json(
         { error: 'Maximum of 10 examples allowed per platform' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -85,7 +92,7 @@ export async function POST(
       tenant.id,
       platform,
       content.trim(),
-      source
+      source,
     )
 
     return NextResponse.json({ example }, { status: 201 })
@@ -93,7 +100,7 @@ export async function POST(
     console.error('Error adding example:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -104,7 +111,7 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -120,7 +127,10 @@ export async function DELETE(
     const { exampleId } = await request.json()
 
     if (!exampleId) {
-      return NextResponse.json({ error: 'Example ID required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Example ID required' },
+        { status: 400 },
+      )
     }
 
     await captionStyles.removeExamplePost(tenant.id, platform, exampleId)
@@ -130,7 +140,7 @@ export async function DELETE(
     console.error('Error removing example:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

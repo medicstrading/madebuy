@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { collections } from '@madebuy/db'
-import type { CreateCollectionInput, CollectionListOptions } from '@madebuy/shared'
+import type {
+  CollectionListOptions,
+  CreateCollectionInput,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +35,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchParams.get('sortBy')) {
-      options.sortBy = searchParams.get('sortBy') as CollectionListOptions['sortBy']
+      options.sortBy = searchParams.get(
+        'sortBy',
+      ) as CollectionListOptions['sortBy']
     }
 
     if (searchParams.get('sortOrder')) {
@@ -44,7 +49,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching collections:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -59,10 +67,7 @@ export async function POST(request: NextRequest) {
     const data: CreateCollectionInput = await request.json()
 
     if (!data.name) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
     const collection = await collections.createCollection(tenant.id, data)
@@ -70,6 +75,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ collection }, { status: 201 })
   } catch (error) {
     console.error('Error creating collection:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

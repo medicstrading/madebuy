@@ -5,15 +5,15 @@
  * Requires fluent-ffmpeg and @ffmpeg-installer/ffmpeg packages.
  */
 
+import { randomBytes } from 'node:crypto'
+import { promises as fs } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import type { MediaVariant, VideoMetadata } from '@madebuy/shared'
 import ffmpeg from 'fluent-ffmpeg'
-import { promises as fs } from 'fs'
-import { tmpdir } from 'os'
-import { join } from 'path'
-import { randomBytes } from 'crypto'
 import sharp from 'sharp'
-import { uploadToR2 } from './r2'
 import { uploadToLocal } from './local-storage'
-import type { VideoMetadata, MediaVariant } from '@madebuy/shared'
+import { uploadToR2 } from './r2'
 
 // Lazy initialize ffmpeg path to avoid build-time issues
 let ffmpegInitialized = false
@@ -72,7 +72,9 @@ export interface ExtractedMetadata {
 /**
  * Extract video metadata using ffprobe
  */
-export async function extractVideoMetadata(videoPath: string): Promise<ExtractedMetadata> {
+export async function extractVideoMetadata(
+  videoPath: string,
+): Promise<ExtractedMetadata> {
   ensureFfmpegPath()
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
@@ -94,7 +96,7 @@ export async function extractVideoMetadata(videoPath: string): Promise<Extracted
       if (videoStream.r_frame_rate) {
         const parts = videoStream.r_frame_rate.split('/')
         if (parts.length === 2) {
-          frameRate = parseInt(parts[0]) / parseInt(parts[1])
+          frameRate = parseInt(parts[0], 10) / parseInt(parts[1], 10)
         } else {
           frameRate = parseFloat(videoStream.r_frame_rate)
         }
@@ -105,7 +107,7 @@ export async function extractVideoMetadata(videoPath: string): Promise<Extracted
         width: videoStream.width || 0,
         height: videoStream.height || 0,
         codec: videoStream.codec_name || 'unknown',
-        bitrate: parseInt(String(metadata.format.bit_rate || 0)) || 0,
+        bitrate: parseInt(String(metadata.format.bit_rate || 0), 10) || 0,
         frameRate,
         hasAudio: !!audioStream,
       })
@@ -119,7 +121,7 @@ export async function extractVideoMetadata(videoPath: string): Promise<Extracted
 export async function generateThumbnail(
   videoPath: string,
   outputPath: string,
-  timestamp: number | string
+  timestamp: number | string,
 ): Promise<void> {
   ensureFfmpegPath()
   return new Promise((resolve, reject) => {
@@ -128,10 +130,14 @@ export async function generateThumbnail(
         count: 1,
         folder: outputPath.substring(0, outputPath.lastIndexOf('/')),
         filename: outputPath.substring(outputPath.lastIndexOf('/') + 1),
-        timestamps: [typeof timestamp === 'string' ? parseFloat(timestamp) : timestamp],
+        timestamps: [
+          typeof timestamp === 'string' ? parseFloat(timestamp) : timestamp,
+        ],
       })
       .on('end', () => resolve())
-      .on('error', (err) => reject(new Error(`Thumbnail generation failed: ${err.message}`)))
+      .on('error', (err) =>
+        reject(new Error(`Thumbnail generation failed: ${err.message}`)),
+      )
   })
 }
 
@@ -139,7 +145,7 @@ export async function generateThumbnail(
  * Process video and generate thumbnails at multiple sizes
  */
 export async function processVideo(
-  options: VideoProcessingOptions
+  options: VideoProcessingOptions,
 ): Promise<VideoProcessingResult> {
   const { tenantId, videoBuffer, fileName, mimeType } = options
 
@@ -148,7 +154,7 @@ export async function processVideo(
   const tempDir = join(tmpdir(), `madebuy-video-${tempId}`)
   await fs.mkdir(tempDir, { recursive: true })
 
-  const videoPath = join(tempDir, 'input' + getExtension(mimeType))
+  const videoPath = join(tempDir, `input${getExtension(mimeType)}`)
   const baseThumbnailPath = join(tempDir, 'thumb')
 
   try {
@@ -164,7 +170,11 @@ export async function processVideo(
 
     // Generate full-size thumbnail
     const fullThumbPath = `${baseThumbnailPath}-full.jpg`
-    await generateThumbnailAtTimestamp(videoPath, fullThumbPath, captureTimestamp)
+    await generateThumbnailAtTimestamp(
+      videoPath,
+      fullThumbPath,
+      captureTimestamp,
+    )
 
     // Read the full thumbnail and create resized versions
     const fullThumbBuffer = await fs.readFile(fullThumbPath)
@@ -236,7 +246,7 @@ export async function processVideo(
 async function generateThumbnailAtTimestamp(
   videoPath: string,
   outputPath: string,
-  timestamp: string
+  timestamp: string,
 ): Promise<void> {
   ensureFfmpegPath()
   return new Promise((resolve, reject) => {
@@ -246,7 +256,9 @@ async function generateThumbnailAtTimestamp(
       .output(outputPath)
       .outputOptions(['-vf', 'scale=-1:720'])
       .on('end', () => resolve())
-      .on('error', (err) => reject(new Error(`Thumbnail generation failed: ${err.message}`)))
+      .on('error', (err) =>
+        reject(new Error(`Thumbnail generation failed: ${err.message}`)),
+      )
       .run()
   })
 }
@@ -277,7 +289,10 @@ function formatTimestamp(seconds: number): string {
 /**
  * Validate video duration against maximum allowed
  */
-export function validateVideoDuration(duration: number, maxDuration: number): boolean {
+export function validateVideoDuration(
+  duration: number,
+  maxDuration: number,
+): boolean {
   return duration <= maxDuration
 }
 

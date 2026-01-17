@@ -3,9 +3,9 @@
  * Covers CRUD operations, stock tracking, and variant management
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { seedMockCollection, getMockCollectionData } from '../setup'
+import { beforeEach, describe, expect, it } from 'vitest'
 import * as pieces from '../../repositories/pieces'
+import { getMockCollectionData, seedMockCollection } from '../setup'
 
 describe('Pieces Repository', () => {
   const tenantId = 'tenant-123'
@@ -90,9 +90,7 @@ describe('Pieces Repository', () => {
         price: 49.99,
         status: 'available',
         hasVariants: true,
-        variantOptions: [
-          { name: 'Size', values: ['S', 'M', 'L'] },
-        ],
+        variantOptions: [{ name: 'Size', values: ['S', 'M', 'L'] }],
         variants: [
           {
             options: { Size: 'S' },
@@ -105,8 +103,8 @@ describe('Pieces Repository', () => {
 
       expect(piece.hasVariants).toBe(true)
       expect(piece.variants).toHaveLength(1)
-      expect(piece.variants![0].id).toBeDefined()
-      expect(piece.variants![0].sku).toBe('SH-S')
+      expect(piece.variants?.[0].id).toBeDefined()
+      expect(piece.variants?.[0].sku).toBe('SH-S')
     })
 
     it('should generate slug from name', async () => {
@@ -163,8 +161,20 @@ describe('Pieces Repository', () => {
     beforeEach(() => {
       seedMockCollection('pieces', [
         mockPieceData,
-        { ...mockPieceData, id: 'piece-2', name: 'Gold Ring', slug: 'gold-ring', status: 'draft' },
-        { ...mockPieceData, id: 'piece-3', name: 'Necklace', slug: 'necklace', isFeatured: true },
+        {
+          ...mockPieceData,
+          id: 'piece-2',
+          name: 'Gold Ring',
+          slug: 'gold-ring',
+          status: 'draft',
+        },
+        {
+          ...mockPieceData,
+          id: 'piece-3',
+          name: 'Necklace',
+          slug: 'necklace',
+          isFeatured: true,
+        },
       ])
     })
 
@@ -178,7 +188,7 @@ describe('Pieces Repository', () => {
       const list = await pieces.listPieces(tenantId, { status: 'available' })
 
       expect(list).toHaveLength(2)
-      expect(list.every(p => p.status === 'available')).toBe(true)
+      expect(list.every((p) => p.status === 'available')).toBe(true)
     })
 
     it('should filter by featured', async () => {
@@ -207,7 +217,7 @@ describe('Pieces Repository', () => {
       })
 
       const data = getMockCollectionData('pieces')
-      const updated = data.find(p => p.id === 'piece-456')
+      const updated = data.find((p) => p.id === 'piece-456')
 
       expect(updated?.name).toBe('Updated Ring')
       expect(updated?.price).toBe(149.99)
@@ -241,7 +251,11 @@ describe('Pieces Repository', () => {
       it('should return variant stock for variant product', async () => {
         seedMockCollection('pieces', [mockVariantPiece])
 
-        const stock = await pieces.getAvailableStock(tenantId, 'piece-789', 'variant-1')
+        const stock = await pieces.getAvailableStock(
+          tenantId,
+          'piece-789',
+          'variant-1',
+        )
 
         expect(stock).toBe(5)
       })
@@ -287,7 +301,11 @@ describe('Pieces Repository', () => {
       })
 
       it('should return variant when found', async () => {
-        const variant = await pieces.getVariant(tenantId, 'piece-789', 'variant-1')
+        const variant = await pieces.getVariant(
+          tenantId,
+          'piece-789',
+          'variant-1',
+        )
 
         expect(variant).toBeDefined()
         expect(variant?.sku).toBe('TSH-S-RED')
@@ -295,7 +313,11 @@ describe('Pieces Repository', () => {
       })
 
       it('should return null when variant not found', async () => {
-        const variant = await pieces.getVariant(tenantId, 'piece-789', 'non-existent')
+        const variant = await pieces.getVariant(
+          tenantId,
+          'piece-789',
+          'non-existent',
+        )
 
         expect(variant).toBeNull()
       })
@@ -307,17 +329,27 @@ describe('Pieces Repository', () => {
       })
 
       it('should update variant stock', async () => {
-        const result = await pieces.updateVariantStock(tenantId, 'piece-789', 'variant-1', -2)
+        const result = await pieces.updateVariantStock(
+          tenantId,
+          'piece-789',
+          'variant-1',
+          -2,
+        )
 
         expect(result).toBe(true)
 
         const data = getMockCollectionData('pieces')
-        const piece = data.find(p => p.id === 'piece-789')
+        const piece = data.find((p) => p.id === 'piece-789')
         expect(piece?.variants[0].stock).toBe(3)
       })
 
       it('should not allow negative stock', async () => {
-        const result = await pieces.updateVariantStock(tenantId, 'piece-789', 'variant-1', -10)
+        const result = await pieces.updateVariantStock(
+          tenantId,
+          'piece-789',
+          'variant-1',
+          -10,
+        )
 
         expect(result).toBe(false)
       })
@@ -329,7 +361,12 @@ describe('Pieces Repository', () => {
       seedMockCollection('pieces', [
         mockPieceData,
         { ...mockPieceData, id: 'piece-low', stock: 2, lowStockThreshold: 5 },
-        { ...mockPieceData, id: 'piece-out', stock: 0, lowStockThreshold: undefined },
+        {
+          ...mockPieceData,
+          id: 'piece-out',
+          stock: 0,
+          lowStockThreshold: undefined,
+        },
       ])
     })
 
@@ -349,7 +386,9 @@ describe('Pieces Repository', () => {
     })
 
     it('should return null if no threshold set', async () => {
-      seedMockCollection('pieces', [{ ...mockPieceData, lowStockThreshold: undefined }])
+      seedMockCollection('pieces', [
+        { ...mockPieceData, lowStockThreshold: undefined },
+      ])
 
       const status = await pieces.checkLowStock(tenantId, 'piece-456')
 
@@ -366,7 +405,7 @@ describe('Pieces Repository', () => {
       await pieces.addMediaToPiece(tenantId, 'piece-456', 'media-3')
 
       const data = getMockCollectionData('pieces')
-      const piece = data.find(p => p.id === 'piece-456')
+      const piece = data.find((p) => p.id === 'piece-456')
 
       expect(piece?.mediaIds).toContain('media-3')
     })
@@ -375,7 +414,7 @@ describe('Pieces Repository', () => {
       await pieces.removeMediaFromPiece(tenantId, 'piece-456', 'media-1')
 
       const data = getMockCollectionData('pieces')
-      const piece = data.find(p => p.id === 'piece-456')
+      const piece = data.find((p) => p.id === 'piece-456')
 
       expect(piece?.mediaIds).not.toContain('media-1')
     })

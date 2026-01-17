@@ -29,7 +29,14 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="jumbotron"]',
       '[class*="masthead"]',
     ],
-    classPatterns: ['hero', 'banner', 'jumbotron', 'masthead', 'intro', 'landing'],
+    classPatterns: [
+      'hero',
+      'banner',
+      'jumbotron',
+      'masthead',
+      'intro',
+      'landing',
+    ],
     contentIndicators: [
       {
         name: 'large-heading',
@@ -38,7 +45,8 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'cta-button',
-        check: ($el) => $el.find('a[class*="btn"], button, a[class*="cta"]').length > 0,
+        check: ($el) =>
+          $el.find('a[class*="btn"], button, a[class*="cta"]').length > 0,
         weight: 0.2,
       },
       {
@@ -51,7 +59,10 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'first-section',
-        check: ($el) => $el.is('section:first-of-type, main > *:first-child, body > *:nth-child(-n+3)'),
+        check: ($el) =>
+          $el.is(
+            'section:first-of-type, main > *:first-child, body > *:nth-child(-n+3)',
+          ),
         weight: 0.1,
       },
     ],
@@ -66,7 +77,15 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="catalog"]',
       '[class*="collection"]',
     ],
-    classPatterns: ['product', 'shop', 'store', 'catalog', 'collection', 'items', 'goods'],
+    classPatterns: [
+      'product',
+      'shop',
+      'store',
+      'catalog',
+      'collection',
+      'items',
+      'goods',
+    ],
     contentIndicators: [
       {
         name: 'multiple-images',
@@ -85,13 +104,19 @@ const SECTION_PATTERNS: SectionPattern[] = [
         name: 'add-to-cart',
         check: ($el) => {
           const text = $el.text().toLowerCase()
-          return text.includes('add to cart') || text.includes('buy now') || text.includes('shop now')
+          return (
+            text.includes('add to cart') ||
+            text.includes('buy now') ||
+            text.includes('shop now')
+          )
         },
         weight: 0.2,
       },
       {
         name: 'grid-layout',
-        check: ($el) => $el.find('[class*="grid"], [class*="col-"], [class*="card"]').length >= 2,
+        check: ($el) =>
+          $el.find('[class*="grid"], [class*="col-"], [class*="card"]')
+            .length >= 2,
         weight: 0.15,
       },
     ],
@@ -105,7 +130,14 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="feedback"]',
       'blockquote',
     ],
-    classPatterns: ['testimonial', 'review', 'feedback', 'quote', 'customer-say', 'what-people'],
+    classPatterns: [
+      'testimonial',
+      'review',
+      'feedback',
+      'quote',
+      'customer-say',
+      'what-people',
+    ],
     contentIndicators: [
       {
         name: 'quotes',
@@ -114,21 +146,28 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'attribution',
-        check: ($el) => $el.find('cite, [class*="author"], [class*="name"]').length > 0,
+        check: ($el) =>
+          $el.find('cite, [class*="author"], [class*="name"]').length > 0,
         weight: 0.2,
       },
       {
         name: 'rating-stars',
         check: ($el) => {
           const html = $el.html() || ''
-          return html.includes('star') || html.includes('★') || html.includes('rating')
+          return (
+            html.includes('star') ||
+            html.includes('★') ||
+            html.includes('rating')
+          )
         },
         weight: 0.2,
       },
       {
         name: 'multiple-items',
         check: ($el) => {
-          const items = $el.find('[class*="item"], [class*="card"], blockquote, [class*="testimonial"]')
+          const items = $el.find(
+            '[class*="item"], [class*="card"], blockquote, [class*="testimonial"]',
+          )
           return items.length >= 2
         },
         weight: 0.15,
@@ -144,13 +183,24 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="story"]',
       '[class*="who-we-are"]',
     ],
-    classPatterns: ['about', 'story', 'who-we', 'our-story', 'mission', 'values'],
+    classPatterns: [
+      'about',
+      'story',
+      'who-we',
+      'our-story',
+      'mission',
+      'values',
+    ],
     contentIndicators: [
       {
         name: 'about-heading',
         check: ($el) => {
           const headings = $el.find('h1, h2, h3').text().toLowerCase()
-          return headings.includes('about') || headings.includes('story') || headings.includes('who we')
+          return (
+            headings.includes('about') ||
+            headings.includes('story') ||
+            headings.includes('who we')
+          )
         },
         weight: 0.3,
       },
@@ -166,8 +216,9 @@ const SECTION_PATTERNS: SectionPattern[] = [
         name: 'team-photos',
         check: ($el) => {
           const imgs = $el.find('img')
-          const hasTeamKeywords = $el.text().toLowerCase().includes('team') ||
-                                   $el.find('[class*="team"]').length > 0
+          const hasTeamKeywords =
+            $el.text().toLowerCase().includes('team') ||
+            $el.find('[class*="team"]').length > 0
           return imgs.length >= 1 && hasTeamKeywords
         },
         weight: 0.15,
@@ -194,7 +245,11 @@ const SECTION_PATTERNS: SectionPattern[] = [
         name: 'contact-info',
         check: ($el) => {
           const text = $el.text().toLowerCase()
-          return text.includes('email') || text.includes('phone') || text.includes('address')
+          return (
+            text.includes('email') ||
+            text.includes('phone') ||
+            text.includes('address')
+          )
         },
         weight: 0.25,
       },
@@ -219,7 +274,14 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="service"]',
       '[class*="why-choose"]',
     ],
-    classPatterns: ['feature', 'benefit', 'service', 'why-choose', 'why-us', 'offering'],
+    classPatterns: [
+      'feature',
+      'benefit',
+      'service',
+      'why-choose',
+      'why-us',
+      'offering',
+    ],
     contentIndicators: [
       {
         name: 'icons',
@@ -228,7 +290,9 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'grid-items',
-        check: ($el) => $el.find('[class*="item"], [class*="card"], [class*="col"]').length >= 3,
+        check: ($el) =>
+          $el.find('[class*="item"], [class*="card"], [class*="col"]').length >=
+          3,
         weight: 0.25,
       },
       {
@@ -247,7 +311,14 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="showcase"]',
       '[class*="work"]',
     ],
-    classPatterns: ['gallery', 'portfolio', 'showcase', 'work', 'projects', 'photos'],
+    classPatterns: [
+      'gallery',
+      'portfolio',
+      'showcase',
+      'work',
+      'projects',
+      'photos',
+    ],
     contentIndicators: [
       {
         name: 'many-images',
@@ -256,12 +327,14 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'grid-layout',
-        check: ($el) => $el.find('[class*="grid"], [class*="masonry"]').length > 0,
+        check: ($el) =>
+          $el.find('[class*="grid"], [class*="masonry"]').length > 0,
         weight: 0.2,
       },
       {
         name: 'lightbox',
-        check: ($el) => $el.find('[data-lightbox], [class*="lightbox"], a > img').length >= 2,
+        check: ($el) =>
+          $el.find('[data-lightbox], [class*="lightbox"], a > img').length >= 2,
         weight: 0.15,
       },
     ],
@@ -286,12 +359,15 @@ const SECTION_PATTERNS: SectionPattern[] = [
       },
       {
         name: 'accordion-structure',
-        check: ($el) => $el.find('[class*="accordion"], details, [class*="collapse"]').length >= 2,
+        check: ($el) =>
+          $el.find('[class*="accordion"], details, [class*="collapse"]')
+            .length >= 2,
         weight: 0.3,
       },
       {
         name: 'toggle-buttons',
-        check: ($el) => $el.find('button, [class*="toggle"], [class*="expand"]').length >= 2,
+        check: ($el) =>
+          $el.find('button, [class*="toggle"], [class*="expand"]').length >= 2,
         weight: 0.15,
       },
     ],
@@ -305,11 +381,19 @@ const SECTION_PATTERNS: SectionPattern[] = [
       '[class*="signup"]',
       '[class*="subscribe"]',
     ],
-    classPatterns: ['cta', 'call-to-action', 'signup', 'subscribe', 'newsletter', 'join'],
+    classPatterns: [
+      'cta',
+      'call-to-action',
+      'signup',
+      'subscribe',
+      'newsletter',
+      'join',
+    ],
     contentIndicators: [
       {
         name: 'prominent-button',
-        check: ($el) => $el.find('button, a[class*="btn"], input[type="submit"]').length > 0,
+        check: ($el) =>
+          $el.find('button, a[class*="btn"], input[type="submit"]').length > 0,
         weight: 0.3,
       },
       {
@@ -338,7 +422,9 @@ export function extractSections($: CheerioAPI): DetectedSection[] {
   const processedElements = new Set<Element>()
 
   // Find all potential section containers
-  const sectionContainers = $('section, [class*="section"], main > div, article, [role="region"]')
+  const sectionContainers = $(
+    'section, [class*="section"], main > div, article, [role="region"]',
+  )
 
   sectionContainers.each((_: number, el: Element) => {
     if (processedElements.has(el)) return
@@ -417,7 +503,7 @@ export function extractSections($: CheerioAPI): DetectedSection[] {
 function matchSection(
   $: CheerioAPI,
   $el: ReturnType<CheerioAPI>,
-  pattern: SectionPattern
+  pattern: SectionPattern,
 ): { confidence: number; matchedIndicators: string[] } {
   let confidence = 0
   const matchedIndicators: string[] = []

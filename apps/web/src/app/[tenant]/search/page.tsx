@@ -1,19 +1,22 @@
-import { requireTenant } from '@/lib/tenant'
-import { pieces, media } from '@madebuy/db'
-import { populatePiecesWithMedia } from '@/lib/pieces'
-import { mapPieceToProduct } from '@/lib/productMapping'
-import { Header } from '@/components/storefront/shared/Header'
-import { Footer } from '@/components/storefront/shared/Footer'
-import { ProductCard, MixedGrid } from '@/components/storefront/ProductCard'
+import { media, pieces } from '@madebuy/db'
 import { Search } from 'lucide-react'
 import type { Metadata } from 'next'
+import { MixedGrid } from '@/components/storefront/ProductCard'
+import { Footer } from '@/components/storefront/shared/Footer'
+import { Header } from '@/components/storefront/shared/Header'
+import { populatePiecesWithMedia } from '@/lib/pieces'
+import { mapPieceToProduct } from '@/lib/productMapping'
+import { requireTenant } from '@/lib/tenant'
 
 interface SearchPageProps {
   params: { tenant: string }
   searchParams: { q?: string; category?: string }
 }
 
-export async function generateMetadata({ params, searchParams }: SearchPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
   const tenant = await requireTenant(params.tenant)
   const query = searchParams.q
 
@@ -28,7 +31,10 @@ export async function generateMetadata({ params, searchParams }: SearchPageProps
   }
 }
 
-export default async function SearchPage({ params, searchParams }: SearchPageProps) {
+export default async function SearchPage({
+  params,
+  searchParams,
+}: SearchPageProps) {
   const tenant = await requireTenant(params.tenant)
   const query = searchParams.q?.trim() || ''
   const category = searchParams.category
@@ -43,7 +49,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   // Get navigation pages for header
   const pages = tenant.websiteDesign?.pages || []
   const navPages = pages
-    .filter(p => p.enabled && p.showInNavigation)
+    .filter((p) => p.enabled && p.showInNavigation)
     .sort((a, b) => a.navigationOrder - b.navigationOrder)
 
   // Search for products
@@ -52,7 +58,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   if (query) {
     rawPieces = await pieces.searchPieces(tenant.id, query, {
       limit: 50,
-      category: category || undefined
+      category: category || undefined,
     })
   }
 
@@ -60,8 +66,8 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   const piecesWithMedia = await populatePiecesWithMedia(rawPieces)
 
   // Map to CardProduct format
-  const products = piecesWithMedia.map(piece =>
-    mapPieceToProduct(piece, params.tenant, tenant.businessName)
+  const products = piecesWithMedia.map((piece) =>
+    mapPieceToProduct(piece, params.tenant, tenant.businessName),
   )
 
   return (
@@ -77,7 +83,11 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search Form */}
         <div className="mb-8">
-          <form action={`/${params.tenant}/search`} method="GET" className="max-w-xl mx-auto">
+          <form
+            action={`/${params.tenant}/search`}
+            method="GET"
+            className="max-w-xl mx-auto"
+          >
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -98,12 +108,9 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
               <h1 className="text-2xl font-bold text-gray-900">
                 {products.length > 0
                   ? `${products.length} result${products.length !== 1 ? 's' : ''} for "${query}"`
-                  : `No results for "${query}"`
-                }
+                  : `No results for "${query}"`}
               </h1>
-              {category && (
-                <p className="text-gray-500 mt-1">in {category}</p>
-              )}
+              {category && <p className="text-gray-500 mt-1">in {category}</p>}
             </div>
 
             {products.length > 0 ? (
@@ -111,7 +118,9 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
             ) : (
               <div className="text-center py-16">
                 <Search className="mx-auto h-12 w-12 text-gray-300" />
-                <h2 className="mt-4 text-lg font-medium text-gray-900">No products found</h2>
+                <h2 className="mt-4 text-lg font-medium text-gray-900">
+                  No products found
+                </h2>
                 <p className="mt-2 text-gray-500">
                   Try adjusting your search terms or browse our full collection.
                 </p>
@@ -127,7 +136,9 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
         ) : (
           <div className="text-center py-16">
             <Search className="mx-auto h-12 w-12 text-gray-300" />
-            <h1 className="mt-4 text-lg font-medium text-gray-900">Search Products</h1>
+            <h1 className="mt-4 text-lg font-medium text-gray-900">
+              Search Products
+            </h1>
             <p className="mt-2 text-gray-500">
               Enter a search term above to find products.
             </p>

@@ -3,16 +3,22 @@
  * CRUD operations for product variations and variant combinations
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { pieces, variants } from '@madebuy/db'
-import type { ProductVariation, VariantCombination, EnhancedProductVariant } from '@madebuy/shared'
+import type {
+  EnhancedProductVariant,
+  ProductVariation,
+  VariantCombination,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 /**
  * Convert EnhancedProductVariant to VariantCombination for legacy compatibility
  */
-function toVariantCombination(variant: EnhancedProductVariant): VariantCombination {
+function toVariantCombination(
+  variant: EnhancedProductVariant,
+): VariantCombination {
   return {
     id: variant.id,
     pieceId: variant.pieceId,
@@ -32,7 +38,7 @@ interface RouteParams {
  * GET /api/pieces/[id]/variations
  * Get all variations and variant combinations for a piece
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     const tenant = await requireTenant()
     const pieceId = params.id
@@ -55,7 +61,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     console.error('Get variations error:', error)
     return NextResponse.json(
       { error: 'Failed to get variations' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -96,7 +102,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           ...opt,
           id: opt.id || nanoid(),
         })),
-      })
+      }),
     )
 
     // Update piece with variations
@@ -119,12 +125,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const generated = variants.generateCombinations(
         variationsWithIds,
         piece.price || 0,
-        baseSku
+        baseSku,
       )
       const created = await variants.bulkCreateVariants(
         tenant.id,
         pieceId,
-        generated
+        generated,
       )
       newCombinations = created.map(toVariantCombination)
     } else if (combinations.length > 0) {
@@ -133,12 +139,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         tenant.id,
         pieceId,
         combinations.map((c: Record<string, unknown>) => ({
-          attributes: (c.options || c.attributes || {}) as Record<string, string>,
+          attributes: (c.options || c.attributes || {}) as Record<
+            string,
+            string
+          >,
           sku: c.sku as string,
           price: (c.price as number) || null,
           stock: (c.stock as number) || 0,
           imageId: (c.mediaId || c.imageId) as string | null | undefined,
-        }))
+        })),
       )
       newCombinations = created.map(toVariantCombination)
     }
@@ -151,7 +160,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     console.error('Create variations error:', error)
     return NextResponse.json(
       { error: 'Failed to create variations' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -180,7 +189,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (!variantId) {
       return NextResponse.json(
         { error: 'variantId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -189,12 +198,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       const isUnique = await variants.isSkuUnique(
         tenant.id,
         updates.sku,
-        variantId
+        variantId,
       )
       if (!isUnique) {
         return NextResponse.json(
           { error: 'SKU already exists' },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -203,20 +212,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       tenant.id,
       pieceId,
       variantId,
-      updates
+      updates,
     )
 
     if (!success) {
-      return NextResponse.json(
-        { error: 'Variant not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Variant not found' }, { status: 404 })
     }
 
     const updatedVariant = await variants.getVariant(
       tenant.id,
       pieceId,
-      variantId
+      variantId,
     )
 
     return NextResponse.json({ variant: updatedVariant })
@@ -224,7 +230,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     console.error('Update variation error:', error)
     return NextResponse.json(
       { error: 'Failed to update variation' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -264,18 +270,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       // Delete specific variant combination
       // deleteVariant throws NotFoundError if not found
       try {
-        await variants.deleteVariant(
-          tenant.id,
-          pieceId,
-          variantId
-        )
+        await variants.deleteVariant(tenant.id, pieceId, variantId)
         return NextResponse.json({ success: true })
       } catch (deleteError) {
         // Check if it's a NotFoundError
-        if (deleteError instanceof Error && deleteError.name === 'NotFoundError') {
+        if (
+          deleteError instanceof Error &&
+          deleteError.name === 'NotFoundError'
+        ) {
           return NextResponse.json(
             { error: 'Variant not found' },
-            { status: 404 }
+            { status: 404 },
           )
         }
         throw deleteError
@@ -284,13 +289,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json(
       { error: 'Specify variantId or all=true' },
-      { status: 400 }
+      { status: 400 },
     )
   } catch (error) {
     console.error('Delete variations error:', error)
     return NextResponse.json(
       { error: 'Failed to delete variations' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

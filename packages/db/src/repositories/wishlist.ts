@@ -1,6 +1,6 @@
+import type { CreateWishlistItemInput, WishlistItem } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
-import type { WishlistItem, CreateWishlistItemInput } from '@madebuy/shared'
 
 /**
  * Add item to wishlist
@@ -8,7 +8,7 @@ import type { WishlistItem, CreateWishlistItemInput } from '@madebuy/shared'
  */
 export async function addToWishlist(
   tenantId: string,
-  data: CreateWishlistItemInput
+  data: CreateWishlistItemInput,
 ): Promise<WishlistItem> {
   const db = await getDatabase()
 
@@ -56,7 +56,7 @@ export async function removeFromWishlist(
   tenantId: string,
   pieceId: string,
   customerEmail?: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -83,7 +83,7 @@ export async function removeFromWishlist(
 export async function getWishlist(
   tenantId: string,
   customerEmail?: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<WishlistItem[]> {
   const db = await getDatabase()
 
@@ -113,7 +113,7 @@ export async function isInWishlist(
   tenantId: string,
   pieceId: string,
   customerEmail?: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<boolean> {
   const db = await getDatabase()
 
@@ -140,7 +140,7 @@ export async function isInWishlist(
 export async function getWishlistCount(
   tenantId: string,
   customerEmail?: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<number> {
   const db = await getDatabase()
 
@@ -163,15 +163,18 @@ export async function getWishlistCount(
 export async function mergeWishlist(
   tenantId: string,
   sessionId: string,
-  customerEmail: string
+  customerEmail: string,
 ): Promise<number> {
   const db = await getDatabase()
 
   // Get guest items
-  const guestItems = await db.collection('wishlist').find({
-    tenantId,
-    sessionId,
-  }).toArray()
+  const guestItems = await db
+    .collection('wishlist')
+    .find({
+      tenantId,
+      sessionId,
+    })
+    .toArray()
 
   let mergedCount = 0
 
@@ -212,7 +215,7 @@ export async function mergeWishlist(
 export async function clearWishlist(
   tenantId: string,
   customerEmail?: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<number> {
   const db = await getDatabase()
 

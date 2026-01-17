@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { captionStyles } from '@madebuy/db'
 import type { SocialPlatform, UpdateCaptionStyleInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 const VALID_PLATFORMS: SocialPlatform[] = [
   'instagram',
@@ -21,8 +21,8 @@ function isValidPlatform(platform: string): platform is SocialPlatform {
  * Get caption style profile for a platform
  */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -35,7 +35,10 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid platform' }, { status: 400 })
     }
 
-    const profile = await captionStyles.getCaptionStyleProfile(tenant.id, platform)
+    const profile = await captionStyles.getCaptionStyleProfile(
+      tenant.id,
+      platform,
+    )
 
     if (!profile) {
       return NextResponse.json({ exists: false, profile: null })
@@ -46,7 +49,7 @@ export async function GET(
     console.error('Error fetching caption style:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -57,7 +60,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -71,11 +74,14 @@ export async function POST(
     }
 
     // Check if profile already exists
-    const existing = await captionStyles.getCaptionStyleProfile(tenant.id, platform)
+    const existing = await captionStyles.getCaptionStyleProfile(
+      tenant.id,
+      platform,
+    )
     if (existing) {
       return NextResponse.json(
         { error: 'Profile already exists for this platform' },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
@@ -93,7 +99,7 @@ export async function POST(
     console.error('Error creating caption style:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -104,7 +110,7 @@ export async function POST(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -121,14 +127,17 @@ export async function PATCH(
 
     await captionStyles.updateCaptionStyleOptions(tenant.id, platform, body)
 
-    const updated = await captionStyles.getCaptionStyleProfile(tenant.id, platform)
+    const updated = await captionStyles.getCaptionStyleProfile(
+      tenant.id,
+      platform,
+    )
 
     return NextResponse.json({ profile: updated })
   } catch (error) {
     console.error('Error updating caption style:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -138,8 +147,8 @@ export async function PATCH(
  * Delete a caption style profile
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ platform: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ platform: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -159,7 +168,7 @@ export async function DELETE(
     console.error('Error deleting caption style:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

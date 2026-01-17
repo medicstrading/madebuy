@@ -47,7 +47,23 @@ export const ATTRIBUTE_PRESETS: AttributePreset[] = [
     attributes: [
       {
         name: 'Ring Size',
-        values: ['H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'],
+        values: [
+          'H',
+          'I',
+          'J',
+          'K',
+          'L',
+          'M',
+          'N',
+          'O',
+          'P',
+          'Q',
+          'R',
+          'S',
+          'T',
+          'U',
+          'V',
+        ],
       },
     ],
   },
@@ -58,7 +74,23 @@ export const ATTRIBUTE_PRESETS: AttributePreset[] = [
     attributes: [
       {
         name: 'Ring Size',
-        values: ['4', '4.5', '5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11'],
+        values: [
+          '4',
+          '4.5',
+          '5',
+          '5.5',
+          '6',
+          '6.5',
+          '7',
+          '7.5',
+          '8',
+          '8.5',
+          '9',
+          '9.5',
+          '10',
+          '10.5',
+          '11',
+        ],
       },
     ],
   },
@@ -91,7 +123,15 @@ export const ATTRIBUTE_PRESETS: AttributePreset[] = [
     attributes: [
       {
         name: 'Color',
-        values: ['Black', 'White', 'Cream', 'Beige', 'Tan', 'Brown', 'Charcoal'],
+        values: [
+          'Black',
+          'White',
+          'Cream',
+          'Beige',
+          'Tan',
+          'Brown',
+          'Charcoal',
+        ],
       },
     ],
   },
@@ -102,7 +142,13 @@ export const ATTRIBUTE_PRESETS: AttributePreset[] = [
     attributes: [
       {
         name: 'Material',
-        values: ['Sterling Silver', '9ct Gold', '18ct Gold', 'Rose Gold', 'Stainless Steel'],
+        values: [
+          'Sterling Silver',
+          '9ct Gold',
+          '18ct Gold',
+          'Rose Gold',
+          'Stainless Steel',
+        ],
       },
     ],
   },
@@ -161,7 +207,12 @@ export const ATTRIBUTE_PRESETS: AttributePreset[] = [
     attributes: [
       {
         name: 'Framing',
-        values: ['Unframed', 'Black Frame', 'White Frame', 'Natural Wood Frame'],
+        values: [
+          'Unframed',
+          'Black Frame',
+          'White Frame',
+          'Natural Wood Frame',
+        ],
       },
     ],
   },
@@ -172,7 +223,12 @@ export const ATTRIBUTE_PRESETS: AttributePreset[] = [
     attributes: [
       {
         name: 'Size',
-        values: ['Small (100g)', 'Medium (200g)', 'Large (400g)', 'Extra Large (600g)'],
+        values: [
+          'Small (100g)',
+          'Medium (200g)',
+          'Large (400g)',
+          'Extra Large (600g)',
+        ],
       },
     ],
   },
@@ -221,7 +277,7 @@ export function generateId(): string {
 export function generateSku(
   prefix: string,
   options: Record<string, string>,
-  index?: number
+  index?: number,
 ): string {
   const optionParts = Object.values(options)
     .map((value) => {
@@ -234,13 +290,20 @@ export function generateSku(
     .join('-')
 
   const base = prefix ? `${prefix}-${optionParts}` : optionParts
-  return index !== undefined ? `${base}-${String(index).padStart(3, '0')}` : base
+  return index !== undefined
+    ? `${base}-${String(index).padStart(3, '0')}`
+    : base
 }
 
 /**
  * Calculate total combinations from attributes
  */
-export function calculateCombinations(attributes: { values: unknown[] }[]): number {
+export function calculateCombinations(
+  attributes: { values: unknown[] }[],
+): number {
   if (attributes.length === 0) return 0
-  return attributes.reduce((total, attr) => total * (attr.values.length || 1), 1)
+  return attributes.reduce(
+    (total, attr) => total * (attr.values.length || 1),
+    1,
+  )
 }

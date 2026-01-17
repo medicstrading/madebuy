@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -13,14 +13,19 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-white">
       <header className="border-b">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/marketplace" className="text-2xl font-bold text-gray-900">
+          <Link
+            href="/marketplace"
+            className="text-2xl font-bold text-gray-900"
+          >
             MadeBuy
           </Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">
+          Privacy Policy
+        </h1>
         <p className="text-gray-500 mb-8">Last updated: January 2026</p>
 
         <div className="prose prose-gray max-w-none">
@@ -55,9 +60,9 @@ export default function PrivacyPage() {
 
           <h2>4. Data Security</h2>
           <p>
-            We implement industry-standard security measures to protect your data. 
-            Payment information is processed securely through Stripe and never stored 
-            on our servers.
+            We implement industry-standard security measures to protect your
+            data. Payment information is processed securely through Stripe and
+            never stored on our servers.
           </p>
 
           <h2>5. Your Rights</h2>
@@ -72,14 +77,16 @@ export default function PrivacyPage() {
 
           <h2>6. Cookies</h2>
           <p>
-            We use cookies to maintain your session, remember preferences, and 
-            analyze platform usage. You can control cookies through your browser settings.
+            We use cookies to maintain your session, remember preferences, and
+            analyze platform usage. You can control cookies through your browser
+            settings.
           </p>
 
           <h2>7. Australian Privacy Act</h2>
           <p>
-            We comply with the Australian Privacy Principles under the Privacy Act 1988. 
-            For complaints, contact the Office of the Australian Information Commissioner.
+            We comply with the Australian Privacy Principles under the Privacy
+            Act 1988. For complaints, contact the Office of the Australian
+            Information Commissioner.
           </p>
 
           <h2>8. Contact</h2>

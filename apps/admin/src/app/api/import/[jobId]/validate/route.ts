@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { imports } from '@madebuy/db'
+import type { ColumnMapping } from '@madebuy/shared'
 import { getFromR2 } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
-  parseCSV,
   detectSource,
+  generatePreview,
+  parseCSV,
   suggestColumnMapping,
   validateAndParse,
-  generatePreview,
 } from '@/lib/csv-parser'
-import type { ColumnMapping } from '@madebuy/shared'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ jobId: string }>
@@ -36,14 +36,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const job = await imports.getImportJob(tenant.id, jobId)
 
     if (!job) {
-      return NextResponse.json({ error: 'Import job not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Import job not found' },
+        { status: 404 },
+      )
     }
 
     // Can only validate uploaded jobs
     if (job.status !== 'uploaded' && job.status !== 'validated') {
       return NextResponse.json(
         { error: `Cannot validate job with status: ${job.status}` },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -57,11 +60,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (!csvBuffer) {
       await imports.updateImportJob(tenant.id, jobId, {
         status: 'failed',
-        errors: [{ row: 0, message: 'Could not retrieve CSV file from storage' }],
+        errors: [
+          { row: 0, message: 'Could not retrieve CSV file from storage' },
+        ],
       })
       return NextResponse.json(
         { error: 'Could not retrieve CSV file' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -78,7 +83,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Update job with validation results
     const updateData: Parameters<typeof imports.updateImportJob>[2] = {
-      status: result.errors.length > 0 && !skipErrors ? 'validated' : 'validated',
+      status:
+        result.errors.length > 0 && !skipErrors ? 'validated' : 'validated',
       validatedAt: new Date(),
       rowCount: rows.length,
       columnMapping: mapping,
@@ -94,7 +100,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       updateData.skipErrors = skipErrors
     }
 
-    const updatedJob = await imports.updateImportJob(tenant.id, jobId, updateData)
+    const updatedJob = await imports.updateImportJob(
+      tenant.id,
+      jobId,
+      updateData,
+    )
 
     return NextResponse.json({
       success: true,
@@ -112,13 +122,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (tenant) {
       await imports.updateImportJob(tenant.id, jobId, {
         status: 'failed',
-        errors: [{ row: 0, message: error instanceof Error ? error.message : 'Validation failed' }],
+        errors: [
+          {
+            row: 0,
+            message:
+              error instanceof Error ? error.message : 'Validation failed',
+          },
+        ],
       })
     }
 
     return NextResponse.json(
       { error: 'Failed to validate CSV' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

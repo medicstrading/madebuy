@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Star, BadgeCheck, Loader2, MessageSquare } from 'lucide-react'
-import type { SectionProps } from './SectionRenderer'
 import type { Review } from '@madebuy/shared'
+import { BadgeCheck, Loader2, Star } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import type { SectionProps } from './SectionRenderer'
 
 // Extended review with product metadata
 interface ReviewWithProduct extends Review {
@@ -33,7 +33,13 @@ function formatDate(date: Date | string): string {
   })
 }
 
-function ReviewStars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) {
+function ReviewStars({
+  rating,
+  size = 'sm',
+}: {
+  rating: number
+  size?: 'sm' | 'md'
+}) {
   const sizeClass = size === 'md' ? 'h-5 w-5' : 'h-4 w-4'
   return (
     <div className="flex gap-0.5">
@@ -41,7 +47,9 @@ function ReviewStars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'm
         <Star
           key={star}
           className={`${sizeClass} ${
-            star <= rating ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'
+            star <= rating
+              ? 'fill-amber-400 text-amber-400'
+              : 'fill-gray-200 text-gray-200'
           }`}
         />
       ))}
@@ -114,9 +122,7 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
           {title}
         </h2>
         {subtitle && (
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {subtitle}
-          </p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
@@ -129,7 +135,8 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
             </div>
             <ReviewStars rating={Math.round(stats.averageRating)} size="md" />
             <p className="mt-1 text-sm text-gray-600">
-              {stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'}
+              {stats.totalReviews}{' '}
+              {stats.totalReviews === 1 ? 'review' : 'reviews'}
             </p>
           </div>
 
@@ -137,7 +144,8 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
           <div className="flex-1 max-w-xs space-y-1.5">
             {[5, 4, 3, 2, 1].map((rating) => {
               const count = stats.ratingBreakdown[String(rating)] || 0
-              const percentage = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0
+              const percentage =
+                stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0
 
               return (
                 <div key={rating} className="flex items-center gap-2">
@@ -149,7 +157,9 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-                  <span className="w-6 text-xs text-gray-500 text-right">{count}</span>
+                  <span className="w-6 text-xs text-gray-500 text-right">
+                    {count}
+                  </span>
                 </div>
               )
             })}
@@ -158,11 +168,13 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
       )}
 
       {/* Reviews Grid/List */}
-      <div className={
-        layout === 'list'
-          ? 'space-y-6'
-          : 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
-      }>
+      <div
+        className={
+          layout === 'list'
+            ? 'space-y-6'
+            : 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
+        }
+      >
         {reviews.map((review) => (
           <div
             key={review.id}
@@ -183,7 +195,9 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
                 ) : (
                   <div
                     className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-sm font-medium"
-                    style={{ backgroundColor: tenant.primaryColor || '#3b82f6' }}
+                    style={{
+                      backgroundColor: tenant.primaryColor || '#3b82f6',
+                    }}
                   >
                     {review.piece.name.charAt(0)}
                   </div>
@@ -241,15 +255,23 @@ export function ReviewsSection({ settings, tenant, tenantSlug }: SectionProps) {
             {/* Seller Response Preview */}
             {review.sellerResponse && (
               <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                <p className="text-xs font-medium text-gray-600 mb-1">Seller Response</p>
-                <p className="text-sm text-gray-600 line-clamp-2">{review.sellerResponse}</p>
+                <p className="text-xs font-medium text-gray-600 mb-1">
+                  Seller Response
+                </p>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {review.sellerResponse}
+                </p>
               </div>
             )}
 
             {/* Footer */}
             <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-900">{review.customerName}</span>
-              <span className="text-xs text-gray-500">{formatDate(review.createdAt)}</span>
+              <span className="text-sm font-medium text-gray-900">
+                {review.customerName}
+              </span>
+              <span className="text-xs text-gray-500">
+                {formatDate(review.createdAt)}
+              </span>
             </div>
           </div>
         ))}

@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { getSignedUrl } from '@madebuy/storage'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 export async function POST(request: NextRequest) {
   try {
-    const tenant = await requireTenant()
+    const _tenant = await requireTenant()
     const { key } = await request.json()
 
     if (!key) {
       return NextResponse.json(
         { error: 'Missing key parameter' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     console.error('Signed URL error:', error)
     return NextResponse.json(
       { error: 'Failed to generate signed URL' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

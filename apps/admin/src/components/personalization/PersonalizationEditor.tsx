@@ -1,31 +1,30 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { nanoid } from 'nanoid'
+import type {
+  PersonalizationConfig,
+  PersonalizationField,
+  PersonalizationFieldType,
+} from '@madebuy/shared'
 import {
-  Plus,
-  Trash2,
-  GripVertical,
+  AlignLeft,
+  Calendar,
   ChevronDown,
   ChevronUp,
   Eye,
   EyeOff,
-  AlertCircle,
-  HelpCircle,
-  Settings,
-  Type,
-  AlignLeft,
-  List,
-  ToggleLeft,
-  Upload,
-  Calendar,
+  GripVertical,
   Hash,
+  HelpCircle,
+  List,
+  Plus,
+  Settings,
+  ToggleLeft,
+  Trash2,
+  Type,
+  Upload,
 } from 'lucide-react'
-import type {
-  PersonalizationField,
-  PersonalizationConfig,
-  PersonalizationFieldType,
-} from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { useCallback, useState } from 'react'
 
 // Field type configuration
 const FIELD_TYPES: {
@@ -34,13 +33,48 @@ const FIELD_TYPES: {
   icon: React.ReactNode
   description: string
 }[] = [
-  { type: 'text', label: 'Text', icon: <Type className="h-4 w-4" />, description: 'Single line text input' },
-  { type: 'textarea', label: 'Long Text', icon: <AlignLeft className="h-4 w-4" />, description: 'Multi-line text input' },
-  { type: 'select', label: 'Dropdown', icon: <List className="h-4 w-4" />, description: 'Selection from options' },
-  { type: 'checkbox', label: 'Checkbox', icon: <ToggleLeft className="h-4 w-4" />, description: 'Yes/No toggle' },
-  { type: 'file', label: 'File Upload', icon: <Upload className="h-4 w-4" />, description: 'Image or file upload' },
-  { type: 'date', label: 'Date', icon: <Calendar className="h-4 w-4" />, description: 'Date picker' },
-  { type: 'number', label: 'Number', icon: <Hash className="h-4 w-4" />, description: 'Numeric input' },
+  {
+    type: 'text',
+    label: 'Text',
+    icon: <Type className="h-4 w-4" />,
+    description: 'Single line text input',
+  },
+  {
+    type: 'textarea',
+    label: 'Long Text',
+    icon: <AlignLeft className="h-4 w-4" />,
+    description: 'Multi-line text input',
+  },
+  {
+    type: 'select',
+    label: 'Dropdown',
+    icon: <List className="h-4 w-4" />,
+    description: 'Selection from options',
+  },
+  {
+    type: 'checkbox',
+    label: 'Checkbox',
+    icon: <ToggleLeft className="h-4 w-4" />,
+    description: 'Yes/No toggle',
+  },
+  {
+    type: 'file',
+    label: 'File Upload',
+    icon: <Upload className="h-4 w-4" />,
+    description: 'Image or file upload',
+  },
+  {
+    type: 'date',
+    label: 'Date',
+    icon: <Calendar className="h-4 w-4" />,
+    description: 'Date picker',
+  },
+  {
+    type: 'number',
+    label: 'Number',
+    icon: <Hash className="h-4 w-4" />,
+    description: 'Numeric input',
+  },
 ]
 
 interface PersonalizationEditorProps {
@@ -49,15 +83,21 @@ interface PersonalizationEditorProps {
   piecePrice?: number // Base price for percentage calculations (in cents)
 }
 
-export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: PersonalizationEditorProps) {
+export function PersonalizationEditor({
+  config,
+  onChange,
+  piecePrice = 0,
+}: PersonalizationEditorProps) {
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set())
   const [showPreview, setShowPreview] = useState(false)
   const [testMode, setTestMode] = useState(false)
-  const [testValues, setTestValues] = useState<Record<string, string | number | boolean>>({})
+  const [testValues, setTestValues] = useState<
+    Record<string, string | number | boolean>
+  >({})
 
   // Toggle field expansion
   const toggleFieldExpanded = (fieldId: string) => {
-    setExpandedFields(prev => {
+    setExpandedFields((prev) => {
       const next = new Set(prev)
       if (next.has(fieldId)) {
         next.delete(fieldId)
@@ -69,83 +109,95 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
   }
 
   // Add new field
-  const addField = useCallback((type: PersonalizationFieldType) => {
-    const newField: PersonalizationField = {
-      id: nanoid(10),
-      name: '',
-      type,
-      required: false,
-      displayOrder: config.fields.length,
-      placeholder: '',
-      helpText: '',
-    }
+  const addField = useCallback(
+    (type: PersonalizationFieldType) => {
+      const newField: PersonalizationField = {
+        id: nanoid(10),
+        name: '',
+        type,
+        required: false,
+        displayOrder: config.fields.length,
+        placeholder: '',
+        helpText: '',
+      }
 
-    // Set type-specific defaults
-    if (type === 'select') {
-      newField.options = ['Option 1', 'Option 2']
-    } else if (type === 'text') {
-      newField.maxLength = 100
-    } else if (type === 'textarea') {
-      newField.maxLength = 500
-    } else if (type === 'file') {
-      newField.acceptedFileTypes = ['image/jpeg', 'image/png']
-      newField.maxFileSizeMB = 5
-    } else if (type === 'number') {
-      newField.min = 0
-      newField.step = 1
-    }
+      // Set type-specific defaults
+      if (type === 'select') {
+        newField.options = ['Option 1', 'Option 2']
+      } else if (type === 'text') {
+        newField.maxLength = 100
+      } else if (type === 'textarea') {
+        newField.maxLength = 500
+      } else if (type === 'file') {
+        newField.acceptedFileTypes = ['image/jpeg', 'image/png']
+        newField.maxFileSizeMB = 5
+      } else if (type === 'number') {
+        newField.min = 0
+        newField.step = 1
+      }
 
-    onChange({
-      ...config,
-      fields: [...config.fields, newField],
-    })
+      onChange({
+        ...config,
+        fields: [...config.fields, newField],
+      })
 
-    // Expand the new field
-    setExpandedFields(prev => new Set([...prev, newField.id]))
-  }, [config, onChange])
+      // Expand the new field
+      setExpandedFields((prev) => new Set([...prev, newField.id]))
+    },
+    [config, onChange],
+  )
 
   // Remove field
-  const removeField = useCallback((fieldId: string) => {
-    onChange({
-      ...config,
-      fields: config.fields.filter(f => f.id !== fieldId),
-    })
-    setExpandedFields(prev => {
-      const next = new Set(prev)
-      next.delete(fieldId)
-      return next
-    })
-  }, [config, onChange])
+  const removeField = useCallback(
+    (fieldId: string) => {
+      onChange({
+        ...config,
+        fields: config.fields.filter((f) => f.id !== fieldId),
+      })
+      setExpandedFields((prev) => {
+        const next = new Set(prev)
+        next.delete(fieldId)
+        return next
+      })
+    },
+    [config, onChange],
+  )
 
   // Update field
-  const updateField = useCallback((fieldId: string, updates: Partial<PersonalizationField>) => {
-    onChange({
-      ...config,
-      fields: config.fields.map(f =>
-        f.id === fieldId ? { ...f, ...updates } : f
-      ),
-    })
-  }, [config, onChange])
+  const updateField = useCallback(
+    (fieldId: string, updates: Partial<PersonalizationField>) => {
+      onChange({
+        ...config,
+        fields: config.fields.map((f) =>
+          f.id === fieldId ? { ...f, ...updates } : f,
+        ),
+      })
+    },
+    [config, onChange],
+  )
 
   // Move field up/down
-  const moveField = useCallback((fieldId: string, direction: 'up' | 'down') => {
-    const fieldIndex = config.fields.findIndex(f => f.id === fieldId)
-    if (fieldIndex === -1) return
+  const moveField = useCallback(
+    (fieldId: string, direction: 'up' | 'down') => {
+      const fieldIndex = config.fields.findIndex((f) => f.id === fieldId)
+      if (fieldIndex === -1) return
 
-    const newIndex = direction === 'up' ? fieldIndex - 1 : fieldIndex + 1
-    if (newIndex < 0 || newIndex >= config.fields.length) return
+      const newIndex = direction === 'up' ? fieldIndex - 1 : fieldIndex + 1
+      if (newIndex < 0 || newIndex >= config.fields.length) return
 
-    const newFields = [...config.fields]
-    const [removed] = newFields.splice(fieldIndex, 1)
-    newFields.splice(newIndex, 0, removed)
+      const newFields = [...config.fields]
+      const [removed] = newFields.splice(fieldIndex, 1)
+      newFields.splice(newIndex, 0, removed)
 
-    // Update display orders
-    newFields.forEach((field, index) => {
-      field.displayOrder = index
-    })
+      // Update display orders
+      newFields.forEach((field, index) => {
+        field.displayOrder = index
+      })
 
-    onChange({ ...config, fields: newFields })
-  }, [config, onChange])
+      onChange({ ...config, fields: newFields })
+    },
+    [config, onChange],
+  )
 
   // Toggle enabled
   const toggleEnabled = useCallback(() => {
@@ -153,14 +205,17 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
   }, [config, onChange])
 
   // Update config settings
-  const updateConfig = useCallback((updates: Partial<PersonalizationConfig>) => {
-    onChange({ ...config, ...updates })
-  }, [config, onChange])
+  const updateConfig = useCallback(
+    (updates: Partial<PersonalizationConfig>) => {
+      onChange({ ...config, ...updates })
+    },
+    [config, onChange],
+  )
 
   // Calculate test price adjustment
   const calculateTestPriceAdjustment = () => {
     let total = 0
-    config.fields.forEach(field => {
+    config.fields.forEach((field) => {
       const value = testValues[field.id]
       if (value !== undefined && value !== '' && field.priceAdjustment) {
         if (field.priceAdjustmentType === 'percentage') {
@@ -188,21 +243,29 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
             <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300" />
           </label>
           <span className="text-sm font-medium text-gray-900">
-            {config.enabled ? 'Personalization Enabled' : 'Personalization Disabled'}
+            {config.enabled
+              ? 'Personalization Enabled'
+              : 'Personalization Disabled'}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
+            type="button"
             onClick={() => setShowPreview(!showPreview)}
             className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showPreview ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
             {showPreview ? 'Hide Preview' : 'Preview'}
           </button>
           {showPreview && (
             <button
+              type="button"
               type="button"
               onClick={() => setTestMode(!testMode)}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
@@ -224,31 +287,45 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
           <h4 className="text-sm font-medium text-gray-900 mb-3">Settings</h4>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Extra Processing Days</label>
+              <label className="block text-sm text-gray-600 mb-1">
+                Extra Processing Days
+              </label>
               <input
                 type="number"
                 value={config.processingDays || 0}
-                onChange={(e) => updateConfig({ processingDays: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  updateConfig({
+                    processingDays: parseInt(e.target.value, 10) || 0,
+                  })
+                }
                 min="0"
                 max="365"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="mt-1 text-xs text-gray-500">Added to standard processing time</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Added to standard processing time
+              </p>
             </div>
             <div>
               <label className="flex items-center gap-2 text-sm text-gray-600 mb-1">
                 <input
                   type="checkbox"
                   checked={config.previewEnabled || false}
-                  onChange={(e) => updateConfig({ previewEnabled: e.target.checked })}
+                  onChange={(e) =>
+                    updateConfig({ previewEnabled: e.target.checked })
+                  }
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 Enable Live Preview
               </label>
-              <p className="mt-1 text-xs text-gray-500">Show preview to buyers as they fill in fields</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Show preview to buyers as they fill in fields
+              </p>
             </div>
             <div className="md:col-span-3">
-              <label className="block text-sm text-gray-600 mb-1">Instructions for Buyers</label>
+              <label className="block text-sm text-gray-600 mb-1">
+                Instructions for Buyers
+              </label>
               <textarea
                 value={config.instructions || ''}
                 onChange={(e) => updateConfig({ instructions: e.target.value })}
@@ -268,15 +345,21 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
           {/* Fields Editor */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Personalization Fields</h3>
-              <span className="text-sm text-gray-500">{config.fields.length} field(s)</span>
+              <h3 className="text-lg font-medium text-gray-900">
+                Personalization Fields
+              </h3>
+              <span className="text-sm text-gray-500">
+                {config.fields.length} field(s)
+              </span>
             </div>
 
             {/* Field List */}
             {config.fields.length === 0 ? (
               <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                 <Settings className="mx-auto h-8 w-8 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-600">No fields yet. Add a field to get started.</p>
+                <p className="mt-2 text-sm text-gray-600">
+                  No fields yet. Add a field to get started.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -300,17 +383,22 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
 
             {/* Add Field Buttons */}
             <div className="rounded-lg border border-gray-200 bg-white p-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Add Field</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                Add Field
+              </h4>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
                 {FIELD_TYPES.map(({ type, label, icon }) => (
                   <button
+                    type="button"
                     key={type}
                     type="button"
                     onClick={() => addField(type)}
                     className="flex flex-col items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-center hover:border-blue-500 hover:bg-blue-50 transition-colors"
                   >
                     <span className="text-gray-600">{icon}</span>
-                    <span className="text-xs font-medium text-gray-700">{label}</span>
+                    <span className="text-xs font-medium text-gray-700">
+                      {label}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -342,23 +430,36 @@ export function PersonalizationEditor({ config, onChange, piecePrice = 0 }: Pers
                       field={field}
                       testMode={testMode}
                       value={testValues[field.id]}
-                      onChange={(value) => setTestValues(prev => ({ ...prev, [field.id]: value }))}
+                      onChange={(value) =>
+                        setTestValues((prev) => ({
+                          ...prev,
+                          [field.id]: value,
+                        }))
+                      }
                     />
                   ))}
 
                   {testMode && (
                     <div className="mt-6 pt-4 border-t border-gray-200">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">Price Adjustment:</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          Price Adjustment:
+                        </span>
                         <span className="text-lg font-semibold text-blue-600">
                           +${(calculateTestPriceAdjustment() / 100).toFixed(2)}
                         </span>
                       </div>
                       {piecePrice > 0 && (
                         <div className="flex justify-between items-center mt-1">
-                          <span className="text-sm text-gray-500">New Total:</span>
+                          <span className="text-sm text-gray-500">
+                            New Total:
+                          </span>
                           <span className="text-sm font-medium text-gray-700">
-                            ${((piecePrice + calculateTestPriceAdjustment()) / 100).toFixed(2)}
+                            $
+                            {(
+                              (piecePrice + calculateTestPriceAdjustment()) /
+                              100
+                            ).toFixed(2)}
                           </span>
                         </div>
                       )}
@@ -400,7 +501,7 @@ function FieldEditor({
   canMoveUp,
   canMoveDown,
 }: FieldEditorProps) {
-  const fieldTypeConfig = FIELD_TYPES.find(t => t.type === field.type)
+  const fieldTypeConfig = FIELD_TYPES.find((t) => t.type === field.type)
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
@@ -420,13 +521,17 @@ function FieldEditor({
           )}
           {field.priceAdjustment ? (
             <span className="text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-              +${field.priceAdjustmentType === 'percentage' ? `${field.priceAdjustment}%` : (field.priceAdjustment / 100).toFixed(2)}
+              +$
+              {field.priceAdjustmentType === 'percentage'
+                ? `${field.priceAdjustment}%`
+                : (field.priceAdjustment / 100).toFixed(2)}
             </span>
           ) : null}
         </div>
 
         <div className="flex items-center gap-1">
           <button
+            type="button"
             type="button"
             onClick={onMoveUp}
             disabled={!canMoveUp}
@@ -436,6 +541,7 @@ function FieldEditor({
           </button>
           <button
             type="button"
+            type="button"
             onClick={onMoveDown}
             disabled={!canMoveDown}
             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
@@ -444,12 +550,18 @@ function FieldEditor({
           </button>
           <button
             type="button"
+            type="button"
             onClick={onToggleExpand}
             className="p-1 text-gray-400 hover:text-gray-600"
           >
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </button>
           <button
+            type="button"
             type="button"
             onClick={onRemove}
             className="p-1 text-red-400 hover:text-red-600"
@@ -527,11 +639,17 @@ function FieldEditor({
             </h5>
             <div className="grid gap-4 md:grid-cols-3">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Amount</label>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Amount
+                </label>
                 <input
                   type="number"
                   value={field.priceAdjustment || ''}
-                  onChange={(e) => onUpdate({ priceAdjustment: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    onUpdate({
+                      priceAdjustment: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
                   min="0"
                   placeholder="0"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -541,7 +659,13 @@ function FieldEditor({
                 <label className="block text-sm text-gray-600 mb-1">Type</label>
                 <select
                   value={field.priceAdjustmentType || 'fixed'}
-                  onChange={(e) => onUpdate({ priceAdjustmentType: e.target.value as 'fixed' | 'percentage' })}
+                  onChange={(e) =>
+                    onUpdate({
+                      priceAdjustmentType: e.target.value as
+                        | 'fixed'
+                        | 'percentage',
+                    })
+                  }
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="fixed">Fixed (cents)</option>
@@ -551,7 +675,11 @@ function FieldEditor({
               <div className="flex items-end">
                 {field.priceAdjustment ? (
                   <p className="text-sm text-green-600 font-medium">
-                    Adds +${field.priceAdjustmentType === 'percentage' ? `${field.priceAdjustment}%` : (field.priceAdjustment / 100).toFixed(2)} to price
+                    Adds +$
+                    {field.priceAdjustmentType === 'percentage'
+                      ? `${field.priceAdjustment}%`
+                      : (field.priceAdjustment / 100).toFixed(2)}{' '}
+                    to price
                   </p>
                 ) : (
                   <p className="text-sm text-gray-500">No additional charge</p>
@@ -578,42 +706,62 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
       return (
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Length</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Min Length
+            </label>
             <input
               type="number"
               value={field.minLength || ''}
-              onChange={(e) => onUpdate({ minLength: parseInt(e.target.value) || undefined })}
+              onChange={(e) =>
+                onUpdate({
+                  minLength: parseInt(e.target.value, 10) || undefined,
+                })
+              }
               min="0"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Length</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Max Length
+            </label>
             <input
               type="number"
               value={field.maxLength || ''}
-              onChange={(e) => onUpdate({ maxLength: parseInt(e.target.value) || undefined })}
+              onChange={(e) =>
+                onUpdate({
+                  maxLength: parseInt(e.target.value, 10) || undefined,
+                })
+              }
               min="1"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Pattern (Regex)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Pattern (Regex)
+            </label>
             <input
               type="text"
               value={field.pattern || ''}
-              onChange={(e) => onUpdate({ pattern: e.target.value || undefined })}
+              onChange={(e) =>
+                onUpdate({ pattern: e.target.value || undefined })
+              }
               placeholder="e.g., ^[A-Za-z ]+$"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {field.pattern && (
             <div className="md:col-span-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pattern Error Message</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Pattern Error Message
+              </label>
               <input
                 type="text"
                 value={field.patternError || ''}
-                onChange={(e) => onUpdate({ patternError: e.target.value || undefined })}
+                onChange={(e) =>
+                  onUpdate({ patternError: e.target.value || undefined })
+                }
                 placeholder="e.g., Only letters and spaces allowed"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -625,7 +773,9 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
     case 'select':
       return (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Options</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Options
+          </label>
           <div className="space-y-2">
             {(field.options || []).map((option, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -641,8 +791,11 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
                 />
                 <button
                   type="button"
+                  type="button"
                   onClick={() => {
-                    const newOptions = (field.options || []).filter((_, i) => i !== index)
+                    const newOptions = (field.options || []).filter(
+                      (_, i) => i !== index,
+                    )
                     onUpdate({ options: newOptions })
                   }}
                   className="p-2 text-red-400 hover:text-red-600"
@@ -653,8 +806,12 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
             ))}
             <button
               type="button"
+              type="button"
               onClick={() => {
-                const newOptions = [...(field.options || []), `Option ${(field.options?.length || 0) + 1}`]
+                const newOptions = [
+                  ...(field.options || []),
+                  `Option ${(field.options?.length || 0) + 1}`,
+                ]
                 onUpdate({ options: newOptions })
               }}
               className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
@@ -670,29 +827,47 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
       return (
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Minimum</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Minimum
+            </label>
             <input
               type="number"
               value={field.min ?? ''}
-              onChange={(e) => onUpdate({ min: e.target.value ? parseFloat(e.target.value) : undefined })}
+              onChange={(e) =>
+                onUpdate({
+                  min: e.target.value ? parseFloat(e.target.value) : undefined,
+                })
+              }
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Maximum</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Maximum
+            </label>
             <input
               type="number"
               value={field.max ?? ''}
-              onChange={(e) => onUpdate({ max: e.target.value ? parseFloat(e.target.value) : undefined })}
+              onChange={(e) =>
+                onUpdate({
+                  max: e.target.value ? parseFloat(e.target.value) : undefined,
+                })
+              }
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Step</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Step
+            </label>
             <input
               type="number"
               value={field.step ?? ''}
-              onChange={(e) => onUpdate({ step: e.target.value ? parseFloat(e.target.value) : undefined })}
+              onChange={(e) =>
+                onUpdate({
+                  step: e.target.value ? parseFloat(e.target.value) : undefined,
+                })
+              }
               min="0.01"
               step="0.01"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -705,24 +880,40 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
       return (
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Accepted File Types</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Accepted File Types
+            </label>
             <select
               value={(field.acceptedFileTypes || []).join(',')}
-              onChange={(e) => onUpdate({ acceptedFileTypes: e.target.value.split(',').filter(Boolean) })}
+              onChange={(e) =>
+                onUpdate({
+                  acceptedFileTypes: e.target.value.split(',').filter(Boolean),
+                })
+              }
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="image/jpeg,image/png">Images (JPEG, PNG)</option>
-              <option value="image/jpeg,image/png,image/gif,image/webp">Images (All)</option>
+              <option value="image/jpeg,image/png,image/gif,image/webp">
+                Images (All)
+              </option>
               <option value="application/pdf">PDF</option>
-              <option value="image/jpeg,image/png,application/pdf">Images + PDF</option>
+              <option value="image/jpeg,image/png,application/pdf">
+                Images + PDF
+              </option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max File Size (MB)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Max File Size (MB)
+            </label>
             <input
               type="number"
               value={field.maxFileSizeMB || ''}
-              onChange={(e) => onUpdate({ maxFileSizeMB: parseFloat(e.target.value) || undefined })}
+              onChange={(e) =>
+                onUpdate({
+                  maxFileSizeMB: parseFloat(e.target.value) || undefined,
+                })
+              }
               min="0.1"
               max="50"
               step="0.1"
@@ -736,20 +927,28 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
       return (
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Minimum Date
+            </label>
             <input
               type="date"
               value={field.minDate || ''}
-              onChange={(e) => onUpdate({ minDate: e.target.value || undefined })}
+              onChange={(e) =>
+                onUpdate({ minDate: e.target.value || undefined })
+              }
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Maximum Date
+            </label>
             <input
               type="date"
               value={field.maxDate || ''}
-              onChange={(e) => onUpdate({ maxDate: e.target.value || undefined })}
+              onChange={(e) =>
+                onUpdate({ maxDate: e.target.value || undefined })
+              }
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -783,7 +982,7 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
           <input
             type="text"
             id={inputId}
-            value={testMode ? (value as string || '') : ''}
+            value={testMode ? (value as string) || '' : ''}
             onChange={(e) => testMode && onChange(e.target.value)}
             placeholder={field.placeholder}
             maxLength={field.maxLength}
@@ -796,7 +995,7 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
         return (
           <textarea
             id={inputId}
-            value={testMode ? (value as string || '') : ''}
+            value={testMode ? (value as string) || '' : ''}
             onChange={(e) => testMode && onChange(e.target.value)}
             placeholder={field.placeholder}
             maxLength={field.maxLength}
@@ -810,14 +1009,16 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
         return (
           <select
             id={inputId}
-            value={testMode ? (value as string || '') : ''}
+            value={testMode ? (value as string) || '' : ''}
             onChange={(e) => testMode && onChange(e.target.value)}
             disabled={!testMode}
             className={commonClasses}
           >
             <option value="">{field.placeholder || 'Select an option'}</option>
             {(field.options || []).map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )
@@ -828,7 +1029,7 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
             <input
               type="checkbox"
               id={inputId}
-              checked={testMode ? (value as boolean || false) : false}
+              checked={testMode ? (value as boolean) || false : false}
               onChange={(e) => testMode && onChange(e.target.checked)}
               disabled={!testMode}
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -839,13 +1040,21 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
 
       case 'file':
         return (
-          <div className={`rounded-lg border-2 border-dashed ${testMode ? 'border-gray-300 hover:border-blue-400' : 'border-gray-200 bg-gray-50'} p-4 text-center`}>
-            <Upload className={`mx-auto h-6 w-6 ${testMode ? 'text-gray-400' : 'text-gray-300'}`} />
-            <p className={`mt-1 text-sm ${testMode ? 'text-gray-600' : 'text-gray-400'}`}>
+          <div
+            className={`rounded-lg border-2 border-dashed ${testMode ? 'border-gray-300 hover:border-blue-400' : 'border-gray-200 bg-gray-50'} p-4 text-center`}
+          >
+            <Upload
+              className={`mx-auto h-6 w-6 ${testMode ? 'text-gray-400' : 'text-gray-300'}`}
+            />
+            <p
+              className={`mt-1 text-sm ${testMode ? 'text-gray-600' : 'text-gray-400'}`}
+            >
               {testMode ? 'Click or drag to upload' : 'File upload area'}
             </p>
             {field.maxFileSizeMB && (
-              <p className="text-xs text-gray-400 mt-1">Max {field.maxFileSizeMB}MB</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Max {field.maxFileSizeMB}MB
+              </p>
             )}
           </div>
         )
@@ -855,7 +1064,7 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
           <input
             type="date"
             id={inputId}
-            value={testMode ? (value as string || '') : ''}
+            value={testMode ? (value as string) || '' : ''}
             onChange={(e) => testMode && onChange(e.target.value)}
             min={field.minDate}
             max={field.maxDate}
@@ -869,8 +1078,10 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
           <input
             type="number"
             id={inputId}
-            value={testMode ? (value as number || '') : ''}
-            onChange={(e) => testMode && onChange(parseFloat(e.target.value) || 0)}
+            value={testMode ? (value as number) || '' : ''}
+            onChange={(e) =>
+              testMode && onChange(parseFloat(e.target.value) || 0)
+            }
             placeholder={field.placeholder}
             min={field.min}
             max={field.max}
@@ -887,12 +1098,19 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
 
   return (
     <div>
-      <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+      <label
+        htmlFor={inputId}
+        className="block text-sm font-medium text-gray-700 mb-1"
+      >
         {field.name || 'Untitled Field'}
         {field.required && <span className="text-red-500 ml-1">*</span>}
         {field.priceAdjustment ? (
           <span className="ml-2 text-xs font-normal text-green-600">
-            (+${field.priceAdjustmentType === 'percentage' ? `${field.priceAdjustment}%` : (field.priceAdjustment / 100).toFixed(2)})
+            (+$
+            {field.priceAdjustmentType === 'percentage'
+              ? `${field.priceAdjustment}%`
+              : (field.priceAdjustment / 100).toFixed(2)}
+            )
           </span>
         ) : null}
       </label>
@@ -900,13 +1118,14 @@ function PreviewField({ field, testMode, value, onChange }: PreviewFieldProps) {
       {field.helpText && (
         <p className="mt-1 text-xs text-gray-500">{field.helpText}</p>
       )}
-      {field.type === 'text' || field.type === 'textarea' ? (
-        field.maxLength && testMode && (
-          <p className="mt-1 text-xs text-gray-400 text-right">
-            {(value as string || '').length}/{field.maxLength}
-          </p>
-        )
-      ) : null}
+      {field.type === 'text' || field.type === 'textarea'
+        ? field.maxLength &&
+          testMode && (
+            <p className="mt-1 text-xs text-gray-400 text-right">
+              {((value as string) || '').length}/{field.maxLength}
+            </p>
+          )
+        : null}
     </div>
   )
 }

@@ -1,19 +1,21 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import type { BlogPost, MediaItem } from '@madebuy/shared'
+import { Eye, Image as ImageIcon, Save, Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import type { MediaItem, BlogPost } from '@madebuy/shared'
-import { Save, Eye, Trash2, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 // Lazy load TipTap editor to reduce initial bundle size (~200KB)
 const RichTextEditor = dynamic(
-  () => import('./RichTextEditor').then(mod => mod.RichTextEditor),
+  () => import('./RichTextEditor').then((mod) => mod.RichTextEditor),
   {
     ssr: false,
-    loading: () => <div className="h-[400px] bg-gray-100 animate-pulse rounded-lg" />
-  }
+    loading: () => (
+      <div className="h-[400px] bg-gray-100 animate-pulse rounded-lg" />
+    ),
+  },
 )
 
 interface BlogEditorProps {
@@ -22,7 +24,11 @@ interface BlogEditorProps {
   existingPost?: BlogPost
 }
 
-export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEditorProps) {
+export function BlogEditor({
+  tenantId,
+  availableMedia,
+  existingPost,
+}: BlogEditorProps) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -31,15 +37,21 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
   const [title, setTitle] = useState(existingPost?.title || '')
   const [content, setContent] = useState(existingPost?.content || '')
   const [excerpt, setExcerpt] = useState(existingPost?.excerpt || '')
-  const [coverImageId, setCoverImageId] = useState<string | undefined>(existingPost?.coverImageId)
+  const [coverImageId, setCoverImageId] = useState<string | undefined>(
+    existingPost?.coverImageId,
+  )
   const [tags, setTags] = useState<string[]>(existingPost?.tags || [])
   const [tagInput, setTagInput] = useState('')
   const [metaTitle, setMetaTitle] = useState(existingPost?.metaTitle || '')
-  const [metaDescription, setMetaDescription] = useState(existingPost?.metaDescription || '')
-  const [status, setStatus] = useState<'draft' | 'published'>(existingPost?.status || 'draft')
+  const [metaDescription, setMetaDescription] = useState(
+    existingPost?.metaDescription || '',
+  )
+  const [status, setStatus] = useState<'draft' | 'published'>(
+    existingPost?.status || 'draft',
+  )
   const [showMediaPicker, setShowMediaPicker] = useState(false)
 
-  const coverImage = availableMedia.find(m => m.id === coverImageId)
+  const coverImage = availableMedia.find((m) => m.id === coverImageId)
 
   const handleAddTag = () => {
     const tag = tagInput.trim()
@@ -50,7 +62,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
   }
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove))
+    setTags(tags.filter((t) => t !== tagToRemove))
   }
 
   const handleSave = async (saveStatus: 'draft' | 'published') => {
@@ -118,7 +130,11 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
   const handleDelete = async () => {
     if (!existingPost) return
 
-    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this post? This action cannot be undone.',
+      )
+    ) {
       return
     }
 
@@ -164,10 +180,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Content *
           </label>
-          <RichTextEditor
-            content={content}
-            onChange={setContent}
-          />
+          <RichTextEditor content={content} onChange={setContent} />
         </div>
 
         {/* Excerpt */}
@@ -190,7 +203,9 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
 
         {/* SEO Section */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            SEO Settings
+          </h3>
 
           <div className="space-y-4">
             <div>
@@ -243,7 +258,9 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
             </label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value as 'draft' | 'published')}
+              onChange={(e) =>
+                setStatus(e.target.value as 'draft' | 'published')
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="draft">Draft</option>
@@ -254,6 +271,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
           {/* Save Buttons */}
           <div className="space-y-2">
             <button
+              type="button"
               onClick={() => handleSave('draft')}
               disabled={saving}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -263,6 +281,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
             </button>
 
             <button
+              type="button"
               onClick={() => handleSave('published')}
               disabled={saving}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -273,6 +292,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
 
             {existingPost && (
               <button
+                type="button"
                 onClick={handleDelete}
                 disabled={deleting}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -292,13 +312,17 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
             <div className="space-y-3">
               <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
                 <Image
-                  src={coverImage.variants.thumb?.url || coverImage.variants.original.url}
+                  src={
+                    coverImage.variants.thumb?.url ||
+                    coverImage.variants.original.url
+                  }
                   alt="Cover"
                   fill
                   className="object-cover"
                 />
               </div>
               <button
+                type="button"
                 onClick={() => setShowMediaPicker(!showMediaPicker)}
                 className="w-full px-3 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
               >
@@ -307,6 +331,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
             </div>
           ) : (
             <button
+              type="button"
               onClick={() => setShowMediaPicker(!showMediaPicker)}
               className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 text-gray-600 hover:text-gray-900"
             >
@@ -320,6 +345,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
               <div className="grid grid-cols-2 gap-2 p-2">
                 {availableMedia.map((item) => (
                   <button
+                    type="button"
                     key={item.id}
                     onClick={() => {
                       setCoverImageId(item.id)
@@ -328,7 +354,9 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
                     className="relative aspect-video rounded overflow-hidden hover:ring-2 hover:ring-blue-500"
                   >
                     <Image
-                      src={item.variants.thumb?.url || item.variants.original.url}
+                      src={
+                        item.variants.thumb?.url || item.variants.original.url
+                      }
                       alt={item.caption || ''}
                       fill
                       className="object-cover"
@@ -359,6 +387,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
             <button
+              type="button"
               onClick={handleAddTag}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm"
             >
@@ -374,6 +403,7 @@ export function BlogEditor({ tenantId, availableMedia, existingPost }: BlogEdito
               >
                 {tag}
                 <button
+                  type="button"
                   onClick={() => handleRemoveTag(tag)}
                   className="hover:text-red-600"
                 >

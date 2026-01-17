@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { bundles } from '@madebuy/db'
-import type { CreateBundleInput, BundleListOptions } from '@madebuy/shared'
+import type { BundleListOptions, CreateBundleInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,7 +45,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching bundles:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -61,23 +64,20 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!data.name) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
     if (!data.pieces || data.pieces.length === 0) {
       return NextResponse.json(
         { error: 'At least one piece is required in a bundle' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (data.bundlePrice === undefined || data.bundlePrice < 0) {
       return NextResponse.json(
         { error: 'Valid bundle price is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       if (!piece.pieceId || piece.quantity < 1) {
         return NextResponse.json(
           { error: 'Each piece must have a valid pieceId and quantity >= 1' },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -96,6 +96,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ bundle }, { status: 201 })
   } catch (error) {
     console.error('Error creating bundle:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

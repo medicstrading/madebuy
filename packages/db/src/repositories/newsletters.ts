@@ -1,20 +1,20 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  Newsletter,
   CreateNewsletterInput,
-  UpdateNewsletterInput,
+  Newsletter,
   NewsletterListOptions,
   NewsletterStats,
   NewsletterTemplate,
+  UpdateNewsletterInput,
   UpdateNewsletterTemplateInput,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 // ============ Newsletter CRUD ============
 
 export async function createNewsletter(
   tenantId: string,
-  input: CreateNewsletterInput
+  input: CreateNewsletterInput,
 ): Promise<Newsletter> {
   const db = await getDatabase()
   const now = new Date()
@@ -35,17 +35,19 @@ export async function createNewsletter(
 
 export async function getNewsletterById(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Newsletter | null> {
   const db = await getDatabase()
-  const newsletter = await db.collection('newsletters').findOne({ tenantId, id })
+  const newsletter = await db
+    .collection('newsletters')
+    .findOne({ tenantId, id })
   return newsletter as unknown as Newsletter | null
 }
 
 export async function updateNewsletter(
   tenantId: string,
   id: string,
-  input: UpdateNewsletterInput
+  input: UpdateNewsletterInput,
 ): Promise<Newsletter | null> {
   const db = await getDatabase()
 
@@ -60,16 +62,21 @@ export async function updateNewsletter(
     updatedAt: new Date(),
   }
 
-  const result = await db.collection('newsletters').findOneAndUpdate(
-    { tenantId, id, status: 'draft' },
-    { $set: updateData },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('newsletters')
+    .findOneAndUpdate(
+      { tenantId, id, status: 'draft' },
+      { $set: updateData },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as Newsletter | null
 }
 
-export async function deleteNewsletter(tenantId: string, id: string): Promise<boolean> {
+export async function deleteNewsletter(
+  tenantId: string,
+  id: string,
+): Promise<boolean> {
   const db = await getDatabase()
   const result = await db.collection('newsletters').deleteOne({ tenantId, id })
   return result.deletedCount === 1
@@ -78,7 +85,7 @@ export async function deleteNewsletter(tenantId: string, id: string): Promise<bo
 export async function markNewsletterSent(
   tenantId: string,
   id: string,
-  recipientCount: number
+  recipientCount: number,
 ): Promise<Newsletter | null> {
   const db = await getDatabase()
 
@@ -92,7 +99,7 @@ export async function markNewsletterSent(
         updatedAt: new Date(),
       },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Newsletter | null
@@ -100,7 +107,7 @@ export async function markNewsletterSent(
 
 export async function listNewsletters(
   tenantId: string,
-  options: NewsletterListOptions = {}
+  options: NewsletterListOptions = {},
 ): Promise<{ items: Newsletter[]; total: number; hasMore: boolean }> {
   const db = await getDatabase()
 
@@ -118,7 +125,8 @@ export async function listNewsletters(
   const sort: any = { [sortField]: sortOrder }
 
   const [items, total] = await Promise.all([
-    db.collection('newsletters')
+    db
+      .collection('newsletters')
       .find(filter)
       .sort(sort)
       .skip(offset)
@@ -134,33 +142,39 @@ export async function listNewsletters(
   }
 }
 
-export async function getNewsletterStats(tenantId: string): Promise<NewsletterStats> {
+export async function getNewsletterStats(
+  tenantId: string,
+): Promise<NewsletterStats> {
   const db = await getDatabase()
 
-  const stats = await db.collection('newsletters').aggregate([
-    { $match: { tenantId } },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: 1 },
-        drafts: {
-          $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] },
-        },
-        sent: {
-          $sum: { $cond: [{ $eq: ['$status', 'sent'] }, 1, 0] },
+  const stats = await db
+    .collection('newsletters')
+    .aggregate([
+      { $match: { tenantId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          drafts: {
+            $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] },
+          },
+          sent: {
+            $sum: { $cond: [{ $eq: ['$status', 'sent'] }, 1, 0] },
+          },
         },
       },
-    },
-  ]).toArray()
+    ])
+    .toArray()
 
   if (stats.length === 0) {
     return { total: 0, drafts: 0, sent: 0 }
   }
 
-  const lastSent = await db.collection('newsletters')
+  const lastSent = await db
+    .collection('newsletters')
     .findOne(
       { tenantId, status: 'sent', sentAt: { $exists: true } },
-      { sort: { sentAt: -1 }, projection: { sentAt: 1 } }
+      { sort: { sentAt: -1 }, projection: { sentAt: 1 } },
     )
 
   return {
@@ -173,7 +187,10 @@ export async function getNewsletterStats(tenantId: string): Promise<NewsletterSt
 
 // ============ Newsletter Template ============
 
-const DEFAULT_TEMPLATE: Omit<NewsletterTemplate, 'id' | 'tenantId' | 'updatedAt'> = {
+const DEFAULT_TEMPLATE: Omit<
+  NewsletterTemplate,
+  'id' | 'tenantId' | 'updatedAt'
+> = {
   header: {
     showLogo: true,
     headerText: 'Newsletter',
@@ -201,10 +218,14 @@ const DEFAULT_TEMPLATE: Omit<NewsletterTemplate, 'id' | 'tenantId' | 'updatedAt'
   },
 }
 
-export async function getNewsletterTemplate(tenantId: string): Promise<NewsletterTemplate> {
+export async function getNewsletterTemplate(
+  tenantId: string,
+): Promise<NewsletterTemplate> {
   const db = await getDatabase()
 
-  const template = await db.collection('newsletter_templates').findOne({ tenantId })
+  const template = await db
+    .collection('newsletter_templates')
+    .findOne({ tenantId })
 
   if (template) {
     return template as unknown as NewsletterTemplate
@@ -224,7 +245,7 @@ export async function getNewsletterTemplate(tenantId: string): Promise<Newslette
 
 export async function updateNewsletterTemplate(
   tenantId: string,
-  input: UpdateNewsletterTemplateInput
+  input: UpdateNewsletterTemplateInput,
 ): Promise<NewsletterTemplate> {
   const db = await getDatabase()
 
@@ -249,16 +270,20 @@ export async function updateNewsletterTemplate(
     updateData.sections = { ...existing.sections, ...input.sections }
   }
 
-  const result = await db.collection('newsletter_templates').findOneAndUpdate(
-    { tenantId },
-    { $set: updateData },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('newsletter_templates')
+    .findOneAndUpdate(
+      { tenantId },
+      { $set: updateData },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as NewsletterTemplate
 }
 
-export async function resetNewsletterTemplate(tenantId: string): Promise<NewsletterTemplate> {
+export async function resetNewsletterTemplate(
+  tenantId: string,
+): Promise<NewsletterTemplate> {
   const db = await getDatabase()
 
   const template: NewsletterTemplate = {
@@ -268,11 +293,9 @@ export async function resetNewsletterTemplate(tenantId: string): Promise<Newslet
     updatedAt: new Date(),
   }
 
-  await db.collection('newsletter_templates').replaceOne(
-    { tenantId },
-    template,
-    { upsert: true }
-  )
+  await db
+    .collection('newsletter_templates')
+    .replaceOne({ tenantId }, template, { upsert: true })
 
   return template
 }

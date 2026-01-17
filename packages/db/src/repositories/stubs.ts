@@ -11,7 +11,7 @@ export async function reserveStock(
   _quantity: number,
   _sessionId: string,
   _expirationMinutes?: number,
-  _variantId?: string
+  _variantId?: string,
 ) {
   // Return truthy to indicate reservation succeeded
   return { id: 'stub', pieceId: _pieceId, quantity: _quantity }
@@ -38,10 +38,15 @@ export async function getTransactionsByOrder(_orderId: string) {
   return []
 }
 
-export async function getTransactionByStripePaymentIntentId(_paymentIntentId: string) {
+export async function getTransactionByStripePaymentIntentId(
+  _paymentIntentId: string,
+) {
   return null
 }
 
-export async function updateTransactionStatus(_transactionId: string, _status: string) {
+export async function updateTransactionStatus(
+  _transactionId: string,
+  _status: string,
+) {
   return null
 }

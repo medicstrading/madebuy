@@ -1,8 +1,16 @@
-import { requireTenant } from '@/lib/session'
 import { orders } from '@madebuy/db'
-import { notFound } from 'next/navigation'
+import {
+  ArrowLeft,
+  CreditCard,
+  FileText,
+  MapPin,
+  Package,
+  Palette,
+  User,
+} from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, Package, MapPin, CreditCard, User, FileText, Palette } from 'lucide-react'
+import { notFound } from 'next/navigation'
+import { requireTenant } from '@/lib/session'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ShippingActions } from './ShippingActions'
 
@@ -10,7 +18,9 @@ interface OrderDetailPageProps {
   params: { id: string }
 }
 
-export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
+export default async function OrderDetailPage({
+  params,
+}: OrderDetailPageProps) {
   const tenant = await requireTenant()
   const order = await orders.getOrder(tenant.id, params.id)
 
@@ -32,7 +42,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{order.orderNumber}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {order.orderNumber}
+            </h1>
             <p className="text-sm text-gray-500 mt-1">
               Placed on {formatDate(order.createdAt)}
             </p>
@@ -55,7 +67,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             </h2>
             <div className="space-y-4">
               {order.items.map((item, index) => (
-                <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0">
+                <div
+                  key={index}
+                  className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0"
+                >
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -68,47 +83,67 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{item.name}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                    <p className="font-medium text-gray-900 truncate">
+                      {item.name}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Qty: {item.quantity}
+                    </p>
                     {item.category && (
                       <p className="text-xs text-gray-400">{item.category}</p>
                     )}
                     {/* Personalization details */}
-                    {item.personalizations && item.personalizations.length > 0 && (
-                      <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-100">
-                        <div className="flex items-center gap-1 text-xs text-blue-700 font-medium mb-1">
-                          <Palette className="h-3 w-3" />
-                          Personalization
+                    {item.personalizations &&
+                      item.personalizations.length > 0 && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-100">
+                          <div className="flex items-center gap-1 text-xs text-blue-700 font-medium mb-1">
+                            <Palette className="h-3 w-3" />
+                            Personalization
+                          </div>
+                          <div className="space-y-0.5">
+                            {item.personalizations.map((p, idx) => (
+                              <div key={idx} className="text-xs text-gray-700">
+                                <span className="font-medium">
+                                  {p.fieldName}:
+                                </span>{' '}
+                                {typeof p.value === 'boolean'
+                                  ? p.value
+                                    ? 'Yes'
+                                    : 'No'
+                                  : String(p.value)}
+                                {p.fileUrl && (
+                                  <a
+                                    href={p.fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-1 text-blue-600 hover:underline"
+                                  >
+                                    (View file)
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {item.personalizationTotal &&
+                            item.personalizationTotal > 0 && (
+                              <p className="mt-1 text-xs text-blue-600">
+                                +
+                                {formatCurrency(
+                                  item.personalizationTotal / 100,
+                                  order.currency,
+                                )}{' '}
+                                personalization
+                              </p>
+                            )}
                         </div>
-                        <div className="space-y-0.5">
-                          {item.personalizations.map((p, idx) => (
-                            <div key={idx} className="text-xs text-gray-700">
-                              <span className="font-medium">{p.fieldName}:</span>{' '}
-                              {typeof p.value === 'boolean' ? (p.value ? 'Yes' : 'No') : String(p.value)}
-                              {p.fileUrl && (
-                                <a
-                                  href={p.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="ml-1 text-blue-600 hover:underline"
-                                >
-                                  (View file)
-                                </a>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        {item.personalizationTotal && item.personalizationTotal > 0 && (
-                          <p className="mt-1 text-xs text-blue-600">
-                            +{formatCurrency(item.personalizationTotal / 100, order.currency)} personalization
-                          </p>
-                        )}
-                      </div>
-                    )}
+                      )}
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-gray-900">
-                      {formatCurrency(item.price * item.quantity, order.currency)}
+                      {formatCurrency(
+                        item.price * item.quantity,
+                        order.currency,
+                      )}
                     </p>
                     {item.quantity > 1 && (
                       <p className="text-xs text-gray-500">
@@ -128,7 +163,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               </div>
               {order.shipping > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping ({order.shippingMethod})</span>
+                  <span className="text-gray-600">
+                    Shipping ({order.shippingMethod})
+                  </span>
                   <span>{formatCurrency(order.shipping, order.currency)}</span>
                 </div>
               )}
@@ -160,26 +197,41 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Ship To</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Ship To
+                </h3>
                 <p className="text-gray-900">{order.customerName}</p>
-                <p className="text-sm text-gray-600">{order.shippingAddress.line1}</p>
+                <p className="text-sm text-gray-600">
+                  {order.shippingAddress.line1}
+                </p>
                 {order.shippingAddress.line2 && (
-                  <p className="text-sm text-gray-600">{order.shippingAddress.line2}</p>
+                  <p className="text-sm text-gray-600">
+                    {order.shippingAddress.line2}
+                  </p>
                 )}
                 <p className="text-sm text-gray-600">
-                  {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postcode}
+                  {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
+                  {order.shippingAddress.postcode}
                 </p>
-                <p className="text-sm text-gray-600">{order.shippingAddress.country}</p>
+                <p className="text-sm text-gray-600">
+                  {order.shippingAddress.country}
+                </p>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Shipping Method</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Shipping Method
+                </h3>
                 <p className="text-gray-900">{order.shippingMethod}</p>
-                <p className="text-sm text-gray-500 capitalize">{order.shippingType}</p>
+                <p className="text-sm text-gray-500 capitalize">
+                  {order.shippingType}
+                </p>
 
                 {order.trackingNumber && (
                   <div className="mt-3">
-                    <h3 className="text-sm font-medium text-gray-500 mb-1">Tracking</h3>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">
+                      Tracking
+                    </h3>
                     <p className="text-gray-900">{order.trackingNumber}</p>
                     {order.trackingUrl && (
                       <a
@@ -220,14 +272,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               </h2>
               {order.customerNotes && (
                 <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Customer Notes</h3>
-                  <p className="text-gray-900 text-sm whitespace-pre-wrap">{order.customerNotes}</p>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">
+                    Customer Notes
+                  </h3>
+                  <p className="text-gray-900 text-sm whitespace-pre-wrap">
+                    {order.customerNotes}
+                  </p>
                 </div>
               )}
               {order.adminNotes && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Admin Notes</h3>
-                  <p className="text-gray-900 text-sm whitespace-pre-wrap">{order.adminNotes}</p>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">
+                    Admin Notes
+                  </h3>
+                  <p className="text-gray-900 text-sm whitespace-pre-wrap">
+                    {order.adminNotes}
+                  </p>
                 </div>
               )}
             </div>
@@ -244,7 +304,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             </h2>
             <div className="space-y-3">
               <div>
-                <p className="font-medium text-gray-900">{order.customerName}</p>
+                <p className="font-medium text-gray-900">
+                  {order.customerName}
+                </p>
                 <a
                   href={`mailto:${order.customerEmail}`}
                   className="text-sm text-blue-600 hover:underline"
@@ -287,27 +349,31 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 </div>
               )}
               {order.fees && (
-                <>
-                  <div className="pt-2 border-t border-gray-100">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Processing Fee</span>
-                      <span>{formatCurrency(order.fees.stripe, order.currency)}</span>
-                    </div>
-                    {order.netAmount && (
-                      <div className="flex justify-between text-sm font-medium mt-1">
-                        <span className="text-gray-900">Net Amount</span>
-                        <span className="text-green-600">{formatCurrency(order.netAmount, order.currency)}</span>
-                      </div>
-                    )}
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Processing Fee</span>
+                    <span>
+                      {formatCurrency(order.fees.stripe, order.currency)}
+                    </span>
                   </div>
-                </>
+                  {order.netAmount && (
+                    <div className="flex justify-between text-sm font-medium mt-1">
+                      <span className="text-gray-900">Net Amount</span>
+                      <span className="text-green-600">
+                        {formatCurrency(order.netAmount, order.currency)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
           {/* Timeline */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Timeline
+            </h2>
             <div className="space-y-3">
               <TimelineItem
                 date={order.createdAt}
@@ -322,11 +388,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 />
               )}
               {order.shippedAt && (
-                <TimelineItem
-                  date={order.shippedAt}
-                  label="Shipped"
-                  active
-                />
+                <TimelineItem date={order.shippedAt} label="Shipped" active />
               )}
               {order.deliveredAt && (
                 <TimelineItem
@@ -355,7 +417,7 @@ function TimelineItem({
   date,
   label,
   active,
-  variant = 'success'
+  variant = 'success',
 }: {
   date: Date
   label: string
@@ -366,7 +428,9 @@ function TimelineItem({
 
   return (
     <div className="flex items-start gap-3">
-      <div className={`mt-1.5 h-2 w-2 rounded-full ${active ? dotColor : 'bg-gray-300'}`} />
+      <div
+        className={`mt-1.5 h-2 w-2 rounded-full ${active ? dotColor : 'bg-gray-300'}`}
+      />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900">{label}</p>
         <p className="text-xs text-gray-500">{formatDate(date)}</p>
@@ -386,7 +450,9 @@ function OrderStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${colors[status as keyof typeof colors] || colors.pending}`}>
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${colors[status as keyof typeof colors] || colors.pending}`}
+    >
       {status}
     </span>
   )
@@ -401,7 +467,9 @@ function PaymentStatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${colors[status as keyof typeof colors] || colors.pending}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${colors[status as keyof typeof colors] || colors.pending}`}
+    >
       {status}
     </span>
   )

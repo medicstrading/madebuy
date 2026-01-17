@@ -4,18 +4,18 @@
  * Handles CRUD operations for per-platform AI caption style profiles.
  */
 
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  CaptionStyleProfile,
   CaptionStyleOptions,
+  CaptionStyleProfile,
+  CreateCaptionStyleInput,
   ExamplePost,
   LearnedExample,
   SocialPlatform,
-  CreateCaptionStyleInput,
   UpdateCaptionStyleInput,
 } from '@madebuy/shared'
 import { PLATFORM_DEFAULT_STYLES } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 const COLLECTION = 'caption_styles'
 
@@ -24,7 +24,7 @@ const COLLECTION = 'caption_styles'
  */
 export async function createCaptionStyleProfile(
   tenantId: string,
-  input: CreateCaptionStyleInput
+  input: CreateCaptionStyleInput,
 ): Promise<CaptionStyleProfile> {
   const db = await getDatabase()
 
@@ -36,12 +36,14 @@ export async function createCaptionStyleProfile(
   }
 
   // Convert example posts to proper format
-  const examplePosts: ExamplePost[] = (input.examplePosts || []).map((content) => ({
-    id: nanoid(),
-    content,
-    addedAt: new Date(),
-    source: 'user' as const,
-  }))
+  const examplePosts: ExamplePost[] = (input.examplePosts || []).map(
+    (content) => ({
+      id: nanoid(),
+      content,
+      addedAt: new Date(),
+      source: 'user' as const,
+    }),
+  )
 
   const profile: CaptionStyleProfile = {
     id: nanoid(),
@@ -64,7 +66,7 @@ export async function createCaptionStyleProfile(
  */
 export async function getCaptionStyleProfile(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<CaptionStyleProfile | null> {
   const db = await getDatabase()
   return (await db.collection(COLLECTION).findOne({
@@ -76,7 +78,9 @@ export async function getCaptionStyleProfile(
 /**
  * Get all style profiles for a tenant
  */
-export async function getAllStyleProfiles(tenantId: string): Promise<CaptionStyleProfile[]> {
+export async function getAllStyleProfiles(
+  tenantId: string,
+): Promise<CaptionStyleProfile[]> {
   const db = await getDatabase()
   return (await db
     .collection(COLLECTION)
@@ -90,7 +94,7 @@ export async function getAllStyleProfiles(tenantId: string): Promise<CaptionStyl
  */
 export async function hasStyleProfile(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<boolean> {
   const db = await getDatabase()
   const count = await db.collection(COLLECTION).countDocuments({
@@ -106,7 +110,7 @@ export async function hasStyleProfile(
 export async function updateCaptionStyleOptions(
   tenantId: string,
   platform: SocialPlatform,
-  updates: UpdateCaptionStyleInput
+  updates: UpdateCaptionStyleInput,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -121,10 +125,9 @@ export async function updateCaptionStyleOptions(
     }
   }
 
-  await db.collection(COLLECTION).updateOne(
-    { tenantId, platform },
-    { $set: updateFields }
-  )
+  await db
+    .collection(COLLECTION)
+    .updateOne({ tenantId, platform }, { $set: updateFields })
 }
 
 /**
@@ -132,7 +135,7 @@ export async function updateCaptionStyleOptions(
  */
 export async function completeOnboarding(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(COLLECTION).updateOne(
@@ -142,7 +145,7 @@ export async function completeOnboarding(
         onboardingComplete: true,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -153,7 +156,7 @@ export async function addExamplePost(
   tenantId: string,
   platform: SocialPlatform,
   content: string,
-  source: 'user' | 'imported' = 'user'
+  source: 'user' | 'imported' = 'user',
 ): Promise<ExamplePost> {
   const db = await getDatabase()
 
@@ -169,7 +172,7 @@ export async function addExamplePost(
     {
       $push: { examplePosts: example } as any,
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 
   return example
@@ -181,7 +184,7 @@ export async function addExamplePost(
 export async function removeExamplePost(
   tenantId: string,
   platform: SocialPlatform,
-  exampleId: string
+  exampleId: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(COLLECTION).updateOne(
@@ -189,7 +192,7 @@ export async function removeExamplePost(
     {
       $pull: { examplePosts: { id: exampleId } } as any,
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 }
 
@@ -198,7 +201,7 @@ export async function removeExamplePost(
  */
 export async function getExamplePosts(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<ExamplePost[]> {
   const profile = await getCaptionStyleProfile(tenantId, platform)
   return profile?.examplePosts || []
@@ -212,7 +215,7 @@ export async function addLearnedExample(
   platform: SocialPlatform,
   content: string,
   publishRecordId: string,
-  metrics?: LearnedExample['metrics']
+  metrics?: LearnedExample['metrics'],
 ): Promise<LearnedExample> {
   const db = await getDatabase()
 
@@ -230,7 +233,7 @@ export async function addLearnedExample(
     {
       $push: { learnedExamples: example } as any,
       $set: { updatedAt: new Date() },
-    }
+    },
   )
 
   return example
@@ -242,7 +245,7 @@ export async function addLearnedExample(
 export async function getLearnedExamples(
   tenantId: string,
   platform: SocialPlatform,
-  limit?: number
+  limit?: number,
 ): Promise<LearnedExample[]> {
   const profile = await getCaptionStyleProfile(tenantId, platform)
   const examples = profile?.learnedExamples || []
@@ -261,7 +264,7 @@ export async function getLearnedExamples(
 export async function isAlreadyLearned(
   tenantId: string,
   platform: SocialPlatform,
-  publishRecordId: string
+  publishRecordId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
   const count = await db.collection(COLLECTION).countDocuments({
@@ -278,7 +281,7 @@ export async function isAlreadyLearned(
 export async function pruneLearnedExamples(
   tenantId: string,
   platform: SocialPlatform,
-  keepCount: number = 10
+  keepCount: number = 10,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -289,7 +292,10 @@ export async function pruneLearnedExamples(
 
   // Keep only the most recent examples
   const toKeep = profile.learnedExamples
-    .sort((a, b) => new Date(b.learnedAt).getTime() - new Date(a.learnedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.learnedAt).getTime() - new Date(a.learnedAt).getTime(),
+    )
     .slice(0, keepCount)
 
   await db.collection(COLLECTION).updateOne(
@@ -299,7 +305,7 @@ export async function pruneLearnedExamples(
         learnedExamples: toKeep,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -308,7 +314,7 @@ export async function pruneLearnedExamples(
  */
 export async function deleteCaptionStyleProfile(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection(COLLECTION).deleteOne({ tenantId, platform })
@@ -319,7 +325,7 @@ export async function deleteCaptionStyleProfile(
  */
 export async function resetToDefaults(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<void> {
   const db = await getDatabase()
   const defaultStyle = PLATFORM_DEFAULT_STYLES[platform]
@@ -331,7 +337,7 @@ export async function resetToDefaults(
         style: defaultStyle,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 }
 
@@ -340,7 +346,7 @@ export async function resetToDefaults(
  */
 export async function getOrCreateStyleProfile(
   tenantId: string,
-  platform: SocialPlatform
+  platform: SocialPlatform,
 ): Promise<CaptionStyleProfile> {
   let profile = await getCaptionStyleProfile(tenantId, platform)
 

@@ -1,13 +1,16 @@
 import * as cheerio from 'cheerio'
-import { fetchHtml, fetchStylesheets, ScannerError } from './fetcher'
 import { extractColors } from './extractors/colors'
-import { extractTypography } from './extractors/typography'
-import { extractLogo, downloadLogo, detectContentType } from './extractors/logo'
+import { detectContentType, downloadLogo, extractLogo } from './extractors/logo'
 import { extractNavigation } from './extractors/navigation'
 import { extractSections } from './extractors/sections'
-import { recommendTemplate, detectsProducts } from './extractors/template-matcher'
-import type { ScanOptions, ScanResult, ExtractedDesign } from './types'
-import { ScanErrorCode, ERROR_MESSAGES } from './types'
+import {
+  detectsProducts,
+  recommendTemplate,
+} from './extractors/template-matcher'
+import { extractTypography } from './extractors/typography'
+import { fetchHtml, fetchStylesheets, ScannerError } from './fetcher'
+import type { ExtractedDesign, ScanOptions, ScanResult } from './types'
+import { ERROR_MESSAGES, ScanErrorCode } from './types'
 
 // These will be dynamically imported to avoid circular deps
 let uploadToR2: typeof import('@madebuy/storage').uploadToR2 | undefined
@@ -42,7 +45,12 @@ export class WebsiteScanner {
    * Main scan entry point
    */
   async scan(options: ScanOptions): Promise<ScanResult> {
-    const { url, tenantId, timeout = 15000, downloadLogo: shouldDownloadLogo = true } = options
+    const {
+      url,
+      tenantId,
+      timeout = 15000,
+      downloadLogo: shouldDownloadLogo = true,
+    } = options
     const limitations: string[] = []
     const errors: string[] = []
 
@@ -64,7 +72,10 @@ export class WebsiteScanner {
 
       // Extract typography
       const typographyResult = extractTypography($, cssContents)
-      if (typographyResult.matchedPreset === 'modern' && typographyResult.confidence < 0.5) {
+      if (
+        typographyResult.matchedPreset === 'modern' &&
+        typographyResult.confidence < 0.5
+      ) {
         limitations.push(ERROR_MESSAGES[ScanErrorCode.NO_FONTS_FOUND])
       }
 
@@ -84,10 +95,12 @@ export class WebsiteScanner {
                 tenantId,
                 downloaded.buffer,
                 logoResult.logoUrl,
-                downloaded.contentType
+                downloaded.contentType,
               )
             } catch (uploadError) {
-              limitations.push(ERROR_MESSAGES[ScanErrorCode.LOGO_DOWNLOAD_FAILED])
+              limitations.push(
+                ERROR_MESSAGES[ScanErrorCode.LOGO_DOWNLOAD_FAILED],
+              )
               console.error('Logo upload failed:', uploadError)
             }
           }
@@ -95,19 +108,25 @@ export class WebsiteScanner {
           limitations.push(ERROR_MESSAGES[ScanErrorCode.LOGO_DOWNLOAD_FAILED])
         }
       } else if (logoResult.source === 'header-svg') {
-        limitations.push('SVG logo detected but cannot be imported. You can upload a PNG/JPG version.')
+        limitations.push(
+          'SVG logo detected but cannot be imported. You can upload a PNG/JPG version.',
+        )
       }
 
       // Extract navigation
       const navigationResult = extractNavigation($, finalUrl)
       if (navigationResult.items.length === 0) {
-        limitations.push('Could not detect navigation menu. You can add pages manually.')
+        limitations.push(
+          'Could not detect navigation menu. You can add pages manually.',
+        )
       }
 
       // Extract sections
       const sectionsResult = extractSections($)
       if (sectionsResult.length === 0) {
-        limitations.push('Could not detect page sections. Using default layout.')
+        limitations.push(
+          'Could not detect page sections. Using default layout.',
+        )
       }
 
       // Get template recommendation
@@ -125,7 +144,7 @@ export class WebsiteScanner {
           headingFont: typographyResult.headingFont,
           bodyFont: typographyResult.bodyFont,
           matchedPreset: typographyResult.matchedPreset,
-          detectedFonts: typographyResult.detectedFonts.map(f => f.name),
+          detectedFonts: typographyResult.detectedFonts.map((f) => f.name),
           confidence: typographyResult.confidence,
         },
         logo: logoResult.logoUrl
@@ -177,7 +196,7 @@ export class WebsiteScanner {
     tenantId: string,
     buffer: Buffer,
     sourceUrl: string,
-    contentType: string
+    contentType: string,
   ): Promise<string> {
     // Determine extension from content type
     const extMap: Record<string, string> = {

@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import type { MediaItem } from '@madebuy/shared'
 import {
   ChevronLeft,
   ChevronRight,
-  X,
-  Play,
+  Maximize2,
   Pause,
-  ZoomIn,
-  ZoomOut,
+  Play,
   Volume2,
   VolumeX,
-  Maximize2,
+  X,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react'
-import type { MediaItem } from '@madebuy/shared'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 // ============================================================================
 // Types
@@ -37,7 +37,10 @@ interface LightboxProps {
 // Helper Functions
 // ============================================================================
 
-function getMediaUrl(item: MediaItem, size: 'thumb' | 'large' | 'original' = 'large'): string {
+function getMediaUrl(
+  item: MediaItem,
+  size: 'thumb' | 'large' | 'original' = 'large',
+): string {
   return item.variants[size]?.url || item.variants.original?.url || ''
 }
 
@@ -103,7 +106,7 @@ function Lightbox({
       const y = ((e.clientY - rect.top) / rect.height) * 100
       setZoomPosition({ x, y })
     },
-    [isZoomed, isVideo]
+    [isZoomed, isVideo],
   )
 
   // Toggle video play/pause
@@ -135,6 +138,13 @@ function Lightbox({
     <div
       className="fixed inset-0 z-50 bg-black/95"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
       {/* Close Button */}
       <button
@@ -176,7 +186,9 @@ function Lightbox({
       <div
         className="absolute inset-0 flex items-center justify-center p-4 sm:p-8"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
         onMouseMove={handleMouseMove}
+        role="presentation"
       >
         {isVideo ? (
           <div className="relative max-w-4xl w-full">
@@ -313,8 +325,9 @@ export function ProductGallery({
 
   // Sort media by displayOrder
   const sortedMedia = useMemo(
-    () => [...media].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
-    [media]
+    () =>
+      [...media].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+    [media],
   )
 
   const currentItem = sortedMedia[currentIndex]
@@ -367,7 +380,7 @@ export function ProductGallery({
   // Preload adjacent images
   useEffect(() => {
     const preloadIndexes = [currentIndex - 1, currentIndex + 1].filter(
-      (i) => i >= 0 && i < sortedMedia.length
+      (i) => i >= 0 && i < sortedMedia.length,
     )
 
     preloadIndexes.forEach((index) => {
@@ -381,7 +394,9 @@ export function ProductGallery({
 
   if (sortedMedia.length === 0) {
     return (
-      <div className={`aspect-square bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
+      <div
+        className={`aspect-square bg-gray-100 rounded-lg flex items-center justify-center ${className}`}
+      >
         <span className="text-gray-400">No images</span>
       </div>
     )
@@ -404,7 +419,10 @@ export function ProductGallery({
             {/* Video Poster/Thumbnail */}
             {!isVideoHovered && (
               <img
-                src={currentItem.video?.thumbnailUrl || getThumbnailUrl(currentItem)}
+                src={
+                  currentItem.video?.thumbnailUrl ||
+                  getThumbnailUrl(currentItem)
+                }
                 alt={productName}
                 className="w-full h-full object-cover"
               />
@@ -425,9 +443,11 @@ export function ProductGallery({
 
             {/* Play Icon Overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className={`w-16 h-16 rounded-full bg-black/50 flex items-center justify-center transition-opacity ${
-                isVideoHovered ? 'opacity-0' : 'opacity-100'
-              }`}>
+              <div
+                className={`w-16 h-16 rounded-full bg-black/50 flex items-center justify-center transition-opacity ${
+                  isVideoHovered ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
                 <Play className="h-8 w-8 text-white ml-1" />
               </div>
             </div>

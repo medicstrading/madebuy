@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
-import { getTenantBySlug } from '@/lib/tenant'
 import { getPieceBySlug, populatePieceWithMedia } from '@/lib/pieces'
+import { getTenantBySlug } from '@/lib/tenant'
 
 // Use Node.js runtime for MongoDB access
 export const runtime = 'nodejs'
@@ -11,7 +11,11 @@ export const size = {
 }
 export const contentType = 'image/png'
 
-export default async function Image({ params }: { params: { tenant: string; slug: string } }) {
+export default async function Image({
+  params,
+}: {
+  params: { tenant: string; slug: string }
+}) {
   // Fetch tenant
   const tenant = await getTenantBySlug(params.tenant)
   if (!tenant) {
@@ -29,186 +33,194 @@ export default async function Image({ params }: { params: { tenant: string; slug
   const currency = piece.currency || 'AUD'
 
   // Get product image URL
-  const imageUrl = piece.primaryImage?.variants?.large?.url ||
-    piece.primaryImage?.variants?.original?.url || null
+  const imageUrl =
+    piece.primaryImage?.variants?.large?.url ||
+    piece.primaryImage?.variants?.original?.url ||
+    null
 
-  const price = piece.price ? `$${piece.price.toLocaleString()} ${currency}` : ''
+  const price = piece.price
+    ? `$${piece.price.toLocaleString()} ${currency}`
+    : ''
   const materials = piece.materials?.slice(0, 3).join(', ') || ''
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        background:
+          'linear-gradient(135deg, #FFFBF7 0%, #FEF3E2 50%, #FDE8D0 100%)',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      {/* Product image section */}
       <div
         style={{
+          width: '50%',
           height: '100%',
-          width: '100%',
           display: 'flex',
-          background: 'linear-gradient(135deg, #FFFBF7 0%, #FEF3E2 50%, #FDE8D0 100%)',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 40,
         }}
       >
-        {/* Product image section */}
-        <div
-          style={{
-            width: '50%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 40,
-          }}
-        >
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={piece.name}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: 16,
-                boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-                borderRadius: 16,
-                fontSize: 120,
-                color: '#F59E0B',
-              }}
-            >
-              {piece.name.charAt(0)}
-            </div>
-          )}
-        </div>
-
-        {/* Product info section */}
-        <div
-          style={{
-            width: '50%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '40px 40px 40px 20px',
-          }}
-        >
-          {/* Brand/Seller */}
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={piece.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: 16,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+            }}
+          />
+        ) : (
           <div
             style={{
-              fontSize: 18,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+              borderRadius: 16,
+              fontSize: 120,
               color: '#F59E0B',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
+            }}
+          >
+            {piece.name.charAt(0)}
+          </div>
+        )}
+      </div>
+
+      {/* Product info section */}
+      <div
+        style={{
+          width: '50%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '40px 40px 40px 20px',
+        }}
+      >
+        {/* Brand/Seller */}
+        <div
+          style={{
+            fontSize: 18,
+            color: '#F59E0B',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            marginBottom: 16,
+            fontWeight: 600,
+          }}
+        >
+          {businessName}
+        </div>
+
+        {/* Product name */}
+        <div
+          style={{
+            fontSize: 42,
+            fontWeight: 700,
+            color: '#1F2937',
+            marginBottom: 16,
+            lineHeight: 1.2,
+          }}
+        >
+          {piece.name.length > 50
+            ? `${piece.name.slice(0, 47)}...`
+            : piece.name}
+        </div>
+
+        {/* Decorative line */}
+        <div
+          style={{
+            width: 80,
+            height: 4,
+            background: 'linear-gradient(90deg, #F59E0B, #FB923C)',
+            borderRadius: 2,
+            marginBottom: 20,
+          }}
+        />
+
+        {/* Materials */}
+        {materials && (
+          <div
+            style={{
+              fontSize: 20,
+              color: '#6B7280',
               marginBottom: 16,
+            }}
+          >
+            {materials}
+          </div>
+        )}
+
+        {/* Price */}
+        {price && (
+          <div
+            style={{
+              fontSize: 36,
+              color: '#1F2937',
+              fontWeight: 700,
+            }}
+          >
+            {price}
+          </div>
+        )}
+
+        {/* Out of stock badge */}
+        {piece.stock !== undefined && piece.stock <= 0 && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: '8px 16px',
+              background: '#FEE2E2',
+              color: '#DC2626',
+              fontSize: 14,
+              borderRadius: 8,
+              display: 'flex',
+              width: 'fit-content',
               fontWeight: 600,
             }}
           >
-            {businessName}
+            Out of Stock
           </div>
-
-          {/* Product name */}
-          <div
-            style={{
-              fontSize: 42,
-              fontWeight: 700,
-              color: '#1F2937',
-              marginBottom: 16,
-              lineHeight: 1.2,
-            }}
-          >
-            {piece.name.length > 50 ? piece.name.slice(0, 47) + '...' : piece.name}
-          </div>
-
-          {/* Decorative line */}
-          <div
-            style={{
-              width: 80,
-              height: 4,
-              background: 'linear-gradient(90deg, #F59E0B, #FB923C)',
-              borderRadius: 2,
-              marginBottom: 20,
-            }}
-          />
-
-          {/* Materials */}
-          {materials && (
-            <div
-              style={{
-                fontSize: 20,
-                color: '#6B7280',
-                marginBottom: 16,
-              }}
-            >
-              {materials}
-            </div>
-          )}
-
-          {/* Price */}
-          {price && (
-            <div
-              style={{
-                fontSize: 36,
-                color: '#1F2937',
-                fontWeight: 700,
-              }}
-            >
-              {price}
-            </div>
-          )}
-
-          {/* Out of stock badge */}
-          {piece.stock !== undefined && piece.stock <= 0 && (
-            <div
-              style={{
-                marginTop: 20,
-                padding: '8px 16px',
-                background: '#FEE2E2',
-                color: '#DC2626',
-                fontSize: 14,
-                borderRadius: 8,
-                display: 'flex',
-                width: 'fit-content',
-                fontWeight: 600,
-              }}
-            >
-              Out of Stock
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    ),
-    { ...size }
+    </div>,
+    { ...size },
   )
 }
 
 function fallbackImage(message: string, subtitle?: string) {
   return new ImageResponse(
-    (
-      <div
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #FFFBF7 0%, #FEF3E2 50%, #FDE8D0 100%)',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-        }}
-      >
-        <div style={{ fontSize: 48, color: '#1F2937', fontWeight: 600 }}>{message}</div>
-        {subtitle && (
-          <div style={{ fontSize: 24, color: '#6B7280', marginTop: 16 }}>{subtitle}</div>
-        )}
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background:
+          'linear-gradient(135deg, #FFFBF7 0%, #FEF3E2 50%, #FDE8D0 100%)',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      <div style={{ fontSize: 48, color: '#1F2937', fontWeight: 600 }}>
+        {message}
       </div>
-    ),
-    { ...size }
+      {subtitle && (
+        <div style={{ fontSize: 24, color: '#6B7280', marginTop: 16 }}>
+          {subtitle}
+        </div>
+      )}
+    </div>,
+    { ...size },
   )
 }

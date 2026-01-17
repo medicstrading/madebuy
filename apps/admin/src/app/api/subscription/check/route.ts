@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { checkCanAddPiece, checkCanAddMedia, checkFeatureAccess } from '@/lib/subscription-check'
 import type { TenantFeatures } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
+import {
+  checkCanAddMedia,
+  checkCanAddPiece,
+  checkFeatureAccess,
+} from '@/lib/subscription-check'
 
 /**
  * POST /api/subscription/check
@@ -37,15 +41,18 @@ export async function POST(request: NextRequest) {
         if (typeof params?.currentMediaCount !== 'number') {
           return NextResponse.json(
             { error: 'Missing currentMediaCount parameter' },
-            { status: 400 }
+            { status: 400 },
           )
         }
         result = checkCanAddMedia(tenant, params.currentMediaCount)
         break
 
-      case 'feature':
+      case 'feature': {
         if (!params?.feature) {
-          return NextResponse.json({ error: 'Missing feature parameter' }, { status: 400 })
+          return NextResponse.json(
+            { error: 'Missing feature parameter' },
+            { status: 400 },
+          )
         }
         const validFeatures: (keyof TenantFeatures)[] = [
           'socialPublishing',
@@ -54,10 +61,14 @@ export async function POST(request: NextRequest) {
           'customDomain',
         ]
         if (!validFeatures.includes(params.feature)) {
-          return NextResponse.json({ error: 'Invalid feature' }, { status: 400 })
+          return NextResponse.json(
+            { error: 'Invalid feature' },
+            { status: 400 },
+          )
         }
         result = checkFeatureAccess(tenant, params.feature)
         break
+      }
 
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
@@ -68,7 +79,7 @@ export async function POST(request: NextRequest) {
     console.error('Subscription check error:', error)
     return NextResponse.json(
       { error: 'Failed to check subscription' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

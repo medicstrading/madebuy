@@ -17,7 +17,10 @@ export function sanitizeHtml(html: string | undefined | null): string {
   let cleaned = html
 
   // Remove script tags and their content
-  cleaned = cleaned.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  cleaned = cleaned.replace(
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    '',
+  )
 
   // Remove on* event handlers
   cleaned = cleaned.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')

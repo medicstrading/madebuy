@@ -1,18 +1,20 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  Dispute,
   CreateDisputeInput,
-  UpdateDisputeInput,
+  Dispute,
   DisputeFilters,
   DisputeListOptions,
   DisputeStats,
+  UpdateDisputeInput,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 /**
  * Create a new dispute record
  */
-export async function createDispute(data: CreateDisputeInput): Promise<Dispute> {
+export async function createDispute(
+  data: CreateDisputeInput,
+): Promise<Dispute> {
   const db = await getDatabase()
 
   const dispute: Dispute = {
@@ -39,10 +41,12 @@ export async function createDispute(data: CreateDisputeInput): Promise<Dispute> 
  */
 export async function getDispute(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Dispute | null> {
   const db = await getDatabase()
-  return await db.collection('disputes').findOne({ tenantId, id }) as Dispute | null
+  return (await db
+    .collection('disputes')
+    .findOne({ tenantId, id })) as Dispute | null
 }
 
 /**
@@ -58,10 +62,12 @@ export async function getDispute(
  * @internal Used by Stripe webhook handlers only
  */
 export async function getDisputeByStripeId(
-  stripeDisputeId: string
+  stripeDisputeId: string,
 ): Promise<Dispute | null> {
   const db = await getDatabase()
-  return await db.collection('disputes').findOne({ stripeDisputeId }) as Dispute | null
+  return (await db
+    .collection('disputes')
+    .findOne({ stripeDisputeId })) as Dispute | null
 }
 
 /**
@@ -70,10 +76,12 @@ export async function getDisputeByStripeId(
  */
 export async function getDisputeByStripeIdForTenant(
   tenantId: string,
-  stripeDisputeId: string
+  stripeDisputeId: string,
 ): Promise<Dispute | null> {
   const db = await getDatabase()
-  return await db.collection('disputes').findOne({ tenantId, stripeDisputeId }) as Dispute | null
+  return (await db
+    .collection('disputes')
+    .findOne({ tenantId, stripeDisputeId })) as Dispute | null
 }
 
 /**
@@ -81,7 +89,7 @@ export async function getDisputeByStripeIdForTenant(
  */
 export async function updateDispute(
   stripeDisputeId: string,
-  updates: UpdateDisputeInput
+  updates: UpdateDisputeInput,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -101,10 +109,9 @@ export async function updateDispute(
     updateData.resolvedAt = updates.resolvedAt
   }
 
-  await db.collection('disputes').updateOne(
-    { stripeDisputeId },
-    { $set: updateData }
-  )
+  await db
+    .collection('disputes')
+    .updateOne({ stripeDisputeId }, { $set: updateData })
 }
 
 /**
@@ -112,7 +119,7 @@ export async function updateDispute(
  */
 export async function listDisputes(
   tenantId: string,
-  options?: DisputeListOptions
+  options?: DisputeListOptions,
 ): Promise<Dispute[]> {
   const db = await getDatabase()
 
@@ -135,7 +142,8 @@ export async function listDisputes(
   const sortField = options?.sortBy || 'createdAt'
   const sortOrder = options?.sortOrder === 'asc' ? 1 : -1
 
-  let cursor = db.collection('disputes')
+  let cursor = db
+    .collection('disputes')
     .find(query)
     .sort({ [sortField]: sortOrder })
 
@@ -154,14 +162,16 @@ export async function listDisputes(
  */
 export async function countDisputes(
   tenantId: string,
-  filters?: DisputeFilters
+  filters?: DisputeFilters,
 ): Promise<number> {
   const db = await getDatabase()
 
   const query: any = { tenantId }
 
   if (filters?.status) {
-    query.status = Array.isArray(filters.status) ? { $in: filters.status } : filters.status
+    query.status = Array.isArray(filters.status)
+      ? { $in: filters.status }
+      : filters.status
   }
 
   return await db.collection('disputes').countDocuments(query)
@@ -171,54 +181,69 @@ export async function countDisputes(
  * Get dispute statistics for a tenant
  * @param defaultCurrency - Default currency to use if no disputes exist (P2 fix: no longer hardcoded)
  */
-export async function getDisputeStats(tenantId: string, defaultCurrency: string = 'AUD'): Promise<DisputeStats> {
+export async function getDisputeStats(
+  tenantId: string,
+  defaultCurrency: string = 'AUD',
+): Promise<DisputeStats> {
   const db = await getDatabase()
 
   // Aggregate by status and also find the most common currency
-  const result = await db.collection('disputes').aggregate([
-    { $match: { tenantId } },
-    {
-      $facet: {
-        byStatus: [
-          {
-            $group: {
-              _id: '$status',
-              total: { $sum: '$amount' },
-              count: { $sum: 1 },
-            }
-          }
-        ],
-        currencyInfo: [
-          {
-            $group: {
-              _id: '$currency',
-              count: { $sum: 1 }
-            }
-          },
-          { $sort: { count: -1 } },
-          { $limit: 1 }
-        ]
-      }
-    }
-  ]).toArray()
+  const result = await db
+    .collection('disputes')
+    .aggregate([
+      { $match: { tenantId } },
+      {
+        $facet: {
+          byStatus: [
+            {
+              $group: {
+                _id: '$status',
+                total: { $sum: '$amount' },
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          currencyInfo: [
+            {
+              $group: {
+                _id: '$currency',
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { count: -1 } },
+            { $limit: 1 },
+          ],
+        },
+      },
+    ])
+    .toArray()
 
   const statusResults = result[0]?.byStatus || []
   const currencyResult = result[0]?.currencyInfo?.[0]
   const currency = currencyResult?._id || defaultCurrency
 
   const statusMap = new Map<string, { total: number; count: number }>(
-    statusResults.map((r: any) => [r._id, { total: r.total, count: r.count }])
+    statusResults.map((r: any) => [r._id, { total: r.total, count: r.count }]),
   )
 
-  const needsResponse = statusMap.get('needs_response') || { total: 0, count: 0 }
+  const needsResponse = statusMap.get('needs_response') || {
+    total: 0,
+    count: 0,
+  }
   const underReview = statusMap.get('under_review') || { total: 0, count: 0 }
   const won = statusMap.get('won') || { total: 0, count: 0 }
   const lost = statusMap.get('lost') || { total: 0, count: 0 }
   // const chargeRefunded = statusMap.get('charge_refunded') || { total: 0, count: 0 }
   // const warningClosed = statusMap.get('warning_closed') || { total: 0, count: 0 }
 
-  const totalCount = statusResults.reduce((sum: number, r: any) => sum + r.count, 0)
-  const totalAmount = statusResults.reduce((sum: number, r: any) => sum + r.total, 0)
+  const totalCount = statusResults.reduce(
+    (sum: number, r: any) => sum + r.count,
+    0,
+  )
+  const totalAmount = statusResults.reduce(
+    (sum: number, r: any) => sum + r.total,
+    0,
+  )
 
   return {
     needsResponse: needsResponse.count,
@@ -234,10 +259,13 @@ export async function getDisputeStats(tenantId: string, defaultCurrency: string 
 /**
  * Get disputes that need response (urgent)
  */
-export async function getDisputesNeedingResponse(tenantId: string): Promise<Dispute[]> {
+export async function getDisputesNeedingResponse(
+  tenantId: string,
+): Promise<Dispute[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('disputes')
+  const results = await db
+    .collection('disputes')
     .find({
       tenantId,
       status: 'needs_response',
@@ -253,11 +281,12 @@ export async function getDisputesNeedingResponse(tenantId: string): Promise<Disp
  */
 export async function getRecentDisputes(
   tenantId: string,
-  limit = 5
+  limit = 5,
 ): Promise<Dispute[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('disputes')
+  const results = await db
+    .collection('disputes')
     .find({ tenantId })
     .sort({ createdAt: -1 })
     .limit(limit)

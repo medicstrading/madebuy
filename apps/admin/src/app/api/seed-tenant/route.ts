@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { getDatabase } from '@madebuy/db'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
-import { getDatabase } from '@madebuy/db'
+import { NextResponse } from 'next/server'
 
 // One-time seed endpoint - DELETE AFTER USE
 // Protected by SEED_SECRET environment variable
@@ -25,14 +25,16 @@ export async function GET(request: Request) {
     const tenantsCollection = db.collection('tenants')
 
     // Check if tenant already exists
-    const existing = await tenantsCollection.findOne({ email: 'admin@test.com' })
+    const existing = await tenantsCollection.findOne({
+      email: 'admin@test.com',
+    })
 
     if (existing) {
       // Update password hash in case it's wrong
       const passwordHash = await bcrypt.hash('admin123', 10)
       await tenantsCollection.updateOne(
         { email: 'admin@test.com' },
-        { $set: { passwordHash, updatedAt: new Date() } }
+        { $set: { passwordHash, updatedAt: new Date() } },
       )
 
       return NextResponse.json({
@@ -41,7 +43,7 @@ export async function GET(request: Request) {
           id: existing.id,
           email: existing.email,
           businessName: existing.businessName,
-        }
+        },
       })
     }
 
@@ -81,7 +83,7 @@ export async function GET(request: Request) {
         id: tenantId,
         email: 'admin@test.com',
         businessName: 'Test Shop',
-      }
+      },
     })
   } catch (error: any) {
     console.error('Seed error:', error)

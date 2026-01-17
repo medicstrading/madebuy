@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
+import crypto from 'node:crypto'
 import { marketplace } from '@madebuy/db'
 import { nanoid } from 'nanoid'
-import crypto from 'crypto'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * Etsy OAuth Configuration
@@ -58,19 +58,19 @@ export async function GET(request: NextRequest) {
     if (!ETSY_CLIENT_ID || !ETSY_REDIRECT_URI) {
       return NextResponse.json(
         { error: 'Etsy integration not configured. Coming soon!' },
-        { status: 503 }
+        { status: 503 },
       )
     }
 
     // Check if already connected
     const existingConnection = await marketplace.getConnectionByMarketplace(
       tenant.id,
-      'etsy'
+      'etsy',
     )
     if (existingConnection && existingConnection.status === 'connected') {
       return NextResponse.json(
         { error: 'Already connected to Etsy' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -81,7 +81,8 @@ export async function GET(request: NextRequest) {
     const nonce = nanoid(32)
 
     // Get return URL from query params
-    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
+    const returnUrl =
+      request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
 
     // Store OAuth state with code verifier securely in database
     // SECURITY: Code verifier is stored in DB, NOT in URL state parameter
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
     console.error('Error initiating Etsy OAuth:', error)
     return NextResponse.json(
       { error: 'Failed to initiate Etsy connection' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

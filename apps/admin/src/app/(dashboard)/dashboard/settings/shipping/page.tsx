@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import {
-  Loader2,
-  Truck,
-  CheckCircle2,
   AlertCircle,
+  CheckCircle2,
   Eye,
   EyeOff,
-  TestTube,
+  Gift,
+  Loader2,
   Save,
   Settings,
-  Gift,
+  TestTube,
+  Truck,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface BusinessAddress {
   addressLine1: string
@@ -45,7 +45,9 @@ export default function ShippingSettingsPage() {
   // Form state
   const [apiKey, setApiKey] = useState('')
   const [senderId, setSenderId] = useState('')
-  const [environment, setEnvironment] = useState<'sandbox' | 'production'>('sandbox')
+  const [environment, setEnvironment] = useState<'sandbox' | 'production'>(
+    'sandbox',
+  )
 
   // Pickup address state
   const [addressLine1, setAddressLine1] = useState('')
@@ -128,7 +130,7 @@ export default function ShippingSettingsPage() {
         const data = await response.json()
         setError(data.error || 'Failed to save credentials')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to save credentials')
     } finally {
       setIsSaving(false)
@@ -155,9 +157,19 @@ export default function ShippingSettingsPage() {
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
-          setSuccess('Connection successful! Your Sendle credentials are valid.')
+          setSuccess(
+            'Connection successful! Your Sendle credentials are valid.',
+          )
           // Update the settings to show connected status
-          setSettings(prev => prev ? { ...prev, isConnected: true, connectedAt: new Date().toISOString() } : null)
+          setSettings((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  isConnected: true,
+                  connectedAt: new Date().toISOString(),
+                }
+              : null,
+          )
         } else {
           setError(data.message || 'Connection test failed')
         }
@@ -165,7 +177,7 @@ export default function ShippingSettingsPage() {
         const data = await response.json()
         setError(data.error || 'Connection test failed')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to test connection')
     } finally {
       setIsTesting(false)
@@ -180,9 +192,10 @@ export default function ShippingSettingsPage() {
 
     try {
       // Convert dollars to cents, or null if disabled
-      const thresholdCents = freeShippingEnabled && freeShippingAmount
-        ? Math.round(parseFloat(freeShippingAmount) * 100)
-        : null
+      const thresholdCents =
+        freeShippingEnabled && freeShippingAmount
+          ? Math.round(parseFloat(freeShippingAmount) * 100)
+          : null
 
       const response = await fetch('/api/shipping/sendle', {
         method: 'POST',
@@ -194,14 +207,18 @@ export default function ShippingSettingsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setSettings(prev => prev ? { ...prev, freeShippingThreshold: data.freeShippingThreshold } : null)
+        setSettings((prev) =>
+          prev
+            ? { ...prev, freeShippingThreshold: data.freeShippingThreshold }
+            : null,
+        )
         setSuccess('Free shipping threshold saved successfully.')
         setTimeout(() => setSuccess(null), 3000)
       } else {
         const data = await response.json()
         setError(data.error || 'Failed to save free shipping settings')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to save free shipping settings')
     } finally {
       setIsSavingFreeShipping(false)
@@ -222,7 +239,8 @@ export default function ShippingSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Shipping Settings</h1>
         <p className="mt-1 text-gray-500">
-          Configure Sendle integration for real-time shipping quotes and label generation
+          Configure Sendle integration for real-time shipping quotes and label
+          generation
         </p>
       </div>
 
@@ -255,7 +273,9 @@ export default function ShippingSettingsPage() {
                 <Truck className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Sendle API</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Sendle API
+                </h2>
                 <p className="text-sm text-gray-500">
                   Connect your Sendle account for shipping
                 </p>
@@ -278,6 +298,7 @@ export default function ShippingSettingsPage() {
             </label>
             <div className="flex rounded-lg border border-gray-200 overflow-hidden w-fit">
               <button
+                type="button"
                 onClick={() => setEnvironment('sandbox')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   environment === 'sandbox'
@@ -288,6 +309,7 @@ export default function ShippingSettingsPage() {
                 Sandbox (Testing)
               </button>
               <button
+                type="button"
                 onClick={() => setEnvironment('production')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   environment === 'production'
@@ -307,7 +329,10 @@ export default function ShippingSettingsPage() {
 
           {/* Sender ID */}
           <div>
-            <label htmlFor="senderId" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="senderId"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Sender ID
             </label>
             <input
@@ -325,7 +350,10 @@ export default function ShippingSettingsPage() {
 
           {/* API Key */}
           <div>
-            <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="apiKey"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               API Key
             </label>
             <div className="relative">
@@ -339,10 +367,15 @@ export default function ShippingSettingsPage() {
               />
               <button
                 type="button"
+                type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
               >
-                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showApiKey ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             <p className="mt-1.5 text-xs text-gray-500">
@@ -355,15 +388,21 @@ export default function ShippingSettingsPage() {
 
           {/* Pickup Address Section */}
           <div>
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Pickup Address</h3>
+            <h3 className="text-base font-semibold text-gray-900 mb-4">
+              Pickup Address
+            </h3>
             <p className="text-sm text-gray-500 mb-4">
-              This address will be used as the shipping origin for all quotes and labels.
+              This address will be used as the shipping origin for all quotes
+              and labels.
             </p>
 
             <div className="space-y-4">
               {/* Address Line 1 */}
               <div>
-                <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="addressLine1"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Street Address
                 </label>
                 <input
@@ -378,7 +417,10 @@ export default function ShippingSettingsPage() {
 
               {/* Address Line 2 */}
               <div>
-                <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="addressLine2"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Unit/Suite (optional)
                 </label>
                 <input
@@ -394,7 +436,10 @@ export default function ShippingSettingsPage() {
               {/* Suburb, State, Postcode row */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label htmlFor="suburb" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="suburb"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Suburb
                   </label>
                   <input
@@ -407,7 +452,10 @@ export default function ShippingSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="state"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     State
                   </label>
                   <select
@@ -428,7 +476,10 @@ export default function ShippingSettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="postcode" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="postcode"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Postcode
                   </label>
                   <input
@@ -457,6 +508,7 @@ export default function ShippingSettingsPage() {
           {/* Actions */}
           <div className="flex flex-wrap gap-3 pt-2">
             <button
+              type="button"
               onClick={handleTestConnection}
               disabled={isTesting || !apiKey || !senderId}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -470,6 +522,7 @@ export default function ShippingSettingsPage() {
             </button>
 
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving || !apiKey || !senderId}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -493,7 +546,9 @@ export default function ShippingSettingsPage() {
               <Gift className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Free Shipping Threshold</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Free Shipping Threshold
+              </h2>
               <p className="text-sm text-gray-500">
                 Offer free shipping for orders above a certain amount
               </p>
@@ -505,14 +560,19 @@ export default function ShippingSettingsPage() {
           {/* Enable/Disable Toggle */}
           <div className="flex items-center justify-between">
             <div>
-              <label htmlFor="freeShippingEnabled" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="freeShippingEnabled"
+                className="text-sm font-medium text-gray-700"
+              >
                 Enable free shipping threshold
               </label>
               <p className="text-sm text-gray-500">
-                Customers will get free shipping when their order exceeds this amount
+                Customers will get free shipping when their order exceeds this
+                amount
               </p>
             </div>
             <button
+              type="button"
               type="button"
               role="switch"
               aria-checked={freeShippingEnabled}
@@ -532,7 +592,10 @@ export default function ShippingSettingsPage() {
           {/* Threshold Amount */}
           {freeShippingEnabled && (
             <div>
-              <label htmlFor="freeShippingAmount" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="freeShippingAmount"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Minimum order amount for free shipping
               </label>
               <div className="relative mt-1 rounded-lg shadow-sm">
@@ -554,36 +617,47 @@ export default function ShippingSettingsPage() {
                 </div>
               </div>
               <p className="mt-1.5 text-xs text-gray-500">
-                Orders of ${freeShippingAmount || '0'} or more will qualify for free shipping
+                Orders of ${freeShippingAmount || '0'} or more will qualify for
+                free shipping
               </p>
             </div>
           )}
 
           {/* Preview */}
-          {freeShippingEnabled && freeShippingAmount && parseFloat(freeShippingAmount) > 0 && (
-            <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-green-800">
-                    Preview: How customers will see this
-                  </p>
-                  <p className="mt-1 text-sm text-green-700">
-                    Cart message: &quot;Add ${(parseFloat(freeShippingAmount) - 50).toFixed(2)} more for free shipping!&quot;
-                  </p>
-                  <p className="text-sm text-green-700">
-                    Checkout: Orders over ${parseFloat(freeShippingAmount).toFixed(2)} will show &quot;Free Shipping&quot; as an option
-                  </p>
+          {freeShippingEnabled &&
+            freeShippingAmount &&
+            parseFloat(freeShippingAmount) > 0 && (
+              <div className="rounded-lg bg-green-50 border border-green-200 p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">
+                      Preview: How customers will see this
+                    </p>
+                    <p className="mt-1 text-sm text-green-700">
+                      Cart message: &quot;Add $
+                      {(parseFloat(freeShippingAmount) - 50).toFixed(2)} more
+                      for free shipping!&quot;
+                    </p>
+                    <p className="text-sm text-green-700">
+                      Checkout: Orders over $
+                      {parseFloat(freeShippingAmount).toFixed(2)} will show
+                      &quot;Free Shipping&quot; as an option
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Save Button */}
           <div className="pt-2">
             <button
+              type="button"
               onClick={handleSaveFreeShipping}
-              disabled={isSavingFreeShipping || (freeShippingEnabled && !freeShippingAmount)}
+              disabled={
+                isSavingFreeShipping ||
+                (freeShippingEnabled && !freeShippingAmount)
+              }
               className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSavingFreeShipping ? (
@@ -605,7 +679,9 @@ export default function ShippingSettingsPage() {
               <Settings className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Getting Started with Sendle</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Getting Started with Sendle
+              </h2>
               <p className="text-sm text-gray-500">
                 How to set up your Sendle account
               </p>
@@ -627,8 +703,8 @@ export default function ShippingSettingsPage() {
                   className="text-blue-600 hover:underline font-medium"
                 >
                   Create a Sendle account
-                </a>
-                {' '}if you don&apos;t have one already.
+                </a>{' '}
+                if you don&apos;t have one already.
               </span>
             </li>
             <li className="flex gap-3">
@@ -636,7 +712,8 @@ export default function ShippingSettingsPage() {
                 2
               </span>
               <span>
-                Go to <strong>Settings &rarr; API Keys</strong> in your Sendle dashboard.
+                Go to <strong>Settings &rarr; API Keys</strong> in your Sendle
+                dashboard.
               </span>
             </li>
             <li className="flex gap-3">
@@ -644,7 +721,8 @@ export default function ShippingSettingsPage() {
                 3
               </span>
               <span>
-                Copy your <strong>Sender ID</strong> and <strong>API Key</strong>.
+                Copy your <strong>Sender ID</strong> and{' '}
+                <strong>API Key</strong>.
               </span>
             </li>
             <li className="flex gap-3">
@@ -652,7 +730,8 @@ export default function ShippingSettingsPage() {
                 4
               </span>
               <span>
-                Paste them above and click &quot;Test Connection&quot; to verify.
+                Paste them above and click &quot;Test Connection&quot; to
+                verify.
               </span>
             </li>
           </ol>
@@ -661,10 +740,17 @@ export default function ShippingSettingsPage() {
 
       {/* Info */}
       <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-        <h3 className="mb-2 text-sm font-semibold text-blue-900">About Sendle</h3>
+        <h3 className="mb-2 text-sm font-semibold text-blue-900">
+          About Sendle
+        </h3>
         <ul className="space-y-1 text-sm text-blue-800">
-          <li>&bull; Sendle offers competitive rates for Australian domestic shipping</li>
-          <li>&bull; Real-time quotes are shown to customers during checkout</li>
+          <li>
+            &bull; Sendle offers competitive rates for Australian domestic
+            shipping
+          </li>
+          <li>
+            &bull; Real-time quotes are shown to customers during checkout
+          </li>
           <li>&bull; Labels can be generated directly from your orders page</li>
           <li>&bull; Tracking updates are automatically sent to customers</li>
         </ul>

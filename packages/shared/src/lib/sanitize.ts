@@ -6,17 +6,41 @@
 // Allowed HTML tags for rich text content (newsletters, blog posts)
 const ALLOWED_TAGS = new Set([
   // Text formatting
-  'p', 'br', 'span', 'div',
-  'strong', 'b', 'em', 'i', 'u', 's', 'strike',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'p',
+  'br',
+  'span',
+  'div',
+  'strong',
+  'b',
+  'em',
+  'i',
+  'u',
+  's',
+  'strike',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
   // Lists
-  'ul', 'ol', 'li',
+  'ul',
+  'ol',
+  'li',
   // Links and images
-  'a', 'img',
+  'a',
+  'img',
   // Tables
-  'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  'table',
+  'thead',
+  'tbody',
+  'tr',
+  'th',
+  'td',
   // Block elements
-  'blockquote', 'pre', 'code',
+  'blockquote',
+  'pre',
+  'code',
   // Other
   'hr',
 ])
@@ -29,10 +53,10 @@ const DANGEROUS_PATTERNS = [
   /javascript:/gi,
   /vbscript:/gi,
   /data:/gi,
-  /on\w+\s*=/gi,  // onclick, onerror, etc.
+  /on\w+\s*=/gi, // onclick, onerror, etc.
   /<script[\s\S]*?<\/script>/gi,
   /<style[\s\S]*?<\/style>/gi,
-  /<!--[\s\S]*?-->/g,  // HTML comments
+  /<!--[\s\S]*?-->/g, // HTML comments
 ]
 
 /**
@@ -52,27 +76,33 @@ export function sanitizeHtml(html: string): string {
   }
 
   // Remove disallowed tags (keep content)
-  sanitized = sanitized.replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi, (match, tagName) => {
-    const tag = tagName.toLowerCase()
-    if (!ALLOWED_TAGS.has(tag)) {
-      return '' // Remove the tag entirely
-    }
-    return match
-  })
+  sanitized = sanitized.replace(
+    /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+    (match, tagName) => {
+      const tag = tagName.toLowerCase()
+      if (!ALLOWED_TAGS.has(tag)) {
+        return '' // Remove the tag entirely
+      }
+      return match
+    },
+  )
 
   // Sanitize href and src attributes
-  sanitized = sanitized.replace(/(href|src)\s*=\s*["']([^"']*)["']/gi, (match, attr, url) => {
-    try {
-      const parsed = new URL(url, 'https://example.com')
-      if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) {
-        return `${attr}="#"` // Replace with safe value
+  sanitized = sanitized.replace(
+    /(href|src)\s*=\s*["']([^"']*)["']/gi,
+    (match, attr, url) => {
+      try {
+        const parsed = new URL(url, 'https://example.com')
+        if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) {
+          return `${attr}="#"` // Replace with safe value
+        }
+      } catch {
+        // Invalid URL, remove it
+        return `${attr}="#"`
       }
-    } catch {
-      // Invalid URL, remove it
-      return `${attr}="#"`
-    }
-    return match
-  })
+      return match
+    },
+  )
 
   // Ensure links open safely
   sanitized = sanitized.replace(/<a\s/gi, '<a rel="noopener noreferrer" ')
@@ -132,7 +162,7 @@ export function sanitizeInput(input: string): string {
   // Using character code filtering instead of regex to avoid ESLint no-control-regex
   return input
     .split('')
-    .filter(char => {
+    .filter((char) => {
       const code = char.charCodeAt(0)
       // Allow printable ASCII (32-126) and extended chars (128+)
       return code >= 32 && code !== 127

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { blog } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/blog - List blog posts
@@ -14,9 +14,12 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
 
-    const status = searchParams.get('status') as 'draft' | 'published' | undefined
-    const limit = parseInt(searchParams.get('limit') || '50')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const status = searchParams.get('status') as
+      | 'draft'
+      | 'published'
+      | undefined
+    const limit = parseInt(searchParams.get('limit') || '50', 10)
+    const offset = parseInt(searchParams.get('offset') || '0', 10)
     const tags = searchParams.get('tags')?.split(',').filter(Boolean)
 
     const posts = await blog.listBlogPosts(tenant.id, {
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (!data.title || !data.content) {
       return NextResponse.json(
         { error: 'Title and content are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 

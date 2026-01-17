@@ -3,9 +3,9 @@
  * Covers all 9 bulk operations, auth, and validation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NextRequest } from 'next/server'
 import { bulk } from '@madebuy/db'
+import { NextRequest } from 'next/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock getCurrentTenant
 const mockGetCurrentTenant = vi.fn()
@@ -154,7 +154,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkUpdateStatus).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          'available'
+          'available',
         )
       })
 
@@ -236,7 +236,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkUpdatePrices).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          { type: 'percentage', direction: 'increase', value: 10 }
+          { type: 'percentage', direction: 'increase', value: 10 },
         )
       })
 
@@ -325,7 +325,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkUpdateStock).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          10
+          10,
         )
       })
 
@@ -347,7 +347,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkUpdateStock).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          'unlimited'
+          'unlimited',
         )
       })
 
@@ -371,7 +371,9 @@ describe('Bulk Operations API', () => {
     describe('updateCategory operation', () => {
       it('should update category for multiple pieces', async () => {
         mockGetCurrentTenant.mockResolvedValue(mockTenant)
-        vi.mocked(bulk.bulkUpdateCategory).mockResolvedValue({ modifiedCount: 3 })
+        vi.mocked(bulk.bulkUpdateCategory).mockResolvedValue({
+          modifiedCount: 3,
+        })
 
         const request = new NextRequest('http://localhost/api/pieces/bulk', {
           method: 'POST',
@@ -387,7 +389,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkUpdateCategory).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          'Jewelry'
+          'Jewelry',
         )
       })
 
@@ -427,7 +429,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkAddTags).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          ['sale', 'featured']
+          ['sale', 'featured'],
         )
       })
 
@@ -483,7 +485,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkRemoveTags).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          ['old-tag']
+          ['old-tag'],
         )
       })
     })
@@ -507,7 +509,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkSetFeatured).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          true
+          true,
         )
       })
 
@@ -564,7 +566,7 @@ describe('Bulk Operations API', () => {
         expect(bulk.bulkSetPublished).toHaveBeenCalledWith(
           'tenant-123',
           mockPieceIds,
-          true
+          true,
         )
       })
 
@@ -590,7 +592,9 @@ describe('Bulk Operations API', () => {
     it('should return 401 when not authenticated', async () => {
       mockGetCurrentTenant.mockResolvedValue(null)
 
-      const request = new NextRequest('http://localhost/api/pieces/bulk?ids=piece-1,piece-2')
+      const request = new NextRequest(
+        'http://localhost/api/pieces/bulk?ids=piece-1,piece-2',
+      )
       const response = await GET(request)
 
       expect(response.status).toBe(401)
@@ -604,7 +608,9 @@ describe('Bulk Operations API', () => {
         priceRange: { min: 10, max: 100 },
       })
 
-      const request = new NextRequest('http://localhost/api/pieces/bulk?ids=piece-1,piece-2,piece-3')
+      const request = new NextRequest(
+        'http://localhost/api/pieces/bulk?ids=piece-1,piece-2,piece-3',
+      )
       const response = await GET(request)
 
       expect(response.status).toBe(200)

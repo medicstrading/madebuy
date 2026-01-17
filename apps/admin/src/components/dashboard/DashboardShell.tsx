@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Sidebar } from './Sidebar'
-import { Header } from './Header'
-import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcuts'
 import { ShortcutsHelp } from '@/components/ui/ShortcutsHelp'
 import { ShortcutsHint } from '@/components/ui/ShortcutsHint'
+import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcuts'
+import { Header } from './Header'
+import { Sidebar } from './Sidebar'
 
 interface MarketplaceConnections {
   ebay: boolean
@@ -27,7 +27,12 @@ interface DashboardShellProps {
   marketplaceConnections?: MarketplaceConnections
 }
 
-export function DashboardShell({ children, user, tenant, marketplaceConnections }: DashboardShellProps) {
+export function DashboardShell({
+  children,
+  user,
+  tenant,
+  marketplaceConnections,
+}: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (

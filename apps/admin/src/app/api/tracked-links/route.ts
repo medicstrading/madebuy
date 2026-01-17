@@ -1,6 +1,6 @@
+import { tracking } from '@madebuy/db'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { tracking } from '@madebuy/db'
 
 /**
  * GET /api/tracked-links
@@ -36,7 +36,7 @@ export async function GET() {
     console.error('Error generating tracked links:', error)
     return NextResponse.json(
       { error: 'Failed to generate tracked links' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

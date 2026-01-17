@@ -2,7 +2,7 @@
  * Checkout Components
  */
 
-export { CheckoutForm } from './CheckoutForm'
 export { AddressForm } from './AddressForm'
-export { ShippingSelector } from './ShippingSelector'
+export { CheckoutForm } from './CheckoutForm'
 export { ShippingOption } from './ShippingOption'
+export { ShippingSelector } from './ShippingSelector'

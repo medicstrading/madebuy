@@ -1,23 +1,25 @@
-import { requireTenant } from '@/lib/session'
 import { materials } from '@madebuy/db'
-import { formatCurrency, formatDate, formatNumber } from '@/lib/utils'
-import { Plus, AlertTriangle, BarChart3, FileText } from 'lucide-react'
+import { AlertTriangle, BarChart3, FileText, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { DeleteMaterialButton } from '@/components/materials/DeleteMaterialButton'
 import { StockCountButton } from '@/components/reconciliation/StockCountButton'
+import { requireTenant } from '@/lib/session'
+import { formatCurrency, formatNumber } from '@/lib/utils'
 
 export default async function MaterialsPage() {
   const tenant = await requireTenant()
   const result = await materials.listMaterials(tenant.id)
   const allMaterials = result.materials
-  const lowStockMaterials = allMaterials.filter(m => m.isLowStock)
+  const lowStockMaterials = allMaterials.filter((m) => m.isLowStock)
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Materials</h1>
-          <p className="mt-2 text-gray-600">Track your supplies and calculate costs</p>
+          <p className="mt-2 text-gray-600">
+            Track your supplies and calculate costs
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <StockCountButton materials={allMaterials} />
@@ -52,7 +54,8 @@ export default async function MaterialsPage() {
             <div>
               <h3 className="font-medium text-orange-900">Low Stock Alert</h3>
               <p className="mt-1 text-sm text-orange-800">
-                {lowStockMaterials.length} material{lowStockMaterials.length !== 1 ? 's' : ''} running low on stock
+                {lowStockMaterials.length} material
+                {lowStockMaterials.length !== 1 ? 's' : ''} running low on stock
               </p>
             </div>
           </div>
@@ -62,9 +65,12 @@ export default async function MaterialsPage() {
       {allMaterials.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <LayersIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No materials yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No materials yet
+          </h3>
           <p className="mt-2 text-sm text-gray-600">
-            Start tracking your supplies and materials to calculate accurate costs.
+            Start tracking your supplies and materials to calculate accurate
+            costs.
           </p>
           <Link
             href="/dashboard/materials/new"
@@ -104,7 +110,9 @@ export default async function MaterialsPage() {
                 <tr key={material.id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <div className="text-sm font-medium text-gray-900">{material.name}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {material.name}
+                      </div>
                       {material.isLowStock && (
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                       )}
@@ -130,7 +138,10 @@ export default async function MaterialsPage() {
                     {material.supplier || '-'}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-right">
-                    <DeleteMaterialButton materialId={material.id} materialName={material.name} />
+                    <DeleteMaterialButton
+                      materialId={material.id}
+                      materialName={material.name}
+                    />
                   </td>
                 </tr>
               ))}
@@ -144,8 +155,19 @@ export default async function MaterialsPage() {
 
 function LayersIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+      />
     </svg>
   )
 }

@@ -1,13 +1,13 @@
-import { nanoid } from 'nanoid'
-import { getDatabase } from '../client'
 import type {
-  Payout,
-  PayoutStatus,
   CreatePayoutInput,
+  Payout,
   PayoutFilters,
   PayoutListOptions,
+  PayoutStatus,
   PayoutSummary,
 } from '@madebuy/shared'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
 /**
  * Create a new payout record
@@ -39,20 +39,24 @@ export async function createPayout(data: CreatePayoutInput): Promise<Payout> {
  */
 export async function getPayout(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Payout | null> {
   const db = await getDatabase()
-  return await db.collection('payouts').findOne({ tenantId, id }) as Payout | null
+  return (await db
+    .collection('payouts')
+    .findOne({ tenantId, id })) as Payout | null
 }
 
 /**
  * Get a payout by Stripe payout ID
  */
 export async function getPayoutByStripeId(
-  stripePayoutId: string
+  stripePayoutId: string,
 ): Promise<Payout | null> {
   const db = await getDatabase()
-  return await db.collection('payouts').findOne({ stripePayoutId }) as Payout | null
+  return (await db
+    .collection('payouts')
+    .findOne({ stripePayoutId })) as Payout | null
 }
 
 /**
@@ -61,7 +65,12 @@ export async function getPayoutByStripeId(
 export async function updatePayoutStatus(
   stripePayoutId: string,
   status: PayoutStatus,
-  extra?: Partial<Pick<Payout, 'paidAt' | 'failedAt' | 'canceledAt' | 'failureCode' | 'failureMessage'>>
+  extra?: Partial<
+    Pick<
+      Payout,
+      'paidAt' | 'failedAt' | 'canceledAt' | 'failureCode' | 'failureMessage'
+    >
+  >,
 ): Promise<void> {
   const db = await getDatabase()
 
@@ -74,10 +83,9 @@ export async function updatePayoutStatus(
     Object.assign(updates, extra)
   }
 
-  await db.collection('payouts').updateOne(
-    { stripePayoutId },
-    { $set: updates }
-  )
+  await db
+    .collection('payouts')
+    .updateOne({ stripePayoutId }, { $set: updates })
 }
 
 /**
@@ -85,7 +93,7 @@ export async function updatePayoutStatus(
  */
 export async function listPayouts(
   tenantId: string,
-  options?: PayoutListOptions
+  options?: PayoutListOptions,
 ): Promise<Payout[]> {
   const db = await getDatabase()
 
@@ -108,7 +116,8 @@ export async function listPayouts(
   const sortField = options?.sortBy || 'createdAt'
   const sortOrder = options?.sortOrder === 'asc' ? 1 : -1
 
-  let cursor = db.collection('payouts')
+  let cursor = db
+    .collection('payouts')
     .find(query)
     .sort({ [sortField]: sortOrder })
 
@@ -125,21 +134,28 @@ export async function listPayouts(
 /**
  * Get payout summary for a tenant
  */
-export async function getPayoutSummary(tenantId: string): Promise<PayoutSummary> {
+export async function getPayoutSummary(
+  tenantId: string,
+): Promise<PayoutSummary> {
   const db = await getDatabase()
 
-  const result = await db.collection('payouts').aggregate([
-    { $match: { tenantId } },
-    {
-      $group: {
-        _id: '$status',
-        total: { $sum: '$amount' },
-        count: { $sum: 1 },
-      }
-    }
-  ]).toArray()
+  const result = await db
+    .collection('payouts')
+    .aggregate([
+      { $match: { tenantId } },
+      {
+        $group: {
+          _id: '$status',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray()
 
-  const statusMap = new Map(result.map(r => [r._id, { total: r.total, count: r.count }]))
+  const statusMap = new Map(
+    result.map((r) => [r._id, { total: r.total, count: r.count }]),
+  )
 
   const paid = statusMap.get('paid') || { total: 0, count: 0 }
   const pending = statusMap.get('pending') || { total: 0, count: 0 }
@@ -165,14 +181,16 @@ export async function getPayoutSummary(tenantId: string): Promise<PayoutSummary>
  */
 export async function countPayouts(
   tenantId: string,
-  filters?: PayoutFilters
+  filters?: PayoutFilters,
 ): Promise<number> {
   const db = await getDatabase()
 
   const query: any = { tenantId }
 
   if (filters?.status) {
-    query.status = Array.isArray(filters.status) ? { $in: filters.status } : filters.status
+    query.status = Array.isArray(filters.status)
+      ? { $in: filters.status }
+      : filters.status
   }
 
   return await db.collection('payouts').countDocuments(query)
@@ -183,11 +201,12 @@ export async function countPayouts(
  */
 export async function getRecentPayouts(
   tenantId: string,
-  limit = 5
+  limit = 5,
 ): Promise<Payout[]> {
   const db = await getDatabase()
 
-  const results = await db.collection('payouts')
+  const results = await db
+    .collection('payouts')
     .find({ tenantId })
     .sort({ createdAt: -1 })
     .limit(limit)

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { lateClient } from '@madebuy/social'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * GET /api/late/accounts
@@ -8,7 +8,7 @@ import { lateClient } from '@madebuy/social'
  */
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -21,8 +21,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching Late accounts:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch accounts' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to fetch accounts',
+      },
+      { status: 500 },
     )
   }
 }

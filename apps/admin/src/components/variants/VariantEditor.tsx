@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import type { MediaItem } from '@madebuy/shared'
 import {
+  AlertTriangle,
+  CheckCircle,
+  Edit3,
+  Loader2,
+  Redo2,
   RefreshCw,
   Save,
   Undo2,
-  Redo2,
-  Edit3,
-  AlertTriangle,
-  Loader2,
-  CheckCircle,
 } from 'lucide-react'
-import type { VariantAttribute, EditableVariant, BulkEditAction } from './types'
-import type { MediaItem } from '@madebuy/shared'
+import { useCallback, useEffect, useState } from 'react'
+import { calculateCombinations, MAX_COMBINATIONS_WARNING } from './constants'
+import type { BulkEditAction, EditableVariant, VariantAttribute } from './types'
 import { useVariantEditor } from './useVariantEditor'
 import { VariantAttributeEditor } from './VariantAttributeEditor'
 import { VariantMatrix } from './VariantMatrix'
 import { VariantQuickEdit } from './VariantQuickEdit'
 import { VariantSummary } from './VariantSummary'
-import { calculateCombinations, MAX_COMBINATIONS_WARNING } from './constants'
 
 interface VariantEditorProps {
   pieceId?: string
@@ -26,7 +26,10 @@ interface VariantEditorProps {
   initialAttributes?: VariantAttribute[]
   initialVariants?: EditableVariant[]
   productImages?: MediaItem[]
-  onSave?: (attributes: VariantAttribute[], variants: EditableVariant[]) => Promise<boolean>
+  onSave?: (
+    attributes: VariantAttribute[],
+    variants: EditableVariant[],
+  ) => Promise<boolean>
   onDirtyChange?: (isDirty: boolean) => void
   disabled?: boolean
 }
@@ -42,7 +45,9 @@ export function VariantEditor({
   disabled = false,
 }: VariantEditorProps) {
   const [showQuickEdit, setShowQuickEdit] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [saveStatus, setSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle')
 
   const editor = useVariantEditor({
     initialAttributes,
@@ -70,7 +75,7 @@ export function VariantEditor({
   const handleGenerateVariants = useCallback(async () => {
     if (editor.variants.length > 0) {
       const confirmed = window.confirm(
-        `This will replace ${editor.variants.length} existing variant(s). Continue?`
+        `This will replace ${editor.variants.length} existing variant(s). Continue?`,
       )
       if (!confirmed) return
     }
@@ -103,12 +108,12 @@ export function VariantEditor({
     (action: BulkEditAction) => {
       editor.applyBulkEdit(action)
     },
-    [editor]
+    [editor],
   )
 
   // Get selected variants for quick edit
   const selectedVariants = editor.variants.filter((v) =>
-    editor.selectedVariantIds.has(v.id)
+    editor.selectedVariantIds.has(v.id),
   )
 
   return (
@@ -120,6 +125,7 @@ export function VariantEditor({
           <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
             <button
               type="button"
+              type="button"
               onClick={editor.undo}
               disabled={!editor.canUndo || disabled}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -129,6 +135,7 @@ export function VariantEditor({
               <Undo2 className="h-4 w-4" />
             </button>
             <button
+              type="button"
               type="button"
               onClick={editor.redo}
               disabled={!editor.canRedo || disabled}
@@ -143,6 +150,7 @@ export function VariantEditor({
           {/* Bulk edit button */}
           {editor.selectedVariantIds.size > 0 && (
             <button
+              type="button"
               type="button"
               onClick={() => setShowQuickEdit(true)}
               disabled={disabled}
@@ -166,6 +174,7 @@ export function VariantEditor({
           {/* Generate variants button */}
           <button
             type="button"
+            type="button"
             onClick={handleGenerateVariants}
             disabled={!hasValidAttributes || editor.isGenerating || disabled}
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -186,14 +195,15 @@ export function VariantEditor({
           {/* Save button */}
           <button
             type="button"
+            type="button"
             onClick={handleSave}
             disabled={!editor.isDirty || saveStatus === 'saving' || disabled}
             className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               saveStatus === 'saved'
                 ? 'bg-green-600 text-white'
                 : saveStatus === 'error'
-                ? 'bg-red-600 text-white'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
             {saveStatus === 'saving' ? (
@@ -206,10 +216,10 @@ export function VariantEditor({
             {saveStatus === 'saving'
               ? 'Saving...'
               : saveStatus === 'saved'
-              ? 'Saved!'
-              : saveStatus === 'error'
-              ? 'Error'
-              : 'Save Variants'}
+                ? 'Saved!'
+                : saveStatus === 'error'
+                  ? 'Error'
+                  : 'Save Variants'}
           </button>
         </div>
       </div>
@@ -270,7 +280,9 @@ export function VariantEditor({
         <h3 className="mb-4 text-sm font-medium text-gray-900">
           Variants
           {editor.variants.length > 0 && (
-            <span className="ml-2 text-gray-500">({editor.variants.length})</span>
+            <span className="ml-2 text-gray-500">
+              ({editor.variants.length})
+            </span>
           )}
         </h3>
 

@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenant } from '@/lib/session'
 import { pieces } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await requireTenant()
@@ -14,17 +14,23 @@ export async function PATCH(
     // Check if piece exists
     const piece = await pieces.getPiece(tenant.id, pieceId)
     if (!piece) {
-      return NextResponse.json(
-        { error: 'Piece not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
     // Whitelist allowed fields
     const allowedFields = [
-      'name', 'description', 'category', 'status', 'price', 'stock',
-      'lowStockThreshold', 'shippingWeight', 'shippingLength', 'shippingWidth', 'shippingHeight',
-      'isFeatured'
+      'name',
+      'description',
+      'category',
+      'status',
+      'price',
+      'stock',
+      'lowStockThreshold',
+      'shippingWeight',
+      'shippingLength',
+      'shippingWidth',
+      'shippingHeight',
+      'isFeatured',
     ]
 
     const filteredUpdates: Record<string, any> = {}
@@ -37,7 +43,7 @@ export async function PATCH(
     if (Object.keys(filteredUpdates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -52,14 +58,14 @@ export async function PATCH(
     console.error('Update piece error:', error)
     return NextResponse.json(
       { error: 'Failed to update piece' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
   try {
     const tenant = await requireTenant()
@@ -68,10 +74,7 @@ export async function DELETE(
     // Check if piece exists
     const piece = await pieces.getPiece(tenant.id, pieceId)
     if (!piece) {
-      return NextResponse.json(
-        { error: 'Piece not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
     // Delete the piece
@@ -82,7 +85,7 @@ export async function DELETE(
     console.error('Delete piece error:', error)
     return NextResponse.json(
       { error: 'Failed to delete piece' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

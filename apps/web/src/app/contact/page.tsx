@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +13,10 @@ export default function ContactPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/marketplace" className="text-2xl font-bold text-gray-900">
+          <Link
+            href="/marketplace"
+            className="text-2xl font-bold text-gray-900"
+          >
             MadeBuy
           </Link>
         </div>
@@ -30,7 +33,10 @@ export default function ContactPage() {
         <div className="bg-white rounded-2xl p-8 shadow-sm">
           <form className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Name
               </label>
               <input
@@ -42,7 +48,10 @@ export default function ContactPage() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email
               </label>
               <input
@@ -54,7 +63,10 @@ export default function ContactPage() {
               />
             </div>
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="subject"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Subject
               </label>
               <select
@@ -70,7 +82,10 @@ export default function ContactPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="message"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Message
               </label>
               <textarea
@@ -82,6 +97,7 @@ export default function ContactPage() {
               />
             </div>
             <button
+              type="button"
               type="submit"
               className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
@@ -92,7 +108,9 @@ export default function ContactPage() {
 
         <div className="mt-12 text-center text-gray-600">
           <p>You can also reach us at:</p>
-          <p className="font-semibold text-gray-900 mt-2">support@madebuy.com.au</p>
+          <p className="font-semibold text-gray-900 mt-2">
+            support@madebuy.com.au
+          </p>
         </div>
       </main>
     </div>

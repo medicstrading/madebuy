@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import type { Material, Piece, ProductionRun } from '@madebuy/shared'
 import { Layers, Plus } from 'lucide-react'
-import { RecordProductionModal } from './RecordProductionModal'
+import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
 import { ProductionHistoryList } from './ProductionHistoryList'
-import type { Piece, Material, ProductionRun } from '@madebuy/shared'
+import { RecordProductionModal } from './RecordProductionModal'
 
 interface ProductionSectionProps {
   piece: Piece
@@ -21,18 +21,21 @@ export function ProductionSection({
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleDelete = useCallback(async (runId: string) => {
-    const res = await fetch(`/api/production-runs/${runId}`, {
-      method: 'DELETE',
-    })
+  const handleDelete = useCallback(
+    async (runId: string) => {
+      const res = await fetch(`/api/production-runs/${runId}`, {
+        method: 'DELETE',
+      })
 
-    if (!res.ok) {
-      const data = await res.json()
-      throw new Error(data.error || 'Failed to delete')
-    }
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
+      }
 
-    router.refresh()
-  }, [router])
+      router.refresh()
+    },
+    [router],
+  )
 
   const hasMaterials = piece.materialsUsed && piece.materialsUsed.length > 0
 
@@ -44,6 +47,7 @@ export function ProductionSection({
           Production
         </h2>
         <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
         >
@@ -58,10 +62,7 @@ export function ProductionSection({
         </div>
       )}
 
-      <ProductionHistoryList
-        runs={productionRuns}
-        onDelete={handleDelete}
-      />
+      <ProductionHistoryList runs={productionRuns} onDelete={handleDelete} />
 
       <RecordProductionModal
         isOpen={isModalOpen}

@@ -1,7 +1,7 @@
 'use client'
 
+import { Keyboard, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { X, Keyboard } from 'lucide-react'
 import { SHORTCUTS, useKeyboardShortcuts } from '@/contexts/KeyboardShortcuts'
 
 export function ShortcutsHelp() {
@@ -11,7 +11,10 @@ export function ShortcutsHelp() {
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         setShowHelp(false)
       }
     }
@@ -40,11 +43,16 @@ export function ShortcutsHelp() {
               <Keyboard className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Keyboard Shortcuts</h2>
-              <p className="text-xs text-gray-500">Navigate faster with keyboard</p>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Keyboard Shortcuts
+              </h2>
+              <p className="text-xs text-gray-500">
+                Navigate faster with keyboard
+              </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={() => setShowHelp(false)}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
@@ -70,7 +78,15 @@ export function ShortcutsHelp() {
         {/* Footer */}
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
           <p className="text-xs text-gray-500 text-center">
-            Press <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-700 font-mono text-xs">Esc</kbd> or <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-700 font-mono text-xs">?</kbd> to close
+            Press{' '}
+            <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-700 font-mono text-xs">
+              Esc
+            </kbd>{' '}
+            or{' '}
+            <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-700 font-mono text-xs">
+              ?
+            </kbd>{' '}
+            to close
           </p>
         </div>
       </div>

@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { discounts } from '@madebuy/db'
-import type { CreateDiscountCodeInput, DiscountListOptions } from '@madebuy/shared'
+import type {
+  CreateDiscountCodeInput,
+  DiscountListOptions,
+} from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +31,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchParams.get('sortBy')) {
-      options.sortBy = searchParams.get('sortBy') as DiscountListOptions['sortBy']
+      options.sortBy = searchParams.get(
+        'sortBy',
+      ) as DiscountListOptions['sortBy']
     }
 
     if (searchParams.get('sortOrder')) {
@@ -40,7 +45,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching discounts:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -58,7 +66,7 @@ export async function POST(request: NextRequest) {
     if (!data.code || !data.type || data.value === undefined) {
       return NextResponse.json(
         { error: 'Code, type, and value are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -72,10 +80,13 @@ export async function POST(request: NextRequest) {
     if (error.message?.includes('already exists')) {
       return NextResponse.json(
         { error: 'A discount with this code already exists' },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

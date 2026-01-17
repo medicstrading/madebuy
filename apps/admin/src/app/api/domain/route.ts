@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { domains } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
-import { domains, tenants } from '@madebuy/db'
 
 /**
  * GET /api/domain
@@ -36,7 +36,7 @@ export async function GET() {
     console.error('Error fetching domain status:', error)
     return NextResponse.json(
       { error: 'Failed to fetch domain status' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (!tenant.features.customDomain) {
       return NextResponse.json(
         { error: 'Custom domains require a Pro or higher plan' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
@@ -96,10 +96,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error setting domain:', error)
-    return NextResponse.json(
-      { error: 'Failed to set domain' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to set domain' }, { status: 500 })
   }
 }
 
@@ -122,7 +119,7 @@ export async function DELETE() {
     console.error('Error removing domain:', error)
     return NextResponse.json(
       { error: 'Failed to remove domain' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

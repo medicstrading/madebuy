@@ -14,39 +14,48 @@ export default function Error({
   }, [error])
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f9fafb',
-      padding: '2rem',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb',
+        padding: '2rem',
+      }}
+    >
       <div style={{ textAlign: 'center' }}>
-        <h1 style={{
-          fontSize: '4rem',
-          fontWeight: 'bold',
-          color: '#111827',
-          marginBottom: '1rem',
-        }}>
+        <h1
+          style={{
+            fontSize: '4rem',
+            fontWeight: 'bold',
+            color: '#111827',
+            marginBottom: '1rem',
+          }}
+        >
           500
         </h1>
-        <h2 style={{
-          fontSize: '1.5rem',
-          fontWeight: '600',
-          color: '#374151',
-          marginBottom: '1rem',
-        }}>
+        <h2
+          style={{
+            fontSize: '1.5rem',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '1rem',
+          }}
+        >
           Something went wrong
         </h2>
-        <p style={{
-          color: '#4b5563',
-          marginBottom: '2rem',
-        }}>
+        <p
+          style={{
+            color: '#4b5563',
+            marginBottom: '2rem',
+          }}
+        >
           We&apos;re sorry, an unexpected error occurred.
         </p>
         <button
+          type="button"
           onClick={reset}
           style={{
             display: 'inline-block',

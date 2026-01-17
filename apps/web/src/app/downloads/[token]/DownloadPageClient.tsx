@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import Link from 'next/link'
 import {
-  Download,
-  FileText,
-  Clock,
   AlertCircle,
-  CheckCircle,
-  Shield,
-  Package,
   ArrowRight,
+  CheckCircle,
+  Clock,
+  Download,
   ExternalLink,
+  FileText,
   Loader2,
+  Package,
+  Shield,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useCallback, useState } from 'react'
 
 interface FileInfo {
   id: string
@@ -76,7 +76,7 @@ function formatFileSize(bytes: number): string {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
 }
 
 // Get icon for file type
@@ -85,9 +85,15 @@ function getFileTypeIcon(mimeType: string): string {
   if (mimeType.startsWith('audio/')) return '🎵'
   if (mimeType.startsWith('video/')) return '🎬'
   if (mimeType.includes('pdf')) return '📄'
-  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z')) return '📦'
+  if (
+    mimeType.includes('zip') ||
+    mimeType.includes('rar') ||
+    mimeType.includes('7z')
+  )
+    return '📦'
   if (mimeType.includes('word') || mimeType.includes('document')) return '📝'
-  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊'
+  if (mimeType.includes('excel') || mimeType.includes('spreadsheet'))
+    return '📊'
   if (mimeType.includes('font')) return '🔤'
   return '📁'
 }
@@ -117,27 +123,30 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
   const [downloadError, setDownloadError] = useState<string | null>(null)
 
   // Handle file download
-  const downloadFile = useCallback(async (fileId: string) => {
-    if (!data.isValid) return
-    if (!licenseAccepted) {
-      setDownloadError('Please accept the license terms before downloading.')
-      return
-    }
+  const downloadFile = useCallback(
+    async (fileId: string) => {
+      if (!data.isValid) return
+      if (!licenseAccepted) {
+        setDownloadError('Please accept the license terms before downloading.')
+        return
+      }
 
-    setDownloading(fileId)
-    setDownloadError(null)
+      setDownloading(fileId)
+      setDownloadError(null)
 
-    try {
-      // Trigger download by navigating to download URL
-      const downloadUrl = `/api/downloads/${data.token}?file=${fileId}`
-      window.location.href = downloadUrl
-    } catch (err) {
-      setDownloadError(err instanceof Error ? err.message : 'Download failed')
-    } finally {
-      // Reset after a delay (for redirect to complete)
-      setTimeout(() => setDownloading(null), 2000)
-    }
-  }, [data.token, data.isValid, licenseAccepted])
+      try {
+        // Trigger download by navigating to download URL
+        const downloadUrl = `/api/downloads/${data.token}?file=${fileId}`
+        window.location.href = downloadUrl
+      } catch (err) {
+        setDownloadError(err instanceof Error ? err.message : 'Download failed')
+      } finally {
+        // Reset after a delay (for redirect to complete)
+        setTimeout(() => setDownloading(null), 2000)
+      }
+    },
+    [data.token, data.isValid, licenseAccepted],
+  )
 
   // Status color classes
   const statusColors = {
@@ -164,7 +173,9 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
         </div>
 
         {/* Status Banner */}
-        <div className={`mb-6 rounded-lg border p-4 ${statusColors[data.status]}`}>
+        <div
+          className={`mb-6 rounded-lg border p-4 ${statusColors[data.status]}`}
+        >
           <div className="flex items-center gap-3">
             <StatusIcon className="h-5 w-5 flex-shrink-0" />
             <div>
@@ -172,10 +183,10 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
                 {data.isValid
                   ? 'Downloads Available'
                   : data.status === 'expired'
-                  ? 'Link Expired'
-                  : data.status === 'revoked'
-                  ? 'Access Revoked'
-                  : 'Download Limit Reached'}
+                    ? 'Link Expired'
+                    : data.status === 'revoked'
+                      ? 'Access Revoked'
+                      : 'Download Limit Reached'}
               </p>
               {data.statusMessage && (
                 <p className="text-sm opacity-80">{data.statusMessage}</p>
@@ -191,7 +202,9 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
               <Package className="h-6 w-6 text-purple-600" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">{data.product.name}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {data.product.name}
+              </h2>
               {data.product.description && (
                 <p className="mt-1 text-sm text-gray-600 line-clamp-2">
                   {data.product.description}
@@ -216,14 +229,13 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-1.5 text-gray-600">
               <FileText className="h-4 w-4" />
-              {data.fileCount} file{data.fileCount !== 1 ? 's' : ''} &bull; {formatFileSize(data.totalSizeBytes)}
+              {data.fileCount} file{data.fileCount !== 1 ? 's' : ''} &bull;{' '}
+              {formatFileSize(data.totalSizeBytes)}
             </div>
             <div className="flex items-center gap-1.5 text-gray-600">
               <Download className="h-4 w-4" />
               {data.downloadCount} download{data.downloadCount !== 1 ? 's' : ''}
-              {data.maxDownloads && (
-                <> / {data.maxDownloads} allowed</>
-              )}
+              {data.maxDownloads && <> / {data.maxDownloads} allowed</>}
             </div>
             {data.hasExpiry && data.expiresAt && (
               <div className="flex items-center gap-1.5 text-gray-600">
@@ -290,20 +302,27 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
                 key={file.id}
                 className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50"
               >
-                <span className="text-2xl">{getFileTypeIcon(file.mimeType)}</span>
+                <span className="text-2xl">
+                  {getFileTypeIcon(file.mimeType)}
+                </span>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{file.name}</p>
+                  <p className="font-medium text-gray-900 truncate">
+                    {file.name}
+                  </p>
                   <p className="text-sm text-gray-500 truncate">
                     {file.fileName} &bull; {formatFileSize(file.sizeBytes)}
                     {file.version && <> &bull; {file.version}</>}
                   </p>
                   {file.description && (
-                    <p className="text-sm text-gray-600 mt-1">{file.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {file.description}
+                    </p>
                   )}
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => downloadFile(file.id)}
                   disabled={!data.isValid || downloading === file.id}
                   className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
@@ -332,7 +351,8 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
           {data.isValid && data.downloadsRemaining !== null && (
             <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
               <p className="text-sm text-gray-600 text-center">
-                {data.downloadsRemaining} download{data.downloadsRemaining !== 1 ? 's' : ''} remaining
+                {data.downloadsRemaining} download
+                {data.downloadsRemaining !== 1 ? 's' : ''} remaining
               </p>
             </div>
           )}
@@ -356,9 +376,7 @@ export function DownloadPageClient({ data }: DownloadPageClientProps) {
 
         {/* Order Reference */}
         <div className="mt-4 text-center">
-          <p className="text-xs text-gray-400">
-            Order: {data.orderId}
-          </p>
+          <p className="text-xs text-gray-400">Order: {data.orderId}</p>
         </div>
       </div>
     </div>

@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
-import { marketplace, pieces, media } from '@madebuy/db'
+import { marketplace, media, pieces } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
   createEbayClient,
-  getEbayApiUrl,
   type EbayInventoryItem,
   type EbayPackageWeightAndSize,
+  getEbayApiUrl,
 } from '@/lib/marketplace/ebay'
+import { getCurrentTenant } from '@/lib/session'
 
 interface RouteParams {
   params: Promise<{ listingId: string }>
@@ -17,7 +17,7 @@ interface RouteParams {
  *
  * Get details of a specific eBay listing
  */
-export async function GET(request: NextRequest, context: RouteParams) {
+export async function GET(_request: NextRequest, context: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -33,27 +33,38 @@ export async function GET(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'ebay') {
-      return NextResponse.json({ error: 'Not an eBay listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an eBay listing' },
+        { status: 400 },
+      )
     }
 
     // Get associated piece
     const piece = await pieces.getPiece(tenant.id, listing.pieceId)
 
     // Get eBay connection for fetching live data
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
 
     let ebayData = null
-    if (connection?.status === 'connected' && listing.marketplaceData?.ebayOfferId) {
+    if (
+      connection?.status === 'connected' &&
+      listing.marketplaceData?.ebayOfferId
+    ) {
       // Fetch current offer data from eBay
       try {
         const offerResponse = await fetch(
-          getEbayApiUrl(`/sell/inventory/v1/offer/${listing.marketplaceData.ebayOfferId}`),
+          getEbayApiUrl(
+            `/sell/inventory/v1/offer/${listing.marketplaceData.ebayOfferId}`,
+          ),
           {
             headers: {
               Authorization: `Bearer ${connection.accessToken}`,
               'Content-Type': 'application/json',
             },
-          }
+          },
         )
 
         if (offerResponse.ok) {
@@ -82,7 +93,10 @@ export async function GET(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error fetching eBay listing:', error)
-    return NextResponse.json({ error: 'Failed to fetch listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch listing' },
+      { status: 500 },
+    )
   }
 }
 
@@ -107,11 +121,17 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'ebay') {
-      return NextResponse.json({ error: 'Not an eBay listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an eBay listing' },
+        { status: 400 },
+      )
     }
 
     // Check eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       return NextResponse.json({ error: 'eBay not connected' }, { status: 400 })
     }
@@ -134,7 +154,7 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     if (!sku || !offerId) {
       return NextResponse.json(
         { error: 'Missing eBay inventory data, please recreate listing' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -191,26 +211,32 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     // Create eBay API client
     const ebay = createEbayClient(
       connection.accessToken!,
-      connection.refreshToken || undefined
+      connection.refreshToken || undefined,
     )
 
     // Step 1: Update Inventory Item using ebay-api package
     try {
-      await ebay.sell.inventory.createOrReplaceInventoryItem(sku, inventoryPayload)
+      await ebay.sell.inventory.createOrReplaceInventoryItem(
+        sku,
+        inventoryPayload,
+      )
       console.log('[eBay] Inventory item updated successfully')
     } catch (inventoryError: any) {
-      console.error('eBay Inventory API error:', inventoryError?.message || inventoryError)
+      console.error(
+        'eBay Inventory API error:',
+        inventoryError?.message || inventoryError,
+      )
 
       await marketplace.updateListingStatus(
         tenant.id,
         listingId,
         'error',
-        `Inventory update failed: ${inventoryError?.message || 'Unknown error'}`
+        `Inventory update failed: ${inventoryError?.message || 'Unknown error'}`,
       )
 
       return NextResponse.json(
         { error: 'Failed to update eBay inventory. Please try again.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -241,15 +267,16 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
         tenant.id,
         listingId,
         'error',
-        `Offer update failed: ${offerError?.message || 'Unknown error'}`
+        `Offer update failed: ${offerError?.message || 'Unknown error'}`,
       )
 
       return NextResponse.json(
         {
           success: false,
-          warning: 'Inventory updated but offer update failed. Please try again.',
+          warning:
+            'Inventory updated but offer update failed. Please try again.',
         },
-        { status: 207 }
+        { status: 207 },
       )
     }
 
@@ -264,7 +291,12 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     }
 
     // Mark as synced
-    await marketplace.markListingSynced(tenant.id, listingId, listingPrice, listingQuantity)
+    await marketplace.markListingSynced(
+      tenant.id,
+      listingId,
+      listingPrice,
+      listingQuantity,
+    )
     await marketplace.updateListingStatus(tenant.id, listingId, 'active')
 
     // Get updated listing
@@ -278,7 +310,10 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error updating eBay listing:', error)
-    return NextResponse.json({ error: 'Failed to update listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to update listing' },
+      { status: 500 },
+    )
   }
 }
 
@@ -287,7 +322,7 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
  *
  * End/remove an eBay listing
  */
-export async function DELETE(request: NextRequest, context: RouteParams) {
+export async function DELETE(_request: NextRequest, context: RouteParams) {
   try {
     const tenant = await getCurrentTenant()
     if (!tenant) {
@@ -303,11 +338,17 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     }
 
     if (listing.marketplace !== 'ebay') {
-      return NextResponse.json({ error: 'Not an eBay listing' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Not an eBay listing' },
+        { status: 400 },
+      )
     }
 
     // Check eBay connection
-    const connection = await marketplace.getConnectionByMarketplace(tenant.id, 'ebay')
+    const connection = await marketplace.getConnectionByMarketplace(
+      tenant.id,
+      'ebay',
+    )
     if (!connection || connection.status !== 'connected') {
       // Can't end on eBay, but mark as ended locally
       await marketplace.updateListingStatus(tenant.id, listingId, 'ended')
@@ -323,7 +364,7 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     // Create eBay API client
     const ebay = createEbayClient(
       connection.accessToken!,
-      connection.refreshToken || undefined
+      connection.refreshToken || undefined,
     )
 
     // Step 1: Withdraw the offer (unpublish the listing)
@@ -334,7 +375,10 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
       } catch (withdrawError: any) {
         // 404 means already withdrawn/doesn't exist
         if (withdrawError?.meta?.res?.status !== 404) {
-          console.error('eBay Withdraw API error:', withdrawError?.message || withdrawError)
+          console.error(
+            'eBay Withdraw API error:',
+            withdrawError?.message || withdrawError,
+          )
           // Don't fail entirely, still try to clean up
           console.warn('Failed to withdraw offer, continuing with cleanup')
         }
@@ -358,7 +402,10 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
         console.log('[eBay] Inventory item deleted successfully')
       } catch (deleteInventoryError: any) {
         if (deleteInventoryError?.meta?.res?.status !== 404) {
-          console.warn('Failed to delete inventory item:', deleteInventoryError?.message)
+          console.warn(
+            'Failed to delete inventory item:',
+            deleteInventoryError?.message,
+          )
         }
       }
     }
@@ -372,6 +419,9 @@ export async function DELETE(request: NextRequest, context: RouteParams) {
     })
   } catch (error) {
     console.error('Error deleting eBay listing:', error)
-    return NextResponse.json({ error: 'Failed to delete listing' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to delete listing' },
+      { status: 500 },
+    )
   }
 }

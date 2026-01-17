@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
-import { unstable_cache } from 'next/cache'
-import { getCurrentTenant } from '@/lib/session'
-import { transactions, pieces, getDatabase } from '@madebuy/db'
+import { getDatabase, pieces, transactions } from '@madebuy/db'
 import type { Order } from '@madebuy/shared'
+import { unstable_cache } from 'next/cache'
+import { NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 /**
  * Get YTD fees using aggregation (P7 optimization)
@@ -11,7 +11,7 @@ import type { Order } from '@madebuy/shared'
 async function getYtdFeesSummary(
   tenantId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<number> {
   const db = await getDatabase()
 
@@ -21,18 +21,21 @@ async function getYtdFeesSummary(
         tenantId,
         status: 'completed',
         createdAt: { $gte: startDate, $lte: endDate },
-        stripeFee: { $exists: true, $gt: 0 }
-      }
+        stripeFee: { $exists: true, $gt: 0 },
+      },
     },
     {
       $group: {
         _id: null,
-        totalFees: { $sum: '$stripeFee' }
-      }
-    }
+        totalFees: { $sum: '$stripeFee' },
+      },
+    },
   ]
 
-  const results = await db.collection('transactions').aggregate(pipeline).toArray()
+  const results = await db
+    .collection('transactions')
+    .aggregate(pipeline)
+    .toArray()
   return results[0]?.totalFees || 0
 }
 
@@ -42,10 +45,11 @@ async function getYtdFeesSummary(
 async function getPaidOrdersInRange(
   tenantId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<Order[]> {
   const db = await getDatabase()
-  const results = await db.collection('orders')
+  const results = await db
+    .collection('orders')
     .find({
       tenantId,
       paymentStatus: 'paid',
@@ -61,7 +65,7 @@ async function getPaidOrdersInRange(
 async function calculateProfitability(
   tenantId: string,
   currentOrders: Order[],
-  previousOrders: Order[]
+  previousOrders: Order[],
 ) {
   // Collect all piece IDs from current orders
   const pieceIds = new Set<string>()
@@ -109,19 +113,23 @@ async function calculateProfitability(
 
   const currentProfit = currentRevenue - currentMaterialCosts
   const previousProfit = previousRevenue - previousMaterialCosts
-  const currentMargin = currentRevenue > 0 ? Math.round((currentProfit / currentRevenue) * 100) : 0
-  const previousMargin = previousRevenue > 0 ? Math.round((previousProfit / previousRevenue) * 100) : 0
+  const currentMargin =
+    currentRevenue > 0 ? Math.round((currentProfit / currentRevenue) * 100) : 0
+  const previousMargin =
+    previousRevenue > 0
+      ? Math.round((previousProfit / previousRevenue) * 100)
+      : 0
 
   // Calculate changes
-  const revenueChange = previousRevenue > 0
-    ? Math.round(((currentRevenue - previousRevenue) / previousRevenue) * 100)
-    : 0
-  const profitChange = previousProfit > 0
-    ? Math.round(((currentProfit - previousProfit) / previousProfit) * 100)
-    : 0
-  const marginChange = previousMargin > 0
-    ? currentMargin - previousMargin
-    : 0
+  const revenueChange =
+    previousRevenue > 0
+      ? Math.round(((currentRevenue - previousRevenue) / previousRevenue) * 100)
+      : 0
+  const profitChange =
+    previousProfit > 0
+      ? Math.round(((currentProfit - previousProfit) / previousProfit) * 100)
+      : 0
+  const marginChange = previousMargin > 0 ? currentMargin - previousMargin : 0
 
   return {
     revenue: currentRevenue,
@@ -142,16 +150,44 @@ const getCachedLedgerSummary = unstable_cache(
     const now = new Date()
 
     // Today's date range
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    )
+    const todayEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    )
 
     // This month's date range
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+    const thisMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    )
 
     // Last month's date range
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+    const lastMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    )
 
     // Year to date
     const yearStart = new Date(now.getFullYear(), 0, 1)
@@ -175,8 +211,16 @@ const getCachedLedgerSummary = unstable_cache(
           status: 'completed',
         },
       }),
-      transactions.getTransactionSummary(tenantId, thisMonthStart, thisMonthEnd),
-      transactions.getTransactionSummary(tenantId, lastMonthStart, lastMonthEnd),
+      transactions.getTransactionSummary(
+        tenantId,
+        thisMonthStart,
+        thisMonthEnd,
+      ),
+      transactions.getTransactionSummary(
+        tenantId,
+        lastMonthStart,
+        lastMonthEnd,
+      ),
       transactions.getTenantBalance(tenantId),
       // Use aggregation to sum fees instead of fetching all transactions
       getYtdFeesSummary(tenantId, yearStart, now),
@@ -192,13 +236,22 @@ const getCachedLedgerSummary = unstable_cache(
 
     // Calculate month-over-month change
     const lastMonthNet = lastMonthSummary.sales.net || 1
-    const monthChange = lastMonthSummary.sales.net > 0
-      ? Math.round(((thisMonthSummary.sales.net - lastMonthSummary.sales.net) / lastMonthNet) * 100)
-      : 0
+    const monthChange =
+      lastMonthSummary.sales.net > 0
+        ? Math.round(
+            ((thisMonthSummary.sales.net - lastMonthSummary.sales.net) /
+              lastMonthNet) *
+              100,
+          )
+        : 0
 
     const feesYTD = ytdFeesSummary
 
-    const profitability = await calculateProfitability(tenantId, thisMonthOrders, lastMonthOrders)
+    const profitability = await calculateProfitability(
+      tenantId,
+      thisMonthOrders,
+      lastMonthOrders,
+    )
 
     return {
       todaySales,
@@ -225,7 +278,7 @@ const getCachedLedgerSummary = unstable_cache(
     }
   },
   ['ledger-summary'],
-  { revalidate: 60, tags: ['ledger'] } // 60 second cache
+  { revalidate: 60, tags: ['ledger'] }, // 60 second cache
 )
 
 /**
@@ -251,7 +304,7 @@ export async function GET() {
     console.error('Error fetching ledger summary:', error)
     return NextResponse.json(
       { error: 'Failed to fetch ledger summary' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

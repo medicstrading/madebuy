@@ -1,26 +1,26 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import type { DomainStatus, Tenant } from '@madebuy/shared'
 import {
-  Loader2,
-  Globe,
-  ExternalLink,
-  CheckCircle2,
   AlertCircle,
-  Link2,
-  Trash2,
-  RefreshCw,
-  Lock,
-  Cloud,
-  Zap,
-  ChevronDown,
-  Sparkles,
-  Check,
   ArrowRight,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Cloud,
+  ExternalLink,
+  Globe,
+  Link2,
+  Loader2,
+  Lock,
+  RefreshCw,
+  Sparkles,
+  Trash2,
+  Zap,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { DnsInstructions } from '@/components/domain/DnsInstructions'
 import { DomainStatusBadge } from '@/components/domain/DomainStatusBadge'
-import type { DomainStatus, Tenant } from '@madebuy/shared'
 
 interface DomainData {
   domain: string | null
@@ -44,7 +44,8 @@ interface DomainTabProps {
   tenant: Tenant | null
 }
 
-const CLOUDFLARE_TOKEN_URL = 'https://dash.cloudflare.com/profile/api-tokens/create?name=MadeBuy%20DNS%20Access&type=custom&permissionGroups=%5B%7B%22key%22%3A%22zone_dns_write%22%7D%2C%7B%22key%22%3A%22zone_zone_read%22%7D%5D'
+const CLOUDFLARE_TOKEN_URL =
+  'https://dash.cloudflare.com/profile/api-tokens/create?name=MadeBuy%20DNS%20Access&type=custom&permissionGroups=%5B%7B%22key%22%3A%22zone_dns_write%22%7D%2C%7B%22key%22%3A%22zone_zone_read%22%7D%5D'
 
 type DomainChoice = 'subdomain' | 'custom'
 
@@ -57,7 +58,8 @@ export function DomainTab({ tenant }: DomainTabProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [newDomain, setNewDomain] = useState('')
-  const [selectedChoice, setSelectedChoice] = useState<DomainChoice>('subdomain')
+  const [selectedChoice, setSelectedChoice] =
+    useState<DomainChoice>('subdomain')
 
   // Cloudflare state
   const [cloudflareConnected, setCloudflareConnected] = useState(false)
@@ -112,7 +114,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
   useEffect(() => {
     loadData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [loadData])
 
   const handleConnectCloudflare = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -171,7 +173,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
       return
     }
 
-    const zone = cloudflareZones.find(z => z.id === selectedZone)
+    const zone = cloudflareZones.find((z) => z.id === selectedZone)
     if (!zone) return
 
     setIsConfiguring(true)
@@ -243,7 +245,10 @@ export function DomainTab({ tenant }: DomainTabProps) {
         setSuccess('Domain verified! Your store is now live.')
         await loadData()
       } else {
-        setError(data.message || 'DNS not configured yet. Changes can take up to 48 hours.')
+        setError(
+          data.message ||
+            'DNS not configured yet. Changes can take up to 48 hours.',
+        )
       }
     } catch {
       setError('Failed to verify domain')
@@ -286,7 +291,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
   const webBaseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3301'
   const storefrontUrl = tenant?.slug ? `${webBaseUrl}/${tenant.slug}` : '#'
-  const customDomainUrl = domainData?.domain ? `https://${domainData.domain}` : null
+  const customDomainUrl = domainData?.domain
+    ? `https://${domainData.domain}`
+    : null
   const hasCustomDomainFeature = domainData?.hasCustomDomainFeature ?? false
   const isCustomDomainLocked = !hasCustomDomainFeature
 
@@ -297,9 +304,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
         <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
           Choose Your Store Address
         </h2>
-        <p className="mt-2 text-gray-500">
-          How will customers find your shop?
-        </p>
+        <p className="mt-2 text-gray-500">How will customers find your shop?</p>
       </div>
 
       {/* Messages */}
@@ -326,6 +331,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
         {/* Option 1: MadeBuy Subdomain */}
         <button
           type="button"
+          type="button"
           onClick={() => setSelectedChoice('subdomain')}
           className={`group relative rounded-2xl border-2 p-6 text-left transition-all duration-200 ${
             selectedChoice === 'subdomain'
@@ -334,28 +340,38 @@ export function DomainTab({ tenant }: DomainTabProps) {
           }`}
         >
           {/* Selection indicator */}
-          <div className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 ${
-            selectedChoice === 'subdomain'
-              ? 'bg-amber-500 scale-100'
-              : 'bg-gray-200 scale-0'
-          }`}>
+          <div
+            className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 ${
+              selectedChoice === 'subdomain'
+                ? 'bg-amber-500 scale-100'
+                : 'bg-gray-200 scale-0'
+            }`}
+          >
             <Check className="h-4 w-4 text-white" strokeWidth={3} />
           </div>
 
           {/* Card content */}
           <div className="flex items-start gap-4">
-            <div className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
-              selectedChoice === 'subdomain'
-                ? 'bg-amber-100'
-                : 'bg-gray-100 group-hover:bg-gray-200'
-            }`}>
-              <Link2 className={`h-7 w-7 transition-colors ${
-                selectedChoice === 'subdomain' ? 'text-amber-600' : 'text-gray-500'
-              }`} />
+            <div
+              className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
+                selectedChoice === 'subdomain'
+                  ? 'bg-amber-100'
+                  : 'bg-gray-100 group-hover:bg-gray-200'
+              }`}
+            >
+              <Link2
+                className={`h-7 w-7 transition-colors ${
+                  selectedChoice === 'subdomain'
+                    ? 'text-amber-600'
+                    : 'text-gray-500'
+                }`}
+              />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg font-semibold text-gray-900">MadeBuy URL</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  MadeBuy URL
+                </h3>
                 <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                   Free
                 </span>
@@ -367,12 +383,16 @@ export function DomainTab({ tenant }: DomainTabProps) {
           </div>
 
           {/* URL preview */}
-          <div className={`mt-2 rounded-xl border px-4 py-3 transition-colors ${
-            selectedChoice === 'subdomain'
-              ? 'border-amber-200 bg-white'
-              : 'border-gray-100 bg-gray-50'
-          }`}>
-            <code className="text-sm text-gray-700 break-all font-medium">{storefrontUrl}</code>
+          <div
+            className={`mt-2 rounded-xl border px-4 py-3 transition-colors ${
+              selectedChoice === 'subdomain'
+                ? 'border-amber-200 bg-white'
+                : 'border-gray-100 bg-gray-50'
+            }`}
+          >
+            <code className="text-sm text-gray-700 break-all font-medium">
+              {storefrontUrl}
+            </code>
           </div>
         </button>
 
@@ -386,7 +406,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
             {/* Lock badge */}
             <div className="absolute -top-3 -right-3 flex items-center gap-1.5 rounded-full bg-gray-700 pl-2 pr-3 py-1 shadow-lg">
               <Lock className="h-3.5 w-3.5 text-gray-300" />
-              <span className="text-xs font-semibold text-white">Maker Plan</span>
+              <span className="text-xs font-semibold text-white">
+                Maker Plan
+              </span>
             </div>
 
             {/* Card content */}
@@ -396,7 +418,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-semibold text-gray-400">Custom Domain</h3>
+                  <h3 className="text-lg font-semibold text-gray-400">
+                    Custom Domain
+                  </h3>
                 </div>
                 <p className="text-sm text-gray-400 mb-4">
                   Use your own domain name
@@ -406,7 +430,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
             {/* URL preview */}
             <div className="mt-2 rounded-xl border border-gray-200 bg-white/60 px-4 py-3">
-              <code className="text-sm text-gray-400 font-medium">www.yourstore.com</code>
+              <code className="text-sm text-gray-400 font-medium">
+                www.yourstore.com
+              </code>
             </div>
 
             {/* Upgrade CTA */}
@@ -427,6 +453,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
           /* Unlocked state */
           <button
             type="button"
+            type="button"
             onClick={() => setSelectedChoice('custom')}
             className={`group relative rounded-2xl border-2 p-6 text-left transition-all duration-200 ${
               selectedChoice === 'custom'
@@ -435,11 +462,13 @@ export function DomainTab({ tenant }: DomainTabProps) {
             }`}
           >
             {/* Selection indicator */}
-            <div className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 ${
-              selectedChoice === 'custom'
-                ? 'bg-emerald-500 scale-100'
-                : 'bg-gray-200 scale-0'
-            }`}>
+            <div
+              className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 ${
+                selectedChoice === 'custom'
+                  ? 'bg-emerald-500 scale-100'
+                  : 'bg-gray-200 scale-0'
+              }`}
+            >
               <Check className="h-4 w-4 text-white" strokeWidth={3} />
             </div>
 
@@ -452,18 +481,26 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
             {/* Card content */}
             <div className="flex items-start gap-4">
-              <div className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
-                selectedChoice === 'custom'
-                  ? 'bg-emerald-100'
-                  : 'bg-gray-100 group-hover:bg-gray-200'
-              }`}>
-                <Globe className={`h-7 w-7 transition-colors ${
-                  selectedChoice === 'custom' ? 'text-emerald-600' : 'text-gray-500'
-                }`} />
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-xl transition-colors ${
+                  selectedChoice === 'custom'
+                    ? 'bg-emerald-100'
+                    : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}
+              >
+                <Globe
+                  className={`h-7 w-7 transition-colors ${
+                    selectedChoice === 'custom'
+                      ? 'text-emerald-600'
+                      : 'text-gray-500'
+                  }`}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Custom Domain</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Custom Domain
+                  </h3>
                   <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                     Included
                   </span>
@@ -475,11 +512,13 @@ export function DomainTab({ tenant }: DomainTabProps) {
             </div>
 
             {/* URL preview */}
-            <div className={`mt-2 rounded-xl border px-4 py-3 transition-colors ${
-              selectedChoice === 'custom'
-                ? 'border-emerald-200 bg-white'
-                : 'border-gray-100 bg-gray-50'
-            }`}>
+            <div
+              className={`mt-2 rounded-xl border px-4 py-3 transition-colors ${
+                selectedChoice === 'custom'
+                  ? 'border-emerald-200 bg-white'
+                  : 'border-gray-100 bg-gray-50'
+              }`}
+            >
               <code className="text-sm text-gray-700 font-medium">
                 {domainData?.domain || 'www.yourstore.com'}
               </code>
@@ -496,12 +535,16 @@ export function DomainTab({ tenant }: DomainTabProps) {
               <CheckCircle2 className="h-6 w-6 text-amber-600" />
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-gray-900 mb-1">You&apos;re all set!</h4>
+              <h4 className="font-semibold text-gray-900 mb-1">
+                You&apos;re all set!
+              </h4>
               <p className="text-sm text-gray-600 mb-4">
                 Your store is live and ready for customers.
               </p>
               <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-white px-4 py-3">
-                <code className="text-sm font-semibold text-gray-900 flex-1 break-all">{storefrontUrl}</code>
+                <code className="text-sm font-semibold text-gray-900 flex-1 break-all">
+                  {storefrontUrl}
+                </code>
                 <a
                   href={storefrontUrl}
                   target="_blank"
@@ -527,11 +570,17 @@ export function DomainTab({ tenant }: DomainTabProps) {
                   <Globe className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Custom Domain Setup</h3>
-                  <p className="text-sm text-gray-500">Connect your own domain</p>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Custom Domain Setup
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Connect your own domain
+                  </p>
                 </div>
               </div>
-              {domainData?.domain && <DomainStatusBadge status={domainData.status} />}
+              {domainData?.domain && (
+                <DomainStatusBadge status={domainData.status} />
+              )}
             </div>
           </div>
 
@@ -545,7 +594,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
                       <Globe className="h-5 w-5 text-gray-600" />
                     </div>
                     <div>
-                      <code className="text-sm font-semibold text-gray-900">{domainData.domain}</code>
+                      <code className="text-sm font-semibold text-gray-900">
+                        {domainData.domain}
+                      </code>
                       {domainData.status === 'active' && customDomainUrl && (
                         <a
                           href={customDomainUrl}
@@ -560,11 +611,16 @@ export function DomainTab({ tenant }: DomainTabProps) {
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={handleRemove}
                     disabled={isRemoving}
                     className="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50 transition-colors"
                   >
-                    {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    {isRemoving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                     Remove
                   </button>
                 </div>
@@ -577,11 +633,16 @@ export function DomainTab({ tenant }: DomainTabProps) {
                       verificationToken={domainData.verificationToken}
                     />
                     <button
+                      type="button"
                       onClick={handleVerify}
                       disabled={isVerifying}
                       className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                     >
-                      {isVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                      {isVerifying ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
                       Check DNS Configuration
                     </button>
                   </>
@@ -595,10 +656,17 @@ export function DomainTab({ tenant }: DomainTabProps) {
                         <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="font-semibold text-emerald-800">Domain is live!</p>
+                        <p className="font-semibold text-emerald-800">
+                          Domain is live!
+                        </p>
                         <p className="text-sm text-emerald-700">
                           Customers can now visit{' '}
-                          <a href={customDomainUrl!} target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                          <a
+                            href={customDomainUrl!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline font-medium"
+                          >
                             {domainData.domain}
                           </a>
                         </p>
@@ -610,8 +678,11 @@ export function DomainTab({ tenant }: DomainTabProps) {
                 {/* Backup URL notice */}
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium text-gray-700">Backup:</span> Your MadeBuy URL{' '}
-                    <code className="rounded-md bg-white border border-gray-200 px-2 py-0.5 text-xs font-medium">{storefrontUrl}</code>{' '}
+                    <span className="font-medium text-gray-700">Backup:</span>{' '}
+                    Your MadeBuy URL{' '}
+                    <code className="rounded-md bg-white border border-gray-200 px-2 py-0.5 text-xs font-medium">
+                      {storefrontUrl}
+                    </code>{' '}
                     always works as a fallback.
                   </p>
                 </div>
@@ -621,7 +692,10 @@ export function DomainTab({ tenant }: DomainTabProps) {
               <div className="space-y-6">
                 <form onSubmit={handleSetDomain} className="space-y-4">
                   <div>
-                    <label htmlFor="domain" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label
+                      htmlFor="domain"
+                      className="block text-sm font-semibold text-gray-700 mb-2"
+                    >
                       Your domain name
                     </label>
                     <input
@@ -638,6 +712,7 @@ export function DomainTab({ tenant }: DomainTabProps) {
                   </div>
 
                   <button
+                    type="button"
                     type="submit"
                     disabled={isSaving || !newDomain.trim()}
                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -649,19 +724,33 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
                 {/* How it works */}
                 <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-5">
-                  <h4 className="font-semibold text-blue-900 mb-3">How it works</h4>
+                  <h4 className="font-semibold text-blue-900 mb-3">
+                    How it works
+                  </h4>
                   <ol className="text-sm text-blue-800 space-y-2">
                     <li className="flex gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 flex-shrink-0">1</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 flex-shrink-0">
+                        1
+                      </span>
                       <span>Enter your domain above</span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 flex-shrink-0">2</span>
-                      <span>Add 2 DNS records at your registrar (GoDaddy, Namecheap, etc.)</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 flex-shrink-0">
+                        2
+                      </span>
+                      <span>
+                        Add 2 DNS records at your registrar (GoDaddy, Namecheap,
+                        etc.)
+                      </span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 flex-shrink-0">3</span>
-                      <span>Click &quot;Check DNS&quot; — usually takes 15 min to 48 hours</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 flex-shrink-0">
+                        3
+                      </span>
+                      <span>
+                        Click &quot;Check DNS&quot; — usually takes 15 min to 48
+                        hours
+                      </span>
                     </li>
                   </ol>
                 </div>
@@ -670,7 +759,10 @@ export function DomainTab({ tenant }: DomainTabProps) {
                 <div className="border-t border-gray-200 pt-6">
                   <button
                     type="button"
-                    onClick={() => setShowCloudflareSection(!showCloudflareSection)}
+                    type="button"
+                    onClick={() =>
+                      setShowCloudflareSection(!showCloudflareSection)
+                    }
                     className="flex items-center justify-between w-full text-left group"
                   >
                     <div className="flex items-center gap-3">
@@ -678,8 +770,12 @@ export function DomainTab({ tenant }: DomainTabProps) {
                         <Cloud className="h-5 w-5 text-orange-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Using Cloudflare?</h4>
-                        <p className="text-xs text-gray-500">Skip manual DNS — auto-configure in one click</p>
+                        <h4 className="text-sm font-semibold text-gray-900">
+                          Using Cloudflare?
+                        </h4>
+                        <p className="text-xs text-gray-500">
+                          Skip manual DNS — auto-configure in one click
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -689,7 +785,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
                           Connected
                         </span>
                       )}
-                      <div className={`transition-transform duration-200 ${showCloudflareSection ? 'rotate-180' : ''}`}>
+                      <div
+                        className={`transition-transform duration-200 ${showCloudflareSection ? 'rotate-180' : ''}`}
+                      >
                         <ChevronDown className="h-5 w-5 text-gray-400" />
                       </div>
                     </div>
@@ -707,7 +805,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
                                 </label>
                                 <select
                                   value={selectedZone}
-                                  onChange={(e) => setSelectedZone(e.target.value)}
+                                  onChange={(e) =>
+                                    setSelectedZone(e.target.value)
+                                  }
                                   className="block w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                                 >
                                   <option value="">Choose a domain...</option>
@@ -721,19 +821,27 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
                               <button
                                 type="button"
+                                type="button"
                                 onClick={handleAutoConfigureDns}
                                 disabled={!selectedZone || isConfiguring}
                                 className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm text-white font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors"
                               >
-                                {isConfiguring ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                                {isConfiguring ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Zap className="h-4 w-4" />
+                                )}
                                 Auto-Configure DNS
                               </button>
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500">No domains found in your Cloudflare account.</p>
+                            <p className="text-sm text-gray-500">
+                              No domains found in your Cloudflare account.
+                            </p>
                           )}
 
                           <button
+                            type="button"
                             type="button"
                             onClick={handleDisconnectCloudflare}
                             disabled={cloudflareLoading}
@@ -746,7 +854,8 @@ export function DomainTab({ tenant }: DomainTabProps) {
                         <div className="space-y-4">
                           <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
                             <p className="text-sm text-orange-800">
-                              If your domain is managed by Cloudflare, we can set up DNS records automatically.
+                              If your domain is managed by Cloudflare, we can
+                              set up DNS records automatically.
                             </p>
                           </div>
 
@@ -762,7 +871,10 @@ export function DomainTab({ tenant }: DomainTabProps) {
                               <ExternalLink className="h-3.5 w-3.5" />
                             </a>
 
-                            <form onSubmit={handleConnectCloudflare} className="space-y-3">
+                            <form
+                              onSubmit={handleConnectCloudflare}
+                              className="space-y-3"
+                            >
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                   Paste your API token
@@ -770,18 +882,25 @@ export function DomainTab({ tenant }: DomainTabProps) {
                                 <input
                                   type="password"
                                   value={cloudflareToken}
-                                  onChange={(e) => setCloudflareToken(e.target.value)}
+                                  onChange={(e) =>
+                                    setCloudflareToken(e.target.value)
+                                  }
                                   placeholder="Your Cloudflare API token"
                                   className="block w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                                 />
                               </div>
 
                               <button
+                                type="button"
                                 type="submit"
-                                disabled={cloudflareLoading || !cloudflareToken.trim()}
+                                disabled={
+                                  cloudflareLoading || !cloudflareToken.trim()
+                                }
                                 className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm text-white font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors"
                               >
-                                {cloudflareLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                                {cloudflareLoading && (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                )}
                                 Connect Cloudflare
                               </button>
                             </form>
@@ -802,10 +921,12 @@ export function DomainTab({ tenant }: DomainTabProps) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100 mb-4">
           <Sparkles className="h-7 w-7 text-violet-600" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Managed Domains</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Managed Domains
+        </h3>
         <p className="text-gray-500 max-w-md mx-auto mb-4">
-          Soon you&apos;ll be able to search, purchase, and connect a domain without leaving MadeBuy.
-          We&apos;ll handle all the technical setup.
+          Soon you&apos;ll be able to search, purchase, and connect a domain
+          without leaving MadeBuy. We&apos;ll handle all the technical setup.
         </p>
         <span className="inline-flex items-center rounded-full bg-violet-100 px-4 py-1.5 text-sm font-semibold text-violet-700">
           Coming Soon
@@ -814,7 +935,9 @@ export function DomainTab({ tenant }: DomainTabProps) {
 
       {/* Tips */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Good to know</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">
+          Good to know
+        </h4>
         <ul className="space-y-2 text-sm text-gray-600">
           <li className="flex items-start gap-2">
             <span className="text-amber-500 mt-0.5">•</span>
@@ -822,7 +945,8 @@ export function DomainTab({ tenant }: DomainTabProps) {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-amber-500 mt-0.5">•</span>
-            SSL certificates are configured automatically — no extra steps needed
+            SSL certificates are configured automatically — no extra steps
+            needed
           </li>
           <li className="flex items-start gap-2">
             <span className="text-amber-500 mt-0.5">•</span>

@@ -1,14 +1,20 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { FolderOpen } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import type { SectionProps } from './SectionRenderer'
 
-export function CollectionsShowcase({ settings, tenant, tenantSlug, collections }: SectionProps) {
+export function CollectionsShowcase({
+  settings,
+  tenant,
+  tenantSlug,
+  collections,
+}: SectionProps) {
   const title = settings.title || 'Our Collections'
   const subtitle = settings.subtitle
-  const displayCollections = collections?.filter((c) => c.isPublished).slice(0, 6) || []
+  const displayCollections =
+    collections?.filter((c) => c.isPublished).slice(0, 6) || []
 
   if (displayCollections.length === 0) {
     return null
@@ -22,9 +28,7 @@ export function CollectionsShowcase({ settings, tenant, tenantSlug, collections 
           {title}
         </h2>
         {subtitle && (
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {subtitle}
-          </p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
@@ -33,7 +37,8 @@ export function CollectionsShowcase({ settings, tenant, tenantSlug, collections 
         {displayCollections.map((collection) => {
           // Note: coverMediaId needs to be resolved to a URL by the parent component
           // For now, we show a gradient placeholder - parent should pass resolved media
-          const coverImage = (collection as { coverMediaUrl?: string }).coverMediaUrl
+          const coverImage = (collection as { coverMediaUrl?: string })
+            .coverMediaUrl
           const href = `/${tenantSlug}/collections/${collection.slug}`
 
           return (
@@ -68,7 +73,8 @@ export function CollectionsShowcase({ settings, tenant, tenantSlug, collections 
                   </h3>
                   {collection.pieceIds?.length > 0 && (
                     <p className="text-white/80 text-sm">
-                      {collection.pieceIds.length} {collection.pieceIds.length === 1 ? 'piece' : 'pieces'}
+                      {collection.pieceIds.length}{' '}
+                      {collection.pieceIds.length === 1 ? 'piece' : 'pieces'}
                     </p>
                   )}
                 </div>

@@ -1,23 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
+import type { CustomerWithOrders } from '@madebuy/shared'
 import {
   ArrowLeft,
-  Mail,
-  Phone,
   Calendar,
   DollarSign,
-  ShoppingCart,
-  MapPin,
-  Tag,
-  Save,
-  Trash2,
+  Mail,
   MailCheck,
-  MailX
+  MailX,
+  MapPin,
+  Phone,
+  Save,
+  ShoppingCart,
+  Tag,
+  Trash2,
 } from 'lucide-react'
-import type { CustomerWithOrders } from '@madebuy/shared'
+import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function CustomerDetailPage() {
   const params = useParams()
@@ -39,7 +39,7 @@ export default function CustomerDetailPage() {
   useEffect(() => {
     if (customerId) fetchCustomer()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerId])
+  }, [customerId, fetchCustomer])
 
   async function fetchCustomer() {
     if (!customerId) return
@@ -76,7 +76,10 @@ export default function CustomerDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: formData.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean),
         }),
       })
 
@@ -95,7 +98,11 @@ export default function CustomerDetailPage() {
 
   async function handleDelete() {
     if (!customerId) return
-    if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this customer? This action cannot be undone.',
+      )
+    ) {
       return
     }
 
@@ -125,8 +132,13 @@ export default function CustomerDetailPage() {
   if (!customer) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-lg font-medium text-gray-900">Customer not found</h2>
-        <Link href="/dashboard/customers" className="text-blue-600 hover:underline mt-2 inline-block">
+        <h2 className="text-lg font-medium text-gray-900">
+          Customer not found
+        </h2>
+        <Link
+          href="/dashboard/customers"
+          className="text-blue-600 hover:underline mt-2 inline-block"
+        >
           Back to customers
         </Link>
       </div>
@@ -145,11 +157,14 @@ export default function CustomerDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {customer.name}
+            </h1>
             <p className="text-gray-500">{customer.email}</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={handleDelete}
           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           title="Delete customer"
@@ -168,21 +183,27 @@ export default function CustomerDetailPage() {
                 <ShoppingCart className="h-4 w-4" />
                 <span className="text-sm">Orders</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{customer.totalOrders}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {customer.totalOrders}
+              </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <DollarSign className="h-4 w-4" />
                 <span className="text-sm">Total Spent</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(customer.totalSpent)}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {formatCurrency(customer.totalSpent)}
+              </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <DollarSign className="h-4 w-4" />
                 <span className="text-sm">Avg Order</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(customer.averageOrderValue)}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {formatCurrency(customer.averageOrderValue)}
+              </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
@@ -216,18 +237,22 @@ export default function CustomerDetailPage() {
                         Order #{order.orderNumber || order.id.slice(-6)}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()} · {order.itemCount} items
+                        {new Date(order.createdAt).toLocaleDateString()} ·{' '}
+                        {order.itemCount} items
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(order.total)}</p>
+                      <p className="font-medium text-gray-900">
+                        {formatCurrency(order.total)}
+                      </p>
                       <span
                         className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                          order.status === 'delivered' || order.status === 'completed'
+                          order.status === 'delivered' ||
+                          order.status === 'completed'
                             ? 'bg-green-100 text-green-700'
                             : order.status === 'cancelled'
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-blue-100 text-blue-700'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-blue-100 text-blue-700'
                         }`}
                       >
                         {order.status}
@@ -237,16 +262,17 @@ export default function CustomerDetailPage() {
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-center text-gray-500">
-                No orders yet
-              </div>
+              <div className="p-6 text-center text-gray-500">No orders yet</div>
             )}
           </div>
         </div>
 
         {/* Edit Form */}
         <div className="space-y-6">
-          <form onSubmit={handleSave} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <form
+            onSubmit={handleSave}
+            className="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+          >
             <h2 className="font-semibold text-gray-900">Customer Details</h2>
 
             {error && (
@@ -256,23 +282,31 @@ export default function CustomerDetailPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone
+              </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="(04) xxx xxx xxx"
                 />
@@ -280,25 +314,35 @@ export default function CustomerDetailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
               <div className="relative">
                 <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tags: e.target.value })
+                  }
                   className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="VIP, Wholesale, etc."
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Separate tags with commas
+              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Notes
+              </label>
               <textarea
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Internal notes about this customer..."
@@ -308,7 +352,13 @@ export default function CustomerDetailPage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, emailSubscribed: !formData.emailSubscribed })}
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    emailSubscribed: !formData.emailSubscribed,
+                  })
+                }
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                   formData.emailSubscribed
                     ? 'bg-green-50 border-green-200 text-green-700'
@@ -330,6 +380,7 @@ export default function CustomerDetailPage() {
             </div>
 
             <button
+              type="button"
               type="submit"
               disabled={saving}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
@@ -346,14 +397,20 @@ export default function CustomerDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Mail className="h-4 w-4 text-gray-400" />
-                <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
+                <a
+                  href={`mailto:${customer.email}`}
+                  className="text-blue-600 hover:underline"
+                >
                   {customer.email}
                 </a>
               </div>
               {customer.phone && (
                 <div className="flex items-center gap-3 text-sm">
                   <Phone className="h-4 w-4 text-gray-400" />
-                  <a href={`tel:${customer.phone}`} className="text-blue-600 hover:underline">
+                  <a
+                    href={`tel:${customer.phone}`}
+                    className="text-blue-600 hover:underline"
+                  >
                     {customer.phone}
                   </a>
                 </div>
@@ -362,17 +419,26 @@ export default function CustomerDetailPage() {
 
             {customer.addresses && customer.addresses.length > 0 && (
               <div className="pt-4 border-t border-gray-100">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Addresses</h3>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  Addresses
+                </h3>
                 <div className="space-y-3">
                   {customer.addresses.map((address) => (
-                    <div key={address.id} className="flex items-start gap-3 text-sm">
+                    <div
+                      key={address.id}
+                      className="flex items-start gap-3 text-sm"
+                    >
                       <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                       <div>
                         {address.label && (
-                          <span className="text-xs font-medium text-gray-500 uppercase">{address.label}</span>
+                          <span className="text-xs font-medium text-gray-500 uppercase">
+                            {address.label}
+                          </span>
                         )}
                         <p className="text-gray-700">{address.line1}</p>
-                        {address.line2 && <p className="text-gray-700">{address.line2}</p>}
+                        {address.line2 && (
+                          <p className="text-gray-700">{address.line2}</p>
+                        )}
                         <p className="text-gray-700">
                           {address.city}, {address.state} {address.postcode}
                         </p>

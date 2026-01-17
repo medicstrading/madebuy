@@ -1,27 +1,31 @@
-import { nanoid } from 'nanoid'
-import bcrypt from 'bcryptjs'
-import { getDatabase } from '../client'
 import type {
+  CohortData,
   Customer,
   CustomerAddress,
+  CustomerAuthResult,
   CustomerFilters,
-  CustomerStats,
   CustomerLTV,
-  CohortData,
-  UpdateCustomerInput,
+  CustomerStats,
   CustomerWithOrders,
   RegisterCustomerInput,
-  CustomerAuthResult,
+  UpdateCustomerInput,
 } from '@madebuy/shared'
-import { validatePassword, DEFAULT_PASSWORD_REQUIREMENTS } from '@madebuy/shared'
+import {
+  DEFAULT_PASSWORD_REQUIREMENTS,
+  validatePassword,
+} from '@madebuy/shared'
+import bcrypt from 'bcryptjs'
+import { nanoid } from 'nanoid'
+import { getDatabase } from '../client'
 
-const BCRYPT_ROUNDS = 10  // Reduced from 12 for faster login (~100ms vs ~400ms)
+const BCRYPT_ROUNDS = 10 // Reduced from 12 for faster login (~100ms vs ~400ms)
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 24
 const RESET_TOKEN_EXPIRY_HOURS = 24
 const EMAIL_CHANGE_TOKEN_EXPIRY_HOURS = 24
 
 // Dummy hash for timing attack prevention (cost 10 to match BCRYPT_ROUNDS)
-const DUMMY_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+const DUMMY_HASH =
+  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
 
 // Database record type for Customer collection
 interface CustomerRecord extends Customer {
@@ -65,7 +69,7 @@ export async function createOrUpdateCustomer(
     acquisitionSource?: string
     acquisitionMedium?: string
     acquisitionCampaign?: string
-  }
+  },
 ): Promise<Customer> {
   const db = await getDatabase()
   const now = new Date()
@@ -89,7 +93,7 @@ export async function createOrUpdateCustomer(
           lastOrderAt: now,
           updatedAt: now,
         },
-      }
+      },
     )
 
     return {
@@ -132,10 +136,12 @@ export async function createOrUpdateCustomer(
  */
 export async function getCustomerByEmail(
   tenantId: string,
-  email: string
+  email: string,
 ): Promise<Customer | null> {
   const db = await getDatabase()
-  return (await db.collection('customers').findOne({ tenantId, email })) as unknown as Customer | null
+  return (await db
+    .collection('customers')
+    .findOne({ tenantId, email })) as unknown as Customer | null
 }
 
 /**
@@ -143,10 +149,12 @@ export async function getCustomerByEmail(
  */
 export async function getCustomerById(
   tenantId: string,
-  id: string
+  id: string,
 ): Promise<Customer | null> {
   const db = await getDatabase()
-  return (await db.collection('customers').findOne({ tenantId, id })) as unknown as Customer | null
+  return (await db
+    .collection('customers')
+    .findOne({ tenantId, id })) as unknown as Customer | null
 }
 
 /**
@@ -155,7 +163,7 @@ export async function getCustomerById(
 export async function listCustomers(
   tenantId: string,
   filters?: CustomerFilters,
-  pagination?: { page?: number; limit?: number }
+  pagination?: { page?: number; limit?: number },
 ): Promise<{ customers: Customer[]; total: number }> {
   const db = await getDatabase()
   const query: Record<string, unknown> = { tenantId }
@@ -209,10 +217,13 @@ export async function listCustomers(
 export async function updateCustomer(
   tenantId: string,
   id: string,
-  updates: UpdateCustomerInput
+  updates: UpdateCustomerInput,
 ): Promise<void> {
   const db = await getDatabase()
-  const updateData: Record<string, unknown> = { ...updates, updatedAt: new Date() }
+  const updateData: Record<string, unknown> = {
+    ...updates,
+    updatedAt: new Date(),
+  }
 
   if (updates.emailSubscribed !== undefined) {
     if (updates.emailSubscribed) {
@@ -222,7 +233,9 @@ export async function updateCustomer(
     }
   }
 
-  await db.collection('customers').updateOne({ tenantId, id }, { $set: updateData })
+  await db
+    .collection('customers')
+    .updateOne({ tenantId, id }, { $set: updateData })
 }
 
 /**
@@ -231,7 +244,7 @@ export async function updateCustomer(
 export async function getCustomerStats(
   tenantId: string,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ): Promise<CustomerStats> {
   const db = await getDatabase()
   const dateFilter: { $gte?: Date; $lte?: Date } = {}
@@ -248,7 +261,7 @@ export async function getCustomerStats(
     matchQuery.createdAt = dateFilter
   }
 
-  const [stats] = await db
+  const [stats] = (await db
     .collection('customers')
     .aggregate([
       { $match: matchQuery },
@@ -286,7 +299,7 @@ export async function getCustomerStats(
         },
       },
     ])
-    .toArray() as CustomerStatsAggResult[]
+    .toArray()) as CustomerStatsAggResult[]
 
   // Get new customers (first order within period)
   const newCustomersQuery: Record<string, unknown> = { tenantId }
@@ -306,12 +319,12 @@ export async function getCustomerStats(
     .countDocuments({ tenantId, firstOrderAt: { $gte: startOfMonth } })
 
   // Get top customers
-  const topCustomersData = await db
+  const topCustomersData = (await db
     .collection('customers')
     .find({ tenantId })
     .sort({ totalSpent: -1 })
     .limit(10)
-    .toArray() as unknown as TopCustomerRecord[]
+    .toArray()) as unknown as TopCustomerRecord[]
 
   const topCustomers = topCustomersData.map((c) => ({
     id: c.id,
@@ -339,31 +352,39 @@ export async function getCustomerStats(
  */
 export async function getTopCustomers(
   tenantId: string,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<CustomerLTV[]> {
   const db = await getDatabase()
   const now = new Date()
 
-  const customers = await db
+  const customers = (await db
     .collection('customers')
     .find({ tenantId })
     .sort({ totalSpent: -1 })
     .limit(limit)
-    .toArray() as CustomerRecord[]
+    .toArray()) as CustomerRecord[]
 
   return customers.map((c) => {
-    const daysSinceFirstOrder = c.firstOrderAt ? Math.floor(
-      (now.getTime() - new Date(c.firstOrderAt).getTime()) / (1000 * 60 * 60 * 24)
-    ) : 0
-    const daysSinceLastOrder = c.lastOrderAt ? Math.floor(
-      (now.getTime() - new Date(c.lastOrderAt).getTime()) / (1000 * 60 * 60 * 24)
-    ) : 0
+    const daysSinceFirstOrder = c.firstOrderAt
+      ? Math.floor(
+          (now.getTime() - new Date(c.firstOrderAt).getTime()) /
+            (1000 * 60 * 60 * 24),
+        )
+      : 0
+    const daysSinceLastOrder = c.lastOrderAt
+      ? Math.floor(
+          (now.getTime() - new Date(c.lastOrderAt).getTime()) /
+            (1000 * 60 * 60 * 24),
+        )
+      : 0
 
     // Simple LTV prediction based on order frequency and average value
-    const ordersPerMonth = daysSinceFirstOrder > 0
-      ? (c.totalOrders / daysSinceFirstOrder) * 30
-      : c.totalOrders
-    const predictedLTV = c.totalSpent + ordersPerMonth * c.averageOrderValue * 12
+    const ordersPerMonth =
+      daysSinceFirstOrder > 0
+        ? (c.totalOrders / daysSinceFirstOrder) * 30
+        : c.totalOrders
+    const predictedLTV =
+      c.totalSpent + ordersPerMonth * c.averageOrderValue * 12
 
     return {
       customerId: c.id,
@@ -384,25 +405,31 @@ export async function getTopCustomers(
  */
 export async function getCustomerLifetimeValue(
   tenantId: string,
-  customerId: string
+  customerId: string,
 ): Promise<CustomerLTV | null> {
   const db = await getDatabase()
-  const customer = await db.collection('customers').findOne({ tenantId, id: customerId })
+  const customer = await db
+    .collection('customers')
+    .findOne({ tenantId, id: customerId })
 
   if (!customer) return null
 
   const now = new Date()
   const daysSinceFirstOrder = Math.floor(
-    (now.getTime() - new Date(customer.firstOrderAt).getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - new Date(customer.firstOrderAt).getTime()) /
+      (1000 * 60 * 60 * 24),
   )
   const daysSinceLastOrder = Math.floor(
-    (now.getTime() - new Date(customer.lastOrderAt).getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - new Date(customer.lastOrderAt).getTime()) /
+      (1000 * 60 * 60 * 24),
   )
 
-  const ordersPerMonth = daysSinceFirstOrder > 0
-    ? (customer.totalOrders / daysSinceFirstOrder) * 30
-    : customer.totalOrders
-  const predictedLTV = customer.totalSpent + ordersPerMonth * customer.averageOrderValue * 12
+  const ordersPerMonth =
+    daysSinceFirstOrder > 0
+      ? (customer.totalOrders / daysSinceFirstOrder) * 30
+      : customer.totalOrders
+  const predictedLTV =
+    customer.totalSpent + ordersPerMonth * customer.averageOrderValue * 12
 
   return {
     customerId: customer.id,
@@ -422,7 +449,7 @@ export async function getCustomerLifetimeValue(
  */
 export async function getCohortAnalysis(
   tenantId: string,
-  months: number = 12
+  months: number = 12,
 ): Promise<CohortData[]> {
   const db = await getDatabase()
   const now = new Date()
@@ -458,7 +485,7 @@ export async function getCohortAnalysis(
 
   for (const cohort of cohorts) {
     const cohortMonth = cohort._id
-    const cohortStart = new Date(cohortMonth + '-01')
+    const cohortStart = new Date(`${cohortMonth}-01`)
 
     // Get order data for retention calculation
     const retentionData = await db
@@ -484,7 +511,11 @@ export async function getCohortAnalysis(
             'customer.tenantId': tenantId,
             'customer.firstOrderAt': {
               $gte: cohortStart,
-              $lt: new Date(cohortStart.getFullYear(), cohortStart.getMonth() + 1, 1),
+              $lt: new Date(
+                cohortStart.getFullYear(),
+                cohortStart.getMonth() + 1,
+                1,
+              ),
             },
           },
         },
@@ -516,7 +547,10 @@ export async function getCohortAnalysis(
       const monthData = retentionData.find((r) => r._id === monthStr)
       if (monthData) {
         retention.push(
-          Math.round(((monthData.uniqueCustomers?.length || 0) / totalCohortCustomers) * 100)
+          Math.round(
+            ((monthData.uniqueCustomers?.length || 0) / totalCohortCustomers) *
+              100,
+          ),
         )
         revenue.push(monthData.revenue || 0)
       } else {
@@ -541,11 +575,11 @@ export async function getCohortAnalysis(
  * Get acquisition source breakdown
  */
 export async function getAcquisitionSources(
-  tenantId: string
+  tenantId: string,
 ): Promise<{ source: string; customers: number; revenue: number }[]> {
   const db = await getDatabase()
 
-  const sources = await db
+  const sources = (await db
     .collection('customers')
     .aggregate([
       { $match: { tenantId } },
@@ -558,7 +592,7 @@ export async function getAcquisitionSources(
       },
       { $sort: { revenue: -1 } },
     ])
-    .toArray() as AcquisitionSourceAggResult[]
+    .toArray()) as AcquisitionSourceAggResult[]
 
   return sources.map((s) => ({
     source: s._id,
@@ -580,7 +614,7 @@ export async function countCustomers(tenantId: string): Promise<number> {
  */
 export async function exportCustomers(
   tenantId: string,
-  filters?: CustomerFilters
+  filters?: CustomerFilters,
 ): Promise<Customer[]> {
   const db = await getDatabase()
   const query: Record<string, unknown> = { tenantId }
@@ -614,21 +648,28 @@ export interface CustomerRegistrationResult {
  */
 export async function registerCustomer(
   tenantId: string,
-  input: RegisterCustomerInput
+  input: RegisterCustomerInput,
 ): Promise<CustomerRegistrationResult> {
   const db = await getDatabase()
   const email = input.email.toLowerCase()
   const now = new Date()
 
   // Validate password strength
-  const passwordValidation = validatePassword(input.password, DEFAULT_PASSWORD_REQUIREMENTS)
+  const passwordValidation = validatePassword(
+    input.password,
+    DEFAULT_PASSWORD_REQUIREMENTS,
+  )
   if (!passwordValidation.isValid) {
-    throw new Error(passwordValidation.errors[0] || 'Password does not meet requirements')
+    throw new Error(
+      passwordValidation.errors[0] || 'Password does not meet requirements',
+    )
   }
 
   const verificationToken = nanoid(32)
   const verificationTokenExpiry = new Date()
-  verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS)
+  verificationTokenExpiry.setHours(
+    verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS,
+  )
 
   // Check if customer already exists
   const existing = await db.collection('customers').findOne({ tenantId, email })
@@ -653,10 +694,12 @@ export async function registerCustomer(
           verificationTokenExpiry,
           updatedAt: now,
         },
-      }
+      },
     )
 
-    const updated = await db.collection('customers').findOne({ tenantId, email })
+    const updated = await db
+      .collection('customers')
+      .findOne({ tenantId, email })
     return {
       customer: updated as unknown as Customer,
       verificationToken,
@@ -697,7 +740,7 @@ export async function registerCustomer(
 export async function authenticateCustomer(
   tenantId: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<CustomerAuthResult> {
   const db = await getDatabase()
   const customer = await db.collection('customers').findOne({
@@ -714,10 +757,12 @@ export async function authenticateCustomer(
   }
 
   // Update last login (fire-and-forget for faster response)
-  db.collection('customers').updateOne(
-    { tenantId, id: customer.id },
-    { $set: { lastLoginAt: new Date() } }
-  ).catch(e => console.error('Failed to update lastLoginAt:', e))
+  db.collection('customers')
+    .updateOne(
+      { tenantId, id: customer.id },
+      { $set: { lastLoginAt: new Date() } },
+    )
+    .catch((e) => console.error('Failed to update lastLoginAt:', e))
 
   return { success: true, customer: customer as unknown as Customer }
 }
@@ -747,7 +792,7 @@ export async function verifyCustomerEmail(token: string): Promise<boolean> {
         verificationToken: '',
         verificationTokenExpiry: '',
       },
-    }
+    },
   )
 
   return true
@@ -758,7 +803,7 @@ export async function verifyCustomerEmail(token: string): Promise<boolean> {
  */
 export async function createVerificationToken(
   tenantId: string,
-  email: string
+  email: string,
 ): Promise<string | null> {
   const db = await getDatabase()
   const customer = await db.collection('customers').findOne({
@@ -772,7 +817,9 @@ export async function createVerificationToken(
 
   const verificationToken = nanoid(32)
   const verificationTokenExpiry = new Date()
-  verificationTokenExpiry.setHours(verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS)
+  verificationTokenExpiry.setHours(
+    verificationTokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS,
+  )
 
   await db.collection('customers').updateOne(
     { tenantId, id: customer.id },
@@ -782,7 +829,7 @@ export async function createVerificationToken(
         verificationTokenExpiry,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return verificationToken
@@ -793,7 +840,7 @@ export async function createVerificationToken(
  */
 export async function createPasswordResetToken(
   tenantId: string,
-  email: string
+  email: string,
 ): Promise<string | null> {
   const db = await getDatabase()
   const customer = await db.collection('customers').findOne({
@@ -806,7 +853,9 @@ export async function createPasswordResetToken(
 
   const resetToken = nanoid(32)
   const resetTokenExpiry = new Date()
-  resetTokenExpiry.setHours(resetTokenExpiry.getHours() + RESET_TOKEN_EXPIRY_HOURS)
+  resetTokenExpiry.setHours(
+    resetTokenExpiry.getHours() + RESET_TOKEN_EXPIRY_HOURS,
+  )
 
   await db.collection('customers').updateOne(
     { tenantId, id: customer.id },
@@ -816,7 +865,7 @@ export async function createPasswordResetToken(
         resetTokenExpiry,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return resetToken
@@ -825,11 +874,19 @@ export async function createPasswordResetToken(
 /**
  * Reset password using token
  */
-export async function resetPassword(token: string, newPassword: string): Promise<boolean> {
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+): Promise<boolean> {
   // Validate password strength
-  const passwordValidation = validatePassword(newPassword, DEFAULT_PASSWORD_REQUIREMENTS)
+  const passwordValidation = validatePassword(
+    newPassword,
+    DEFAULT_PASSWORD_REQUIREMENTS,
+  )
   if (!passwordValidation.isValid) {
-    throw new Error(passwordValidation.errors[0] || 'Password does not meet requirements')
+    throw new Error(
+      passwordValidation.errors[0] || 'Password does not meet requirements',
+    )
   }
 
   const db = await getDatabase()
@@ -854,7 +911,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
         resetToken: '',
         resetTokenExpiry: '',
       },
-    }
+    },
   )
 
   return true
@@ -867,16 +924,23 @@ export async function changeCustomerPassword(
   tenantId: string,
   customerId: string,
   currentPassword: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<boolean> {
   // Validate new password strength
-  const passwordValidation = validatePassword(newPassword, DEFAULT_PASSWORD_REQUIREMENTS)
+  const passwordValidation = validatePassword(
+    newPassword,
+    DEFAULT_PASSWORD_REQUIREMENTS,
+  )
   if (!passwordValidation.isValid) {
-    throw new Error(passwordValidation.errors[0] || 'Password does not meet requirements')
+    throw new Error(
+      passwordValidation.errors[0] || 'Password does not meet requirements',
+    )
   }
 
   const db = await getDatabase()
-  const customer = await db.collection('customers').findOne({ tenantId, id: customerId })
+  const customer = await db
+    .collection('customers')
+    .findOne({ tenantId, id: customerId })
 
   if (!customer || !customer.passwordHash) return false
 
@@ -892,7 +956,7 @@ export async function changeCustomerPassword(
         passwordHash,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return true
@@ -908,7 +972,7 @@ export async function changeCustomerPassword(
 export async function addCustomerAddress(
   tenantId: string,
   customerId: string,
-  address: Omit<CustomerAddress, 'id'>
+  address: Omit<CustomerAddress, 'id'>,
 ): Promise<Customer | null> {
   const db = await getDatabase()
 
@@ -923,7 +987,7 @@ export async function addCustomerAddress(
       $push: { addresses: newAddress } as any,
       $set: { updatedAt: new Date() },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Customer | null
@@ -936,7 +1000,7 @@ export async function updateCustomerAddress(
   tenantId: string,
   customerId: string,
   addressId: string,
-  address: Partial<Omit<CustomerAddress, 'id'>>
+  address: Partial<Omit<CustomerAddress, 'id'>>,
 ): Promise<Customer | null> {
   const db = await getDatabase()
 
@@ -950,7 +1014,7 @@ export async function updateCustomerAddress(
     {
       $set: { ...updateFields, updatedAt: new Date() },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Customer | null
@@ -962,7 +1026,7 @@ export async function updateCustomerAddress(
 export async function removeCustomerAddress(
   tenantId: string,
   customerId: string,
-  addressId: string
+  addressId: string,
 ): Promise<Customer | null> {
   const db = await getDatabase()
 
@@ -972,7 +1036,7 @@ export async function removeCustomerAddress(
       $pull: { addresses: { id: addressId } } as any,
       $set: { updatedAt: new Date() },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Customer | null
@@ -984,15 +1048,17 @@ export async function removeCustomerAddress(
 export async function setDefaultAddress(
   tenantId: string,
   customerId: string,
-  addressId: string
+  addressId: string,
 ): Promise<Customer | null> {
   const db = await getDatabase()
 
   // Unset any existing default
-  await db.collection('customers').updateOne(
-    { tenantId, id: customerId },
-    { $set: { 'addresses.$[].isDefault': false } }
-  )
+  await db
+    .collection('customers')
+    .updateOne(
+      { tenantId, id: customerId },
+      { $set: { 'addresses.$[].isDefault': false } },
+    )
 
   // Set new default
   const result = await db.collection('customers').findOneAndUpdate(
@@ -1004,7 +1070,7 @@ export async function setDefaultAddress(
         updatedAt: new Date(),
       },
     },
-    { returnDocument: 'after' }
+    { returnDocument: 'after' },
   )
 
   return result as unknown as Customer | null
@@ -1020,7 +1086,7 @@ export async function setDefaultAddress(
 export async function initiateEmailChange(
   tenantId: string,
   customerId: string,
-  newEmail: string
+  newEmail: string,
 ): Promise<string | null> {
   const db = await getDatabase()
 
@@ -1033,7 +1099,9 @@ export async function initiateEmailChange(
 
   const emailChangeToken = nanoid(32)
   const emailChangeTokenExpiry = new Date()
-  emailChangeTokenExpiry.setHours(emailChangeTokenExpiry.getHours() + EMAIL_CHANGE_TOKEN_EXPIRY_HOURS)
+  emailChangeTokenExpiry.setHours(
+    emailChangeTokenExpiry.getHours() + EMAIL_CHANGE_TOKEN_EXPIRY_HOURS,
+  )
 
   await db.collection('customers').updateOne(
     { tenantId, id: customerId },
@@ -1044,7 +1112,7 @@ export async function initiateEmailChange(
         emailChangeTokenExpiry,
         updatedAt: new Date(),
       },
-    }
+    },
   )
 
   return emailChangeToken
@@ -1078,7 +1146,7 @@ export async function confirmEmailChange(token: string): Promise<boolean> {
           emailChangeTokenExpiry: '',
         },
         $set: { updatedAt: new Date() },
-      }
+      },
     )
     return false
   }
@@ -1097,7 +1165,7 @@ export async function confirmEmailChange(token: string): Promise<boolean> {
         emailChangeToken: '',
         emailChangeTokenExpiry: '',
       },
-    }
+    },
   )
 
   return true
@@ -1110,7 +1178,9 @@ export async function confirmEmailChange(token: string): Promise<boolean> {
 /**
  * Get all customers subscribed to newsletter for a tenant
  */
-export async function getSubscribedCustomers(tenantId: string): Promise<Customer[]> {
+export async function getSubscribedCustomers(
+  tenantId: string,
+): Promise<Customer[]> {
   const db = await getDatabase()
 
   const customers = await db
@@ -1127,7 +1197,7 @@ export async function getSubscribedCustomers(tenantId: string): Promise<Customer
 export async function updateEmailSubscription(
   tenantId: string,
   customerId: string,
-  subscribed: boolean
+  subscribed: boolean,
 ): Promise<Customer | null> {
   const db = await getDatabase()
   const now = new Date()
@@ -1141,11 +1211,13 @@ export async function updateEmailSubscription(
     updateData.emailSubscribedAt = now
   }
 
-  const result = await db.collection('customers').findOneAndUpdate(
-    { tenantId, id: customerId },
-    { $set: updateData },
-    { returnDocument: 'after' }
-  )
+  const result = await db
+    .collection('customers')
+    .findOneAndUpdate(
+      { tenantId, id: customerId },
+      { $set: updateData },
+      { returnDocument: 'after' },
+    )
 
   return result as unknown as Customer | null
 }
@@ -1153,9 +1225,14 @@ export async function updateEmailSubscription(
 /**
  * Delete customer
  */
-export async function deleteCustomer(tenantId: string, customerId: string): Promise<boolean> {
+export async function deleteCustomer(
+  tenantId: string,
+  customerId: string,
+): Promise<boolean> {
   const db = await getDatabase()
-  const result = await db.collection('customers').deleteOne({ tenantId, id: customerId })
+  const result = await db
+    .collection('customers')
+    .deleteOne({ tenantId, id: customerId })
   return result.deletedCount > 0
 }
 
@@ -1174,18 +1251,20 @@ interface OrderSummary {
 
 export async function getCustomerWithOrders(
   tenantId: string,
-  customerId: string
+  customerId: string,
 ): Promise<CustomerWithOrders | null> {
   const db = await getDatabase()
 
-  const customer = await db.collection('customers').findOne({ tenantId, id: customerId })
+  const customer = await db
+    .collection('customers')
+    .findOne({ tenantId, id: customerId })
   if (!customer) return null
 
-  const orders = await db
+  const orders = (await db
     .collection('orders')
     .find({ tenantId, customerEmail: customer.email })
     .sort({ createdAt: -1 })
-    .toArray() as unknown as OrderSummary[]
+    .toArray()) as unknown as OrderSummary[]
 
   return {
     ...(customer as unknown as Customer),

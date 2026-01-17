@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentTenant } from '@/lib/session'
 import { newsletters } from '@madebuy/db'
 import type { UpdateNewsletterTemplateInput } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export async function GET() {
   try {
@@ -16,7 +16,10 @@ export async function GET() {
     return NextResponse.json({ template })
   } catch (error) {
     console.error('Error fetching newsletter template:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -35,7 +38,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ template })
   } catch (error) {
     console.error('Error updating newsletter template:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
@@ -53,6 +59,9 @@ export async function DELETE() {
     return NextResponse.json({ template })
   } catch (error) {
     console.error('Error resetting newsletter template:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

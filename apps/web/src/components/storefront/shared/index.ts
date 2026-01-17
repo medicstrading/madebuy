@@ -5,5 +5,5 @@
  * and are configurable via the tenant's websiteDesign settings.
  */
 
-export { Header } from './Header'
 export { Footer } from './Footer'
+export { Header } from './Header'
