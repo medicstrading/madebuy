@@ -3,7 +3,7 @@
 import type { MediaItem } from '@madebuy/shared'
 import { Play, Star, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { MediaPreviewModal } from './MediaPreviewModal'
 
 interface PieceMediaThumbnailProps {
@@ -13,9 +13,7 @@ interface PieceMediaThumbnailProps {
 export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -47,26 +45,7 @@ export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
     }
   }
 
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.play().catch(() => {})
-    }
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.pause()
-      videoRef.current.currentTime = 0
-    }
-  }
-
   const handleClick = () => {
-    // Stop video preview before opening modal
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.pause()
-    }
     setShowPreview(true)
   }
 
@@ -74,8 +53,6 @@ export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
     <>
       <div
         className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
         {item.type === 'image' ? (
@@ -83,24 +60,27 @@ export function PieceMediaThumbnail({ item }: PieceMediaThumbnailProps) {
             src={item.variants.thumb?.url || item.variants.original.url}
             alt={item.caption || 'Media'}
             className="h-full w-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="relative h-full w-full bg-gray-900">
-            <video
-              ref={videoRef}
-              src={item.variants.original.url}
-              poster={item.video?.thumbnailUrl}
-              className="h-full w-full object-cover"
-              muted
-              loop
-              playsInline
-            />
-            {/* Play icon - only when not hovering */}
-            {!isHovered && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <Play className="h-8 w-8 text-white/70 drop-shadow-lg" />
+            {/* Use poster image instead of video element to prevent resource exhaustion */}
+            {item.video?.thumbnailUrl ? (
+              <img
+                src={item.video.thumbnailUrl}
+                alt={item.caption || 'Video'}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-gray-800">
+                <Play className="h-12 w-12 text-white/50" />
               </div>
             )}
+            {/* Play icon overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Play className="h-8 w-8 text-white/70 drop-shadow-lg" />
+            </div>
             {/* Duration badge */}
             {item.video?.duration && (
               <div className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded">

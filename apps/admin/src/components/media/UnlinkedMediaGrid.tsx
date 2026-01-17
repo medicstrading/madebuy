@@ -209,24 +209,15 @@ function MediaThumbnail({
 
   const handleMouseEnter = () => {
     setIsHovered(true)
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.play().catch(() => {})
-    }
+    // REMOVED: Auto-play on hover causes browser crashes with many videos
   }
 
   const handleMouseLeave = () => {
     setIsHovered(false)
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.pause()
-      videoRef.current.currentTime = 0
-    }
+    // REMOVED: Auto-pause/reset causes performance issues
   }
 
   const handleClick = () => {
-    // Stop video preview before opening modal
-    if (item.type === 'video' && videoRef.current) {
-      videoRef.current.pause()
-    }
     onPreview()
   }
 
@@ -251,21 +242,23 @@ function MediaThumbnail({
         />
       ) : (
         <div className="relative h-full w-full bg-gray-900">
-          <video
-            ref={videoRef}
-            src={item.variants.original.url}
-            poster={item.video?.thumbnailUrl}
-            className="h-full w-full object-cover"
-            muted
-            loop
-            playsInline
-          />
-          {/* Play icon - only when not hovering */}
-          {!isHovered && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <Play className="h-8 w-8 text-white/70 drop-shadow-lg" />
+          {/* Use poster image instead of video element to prevent resource exhaustion */}
+          {item.video?.thumbnailUrl ? (
+            <img
+              src={item.video.thumbnailUrl}
+              alt={item.caption || 'Video'}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-gray-800">
+              <Play className="h-12 w-12 text-white/50" />
             </div>
           )}
+          {/* Play icon overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Play className="h-8 w-8 text-white/70 drop-shadow-lg" />
+          </div>
           {/* Duration badge */}
           {item.video?.duration && (
             <div className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded">
