@@ -1,5 +1,7 @@
 import { TenantsContent } from '@/components/tenants/TenantsContent'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Tenants - MadeBuy Manager',
   description: 'Manage platform tenants',
