@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: 'Platform administration dashboard',
 }
 
+// Ensure static pages can be generated without client-side context
 export default function RootLayout({
   children,
 }: {
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-background">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )
