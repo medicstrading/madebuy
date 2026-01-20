@@ -62,7 +62,7 @@ USER nodejs
 EXPOSE 3399
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3399/api/auth/session || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3399/api/health || exit 1
 
 WORKDIR /app/apps/manager
 CMD ["pnpm", "start"]
