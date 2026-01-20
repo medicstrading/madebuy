@@ -1,15 +1,20 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { type ReactNode } from 'react'
-
-// Dynamically import SessionProvider with SSR disabled
-// This prevents static generation errors with NextAuth
-const SessionProviderWrapper = dynamic(
-  () => import('next-auth/react').then((mod) => mod.SessionProvider),
-  { ssr: false }
-)
+import { SessionProvider } from 'next-auth/react'
+import { type ReactNode, useState, useEffect } from 'react'
 
 export function Providers({ children }: { children: ReactNode }) {
-  return <SessionProviderWrapper>{children}</SessionProviderWrapper>
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // During SSR/static generation, render children without SessionProvider
+  // This prevents context errors during prerendering
+  if (!mounted) {
+    return <>{children}</>
+  }
+
+  return <SessionProvider>{children}</SessionProvider>
 }
