@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/api/auth']
+const PUBLIC_ROUTES = ['/login', '/api/auth', '/api/health']
 
 /**
  * Validate callback URL to prevent open redirect attacks
