@@ -1,4 +1,5 @@
 # Manager app Dockerfile for Railway deployment
+# Cache bust: 2026-01-20-v2
 FROM node:20-alpine AS builder
 
 # Build-time args
