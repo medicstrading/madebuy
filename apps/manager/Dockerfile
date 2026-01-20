@@ -55,8 +55,7 @@ COPY --from=builder /app/apps/manager/node_modules ./apps/manager/node_modules
 COPY --from=builder /app/packages ./packages
 
 ENV NODE_ENV=production
-# Let Railway provide PORT, default to 3399 for local testing
-ENV PORT=3399
+# PORT will be provided by Railway, don't set a default
 
 RUN chown -R nodejs:nodejs /app
 
