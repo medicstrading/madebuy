@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Standalone output for Docker deployment - creates minimal server.js that handles PORT env var
+  output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,
   },

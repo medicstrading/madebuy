@@ -1,8 +1,9 @@
 # Manager app Dockerfile for Railway deployment
-# Cache bust: 2026-01-20-v2
+# Uses Next.js standalone output for proper PORT handling
+# Cache bust: 2026-01-20-v3
 FROM node:20-alpine AS builder
 
-# Build-time args
+# Build-time args for NEXT_PUBLIC_ env vars (baked into the build)
 ARG NEXT_PUBLIC_ADMIN_URL=https://admin.madebuy.online
 ARG NEXT_PUBLIC_WEB_URL=https://madebuy.online
 
@@ -25,47 +26,39 @@ RUN pnpm --filter @madebuy/shared build || true
 RUN pnpm --filter @madebuy/db build || true
 
 # Build manager app in production mode
+# This will create .next/standalone with a minimal server.js
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 RUN pnpm --filter @madebuy/manager build
 
-# Production stage
+# Production stage - minimal image using standalone output
 FROM node:20-alpine AS runner
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 WORKDIR /app
 
-# Copy package files
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
-COPY --from=builder /app/pnpm-workspace.yaml ./
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy manager app
-COPY --from=builder /app/apps/manager/.next ./apps/manager/.next
-COPY --from=builder /app/apps/manager/public ./apps/manager/public
-COPY --from=builder /app/apps/manager/package.json ./apps/manager/
-COPY --from=builder /app/apps/manager/node_modules ./apps/manager/node_modules
-
-# Copy packages (required for runtime)
-COPY --from=builder /app/packages ./packages
-
 ENV NODE_ENV=production
-# PORT will be provided by Railway, don't set a default
+# PORT and HOSTNAME will be provided by Railway at runtime
+# The standalone server.js automatically reads these env vars
 
-RUN chown -R nodejs:nodejs /app
+# Copy the standalone output (includes minimal node_modules)
+COPY --from=builder --chown=nodejs:nodejs /app/apps/manager/.next/standalone ./
+
+# Copy static files to the standalone folder
+# These need to be in .next/static relative to the server.js
+COPY --from=builder --chown=nodejs:nodejs /app/apps/manager/.next/static ./apps/manager/.next/static
+
+# Copy public folder to the standalone folder
+COPY --from=builder --chown=nodejs:nodejs /app/apps/manager/public ./apps/manager/public
 
 USER nodejs
 
-# Railway will override this port
-EXPOSE 3399
+# Railway will provide the actual port via PORT env var
+EXPOSE 3000
 
-# Remove Docker healthcheck - Railway handles healthchecks via /api/health path
-
+# The standalone server.js automatically handles PORT and HOSTNAME env vars
+# Run from the apps/manager directory where server.js is located
 WORKDIR /app/apps/manager
-# Use sh -c to allow env var substitution
-CMD ["sh", "-c", "pnpm start"]
+CMD ["node", "server.js"]
