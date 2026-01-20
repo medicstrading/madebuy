@@ -23,7 +23,7 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   outputDir: 'test-results',
   use: {
-    baseURL: 'http://localhost:3301',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3301',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

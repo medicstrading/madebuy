@@ -46,7 +46,8 @@ test.describe('Storefront', () => {
 
   test.describe('Homepage', () => {
     test('should display tenant storefront', async ({ page }) => {
-      // Page already loaded in beforeEach
+      await page.goto(`/${testTenant}`)
+      await page.waitForLoadState('domcontentloaded')
 
       // Page should load without error
       await expect(page).not.toHaveTitle(/error|404|not found/i)
