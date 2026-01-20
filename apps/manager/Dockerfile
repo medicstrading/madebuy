@@ -69,6 +69,6 @@ USER nodejs
 # Railway will provide the actual port via PORT env var
 EXPOSE 3000
 
-# The standalone server.js is at the root when outputFileTracingRoot is used
-# It automatically handles PORT and HOSTNAME env vars
-CMD ["node", "apps/manager/server.js"]
+# Debug: print PORT value and start server
+# The standalone server.js should read PORT and HOSTNAME env vars
+CMD ["sh", "-c", "echo 'PORT env var is:' $PORT && echo 'Starting server...' && HOSTNAME=0.0.0.0 node apps/manager/server.js"]
