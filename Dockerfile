@@ -30,6 +30,7 @@ RUN pnpm --filter @madebuy/social build || true
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 RUN pnpm --filter @madebuy/admin build
 RUN pnpm --filter @madebuy/web build
+RUN pnpm --filter @madebuy/manager build
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -60,6 +61,11 @@ COPY --from=builder /app/apps/admin/public ./apps/admin/public
 COPY --from=builder /app/apps/admin/package.json ./apps/admin/
 COPY --from=builder /app/apps/admin/node_modules ./apps/admin/node_modules
 
+COPY --from=builder /app/apps/manager/.next ./apps/manager/.next
+COPY --from=builder /app/apps/manager/public ./apps/manager/public
+COPY --from=builder /app/apps/manager/package.json ./apps/manager/
+COPY --from=builder /app/apps/manager/node_modules ./apps/manager/node_modules
+
 # Copy packages
 COPY --from=builder /app/packages ./packages
 
@@ -74,8 +80,8 @@ RUN mkdir -p logs && chown -R nodejs:nodejs /app
 # Switch to non-root user
 USER nodejs
 
-# Expose ports (admin=3300, web=3301)
-EXPOSE 3300 3301
+# Expose ports (admin=3300, web=3301, manager=3399)
+EXPOSE 3300 3301 3399
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

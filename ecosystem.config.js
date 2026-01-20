@@ -36,5 +36,23 @@ module.exports = {
       time: true,
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
     },
+    {
+      name: 'madebuy-manager',
+      cwd: './apps/manager',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start -p 3399',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3399,
+      },
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '512M',
+      error_file: './logs/manager-error.log',
+      out_file: './logs/manager-out.log',
+      time: true,
+      log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    },
   ],
 }
