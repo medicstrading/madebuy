@@ -55,16 +55,18 @@ COPY --from=builder /app/apps/manager/node_modules ./apps/manager/node_modules
 COPY --from=builder /app/packages ./packages
 
 ENV NODE_ENV=production
+# Let Railway provide PORT, default to 3399 for local testing
 ENV PORT=3399
 
 RUN chown -R nodejs:nodejs /app
 
 USER nodejs
 
+# Railway will override this port
 EXPOSE 3399
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3399/api/health || exit 1
+# Remove Docker healthcheck - Railway handles healthchecks via /api/health path
 
 WORKDIR /app/apps/manager
-CMD ["pnpm", "start"]
+# Use sh -c to allow env var substitution
+CMD ["sh", "-c", "pnpm start"]
