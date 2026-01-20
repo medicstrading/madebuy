@@ -1,8 +1,12 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   // Standalone output for Docker deployment - creates minimal server.js that handles PORT env var
   output: 'standalone',
+  // For monorepo: include files from the root (two directories up from apps/manager)
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   eslint: {
     ignoreDuringBuilds: true,
   },

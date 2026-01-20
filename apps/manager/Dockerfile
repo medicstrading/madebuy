@@ -1,6 +1,6 @@
 # Manager app Dockerfile for Railway deployment
 # Uses Next.js standalone output for proper PORT handling
-# Cache bust: 2026-01-20-v3
+# Cache bust: 2026-01-20-v4
 FROM node:20-alpine AS builder
 
 # Build-time args for NEXT_PUBLIC_ env vars (baked into the build)
@@ -27,9 +27,16 @@ RUN pnpm --filter @madebuy/db build || true
 
 # Build manager app in production mode
 # This will create .next/standalone with a minimal server.js
+# outputFileTracingRoot is set to monorepo root in next.config.js
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 RUN pnpm --filter @madebuy/manager build
+
+# Debug: Show standalone structure
+RUN echo "=== Standalone directory structure ===" && \
+    ls -la /app/apps/manager/.next/standalone/ && \
+    echo "=== Looking for server.js ===" && \
+    find /app/apps/manager/.next/standalone -name "server.js" -type f
 
 # Production stage - minimal image using standalone output
 FROM node:20-alpine AS runner
@@ -44,21 +51,24 @@ ENV NODE_ENV=production
 # The standalone server.js automatically reads these env vars
 
 # Copy the standalone output (includes minimal node_modules)
+# With outputFileTracingRoot set to monorepo root, structure mirrors the monorepo
 COPY --from=builder --chown=nodejs:nodejs /app/apps/manager/.next/standalone ./
 
-# Copy static files to the standalone folder
-# These need to be in .next/static relative to the server.js
+# Copy static files - they need to be in the right place relative to server.js
 COPY --from=builder --chown=nodejs:nodejs /app/apps/manager/.next/static ./apps/manager/.next/static
 
-# Copy public folder to the standalone folder
+# Copy public folder
 COPY --from=builder --chown=nodejs:nodejs /app/apps/manager/public ./apps/manager/public
+
+# Debug: Show final structure
+RUN echo "=== Final app structure ===" && ls -la /app && \
+    echo "=== Looking for server.js ===" && find /app -name "server.js" -type f 2>/dev/null || echo "No server.js found"
 
 USER nodejs
 
 # Railway will provide the actual port via PORT env var
 EXPOSE 3000
 
-# The standalone server.js automatically handles PORT and HOSTNAME env vars
-# Run from the apps/manager directory where server.js is located
-WORKDIR /app/apps/manager
-CMD ["node", "server.js"]
+# The standalone server.js is at the root when outputFileTracingRoot is used
+# It automatically handles PORT and HOSTNAME env vars
+CMD ["node", "apps/manager/server.js"]
