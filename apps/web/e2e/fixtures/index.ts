@@ -15,7 +15,7 @@ import { StorefrontPage } from '../pages/storefront.page'
 
 // Test configuration from environment
 export const testConfig = {
-  testTenant: process.env.E2E_TEST_TENANT || 'demo',
+  testTenant: process.env.E2E_TEST_TENANT || 'test-shop',
   testProductSlug: process.env.E2E_TEST_PRODUCT_SLUG || '',
   baseURL: process.env.E2E_BASE_URL || 'http://localhost:3301',
   timeout: 30000,

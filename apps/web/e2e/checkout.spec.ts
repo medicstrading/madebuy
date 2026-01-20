@@ -12,8 +12,8 @@ import { expect, test } from '@playwright/test'
  * Create a test tenant first or use an existing tenant slug.
  */
 
-// Test tenant slug (e.g., "demo-store")
-const testTenant = process.env.E2E_TEST_TENANT || 'demo'
+// Test tenant slug - defaults to 'test-shop' which exists in production DB
+const testTenant = process.env.E2E_TEST_TENANT || 'test-shop'
 
 test.describe('Storefront', () => {
   // Track whether tenant exists - checked once in beforeAll
