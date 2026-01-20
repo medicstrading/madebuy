@@ -112,6 +112,11 @@ export async function POST(request: NextRequest) {
       },
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
+      // Allow Stripe to update customer name/address during checkout (required for tax_id_collection)
+      customer_update: {
+        name: 'auto',
+        address: 'auto',
+      },
       tax_id_collection: {
         enabled: true,
       },
