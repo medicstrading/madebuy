@@ -90,11 +90,11 @@ export async function middleware(request: NextRequest) {
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
     secureCookie: process.env.NODE_ENV === 'production',
-    // NextAuth v4 uses 'next-auth.session-token' (NOT 'authjs.session-token' which is Auth.js v5)
+    // Use admin-specific cookie name to prevent collision with web app
     cookieName:
       process.env.NODE_ENV === 'production'
-        ? '__Secure-next-auth.session-token'
-        : 'next-auth.session-token',
+        ? '__Secure-madebuy-admin.session-token'
+        : 'madebuy-admin.session-token',
   })
 
   // If authenticated with valid token, skip rate limiting entirely

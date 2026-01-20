@@ -110,4 +110,19 @@ export const authOptions: NextAuthOptions = {
     // Token expires after 8 hours
     maxAge: 8 * 60 * 60,
   },
+  // Cookie isolation - use admin-specific cookie names to prevent collision with web app
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-madebuy-admin.session-token'
+          : 'madebuy-admin.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
 }

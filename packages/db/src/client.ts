@@ -42,10 +42,14 @@ export async function getDatabase(): Promise<Db> {
   // This prevents 200-500ms delay on every first request
   if (!indexesEnsured) {
     indexesEnsured = true
-    // Fire and forget - don't block the request
-    ensureIndexes(cachedDb).catch((err) => {
-      console.error('Failed to ensure indexes:', err)
-      indexesEnsured = false // Allow retry on next connection
+    // Capture db reference before setImmediate to satisfy TypeScript
+    const db = cachedDb
+    // Use setImmediate to ensure index creation doesn't block ANY request processing
+    setImmediate(() => {
+      ensureIndexes(db).catch((err) => {
+        console.error('Failed to ensure indexes:', err)
+        indexesEnsured = false // Allow retry on next connection
+      })
     })
   }
 

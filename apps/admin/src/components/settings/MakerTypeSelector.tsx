@@ -157,7 +157,6 @@ export function MakerTypeSelector({
       <div className="relative" ref={dropdownRef}>
         <button
           type="button"
-          type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(

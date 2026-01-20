@@ -3,7 +3,7 @@
 import { CheckCircle, Loader2, Mail, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export default function UnsubscribePage({
   params: { tenant },
@@ -19,22 +19,7 @@ export default function UnsubscribePage({
   >('loading')
   const [errorMessage, setErrorMessage] = useState<string>('')
 
-  useEffect(() => {
-    // Validate required params
-    if (!email || !token) {
-      setStatus('invalid')
-      return
-    }
-
-    // Process unsubscribe
-    processUnsubscribe()
-  }, [
-    email,
-    token, // Process unsubscribe
-    processUnsubscribe,
-  ])
-
-  const processUnsubscribe = async () => {
+  const processUnsubscribe = useCallback(async () => {
     try {
       const response = await fetch('/api/unsubscribe', {
         method: 'POST',
@@ -53,7 +38,15 @@ export default function UnsubscribePage({
       setErrorMessage('Network error. Please try again.')
       setStatus('error')
     }
-  }
+  }, [email, token, tenant])
+
+  useEffect(() => {
+    if (!email || !token) {
+      setStatus('invalid')
+      return
+    }
+    processUnsubscribe()
+  }, [email, token, processUnsubscribe])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
