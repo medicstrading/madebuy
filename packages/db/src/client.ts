@@ -336,6 +336,32 @@ async function ensureIndexes(db: Db) {
     .collection('analytics_events')
     .createIndex({ tenantId: 1, event: 1, createdAt: -1 })
 
+  // ===========================================================================
+  // PLATFORM ADMIN INDEXES (cross-tenant queries for manager app)
+  // ===========================================================================
+
+  // Admins (platform super-admins)
+  await db.collection('admins').createIndex({ id: 1 }, { unique: true })
+  await db.collection('admins').createIndex({ email: 1 }, { unique: true })
+
+  // Audit Logs (cross-tenant admin activity)
+  await db.collection('audit_logs').createIndex({ eventType: 1, createdAt: -1 })
+  await db.collection('audit_logs').createIndex({ actorType: 1, createdAt: -1 })
+
+  // Transactions (platform-wide revenue queries)
+  await db
+    .collection('transactions')
+    .createIndex({ type: 1, status: 1, createdAt: -1 })
+  await db
+    .collection('transactions')
+    .createIndex({ createdAt: -1, type: 1 })
+
+  // Tenants (platform-wide tenant analytics)
+  await db.collection('tenants').createIndex({ createdAt: -1 })
+  await db.collection('tenants').createIndex({ plan: 1, createdAt: -1 })
+  await db.collection('tenants').createIndex({ 'subscription.status': 1 })
+  await db.collection('tenants').createIndex({ lastLoginAt: -1 })
+
   console.log('✅ Database indexes created')
 }
 

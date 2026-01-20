@@ -29,6 +29,14 @@ export type AuditEventType =
   // Admin actions
   | 'admin.tenant.update'
   | 'admin.settings.change'
+  // Platform admin events
+  | 'admin.login.success'
+  | 'admin.login.failed'
+  | 'admin.impersonate.start'
+  | 'admin.impersonate.end'
+  | 'admin.tenant.view'
+  | 'admin.tenant.suspend'
+  | 'admin.tenant.unsuspend'
 
 export interface AuditLogEntry {
   id: string
@@ -36,7 +44,7 @@ export interface AuditLogEntry {
   eventType: AuditEventType
   actorId?: string // User/customer ID who performed the action
   actorEmail?: string
-  actorType: 'tenant' | 'customer' | 'system' | 'anonymous'
+  actorType: 'tenant' | 'customer' | 'system' | 'anonymous' | 'admin'
   ip?: string
   userAgent?: string
   metadata?: Record<string, unknown>
@@ -50,7 +58,7 @@ export interface CreateAuditLogInput {
   eventType: AuditEventType
   actorId?: string
   actorEmail?: string
-  actorType: 'tenant' | 'customer' | 'system' | 'anonymous'
+  actorType: 'tenant' | 'customer' | 'system' | 'anonymous' | 'admin'
   ip?: string
   userAgent?: string
   metadata?: Record<string, unknown>

@@ -66,3 +66,4 @@ Thumbs.db
 # Nexus local memory (contains secrets)
 .nexus/
 .claude/settings.local.json
+apps/manager/.env.local

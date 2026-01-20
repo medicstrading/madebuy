@@ -9,8 +9,9 @@
  */
 
 // Export database client and utilities
-export { getDatabase, serializeMongo, serializeMongoArray } from './client'
+export { getDatabase, getMongoClient, serializeMongo, serializeMongoArray } from './client'
 export * as abandonedCarts from './repositories/abandonedCarts'
+export * as admins from './repositories/admins'
 export * as analytics from './repositories/analytics'
 export * as auditLog from './repositories/auditLog'
 export * as blog from './repositories/blog'
@@ -34,6 +35,7 @@ export * as newsletters from './repositories/newsletters'
 export * as orders from './repositories/orders'
 export * as passwordResets from './repositories/passwordResets'
 export * as payouts from './repositories/payouts'
+export * as platformAnalytics from './repositories/platformAnalytics'
 // Export types
 export type { LowStockPiece } from './repositories/pieces'
 export * as pieces from './repositories/pieces'
@@ -42,6 +44,7 @@ export * as productionRuns from './repositories/productionRuns'
 export * as publish from './repositories/publish'
 export * as reconciliations from './repositories/reconciliations'
 export * as reviews from './repositories/reviews'
+export * as systemHealth from './repositories/systemHealth'
 // Export active repositories
 export * as tenants from './repositories/tenants'
 export * as tracking from './repositories/tracking'

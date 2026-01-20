@@ -34,5 +34,22 @@ module.exports = {
       out_file: './logs/web-dev-out.log',
       time: true,
     },
+    {
+      name: 'madebuy-manager-dev',
+      cwd: './apps/manager',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'dev -p 3399',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3399,
+      },
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '1G',
+      error_file: './logs/manager-dev-error.log',
+      out_file: './logs/manager-dev-out.log',
+      time: true,
+    },
   ],
 }

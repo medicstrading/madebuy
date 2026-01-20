@@ -7,6 +7,43 @@
  * See: archive/packages/shared/src/types/
  */
 
+// Platform Admin Types
+export type {
+  Admin,
+  AdminRole,
+  AdminSession,
+  CreateAdminInput,
+  ImpersonationToken,
+  UpdateAdminInput,
+} from './admin'
+export * from './admin'
+
+// Platform Analytics Types
+export type {
+  CollectionStats,
+  ComponentHealth,
+  DashboardAlert,
+  DashboardSummary,
+  ErrorStats,
+  FeatureAdoption,
+  MarketplaceStats,
+  MongoStats,
+  MRRBreakdown,
+  MRRDataPoint,
+  OrdersDataPoint,
+  RevenueByTier,
+  RevenueDataPoint,
+  SignupDataPoint,
+  SystemHealth,
+  TenantCounts,
+  TenantHealthScore,
+  TenantsByPlan,
+  TopProduct,
+  TopSeller,
+  WebhookStats,
+} from './platformAnalytics'
+export * from './platformAnalytics'
+
 export type {
   BlogConfig,
   BlogPost,
