@@ -24,7 +24,8 @@ RUN pnpm install
 RUN pnpm --filter @madebuy/shared build || true
 RUN pnpm --filter @madebuy/db build || true
 
-# Build manager app
+# Build manager app in production mode
+ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 RUN pnpm --filter @madebuy/manager build
 
