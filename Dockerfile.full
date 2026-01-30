@@ -1,5 +1,5 @@
 # Build stage
-# Cache bust: 2026-01-30-hostname-fix
+# Cache bust: 2026-01-30-manager-fix-v2
 FROM node:20-alpine AS builder
 
 # Build-time args for NEXT_PUBLIC_* env vars (must be available during build)
