@@ -1,6 +1,6 @@
 # Manager app Dockerfile for Railway deployment
 # Uses Next.js standalone output for proper PORT handling
-# Cache bust: 2026-01-20-v4
+# Cache bust: 2026-01-30-v5-fix-nodeenv
 FROM node:20-alpine AS builder
 
 # Build-time args for NEXT_PUBLIC_ env vars (baked into the build)
@@ -17,20 +17,18 @@ WORKDIR /app
 # Copy everything from monorepo root
 COPY . .
 
-# Install dependencies
-ENV NODE_ENV=development
+# Install ALL dependencies (dev + prod) for build
+# Note: Don't set NODE_ENV here - let pnpm install everything
 RUN pnpm install
 
-# Build packages first
+# Build packages first (these tolerate development mode)
 RUN pnpm --filter @madebuy/shared build || true
 RUN pnpm --filter @madebuy/db build || true
 
-# Build manager app in production mode
-# This will create .next/standalone with a minimal server.js
-# outputFileTracingRoot is set to monorepo root in next.config.js
-ENV NODE_ENV=production
+# Build manager app - explicitly set production mode for Next.js build
+# Using shell form to ensure clean env for Next.js
 ENV NODE_OPTIONS="--max_old_space_size=4096"
-RUN pnpm --filter @madebuy/manager build
+RUN NODE_ENV=production pnpm --filter @madebuy/manager build
 
 # Debug: Show standalone structure
 RUN echo "=== Standalone directory structure ===" && \
