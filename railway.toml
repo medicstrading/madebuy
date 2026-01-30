@@ -1,8 +1,20 @@
-# Railway configuration for manager service
-# This file configures the deployment for the Platform Admin Dashboard
+# Railway configuration for MadeBuy monorepo
+#
+# MULTI-SERVICE DEPLOYMENT:
+# Each service (manager, admin, web) has its own Dockerfile in apps/<service>/
+# Configure each service in Railway dashboard:
+#   - manager: Set Dockerfile path to "apps/manager/Dockerfile"
+#   - admin: Set Dockerfile path to "apps/admin/Dockerfile"
+#   - web: Set Dockerfile path to "apps/web/Dockerfile"
+#
+# Or configure root directory per service:
+#   - manager: Root dir = . (uses this file)
+#   - admin: Root dir = apps/admin (uses apps/admin/railway.toml)
+#   - web: Root dir = apps/web (uses apps/web/railway.toml)
 
 [build]
 builder = "dockerfile"
+# Default to manager Dockerfile - other services should override in their settings
 dockerfilePath = "apps/manager/Dockerfile"
 
 [deploy]

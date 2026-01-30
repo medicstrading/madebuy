@@ -1,0 +1,12 @@
+# Railway configuration for admin service
+# This file configures the deployment for the Seller Dashboard
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "apps/admin/Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
