@@ -14,8 +14,9 @@
 
 [build]
 builder = "dockerfile"
-# Default to manager Dockerfile - other services should override in their settings
-dockerfilePath = "apps/manager/Dockerfile"
+# Use Dockerfile.full which builds all apps and has pnpm in runner
+# Each service's startCommand (in Railway dashboard) runs the specific app
+dockerfilePath = "Dockerfile.full"
 
 [deploy]
 healthcheckPath = "/api/health"
