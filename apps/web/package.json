@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3301 -H 0.0.0.0",
     "build": "NODE_OPTIONS='--max_old_space_size=4096' next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0",
     "lint": "next lint",
     "test": "vitest",
     "test:run": "vitest run",
