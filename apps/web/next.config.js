@@ -1,5 +1,6 @@
 const path = require('path')
 
+// Cache bust: 2026-01-30-v2 - trigger Railway rebuild with Dockerfile.full
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Standalone output for Docker deployment - creates minimal server.js that handles PORT env var
