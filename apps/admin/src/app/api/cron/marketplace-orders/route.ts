@@ -304,36 +304,41 @@ async function mapEbayOrderToMadeBuy(
   tenantId: string,
   ebayOrder: EbayOrder,
 ): Promise<CreateMarketplaceOrderInput> {
-  // Map order items and try to match with MadeBuy pieces
-  const items = await Promise.all(
-    (ebayOrder.lineItems || []).map(async (item: any) => {
-      // Try to find the piece by SKU
-      let pieceId: string | undefined
-      if (item.sku) {
-        const listing = await marketplace.getListingByExternalId(
-          tenantId,
-          'ebay',
-          item.legacyItemId,
-        )
-        if (listing) {
-          pieceId = listing.pieceId
-        }
-      }
+  // Batch fetch listings by external IDs to avoid N+1 queries
+  const externalListingIds = (ebayOrder.lineItems || [])
+    .filter((item: any) => item.sku && item.legacyItemId)
+    .map((item: any) => item.legacyItemId)
 
-      const unitPrice = parseFloat(item.lineItemCost?.value || '0')
-      const quantity = item.quantity || 1
-
-      return {
-        externalItemId: item.lineItemId,
-        pieceId,
-        title: item.title,
-        quantity,
-        unitPrice,
-        totalPrice: unitPrice * quantity,
-        sku: item.sku,
-      }
-    }),
+  const listingsMap = await marketplace.getListingsByExternalIds(
+    tenantId,
+    'ebay',
+    externalListingIds,
   )
+
+  // Map order items and match with MadeBuy pieces using the batch-fetched map
+  const items = (ebayOrder.lineItems || []).map((item: any) => {
+    // Try to find the piece by SKU using batch-fetched listings
+    let pieceId: string | undefined
+    if (item.sku && item.legacyItemId) {
+      const listing = listingsMap.get(item.legacyItemId)
+      if (listing) {
+        pieceId = listing.pieceId
+      }
+    }
+
+    const unitPrice = parseFloat(item.lineItemCost?.value || '0')
+    const quantity = item.quantity || 1
+
+    return {
+      externalItemId: item.lineItemId,
+      pieceId,
+      title: item.title,
+      quantity,
+      unitPrice,
+      totalPrice: unitPrice * quantity,
+      sku: item.sku,
+    }
+  })
 
   // Calculate totals
   const subtotal = items.reduce(

@@ -1,4 +1,4 @@
-import { orders } from '@madebuy/db'
+import { orders, pieces } from '@madebuy/db'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
@@ -48,6 +48,46 @@ export async function POST(request: NextRequest) {
         { error: 'Cannot update more than 100 orders at once' },
         { status: 400 },
       )
+    }
+
+    // If cancelling orders, restore stock first
+    if (action === 'cancelled') {
+      // Fetch all orders to get their items
+      const ordersList = await Promise.all(
+        orderIds.map((orderId) => orders.getOrder(tenant.id, orderId)),
+      )
+
+      // Restore stock for each item in each order
+      for (const order of ordersList) {
+        if (!order || !order.items) continue
+
+        for (const item of order.items) {
+          try {
+            if (item.variantId) {
+              // Restore variant stock
+              await pieces.incrementVariantStock(
+                tenant.id,
+                item.pieceId,
+                item.variantId,
+                item.quantity,
+              )
+            } else {
+              // Restore piece-level stock
+              await pieces.incrementStock(
+                tenant.id,
+                item.pieceId,
+                item.quantity,
+              )
+            }
+          } catch (error) {
+            console.error(
+              `Failed to restore stock for piece ${item.pieceId}:`,
+              error,
+            )
+            // Continue with other items even if one fails
+          }
+        }
+      }
     }
 
     // Perform bulk update

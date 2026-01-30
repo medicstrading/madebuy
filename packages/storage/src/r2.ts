@@ -8,6 +8,11 @@ import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner'
 import type { MediaVariant } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 
+// File size limits
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024 // 100MB
+const MAX_DOCUMENT_SIZE = 25 * 1024 * 1024 // 25MB
+
 // Allowed MIME types for uploads
 const ALLOWED_IMAGE_TYPES = [
   'image/jpeg',
@@ -23,6 +28,24 @@ const ALLOWED_TYPES = [
   ...ALLOWED_VIDEO_TYPES,
   ...ALLOWED_DOCUMENT_TYPES,
 ]
+
+/**
+ * Get the maximum file size for a given content type
+ */
+function getMaxFileSize(contentType: string): number {
+  if (ALLOWED_IMAGE_TYPES.includes(contentType)) return MAX_IMAGE_SIZE
+  if (ALLOWED_VIDEO_TYPES.includes(contentType)) return MAX_VIDEO_SIZE
+  if (ALLOWED_DOCUMENT_TYPES.includes(contentType)) return MAX_DOCUMENT_SIZE
+  return MAX_IMAGE_SIZE // default to image limit
+}
+
+/**
+ * Format bytes to human-readable MB string
+ */
+function formatFileSize(bytes: number): string {
+  const mb = bytes / (1024 * 1024)
+  return `${mb.toFixed(1)}MB`
+}
 
 // Lazy initialization - env vars are read at first use, not module load time
 // This fixes issues where the storage package loads before Next.js injects .env.local
@@ -86,6 +109,15 @@ export async function uploadToR2(
 ): Promise<MediaVariant> {
   const { tenantId, fileName, buffer, contentType, metadata } = options
   const config = getR2Config()
+
+  // Validate file size
+  const maxSize = getMaxFileSize(contentType)
+  if (buffer.length > maxSize) {
+    throw new Error(
+      `File too large. Maximum size for ${contentType} is ${formatFileSize(maxSize)}. ` +
+      `Your file is ${formatFileSize(buffer.length)}.`,
+    )
+  }
 
   // Validate content type
   if (!ALLOWED_TYPES.includes(contentType)) {
@@ -197,6 +229,15 @@ export async function putToR2(
   metadata?: Record<string, string>,
 ): Promise<void> {
   const config = getR2Config()
+
+  // Validate file size
+  const maxSize = getMaxFileSize(contentType)
+  if (buffer.length > maxSize) {
+    throw new Error(
+      `File too large. Maximum size for ${contentType} is ${formatFileSize(maxSize)}. ` +
+      `Your file is ${formatFileSize(buffer.length)}.`,
+    )
+  }
 
   // Validate content type
   if (!ALLOWED_TYPES.includes(contentType)) {

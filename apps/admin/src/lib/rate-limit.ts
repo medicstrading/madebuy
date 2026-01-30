@@ -1,61 +1,19 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { createRateLimiter } from '@madebuy/shared'
+import type { RateLimitConfig as SharedRateLimitConfig } from '@madebuy/shared'
 
 /**
- * Rate Limiting Implementation
+ * Rate Limiting Implementation (Admin App)
  *
- * CURRENT STATE: In-memory rate limiting
- * This implementation uses an in-memory Map for rate limit tracking.
- * It works well for single-instance deployments but has limitations:
+ * This implementation uses the shared rate limiter from @madebuy/shared,
+ * which supports Redis for multi-instance deployments with automatic
+ * fallback to in-memory storage.
  *
- * LIMITATIONS:
- * - Rate limits are not shared across multiple server instances
- * - Memory usage grows with unique IPs (cleaned up every 10 minutes)
- * - Limits reset on server restart
+ * To enable Redis (for multi-instance deployments):
+ * 1. Set REDIS_URL environment variable in .env.local
+ * 2. Rate limits will automatically be shared across all instances
  *
- * REDIS MIGRATION GUIDE:
- * For multi-instance deployments, migrate to Redis:
- *
- * 1. Add Redis client dependency:
- *    pnpm add ioredis
- *
- * 2. Create Redis connection:
- *    const redis = new Redis(process.env.REDIS_URL)
- *
- * 3. Replace the check() method implementation:
- *    ```typescript
- *    async check(request: NextRequest, limit?: number) {
- *      const token = this.getToken(request)
- *      const key = `ratelimit:${token}`
- *      const maxRequests = limit || this.uniqueTokenPerInterval
- *
- *      // Use Redis MULTI for atomic increment
- *      const multi = redis.multi()
- *      multi.incr(key)
- *      multi.pttl(key)
- *      const results = await multi.exec()
- *
- *      const count = results[0][1] as number
- *      let ttl = results[1][1] as number
- *
- *      // Set expiry on first request
- *      if (count === 1 || ttl === -1) {
- *        await redis.pexpire(key, this.interval)
- *        ttl = this.interval
- *      }
- *
- *      return {
- *        success: count <= maxRequests,
- *        limit: maxRequests,
- *        remaining: Math.max(0, maxRequests - count),
- *        reset: Date.now() + ttl,
- *      }
- *    }
- *    ```
- *
- * 4. Add REDIS_URL environment variable to .env.local
- *
- * 5. Consider using @upstash/ratelimit for serverless environments:
- *    https://github.com/upstash/ratelimit
+ * Without REDIS_URL, rate limiting works per-instance using in-memory storage.
  */
 
 interface RateLimitConfig {
@@ -63,36 +21,18 @@ interface RateLimitConfig {
   uniqueTokenPerInterval: number // Max requests per IP in the interval
 }
 
-interface RateLimitStore {
-  count: number
-  resetTime: number
-}
-
-// In-memory store for rate limiting
-// WARNING: Not suitable for multi-instance deployments - see REDIS MIGRATION GUIDE above
-const rateLimitStore = new Map<string, RateLimitStore>()
-let lastCleanup = Date.now()
-const CLEANUP_INTERVAL = 10 * 60 * 1000 // 10 minutes
-
-// Lazy cleanup: check on each request instead of setInterval (avoids memory leaks in serverless)
-function cleanupExpiredEntries() {
-  const now = Date.now()
-  if (now - lastCleanup < CLEANUP_INTERVAL) return
-  lastCleanup = now
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (now > value.resetTime) {
-      rateLimitStore.delete(key)
-    }
-  }
-}
-
 export class RateLimiter {
   private interval: number
   private uniqueTokenPerInterval: number
+  private limiter: ReturnType<typeof createRateLimiter>
 
   constructor(config: RateLimitConfig) {
     this.interval = config.interval
     this.uniqueTokenPerInterval = config.uniqueTokenPerInterval
+    this.limiter = createRateLimiter({
+      interval: config.interval,
+      uniqueTokenPerInterval: config.uniqueTokenPerInterval,
+    })
   }
 
   async check(
@@ -104,34 +44,16 @@ export class RateLimiter {
     remaining: number
     reset: number
   }> {
-    // Lazy cleanup instead of setInterval (serverless-friendly)
-    cleanupExpiredEntries()
-
     const token = this.getToken(request)
-    const now = Date.now()
     const maxRequests = limit || this.uniqueTokenPerInterval
 
-    let tokenData = rateLimitStore.get(token)
-
-    if (!tokenData || now > tokenData.resetTime) {
-      // Reset or initialize
-      tokenData = {
-        count: 0,
-        resetTime: now + this.interval,
-      }
-      rateLimitStore.set(token, tokenData)
-    }
-
-    tokenData.count++
-
-    const remaining = Math.max(0, maxRequests - tokenData.count)
-    const success = tokenData.count <= maxRequests
+    const result = await this.limiter.check(token, maxRequests)
 
     return {
-      success,
+      success: result.success,
       limit: maxRequests,
-      remaining,
-      reset: tokenData.resetTime,
+      remaining: result.remaining,
+      reset: result.reset,
     }
   }
 

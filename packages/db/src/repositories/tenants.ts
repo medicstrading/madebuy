@@ -7,6 +7,7 @@ import type {
 } from '@madebuy/shared'
 import { DEFAULT_REGIONAL_SETTINGS } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+import { cache } from '../cache'
 import { getDatabase } from '../client'
 
 export async function createTenant(
@@ -134,6 +135,9 @@ export async function updateTenant(
       },
     },
   )
+
+  // Invalidate cache after update
+  invalidateTenantCache(id, updates.slug)
 }
 
 export async function deleteTenant(id: string): Promise<void> {
@@ -572,4 +576,61 @@ export async function needsOnboarding(tenantId: string): Promise<boolean> {
   const tenant = await getTenantById(tenantId)
   if (!tenant) return false
   return tenant.onboardingComplete !== true
+}
+
+// =============================================================================
+// CACHED LOOKUPS
+// =============================================================================
+
+/**
+ * Get tenant by ID with caching (1 minute TTL)
+ * Use this for read-heavy operations where slightly stale data is acceptable
+ */
+export async function getTenantByIdCached(id: string): Promise<Tenant | null> {
+  const cacheKey = `tenant:id:${id}`
+
+  // Try cache first
+  const cached = cache.get<Tenant>(cacheKey)
+  if (cached) return cached
+
+  // Cache miss - fetch from DB
+  const tenant = await getTenantById(id)
+  if (tenant) {
+    cache.set(cacheKey, tenant)
+  }
+
+  return tenant
+}
+
+/**
+ * Get tenant by slug with caching (1 minute TTL)
+ * Use this for storefront lookups where slightly stale data is acceptable
+ */
+export async function getTenantBySlugCached(
+  slug: string,
+): Promise<Tenant | null> {
+  const cacheKey = `tenant:slug:${slug}`
+
+  // Try cache first
+  const cached = cache.get<Tenant>(cacheKey)
+  if (cached) return cached
+
+  // Cache miss - fetch from DB
+  const tenant = await getTenantBySlug(slug)
+  if (tenant) {
+    cache.set(cacheKey, tenant)
+  }
+
+  return tenant
+}
+
+/**
+ * Invalidate all cached data for a tenant
+ * Call this after updating tenant data to ensure cache consistency
+ */
+export function invalidateTenantCache(tenantId: string, slug?: string): void {
+  cache.invalidate(`tenant:id:${tenantId}`)
+  if (slug) {
+    cache.invalidate(`tenant:slug:${slug}`)
+  }
 }

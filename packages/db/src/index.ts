@@ -4,12 +4,20 @@
  *
  * ARCHIVED (2026-01-02): marketplace, transactions, shipments, payouts, reviews,
  * wishlists, promotions, analytics, accountingConnections, emailCampaigns,
- * stockReservations, shippingProfiles
+ * shippingProfiles
  * See: archive/packages/db/src/repositories/
+ *
+ * RESTORED (2026-01-30): stockReservations - real implementation with atomic operations
  */
 
 // Export database client and utilities
 export { getDatabase, getMongoClient, serializeMongo, serializeMongoArray } from './client'
+
+// Export indexes
+export { ensureIndexes } from './indexes'
+
+// Export cache
+export { cache } from './cache'
 export * as abandonedCarts from './repositories/abandonedCarts'
 export * as admins from './repositories/admins'
 export * as analytics from './repositories/analytics'
@@ -63,8 +71,10 @@ export * as wishlist from './repositories/wishlist'
 // analytics - see archive/packages/db/src/repositories/
 // accountingConnections - see archive/packages/db/src/repositories/
 // emailCampaigns - see archive/packages/db/src/repositories/
-// stockReservations - see archive/packages/db/src/repositories/
 // shippingProfiles - see archive/packages/db/src/repositories/
 
-// Stub repositories for backwards compatibility (no-op implementations)
-export * as stockReservations from './repositories/stubs'
+// Stock reservations - real implementation with atomic operations
+export * as stockReservations from './repositories/stockReservations'
+
+// Stub repositories for backwards compatibility (transaction stubs for marketplace payouts)
+export * as stubs from './repositories/stubs'

@@ -1,4 +1,5 @@
 import { customers } from '@madebuy/db'
+import { sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
@@ -76,17 +77,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create customer via the createOrUpdateCustomer function
-    const customer = await customers.createOrUpdateCustomer(tenant.id, email, {
-      customerName: name,
-      orderTotal: 0,
-    })
+    // Create customer via the createOrUpdateCustomer function (sanitize inputs)
+    const customer = await customers.createOrUpdateCustomer(
+      tenant.id,
+      sanitizeInput(email),
+      {
+        customerName: sanitizeInput(name),
+        orderTotal: 0,
+      },
+    )
 
     // Update additional fields
     if (phone || notes || tags || emailSubscribed !== undefined) {
       await customers.updateCustomer(tenant.id, customer.id, {
-        phone,
-        notes,
+        phone: phone ? sanitizeInput(phone) : undefined,
+        notes: notes ? sanitizeInput(notes) : undefined,
         tags,
         emailSubscribed: emailSubscribed ?? true,
       })

@@ -5,12 +5,15 @@ import type {
   PayoutStatus,
   StripeConnectStatus,
 } from '@madebuy/shared'
+import { createLogger } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import {
   sendDisputeNotificationEmail,
   sendPayoutFailedEmail,
 } from '@/lib/email'
+
+const logger = createLogger({ service: 'stripe-connect-webhook' })
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature')
 
   if (!signature) {
-    console.error('No stripe-signature header present')
+    logger.error('No stripe-signature header present')
     return NextResponse.json({ error: 'No signature' }, { status: 400 })
   }
 
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error('Connect webhook signature verification failed:', err)
+    logger.error({ err }, 'Connect webhook signature verification failed')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -94,12 +97,12 @@ export async function POST(request: NextRequest) {
 
       default:
         // Log unhandled Connect events for debugging
-        console.log(`Unhandled Connect event: ${event.type}`)
+        logger.info({ eventType: event.type }, 'Unhandled Connect event')
     }
 
     return NextResponse.json({ received: true })
   } catch (err) {
-    console.error('Connect webhook handler error:', err)
+    logger.error({ err }, 'Connect webhook handler error')
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Webhook handler failed' },
       { status: 500 },
@@ -115,7 +118,10 @@ async function handleAccountUpdated(account: Stripe.Account) {
   // Find tenant by Connect account ID
   const tenant = await tenants.getTenantByStripeAccountId(account.id)
   if (!tenant) {
-    console.error(`No tenant found for Stripe account ${account.id}`)
+    logger.error(
+      { stripeAccountId: account.id },
+      'No tenant found for Stripe account',
+    )
     return
   }
 
@@ -153,8 +159,9 @@ async function handleAccountUpdated(account: Stripe.Account) {
     }
   }
 
-  console.log(
-    `Updated Stripe Connect status for tenant ${tenant.id}: ${status.status}`,
+  logger.info(
+    { tenantId: tenant.id, status: status.status, stripeAccountId: account.id },
+    'Updated Stripe Connect status',
   )
 }
 
@@ -165,12 +172,18 @@ async function handleAccountUpdated(account: Stripe.Account) {
 async function handleAccountDeauthorized(accountId: string) {
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
   if (!tenant) {
-    console.log(`No tenant found for deauthorized account ${accountId}`)
+    logger.warn(
+      { stripeAccountId: accountId },
+      'No tenant found for deauthorized account',
+    )
     return
   }
 
   await tenants.removeStripeConnect(tenant.id)
-  console.log(`Tenant ${tenant.id} disconnected Stripe account`)
+  logger.info(
+    { tenantId: tenant.id, stripeAccountId: accountId },
+    'Tenant disconnected Stripe account',
+  )
 
   // TODO: Send notification email to tenant about disconnection
 }
@@ -182,14 +195,17 @@ async function handleAccountDeauthorized(accountId: string) {
 async function handlePayoutCreated(payout: Stripe.Payout, accountId: string) {
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
   if (!tenant) {
-    console.log(`No tenant found for payout account ${accountId}`)
+    logger.warn(
+      { stripeAccountId: accountId },
+      'No tenant found for payout account',
+    )
     return
   }
 
   // Check if we already have this payout (idempotency)
   const existing = await payouts.getPayoutByStripeId(payout.id)
   if (existing) {
-    console.log(`Payout ${payout.id} already exists, skipping`)
+    logger.debug({ payoutId: payout.id }, 'Payout already exists, skipping')
     return
   }
 
@@ -205,8 +221,14 @@ async function handlePayoutCreated(payout: Stripe.Payout, accountId: string) {
     description: payout.description || undefined,
   })
 
-  console.log(
-    `Created payout record ${payout.id} for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`,
+  logger.info(
+    {
+      tenantId: tenant.id,
+      payoutId: payout.id,
+      amount: payout.amount / 100,
+      currency: payout.currency.toUpperCase(),
+    },
+    'Created payout record',
   )
 }
 
@@ -217,7 +239,10 @@ async function handlePayoutCreated(payout: Stripe.Payout, accountId: string) {
 async function handlePayoutPaid(payout: Stripe.Payout, accountId: string) {
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
   if (!tenant) {
-    console.log(`No tenant found for payout account ${accountId}`)
+    logger.warn(
+      { stripeAccountId: accountId },
+      'No tenant found for payout account',
+    )
     return
   }
 
@@ -241,8 +266,14 @@ async function handlePayoutPaid(payout: Stripe.Payout, accountId: string) {
     completedAt: new Date(),
   })
 
-  console.log(
-    `Payout ${payout.id} completed for tenant ${tenant.id}: ${payout.amount / 100} ${payout.currency.toUpperCase()}`,
+  logger.info(
+    {
+      tenantId: tenant.id,
+      payoutId: payout.id,
+      amount: payout.amount / 100,
+      currency: payout.currency.toUpperCase(),
+    },
+    'Payout completed',
   )
 }
 
@@ -253,7 +284,10 @@ async function handlePayoutPaid(payout: Stripe.Payout, accountId: string) {
 async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
   if (!tenant) {
-    console.log(`No tenant found for payout account ${accountId}`)
+    logger.warn(
+      { stripeAccountId: accountId },
+      'No tenant found for payout account',
+    )
     return
   }
 
@@ -263,8 +297,13 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
     failureMessage: payout.failure_message || undefined,
   })
 
-  console.error(
-    `Payout ${payout.id} failed for tenant ${tenant.id}: ${payout.failure_message}`,
+  logger.error(
+    {
+      tenantId: tenant.id,
+      payoutId: payout.id,
+      failureMessage: payout.failure_message,
+    },
+    'Payout failed',
   )
 
   // Extract bank account last 4 digits if available
@@ -281,9 +320,9 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
       bankAccountLast4 = bankAccount.last4 || null
     } catch (error) {
       // If we can't retrieve the bank account, continue without last4
-      console.warn(
-        'Could not retrieve bank account details for payout notification:',
-        error,
+      logger.warn(
+        { error },
+        'Could not retrieve bank account details for payout notification',
       )
     }
   }
@@ -298,9 +337,9 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
     })
   } catch (emailError) {
     // Log but don't throw - we don't want email failures to affect webhook response
-    console.error(
-      'Failed to send payout failed notification email:',
-      emailError,
+    logger.error(
+      { emailError, tenantId: tenant.id },
+      'Failed to send payout failed notification email',
     )
   }
 }
@@ -333,21 +372,29 @@ async function handleDisputeCreated(
   dispute: Stripe.Dispute,
   accountId: string,
 ) {
-  console.error(
-    `DISPUTE CREATED: ${dispute.id} - Amount: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`,
+  logger.error(
+    {
+      disputeId: dispute.id,
+      amount: dispute.amount / 100,
+      currency: dispute.currency.toUpperCase(),
+      reason: dispute.reason,
+    },
+    'DISPUTE CREATED',
   )
-  console.error(`Reason: ${dispute.reason}`)
 
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
   if (!tenant) {
-    console.error(`No tenant found for dispute account ${accountId}`)
+    logger.error(
+      { stripeAccountId: accountId },
+      'No tenant found for dispute account',
+    )
     return
   }
 
   // Check if we already have this dispute (idempotency)
   const existing = await disputes.getDisputeByStripeId(dispute.id)
   if (existing) {
-    console.log(`Dispute ${dispute.id} already exists, skipping`)
+    logger.debug({ disputeId: dispute.id }, 'Dispute already exists, skipping')
     return
   }
 
@@ -365,13 +412,13 @@ async function handleDisputeCreated(
           typeof charge.payment_intent === 'string'
             ? charge.payment_intent
             : charge.payment_intent.id
-        const order = await orders.getOrderByPaymentIntent(paymentIntentId)
+        const order = await orders.getOrderByPaymentIntent(tenant.id, paymentIntentId)
         if (order) {
           orderId = order.id
         }
       }
     } catch (err) {
-      console.warn('Could not retrieve charge for dispute:', err)
+      logger.warn({ err, chargeId }, 'Could not retrieve charge for dispute')
     }
   }
 
@@ -393,8 +440,14 @@ async function handleDisputeCreated(
     evidenceDueBy,
   })
 
-  console.log(
-    `Created dispute record ${dispute.id} for tenant ${tenant.id}: ${dispute.amount / 100} ${dispute.currency.toUpperCase()}`,
+  logger.info(
+    {
+      tenantId: tenant.id,
+      disputeId: dispute.id,
+      amount: dispute.amount / 100,
+      currency: dispute.currency.toUpperCase(),
+    },
+    'Created dispute record',
   )
 
   // Send notification email to tenant
@@ -405,7 +458,10 @@ async function handleDisputeCreated(
       evidenceDueBy: evidenceDueBy || null,
     })
   } catch (emailError) {
-    console.error('Failed to send dispute notification email:', emailError)
+    logger.error(
+      { emailError, tenantId: tenant.id },
+      'Failed to send dispute notification email',
+    )
   }
 }
 
@@ -414,11 +470,14 @@ async function handleDisputeCreated(
  * Updates dispute status when Stripe reports changes
  */
 async function handleDisputeUpdated(dispute: Stripe.Dispute) {
-  console.log(`DISPUTE UPDATED: ${dispute.id} - Status: ${dispute.status}`)
+  logger.info(
+    { disputeId: dispute.id, status: dispute.status },
+    'DISPUTE UPDATED',
+  )
 
   const existing = await disputes.getDisputeByStripeId(dispute.id)
   if (!existing) {
-    console.warn(`No dispute record found for ${dispute.id}`)
+    logger.warn({ disputeId: dispute.id }, 'No dispute record found')
     return
   }
 
@@ -426,7 +485,10 @@ async function handleDisputeUpdated(dispute: Stripe.Dispute) {
     status: mapStripeDisputeStatus(dispute.status),
   })
 
-  console.log(`Updated dispute ${dispute.id} to status ${dispute.status}`)
+  logger.info(
+    { disputeId: dispute.id, status: dispute.status },
+    'Updated dispute status',
+  )
 }
 
 /**
@@ -434,11 +496,14 @@ async function handleDisputeUpdated(dispute: Stripe.Dispute) {
  * Updates dispute status and sets resolved timestamp
  */
 async function handleDisputeClosed(dispute: Stripe.Dispute) {
-  console.log(`DISPUTE CLOSED: ${dispute.id} - Status: ${dispute.status}`)
+  logger.info(
+    { disputeId: dispute.id, status: dispute.status },
+    'DISPUTE CLOSED',
+  )
 
   const existing = await disputes.getDisputeByStripeId(dispute.id)
   if (!existing) {
-    console.warn(`No dispute record found for ${dispute.id}`)
+    logger.warn({ disputeId: dispute.id }, 'No dispute record found')
     return
   }
 
@@ -447,7 +512,10 @@ async function handleDisputeClosed(dispute: Stripe.Dispute) {
     resolvedAt: new Date(),
   })
 
-  console.log(`Closed dispute ${dispute.id} with status ${dispute.status}`)
+  logger.info(
+    { disputeId: dispute.id, status: dispute.status },
+    'Closed dispute',
+  )
 }
 
 /**

@@ -8,9 +8,12 @@ import type {
   Piece,
   UpdateBundleInput,
 } from '@madebuy/shared'
+import { createLogger } from '@madebuy/shared'
 import type { Document, Filter } from 'mongodb'
 import { nanoid } from 'nanoid'
 import { getDatabase, getMongoClient } from '../client'
+
+const logger = createLogger({ service: 'bundles' })
 
 // Database record type
 interface BundleDbRecord extends Bundle {
@@ -418,7 +421,7 @@ export async function decrementBundleStock(
     return success
   } catch (error) {
     // Transaction was aborted due to insufficient stock
-    console.error('Bundle stock decrement failed:', error)
+    logger.error({ error, tenantId, bundleId }, 'Bundle stock decrement failed')
     return false
   } finally {
     await session.endSession()

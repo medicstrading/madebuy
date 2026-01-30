@@ -7,15 +7,21 @@ import type {
   CustomerLTV,
   CustomerStats,
   CustomerWithOrders,
+  PaginatedResult,
+  PaginationParams,
   RegisterCustomerInput,
   UpdateCustomerInput,
 } from '@madebuy/shared'
 import {
+  createLogger,
   DEFAULT_PASSWORD_REQUIREMENTS,
   validatePassword,
 } from '@madebuy/shared'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
+
+const logger = createLogger({ service: 'customers' })
+import { ObjectId } from 'mongodb'
 import { getDatabase } from '../client'
 
 const BCRYPT_ROUNDS = 10 // Reduced from 12 for faster login (~100ms vs ~400ms)
@@ -163,8 +169,8 @@ export async function getCustomerById(
 export async function listCustomers(
   tenantId: string,
   filters?: CustomerFilters,
-  pagination?: { page?: number; limit?: number },
-): Promise<{ customers: Customer[]; total: number }> {
+  pagination?: { page?: number; limit?: number } | PaginationParams,
+): Promise<{ customers: Customer[]; total: number } | PaginatedResult<Customer>> {
   const db = await getDatabase()
   const query: Record<string, unknown> = { tenantId }
 
@@ -193,8 +199,48 @@ export async function listCustomers(
     ]
   }
 
-  const page = pagination?.page || 1
-  const limit = pagination?.limit || 50
+  // Check if using cursor-based pagination
+  if (pagination && 'cursor' in pagination) {
+    const limit = Math.min(pagination.limit || 50, 500)
+    const sortBy = pagination.sortBy || 'totalSpent'
+    const sortOrder = pagination.sortOrder || 'desc'
+
+    // Add cursor condition to query
+    if (pagination.cursor) {
+      try {
+        query._id = {
+          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(pagination.cursor),
+        }
+      } catch (e) {
+        // Invalid cursor - ignore and start from beginning
+      }
+    }
+
+    // Fetch limit + 1 to check if there are more items
+    const items = (await db
+      .collection('customers')
+      .find(query)
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: sortOrder === 'asc' ? 1 : -1 })
+      .limit(limit + 1)
+      .toArray()) as unknown as Customer[]
+
+    const hasMore = items.length > limit
+    if (hasMore) {
+      items.pop() // Remove the extra item
+    }
+
+    const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1] as any)._id.toString() : null
+
+    return {
+      data: items,
+      nextCursor,
+      hasMore,
+    }
+  }
+
+  // Legacy page-based pagination for backward compatibility
+  const page = (pagination as any)?.page || 1
+  const limit = (pagination as any)?.limit || 50
   const skip = (page - 1) * limit
 
   const [customers, total] = await Promise.all([
@@ -762,7 +808,7 @@ export async function authenticateCustomer(
       { tenantId, id: customer.id },
       { $set: { lastLoginAt: new Date() } },
     )
-    .catch((e) => console.error('Failed to update lastLoginAt:', e))
+    .catch((e) => logger.error({ e, customerId: customer.id }, 'Failed to update lastLoginAt'))
 
   return { success: true, customer: customer as unknown as Customer }
 }

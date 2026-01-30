@@ -11,7 +11,15 @@ import type {
   PersonalizationValue,
   Plan,
 } from '@madebuy/shared'
-import { calculateStripeFee, getFeaturesForPlan } from '@madebuy/shared'
+import {
+  calculateStripeFee,
+  createLogger,
+  getFeaturesForPlan,
+  isMadeBuyError,
+  toErrorResponse,
+  ValidationError,
+  ExternalServiceError,
+} from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import {
@@ -19,7 +27,10 @@ import {
   sendLowStockAlertEmail,
   sendOrderConfirmation,
   sendPaymentFailedEmail,
+  sendSubscriptionCancelledEmail,
 } from '@/lib/email'
+
+const log = createLogger('stripe-webhook')
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -39,8 +50,11 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature')
 
   if (!signature) {
-    console.error('No stripe-signature header present')
-    return NextResponse.json({ error: 'No signature' }, { status: 400 })
+    log.error('No stripe-signature header present')
+    return NextResponse.json(
+      { error: 'No signature', code: 'MISSING_SIGNATURE' },
+      { status: 400 },
+    )
   }
 
   let event: Stripe.Event
@@ -48,8 +62,11 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    log.error({ err }, 'Webhook signature verification failed')
+    return NextResponse.json(
+      { error: 'Invalid signature', code: 'INVALID_SIGNATURE' },
+      { status: 400 },
+    )
   }
 
   try {
@@ -95,15 +112,29 @@ export async function POST(request: NextRequest) {
         await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice)
         break
 
+      case 'invoice.paid':
+        await handleInvoicePaid(event.data.object as Stripe.Invoice)
+        break
+
+      case 'charge.refunded':
+        await handleChargeRefunded(event.data.object as Stripe.Charge)
+        break
+
       default:
       // Silently ignore unhandled event types
     }
 
     return NextResponse.json({ received: true })
   } catch (err) {
-    console.error('Webhook handler error:', err)
+    if (isMadeBuyError(err)) {
+      const { error: msg, code, statusCode, details } = toErrorResponse(err)
+      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+    }
+
+    // Log and return generic error for unexpected errors
+    log.error({ err, eventType: event?.type, eventId: event?.id }, 'Unexpected webhook handler error')
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Webhook handler failed' },
+      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },
     )
   }
@@ -120,7 +151,7 @@ async function handleCheckoutCompleted(
 ) {
   const tenantId = session.metadata?.tenantId
   if (!tenantId) {
-    console.error('No tenantId in checkout session metadata')
+    log.error({ sessionId: session.id }, 'No tenantId in checkout session metadata')
     return
   }
 
@@ -130,9 +161,7 @@ async function handleCheckoutCompleted(
     session.id,
   )
   if (existingOrder) {
-    console.log(
-      `Order already exists for session ${session.id}, skipping duplicate`,
-    )
+    log.info({ sessionId: session.id, orderId: existingOrder.id }, 'Order already exists, skipping duplicate')
     return
   }
 
@@ -150,7 +179,7 @@ async function handleCheckoutCompleted(
     try {
       items = JSON.parse(itemsJson)
     } catch (parseError) {
-      console.error('Failed to parse items from session metadata:', parseError)
+      log.error({ err: parseError, sessionId: session.id, itemsJson }, 'Failed to parse items from session metadata')
       return // Can't create order without items
     }
   }
@@ -161,16 +190,20 @@ async function handleCheckoutCompleted(
     const completed =
       await stockReservations.completeReservation(reservationSessionId)
     if (!completed) {
-      console.warn(`No reservations found for session ${reservationSessionId}`)
+      log.warn({ reservationSessionId, sessionId: session.id }, 'No reservations found for session')
     }
   }
 
   // Build order items with full piece data
+  // Batch fetch all pieces to avoid N+1 query
+  const pieceIds = items.map((item) => item.pieceId)
+  const piecesMap = await pieces.getPiecesByIds(tenantId, pieceIds)
+
   const orderItems = []
   for (const item of items) {
-    const piece = await pieces.getPiece(tenantId, item.pieceId)
+    const piece = piecesMap.get(item.pieceId)
     if (!piece) {
-      console.error(`Piece ${item.pieceId} not found for order`)
+      log.error({ pieceId: item.pieceId, tenantId, sessionId: session.id }, 'Piece not found for order')
       continue
     }
 
@@ -237,7 +270,7 @@ async function handleCheckoutCompleted(
     currency: (session.currency || 'aud').toUpperCase(),
     stripeSessionId: session.id, // For idempotency
   })
-  console.log(`Created order ${order.id} for session ${session.id}`)
+  log.info({ orderId: order.id, orderNumber: order.orderNumber, sessionId: session.id, tenantId }, 'Order created from checkout session')
 
   // Record transaction in ledger
   const grossAmountCents = session.amount_total || 0
@@ -259,13 +292,14 @@ async function handleCheckoutCompleted(
     description: `Order ${order.orderNumber}`,
     completedAt: new Date(),
   })
-  console.log(`Transaction recorded for order ${order.id}`)
+  log.info({ orderId: order.id, transactionType: 'sale', netAmount: grossAmountCents - stripeFee - platformFee }, 'Transaction recorded for order')
 
   // Create download records for digital products
+  // Reuse the piecesMap from earlier to avoid another N+1 query
   const downloadLinks: { pieceId: string; pieceName: string; token: string }[] =
     []
   for (const item of order.items) {
-    const piece = await pieces.getPiece(tenantId, item.pieceId)
+    const piece = piecesMap.get(item.pieceId)
     if (piece?.digital?.isDigital && piece.digital.files?.length > 0) {
       try {
         const downloadRecord = await downloads.createDownloadRecord(tenantId, {
@@ -282,14 +316,9 @@ async function handleCheckoutCompleted(
           pieceName: piece.name,
           token: downloadRecord.downloadToken,
         })
-        console.log(
-          `Download record created for piece ${piece.name} in order ${order.id}`,
-        )
+        log.info({ pieceId: item.pieceId, pieceName: piece.name, orderId: order.id, downloadToken: downloadRecord.downloadToken }, 'Download record created for digital product')
       } catch (downloadError) {
-        console.error(
-          `Failed to create download record for piece ${item.pieceId}:`,
-          downloadError,
-        )
+        log.error({ err: downloadError, pieceId: item.pieceId, orderId: order.id }, 'Failed to create download record for piece')
         // Don't fail the webhook - continue with other items
       }
     }
@@ -300,12 +329,13 @@ async function handleCheckoutCompleted(
   try {
     if (tenant && order.customerEmail) {
       await sendOrderConfirmation(order, tenant)
-      console.log(`Confirmation email sent to ${order.customerEmail}`)
+      log.info({ orderId: order.id, customerEmail: order.customerEmail }, 'Order confirmation email sent')
 
       // Send download emails for digital products
+      // Reuse piecesMap to avoid N+1 query
       for (const download of downloadLinks) {
         try {
-          const piece = await pieces.getPiece(tenantId, download.pieceId)
+          const piece = piecesMap.get(download.pieceId)
           if (piece?.digital?.files) {
             const downloadRecord = await downloads.getDownloadRecordByToken(
               download.token,
@@ -322,19 +352,16 @@ async function handleCheckoutCompleted(
                   ? new Date(downloadRecord.tokenExpiresAt)
                   : undefined,
               })
-              console.log(`Download email sent for ${piece.name}`)
+              log.info({ pieceId: download.pieceId, pieceName: piece.name, orderId: order.id }, 'Download email sent for digital product')
             }
           }
         } catch (downloadEmailError) {
-          console.error(
-            `Failed to send download email for ${download.pieceName}:`,
-            downloadEmailError,
-          )
+          log.error({ err: downloadEmailError, pieceName: download.pieceName, orderId: order.id }, 'Failed to send download email')
         }
       }
     }
   } catch (emailError) {
-    console.error('Failed to send confirmation email:', emailError)
+    log.error({ err: emailError, orderId: order.id, customerEmail: order.customerEmail }, 'Failed to send confirmation email')
     // Don't fail the webhook if email fails
   }
 
@@ -349,10 +376,10 @@ async function handleCheckoutCompleted(
         pieces: lowStockPieces,
         dashboardUrl: `${adminBaseUrl}/dashboard/inventory/low-stock`,
       })
-      console.log(`Low stock alert sent: ${lowStockPieces.length} items`)
+      log.info({ tenantId, lowStockCount: lowStockPieces.length }, 'Low stock alert sent')
     }
   } catch (stockAlertError) {
-    console.error('Failed to send low stock alert:', stockAlertError)
+    log.error({ err: stockAlertError, tenantId }, 'Failed to send low stock alert')
     // Don't fail the webhook if alert fails
   }
 }
@@ -365,7 +392,65 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   const reservationSessionId = paymentIntent.metadata?.reservationSessionId
   if (reservationSessionId) {
     await stockReservations.cancelReservation(reservationSessionId)
-    console.log(`Cancelled stock reservation ${reservationSessionId}`)
+    log.info({ reservationSessionId, paymentIntentId: paymentIntent.id }, 'Stock reservation cancelled after payment failure')
+  }
+}
+
+/**
+ * Handle charge.refunded
+ * Updates order refund status and restores stock for full refunds
+ */
+async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
+  const paymentIntentId = charge.payment_intent as string
+  const tenantId = charge.metadata?.tenantId
+
+  if (!tenantId) {
+    log.warn({ chargeId: charge.id }, 'No tenantId in charge metadata for refund')
+    return
+  }
+
+  log.info(
+    {
+      chargeId: charge.id,
+      tenantId,
+      refundedAmount: charge.amount_refunded,
+    },
+    'Processing charge refund',
+  )
+
+  // Update order refund status
+  await orders.updateRefundStatus(tenantId, paymentIntentId, {
+    refundedAmount: charge.amount_refunded,
+    refundedAt: new Date(),
+    refundId: charge.refunds?.data[0]?.id,
+    reason: charge.refunds?.data[0]?.reason || undefined,
+  })
+
+  // If full refund, restore stock
+  if (charge.amount_refunded === charge.amount) {
+    log.info({ chargeId: charge.id, tenantId }, 'Full refund - restoring stock')
+
+    // Get the order to restore stock
+    const order = await orders.getOrderByPaymentIntent(tenantId, paymentIntentId)
+    if (order && order.tenantId === tenantId) {
+      // Verify order belongs to tenant for safety
+      for (const item of order.items) {
+        if (item.variantId) {
+          await pieces.incrementVariantStock(
+            tenantId,
+            item.pieceId,
+            item.variantId,
+            item.quantity,
+          )
+        } else {
+          await pieces.incrementStock(tenantId, item.pieceId, item.quantity)
+        }
+      }
+      log.info(
+        { orderId: order.id, itemCount: order.items.length },
+        'Stock restored for refund',
+      )
+    }
   }
 }
 
@@ -377,9 +462,7 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   const reservationSessionId = session.metadata?.reservationSessionId
   if (reservationSessionId) {
     await stockReservations.cancelReservation(reservationSessionId)
-    console.log(
-      `Released stock reservations for expired session ${reservationSessionId}`,
-    )
+    log.info({ reservationSessionId, sessionId: session.id }, 'Stock reservations released after checkout expiration')
   }
 }
 
@@ -408,14 +491,17 @@ function getPlanFromPriceId(priceId: string): Plan {
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const tenantId = subscription.metadata?.tenantId
   if (!tenantId) {
-    console.error('No tenantId in subscription metadata')
+    log.error(
+      { subscriptionId: subscription.id },
+      'No tenantId in subscription metadata',
+    )
     return
   }
 
   // Get plan from the subscription's price
   const priceId = subscription.items.data[0]?.price?.id
   if (!priceId) {
-    console.error('No price ID found in subscription')
+    log.error({ subscriptionId: subscription.id, tenantId }, 'No price ID found in subscription')
     return
   }
 
@@ -442,9 +528,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       break
     default:
       // Unknown status - default to active but log warning
-      console.warn(
-        `Unknown Stripe subscription status: ${subscription.status}, defaulting to active`,
-      )
+      log.warn({ subscriptionId: subscription.id, status: subscription.status, tenantId }, 'Unknown Stripe subscription status, defaulting to active')
       subscriptionStatus = 'active'
   }
 
@@ -456,9 +540,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     features,
   })
 
-  console.log(
-    `Subscription updated for tenant ${tenantId}: plan=${plan}, status=${subscriptionStatus}`,
-  )
+  log.info({ tenantId, subscriptionId: subscription.id, plan, status: subscriptionStatus, priceId }, 'Subscription updated')
 }
 
 /**
@@ -468,9 +550,25 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const tenantId = subscription.metadata?.tenantId
   if (!tenantId) {
-    console.error('No tenantId in subscription metadata')
+    log.error(
+      { subscriptionId: subscription.id },
+      'No tenantId in subscription metadata',
+    )
     return
   }
+
+  // Get tenant before downgrading
+  const tenant = await tenants.getTenantById(tenantId)
+  if (!tenant) {
+    log.error({ tenantId, subscriptionId: subscription.id }, 'No tenant found for subscription deletion')
+    return
+  }
+
+  // Get plan name from subscription
+  const planName =
+    (subscription.items.data[0]?.price.product as Stripe.Product)?.name ||
+    subscription.items.data[0]?.price?.nickname ||
+    'Premium'
 
   // Downgrade to free plan
   const features = getFeaturesForPlan('free')
@@ -482,11 +580,23 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     features,
   })
 
-  console.log(
-    `Subscription cancelled for tenant ${tenantId}, downgraded to free plan`,
-  )
+  log.info({ tenantId, subscriptionId: subscription.id, planName }, 'Subscription cancelled, tenant downgraded to free plan')
 
-  // TODO: Send email notification about subscription cancellation
+  // Send email notification about subscription cancellation
+  try {
+    await sendSubscriptionCancelledEmail({
+      tenant: {
+        email: tenant.email,
+        businessName: tenant.businessName,
+      },
+      planName,
+      lastDayOfService: new Date(),
+    })
+    log.info({ tenantId: tenant.id, email: tenant.email }, 'Subscription cancelled email sent')
+  } catch (emailError) {
+    log.error({ err: emailError, tenantId }, 'Failed to send subscription cancelled email')
+    // Don't fail the webhook if email fails
+  }
 }
 
 /**
@@ -501,14 +611,14 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       : invoice.customer?.id
 
   if (!customerId) {
-    console.error('No customer ID in failed invoice')
+    log.error({ invoiceId: invoice.id }, 'No customer ID in failed invoice')
     return
   }
 
   // Find tenant by Stripe customer ID
   const tenant = await tenants.getTenantByStripeCustomerId(customerId)
   if (!tenant) {
-    console.error(`No tenant found for Stripe customer ${customerId}`)
+    log.error({ customerId, invoiceId: invoice.id }, 'No tenant found for Stripe customer in failed invoice')
     return
   }
 
@@ -524,9 +634,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     nextRetryDate.setDate(nextRetryDate.getDate() + daysUntilRetry)
   }
 
-  console.error(
-    `Invoice payment failed for tenant ${tenant.id}: ${invoice.id} (attempt ${attemptCount}/4)`,
-  )
+  log.error({ tenantId: tenant.id, invoiceId: invoice.id, attemptCount, customerId }, 'Invoice payment failed')
 
   // Send email notification about failed payment
   try {
@@ -536,9 +644,53 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       attemptCount,
       nextRetryDate,
     })
-    console.log(`Payment failed email sent to tenant ${tenant.id}`)
+    log.info({ tenantId: tenant.id, invoiceId: invoice.id, attemptCount }, 'Payment failed email sent')
   } catch (emailError) {
-    console.error('Failed to send payment failed email:', emailError)
+    log.error({ err: emailError, tenantId: tenant.id, invoiceId: invoice.id }, 'Failed to send payment failed email')
     // Don't fail the webhook if email fails
   }
+}
+
+/**
+ * Handle invoice paid
+ * Logs successful subscription payment
+ * Note: Subscription updates are handled by customer.subscription.updated event
+ * This handler is mainly for logging and potential future features (receipts, usage resets, etc.)
+ */
+async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  const customerId =
+    typeof invoice.customer === 'string'
+      ? invoice.customer
+      : invoice.customer?.id
+
+  if (!customerId) {
+    log.error({ invoiceId: invoice.id }, 'No customer ID in paid invoice')
+    return
+  }
+
+  // Find tenant by Stripe customer ID
+  const tenant = await tenants.getTenantByStripeCustomerId(customerId)
+  if (!tenant) {
+    log.error({ customerId, invoiceId: invoice.id }, 'No tenant found for Stripe customer in paid invoice')
+    return
+  }
+
+  const amountPaid = invoice.amount_paid / 100 // Convert from cents
+  const currency = (invoice.currency || 'aud').toUpperCase()
+
+  log.info(
+    {
+      tenantId: tenant.id,
+      invoiceId: invoice.id,
+      customerId,
+      amountPaid,
+      currency,
+      subscriptionId: invoice.subscription,
+    },
+    'Invoice payment successful',
+  )
+
+  // Future enhancement: Send payment receipt email
+  // Future enhancement: Reset usage counters for new billing period
+  // Future enhancement: Record transaction in ledger
 }

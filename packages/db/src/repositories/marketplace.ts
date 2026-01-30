@@ -376,6 +376,30 @@ export async function getListingByExternalId(
 }
 
 /**
+ * Get multiple listings by external IDs in a single query (batch lookup)
+ * Returns a Map for O(1) lookup by external ID
+ */
+export async function getListingsByExternalIds(
+  tenantId: string,
+  marketplace: MarketplacePlatform,
+  externalListingIds: string[],
+): Promise<Map<string, MarketplaceListing>> {
+  if (externalListingIds.length === 0) {
+    return new Map()
+  }
+  const db = await getDatabase()
+  const listings = (await db
+    .collection(LISTINGS_COLLECTION)
+    .find({
+      tenantId,
+      marketplace,
+      externalListingId: { $in: externalListingIds },
+    })
+    .toArray()) as unknown as MarketplaceListing[]
+  return new Map(listings.map((l) => [l.externalListingId, l]))
+}
+
+/**
  * List marketplace listings
  */
 export async function listListings(

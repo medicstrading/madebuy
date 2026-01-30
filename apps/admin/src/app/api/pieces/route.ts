@@ -2,7 +2,9 @@ import { materials, pieces } from '@madebuy/db'
 import {
   type CreatePieceInput,
   isMadeBuyError,
+  sanitizeInput,
   toErrorResponse,
+  safeValidateCreatePiece,
 } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
@@ -88,11 +90,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const data: CreatePieceInput = await request.json()
+    const body = await request.json()
+
+    // Validate with Zod
+    const validation = safeValidateCreatePiece(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      )
+    }
+
+    const data = validation.data
+
+    // Sanitize text inputs
+    const sanitizedData: CreatePieceInput = {
+      ...data,
+      name: sanitizeInput(data.name),
+      description: data.description ? sanitizeInput(data.description) : undefined,
+      category: data.category ? sanitizeInput(data.category) : undefined,
+    }
 
     // If piece has materialsUsed, fetch the materials catalog for COGS calculation
     let materialsCatalog
-    if (data.materialsUsed && data.materialsUsed.length > 0) {
+    if (sanitizedData.materialsUsed && sanitizedData.materialsUsed.length > 0) {
       const { materials: allMaterials } = await materials.listMaterials(
         tenant.id,
         {},
@@ -101,7 +126,11 @@ export async function POST(request: NextRequest) {
       materialsCatalog = allMaterials
     }
 
-    const piece = await pieces.createPiece(tenant.id, data, materialsCatalog)
+    const piece = await pieces.createPiece(
+      tenant.id,
+      sanitizedData,
+      materialsCatalog,
+    )
 
     return NextResponse.json({ piece }, { status: 201 })
   } catch (error) {

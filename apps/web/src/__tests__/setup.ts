@@ -4,6 +4,22 @@ import { vi } from 'vitest'
 vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_mock')
 vi.stubEnv('MONGODB_URI', 'mongodb://localhost:27017/madebuy-test')
 
+// Mock pino logger
+vi.mock('pino', () => ({
+  default: vi.fn(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+    })),
+  })),
+}))
+
 // Mock @madebuy/db
 vi.mock('@madebuy/db', () => ({
   pieces: {

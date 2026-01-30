@@ -1,33 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /**
- * Stub repositories for archived functionality
- * These provide no-op implementations to keep checkout working
+ * Stub repositories for archived marketplace functionality
+ * These provide no-op implementations for backwards compatibility
+ *
+ * Note: Stock reservations have been moved to stockReservations.ts with real implementation
  */
-
-// Stock Reservations - stubbed (was used for marketplace multi-vendor stock)
-export async function reserveStock(
-  _tenantId: string,
-  _pieceId: string,
-  _quantity: number,
-  _sessionId: string,
-  _expirationMinutes?: number,
-  _variantId?: string,
-) {
-  // Return truthy to indicate reservation succeeded
-  return { id: 'stub', pieceId: _pieceId, quantity: _quantity }
-}
-
-export async function cancelReservation(_sessionId: string) {
-  return true
-}
-
-export async function commitReservation(_sessionId: string) {
-  return true
-}
-
-export async function completeReservation(_sessionId: string) {
-  return true
-}
 
 // Transactions - stubbed (was used for marketplace payouts)
 export async function createTransaction(_data: unknown) {

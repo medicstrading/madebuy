@@ -586,19 +586,60 @@ const all = await variants.listVariants(tenantId, pieceId)
 ### Connection Management
 
 ```typescript
-import { getDb, closeConnection } from '@madebuy/db/client'
+import { getDatabase, getMongoClient } from '@madebuy/db'
 
-// Get database instance (auto-connects)
-const db = await getDb()
+// Get database instance (auto-connects and ensures indexes)
+const db = await getDatabase()
 
-// Manual connection close (for serverless)
-await closeConnection()
+// Get raw MongoDB client for transactions
+const client = await getMongoClient()
 ```
+
+### Manual Index Creation
+
+Indexes are automatically created on first database connection. To manually trigger index creation:
+
+```typescript
+import { ensureIndexes, getDatabase } from '@madebuy/db'
+
+const db = await getDatabase()
+await ensureIndexes(db)
+```
+
+**Indexes are created for:**
+- Multi-tenant isolation (all collections have `tenantId` indexes)
+- Common query patterns (status filters, date sorting, etc.)
+- Unique constraints (emails, slugs, SKUs)
+- Full-text search (pieces collection)
+- TTL cleanup (expired tokens, old reservations)
+
+**Performance-critical compound indexes:**
+```typescript
+// Pieces: tenant + slug lookup (unique)
+{ tenantId: 1, slug: 1 }
+
+// Orders: efficient payment intent lookup
+{ tenantId: 1, paymentIntentId: 1 }
+
+// Orders: order number lookup with tenant isolation
+{ tenantId: 1, orderNumber: 1 }
+
+// Media: efficient piece media retrieval
+{ tenantId: 1, pieceId: 1 }
+
+// Stock Reservations: session lookup
+{ tenantId: 1, sessionId: 1 }
+
+// Customers: email lookup with tenant isolation
+{ tenantId: 1, email: 1 }
+```
+
+All indexes are defined in `packages/db/src/indexes.ts` and are idempotent - safe to call multiple times.
 
 ### Utilities
 
 ```typescript
-import { serializeMongo, serializeMongoArray } from '@madebuy/db/client'
+import { serializeMongo, serializeMongoArray } from '@madebuy/db'
 
 // Convert MongoDB documents for JSON serialization
 // Handles ObjectId, Date, etc.

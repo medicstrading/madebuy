@@ -1,4 +1,5 @@
 import { blog } from '@madebuy/db'
+import { sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
@@ -57,13 +58,15 @@ export async function POST(request: NextRequest) {
     }
 
     const post = await blog.createBlogPost(tenant.id, {
-      title: data.title,
-      content: data.content,
-      excerpt: data.excerpt,
+      title: sanitizeInput(data.title),
+      content: sanitizeInput(data.content),
+      excerpt: data.excerpt ? sanitizeInput(data.excerpt) : undefined,
       coverImageId: data.coverImageId,
       tags: data.tags || [],
-      metaTitle: data.metaTitle,
-      metaDescription: data.metaDescription,
+      metaTitle: data.metaTitle ? sanitizeInput(data.metaTitle) : undefined,
+      metaDescription: data.metaDescription
+        ? sanitizeInput(data.metaDescription)
+        : undefined,
       status: data.status || 'draft',
       publishRecordId: data.publishRecordId,
     })

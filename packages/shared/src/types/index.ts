@@ -226,6 +226,8 @@ export type {
   PaymentStatus,
 } from './order'
 export * from './order'
+export type { PaginatedResult, PaginationParams } from './pagination'
+export * from './pagination'
 export type {
   CheckoutPaymentInfo,
   CreatePayPalConnectInput,

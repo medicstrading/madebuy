@@ -1,6 +1,16 @@
+import {
+  createLogger,
+  isMadeBuyError,
+  toErrorResponse,
+  UnauthorizedError,
+  ValidationError,
+  ExternalServiceError,
+} from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
+
+const log = createLogger('billing-portal')
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -20,15 +30,12 @@ export async function POST(_request: NextRequest) {
     const tenant = await getCurrentTenant()
 
     if (!tenant) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      throw new UnauthorizedError()
     }
 
     // Tenant must have a Stripe customer ID to access portal
     if (!tenant.stripeCustomerId) {
-      return NextResponse.json(
-        { error: 'No billing account found. Subscribe to a plan first.' },
-        { status: 400 },
-      )
+      throw new ValidationError('No billing account found. Subscribe to a plan first.')
     }
 
     // Build return URL
@@ -43,14 +50,21 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error('Billing portal error:', error)
+    if (isMadeBuyError(error)) {
+      const { error: msg, code, statusCode, details } = toErrorResponse(error)
+      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+    }
+
+    // Catch Stripe errors as external service errors
+    if (error instanceof Stripe.errors.StripeError) {
+      log.error({ err: error }, 'Stripe API error')
+      throw new ExternalServiceError('Stripe', error.message)
+    }
+
+    // Log and return generic error for unexpected errors
+    log.error({ err: error }, 'Unexpected billing portal error')
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to create portal session',
-      },
+      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },
     )
   }

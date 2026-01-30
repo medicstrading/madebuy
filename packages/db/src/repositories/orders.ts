@@ -1,5 +1,11 @@
-import type { CreateOrderInput, Order } from '@madebuy/shared'
+import type {
+  CreateOrderInput,
+  Order,
+  PaginatedResult,
+  PaginationParams,
+} from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+import { ObjectId } from 'mongodb'
 import { getDatabase } from '../client'
 
 function generateOrderNumber(): string {
@@ -95,12 +101,13 @@ export async function getOrderByNumber(
 }
 
 export async function getOrderByPaymentIntent(
+  tenantId: string,
   paymentIntentId: string,
 ): Promise<Order | null> {
   const db = await getDatabase()
   return (await db
     .collection('orders')
-    .findOne({ paymentIntentId })) as Order | null
+    .findOne({ tenantId, paymentIntentId })) as Order | null
 }
 
 /**
@@ -117,16 +124,16 @@ export async function getOrderByStripeSessionId(
 }
 
 /**
- * Get order by order number (global lookup, no tenant required)
- * Order numbers are unique across all tenants
+ * Get order by order number with tenant isolation
  */
 export async function getOrderByOrderNumber(
+  tenantId: string,
   orderNumber: string,
 ): Promise<Order | null> {
   const db = await getDatabase()
   return (await db
     .collection('orders')
-    .findOne({ orderNumber })) as Order | null
+    .findOne({ tenantId, orderNumber })) as Order | null
 }
 
 export async function listOrders(
@@ -140,7 +147,8 @@ export async function listOrders(
     /** If true, returns only essential fields for list views (reduces bandwidth) */
     listView?: boolean
   },
-): Promise<Order[]> {
+  pagination?: PaginationParams,
+): Promise<Order[] | PaginatedResult<Order>> {
   const db = await getDatabase()
 
   const query: Record<string, unknown> = { tenantId }
@@ -157,6 +165,65 @@ export async function listOrders(
     query.customerEmail = filters.customerEmail
   }
 
+  // If pagination params provided, use cursor-based pagination
+  if (pagination) {
+    const limit = Math.min(pagination.limit || 50, 500)
+    const sortBy = pagination.sortBy || 'createdAt'
+    const sortOrder = pagination.sortOrder || 'desc'
+
+    // Add cursor condition to query
+    if (pagination.cursor) {
+      try {
+        query._id = {
+          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(pagination.cursor),
+        }
+      } catch (e) {
+        // Invalid cursor - ignore and start from beginning
+      }
+    }
+
+    let cursor = db.collection('orders').find(query)
+
+    // Add projection for list views to reduce data transfer
+    if (filters?.listView) {
+      cursor = cursor.project({
+        id: 1,
+        tenantId: 1,
+        orderNumber: 1,
+        customerEmail: 1,
+        customerName: 1,
+        total: 1,
+        currency: 1,
+        status: 1,
+        paymentStatus: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        // Include item count instead of full items array
+        itemCount: { $size: { $ifNull: ['$items', []] } },
+      })
+    }
+
+    // Fetch limit + 1 to check if there are more items
+    const items = (await cursor
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: sortOrder === 'asc' ? 1 : -1 })
+      .limit(limit + 1)
+      .toArray()) as unknown as Order[]
+
+    const hasMore = items.length > limit
+    if (hasMore) {
+      items.pop() // Remove the extra item
+    }
+
+    const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1] as any)._id.toString() : null
+
+    return {
+      data: items,
+      nextCursor,
+      hasMore,
+    }
+  }
+
+  // Legacy offset-based pagination for backward compatibility
   let cursor = db.collection('orders').find(query)
 
   // Add projection for list views to reduce data transfer
@@ -491,4 +558,44 @@ export async function findDeliveredOrderWithProduct(
   })
 
   return order as Order | null
+}
+
+interface RefundInfo {
+  refundedAmount: number
+  refundedAt: Date
+  refundId?: string
+  reason?: string
+}
+
+/**
+ * Update order refund status
+ * Called when a charge.refunded webhook is received from Stripe
+ *
+ * @param tenantId - Tenant ID
+ * @param paymentIntentId - Stripe payment intent ID
+ * @param refundInfo - Refund information
+ * @returns True if order was found and updated
+ */
+export async function updateRefundStatus(
+  tenantId: string,
+  paymentIntentId: string,
+  refundInfo: RefundInfo,
+): Promise<boolean> {
+  const db = await getDatabase()
+
+  const result = await db.collection('orders').updateOne(
+    { tenantId, paymentIntentId },
+    {
+      $set: {
+        refundedAmount: refundInfo.refundedAmount,
+        refundedAt: refundInfo.refundedAt,
+        refundId: refundInfo.refundId,
+        refundReason: refundInfo.reason,
+        status: refundInfo.refundedAmount > 0 ? 'refunded' : 'paid',
+        updatedAt: new Date(),
+      },
+    },
+  )
+
+  return result.modifiedCount > 0
 }

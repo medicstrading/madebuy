@@ -1,4 +1,5 @@
 import { tenants } from '@madebuy/db'
+import { safeValidateUpdateTenant, sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 
@@ -36,36 +37,20 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json()
 
-    // Whitelist allowed fields for update
-    const allowedFields = [
-      'businessName',
-      'tagline',
-      'description',
-      'location',
-      'makerType',
-      'customCategories',
-      'customMaterialCategories',
-      'primaryColor',
-      'accentColor',
-      'logoMediaId',
-      'instagram',
-      'facebook',
-      'tiktok',
-      'pinterest',
-      'etsy',
-      'websiteDesign',
-      'onboardingComplete',
-      'onboardingStep',
-      'regionalSettings',
-    ]
-
-    // Filter to only allowed fields
-    const updates: Record<string, unknown> = {}
-    for (const field of allowedFields) {
-      if (field in body) {
-        updates[field] = body[field]
-      }
+    // Validate with Zod
+    const validation = safeValidateUpdateTenant(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      )
     }
+
+    const updates = validation.data
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
@@ -74,7 +59,21 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    await tenants.updateTenant(user.id, updates)
+    // Sanitize text fields
+    const sanitizedUpdates = {
+      ...updates,
+      businessName: updates.businessName ? sanitizeInput(updates.businessName) : undefined,
+      tagline: updates.tagline ? sanitizeInput(updates.tagline) : undefined,
+      description: updates.description ? sanitizeInput(updates.description) : undefined,
+      location: updates.location ? sanitizeInput(updates.location) : undefined,
+    }
+
+    // Remove undefined fields
+    const cleanedUpdates = Object.fromEntries(
+      Object.entries(sanitizedUpdates).filter(([_, v]) => v !== undefined)
+    )
+
+    await tenants.updateTenant(user.id, cleanedUpdates)
 
     // Return updated tenant
     const updatedTenant = await tenants.getTenantById(user.id)

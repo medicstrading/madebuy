@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PersonalizationValueSchema } from './personalization'
 
 /**
  * Checkout validation schemas
@@ -16,6 +17,8 @@ export const CartItemSchema = z.object({
     .max(100, 'Quantity cannot exceed 100'),
   price: z.number().positive('Price must be positive'),
   currency: z.string().length(3).optional().default('AUD'),
+  personalization: z.array(PersonalizationValueSchema).optional(),
+  personalizationTotal: z.number().min(0).optional(),
 })
 
 // Customer info

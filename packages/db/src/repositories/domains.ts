@@ -1,6 +1,9 @@
 import dns from 'node:dns/promises'
 import type { DomainStatus, Tenant } from '@madebuy/shared'
+import { createLogger } from '@madebuy/shared'
 import { getDatabase } from '../client'
+
+const logger = createLogger({ service: 'domains' })
 
 /**
  * Domains Repository
@@ -198,7 +201,7 @@ export async function verifyDomain(
       message: `Domain DNS not configured. Please add a CNAME record pointing to shops.madebuy.com.au or add a TXT record with madebuy-verify=${tenantId}`,
     }
   } catch (error) {
-    console.error('Domain verification error:', error)
+    logger.error({ error, tenantId, domain }, 'Domain verification error')
     return {
       verified: false,
       status: 'pending_nameservers',

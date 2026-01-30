@@ -1,22 +1,19 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { createRateLimiter } from '@madebuy/shared'
 
-interface RateLimitEntry {
-  count: number
-  resetAt: number
-}
-
-// In-memory store (use Redis in production for multi-instance deployments)
-const store = new Map<string, RateLimitEntry>()
-
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of store.entries()) {
-    if (entry.resetAt < now) {
-      store.delete(key)
-    }
-  }
-}, 60000) // Clean every minute
+/**
+ * Rate Limiting Implementation (Web App)
+ *
+ * This implementation uses the shared rate limiter from @madebuy/shared,
+ * which supports Redis for multi-instance deployments with automatic
+ * fallback to in-memory storage.
+ *
+ * To enable Redis (for multi-instance deployments):
+ * 1. Set REDIS_URL environment variable in .env.local
+ * 2. Rate limits will automatically be shared across all instances
+ *
+ * Without REDIS_URL, rate limiting works per-instance using in-memory storage.
+ */
 
 interface RateLimitOptions {
   limit: number // Max requests
@@ -48,29 +45,24 @@ function getClientId(request: NextRequest): string {
  * Check rate limit for a request
  * Returns null if allowed, or a NextResponse if rate limited
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   request: NextRequest,
   options: RateLimitOptions,
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const { limit, windowMs, keyPrefix = '' } = options
   const clientId = getClientId(request)
   const key = `${keyPrefix}:${clientId}`
-  const now = Date.now()
 
-  const entry = store.get(key)
+  const limiter = createRateLimiter({
+    interval: windowMs,
+    uniqueTokenPerInterval: limit,
+  })
 
-  if (!entry || entry.resetAt < now) {
-    // First request or window expired
-    store.set(key, {
-      count: 1,
-      resetAt: now + windowMs,
-    })
-    return null
-  }
+  const result = await limiter.check(key, limit)
 
-  if (entry.count >= limit) {
+  if (!result.success) {
     // Rate limited
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
+    const retryAfter = Math.ceil((result.reset - Date.now()) / 1000)
     return NextResponse.json(
       {
         error: 'Too many requests',
@@ -81,16 +73,12 @@ export function checkRateLimit(
         headers: {
           'Retry-After': String(retryAfter),
           'X-RateLimit-Limit': String(limit),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': String(Math.ceil(entry.resetAt / 1000)),
+          'X-RateLimit-Remaining': String(result.remaining),
+          'X-RateLimit-Reset': String(Math.ceil(result.reset / 1000)),
         },
       },
     )
   }
-
-  // Increment count
-  entry.count++
-  store.set(key, entry)
 
   return null
 }

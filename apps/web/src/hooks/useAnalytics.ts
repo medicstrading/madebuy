@@ -1,40 +1,102 @@
 'use client'
 
-type AnalyticsEvent =
-  | 'view_product'
-  | 'add_to_cart'
-  | 'start_checkout'
-  | 'complete_purchase'
+import { useCallback, useEffect, useState } from 'react'
+import type { ProductWithMedia } from '@madebuy/shared'
+import {
+  trackProductView,
+  trackAddToCart,
+  trackRemoveFromCart,
+  trackCheckoutStarted,
+  trackPurchaseCompleted,
+} from '@/lib/analytics'
 
-interface TrackOptions {
-  productId?: string
-  orderId?: string
-  metadata?: Record<string, any>
+interface UseAnalyticsOptions {
+  tenantId: string
 }
 
 export function useAnalytics(tenantId: string) {
-  const track = async (event: AnalyticsEvent, options?: TrackOptions) => {
-    try {
-      await fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tenantId,
-          event,
-          ...options,
-        }),
+  // Track product view with product details
+  const handleTrackProductView = useCallback(
+    (productId: string, productName?: string, price?: number) => {
+      trackProductView(productId, productName || 'Unknown Product', price || 0, {
+        tenant_id: tenantId,
       })
-    } catch (error) {
-      // Silently fail - analytics should not break the user experience
-      console.error('Analytics tracking failed:', error)
-    }
-  }
+    },
+    [tenantId]
+  )
+
+  // Track add to cart with full product details
+  const handleTrackAddToCart = useCallback(
+    (
+      productId: string,
+      productName?: string,
+      price?: number,
+      quantity = 1
+    ) => {
+      trackAddToCart(
+        productId,
+        productName || 'Unknown Product',
+        price || 0,
+        quantity,
+        {
+          tenant_id: tenantId,
+        }
+      )
+    },
+    [tenantId]
+  )
+
+  // Track remove from cart
+  const handleTrackRemoveFromCart = useCallback(
+    (
+      productId: string,
+      productName?: string,
+      price?: number,
+      quantity = 1
+    ) => {
+      trackRemoveFromCart(
+        productId,
+        productName || 'Unknown Product',
+        price || 0,
+        quantity,
+        {
+          tenant_id: tenantId,
+        }
+      )
+    },
+    [tenantId]
+  )
+
+  // Track checkout started
+  const handleTrackCheckoutStarted = useCallback(
+    (cartTotal: number, itemCount: number) => {
+      trackCheckoutStarted(cartTotal, itemCount, {
+        tenant_id: tenantId,
+      })
+    },
+    [tenantId]
+  )
+
+  // Track purchase completed
+  const handleTrackPurchase = useCallback(
+    (
+      orderId: string,
+      total: number,
+      itemCount: number,
+      paymentMethod: string
+    ) => {
+      trackPurchaseCompleted(orderId, total, itemCount, paymentMethod, {
+        tenant_id: tenantId,
+      })
+    },
+    [tenantId]
+  )
 
   return {
-    trackProductView: (productId: string) =>
-      track('view_product', { productId }),
-    trackAddToCart: (productId: string) => track('add_to_cart', { productId }),
-    trackStartCheckout: () => track('start_checkout'),
-    trackPurchase: (orderId: string) => track('complete_purchase', { orderId }),
+    trackProductView: handleTrackProductView,
+    trackAddToCart: handleTrackAddToCart,
+    trackRemoveFromCart: handleTrackRemoveFromCart,
+    trackStartCheckout: handleTrackCheckoutStarted,
+    trackPurchase: handleTrackPurchase,
   }
 }

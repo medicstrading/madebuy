@@ -1,5 +1,6 @@
 import { orders, reviews, tenants } from '@madebuy/db'
 import type { CreateReviewInput } from '@madebuy/shared'
+import { sanitizeInput, safeValidateCreateReview } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -59,8 +60,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    // Validate with Zod
+    const validation = safeValidateCreateReview(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      )
+    }
+
     const {
-      tenantId,
       pieceId,
       orderId,
       customerEmail,
@@ -69,35 +83,13 @@ export async function POST(request: NextRequest) {
       title,
       text,
       photos,
-    } = body
+    } = validation.data
 
-    // Validate required fields
-    if (
-      !tenantId ||
-      !pieceId ||
-      !orderId ||
-      !customerEmail ||
-      !rating ||
-      !text
-    ) {
+    // Get tenantId from body (not in schema since it's context from URL)
+    const tenantId = body.tenantId
+    if (!tenantId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 },
-      )
-    }
-
-    // Validate rating is 1-5
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: 'Rating must be between 1 and 5' },
-        { status: 400 },
-      )
-    }
-
-    // Validate text length
-    if (text.length < 10) {
-      return NextResponse.json(
-        { error: 'Review text must be at least 10 characters' },
+        { error: 'tenantId is required' },
         { status: 400 },
       )
     }
@@ -158,15 +150,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create the review
+    // Create the review (sanitize all text inputs)
     const reviewInput: CreateReviewInput = {
       pieceId,
       orderId,
-      customerEmail,
-      customerName: customerName || order.customerName,
+      customerEmail: sanitizeInput(customerEmail),
+      customerName: sanitizeInput(customerName || order.customerName),
       rating,
-      title,
-      text,
+      title: title ? sanitizeInput(title) : undefined,
+      text: sanitizeInput(text),
       photos: photos || [],
     }
 

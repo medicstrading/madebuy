@@ -1,4 +1,5 @@
 import { pieces } from '@madebuy/db'
+import { safeValidateUpdatePiece, sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { requireTenant } from '@/lib/session'
 
@@ -9,7 +10,7 @@ export async function PATCH(
   try {
     const tenant = await requireTenant()
     const pieceId = params.id
-    const updates = await request.json()
+    const body = await request.json()
 
     // Check if piece exists
     const piece = await pieces.getPiece(tenant.id, pieceId)
@@ -17,38 +18,43 @@ export async function PATCH(
       return NextResponse.json({ error: 'Piece not found' }, { status: 404 })
     }
 
-    // Whitelist allowed fields
-    const allowedFields = [
-      'name',
-      'description',
-      'category',
-      'status',
-      'price',
-      'stock',
-      'lowStockThreshold',
-      'shippingWeight',
-      'shippingLength',
-      'shippingWidth',
-      'shippingHeight',
-      'isFeatured',
-    ]
-
-    const filteredUpdates: Record<string, any> = {}
-    for (const key of allowedFields) {
-      if (key in updates) {
-        filteredUpdates[key] = updates[key]
-      }
+    // Validate with Zod
+    const validation = safeValidateUpdatePiece(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      )
     }
 
-    if (Object.keys(filteredUpdates).length === 0) {
+    const updates = validation.data
+
+    if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
         { status: 400 },
       )
     }
 
+    // Sanitize text fields
+    const sanitizedUpdates = {
+      ...updates,
+      name: updates.name ? sanitizeInput(updates.name) : undefined,
+      description: updates.description ? sanitizeInput(updates.description) : undefined,
+      category: updates.category ? sanitizeInput(updates.category) : undefined,
+    }
+
+    // Remove undefined fields
+    const cleanedUpdates = Object.fromEntries(
+      Object.entries(sanitizedUpdates).filter(([_, v]) => v !== undefined)
+    )
+
     // Update the piece
-    await pieces.updatePiece(tenant.id, pieceId, filteredUpdates)
+    await pieces.updatePiece(tenant.id, pieceId, cleanedUpdates)
 
     // Get updated piece
     const updatedPiece = await pieces.getPiece(tenant.id, pieceId)

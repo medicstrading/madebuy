@@ -35,12 +35,24 @@ export * from './errors'
 export * from './lib/cogs'
 // Export cryptographic utilities
 export * from './lib/crypto'
+// Export logger utilities
+export { logger, createLogger, getRequestContext } from './lib/logger'
+export type { Logger } from './lib/logger'
+// Export rate limiting utilities
+export { createRateLimiter } from './lib/rate-limit'
+export type { RateLimitConfig, RateLimitResult } from './lib/rate-limit'
 // Export sanitization utilities
 export * from './lib/sanitize'
 // Export subscription utilities
 export * from './lib/subscription'
+// Export retry utilities
+export * from './utils/retry'
+// Export Stripe helpers
+export * from './utils/stripe-helpers'
 // Export digital delivery service
 export * from './services/digital-delivery'
+// Export analytics utilities
+export * from './analytics'
 // Export Stripe utilities (config only - Connect archived)
 export * from './stripe'
 // Export all types
@@ -61,6 +73,8 @@ export {
 export { getDefaultPages, getDefaultSections } from './types/template'
 // Export validation schemas
 export * from './validation'
+// Export Zod validation schemas
+export * from './schemas'
 
 // =============================================================================
 // ARCHIVED EXPORTS (removed 2026-01-02)

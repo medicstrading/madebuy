@@ -6,7 +6,10 @@ import type {
   TrackingEventType,
   TrafficSource,
 } from '@madebuy/shared'
+import { createLogger } from '@madebuy/shared'
 import { getDatabase } from '../client'
+
+const logger = createLogger({ service: 'tracking' })
 
 /**
  * Tracking Repository
@@ -83,7 +86,7 @@ export async function logEvent(
   db.collection(EVENTS_COLLECTION)
     .insertOne(trackingEvent)
     .catch((err) => {
-      console.error('Failed to log tracking event:', err)
+      logger.error({ err, tenantId }, 'Failed to log tracking event')
     })
 }
 

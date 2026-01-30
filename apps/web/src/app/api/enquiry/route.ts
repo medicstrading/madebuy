@@ -1,16 +1,20 @@
 import { enquiries, tenants, tracking } from '@madebuy/db'
 import type { CreateEnquiryInput } from '@madebuy/shared'
+import {
+  sanitizeInput,
+  isMadeBuyError,
+  toErrorResponse,
+  ValidationError,
+  NotFoundError,
+  ExternalServiceError,
+  safeValidateCreateEnquiry,
+} from '@madebuy/shared'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 const ATTRIBUTION_COOKIE = 'mb_attribution'
 const SESSION_COOKIE = 'mb_session'
-
-function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
-}
 
 /**
  * POST /api/enquiry
@@ -27,8 +31,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+
+    // Validate with Zod
+    const validation = safeValidateCreateEnquiry(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      )
+    }
+
     const {
-      tenantId,
       name,
       email,
       message,
@@ -37,20 +54,12 @@ export async function POST(request: NextRequest) {
       source,
       sourceDomain,
       turnstileToken,
-    } = body
+    } = validation.data
 
-    // Validate input types to prevent NoSQL injection
-    if (
-      typeof tenantId !== 'string' ||
-      typeof name !== 'string' ||
-      typeof email !== 'string' ||
-      typeof message !== 'string' ||
-      (pieceId !== undefined && typeof pieceId !== 'string') ||
-      (pieceName !== undefined && typeof pieceName !== 'string') ||
-      (source !== undefined && typeof source !== 'string') ||
-      (sourceDomain !== undefined && typeof sourceDomain !== 'string')
-    ) {
-      return NextResponse.json({ error: 'Invalid input type' }, { status: 400 })
+    // Get tenantId from body (not in schema since it's context)
+    const tenantId = body.tenantId
+    if (!tenantId || typeof tenantId !== 'string') {
+      throw new ValidationError('tenantId is required')
     }
 
     // Verify Turnstile token (skip in development if no key configured)
@@ -59,10 +68,7 @@ export async function POST(request: NextRequest) {
       process.env.TURNSTILE_SECRET_KEY
     ) {
       if (!turnstileToken) {
-        return NextResponse.json(
-          { error: 'CAPTCHA verification required' },
-          { status: 400 },
-        )
+        throw new ValidationError('CAPTCHA verification required')
       }
 
       const turnstileVerify = await fetch(
@@ -79,27 +85,8 @@ export async function POST(request: NextRequest) {
 
       const turnstileResult = await turnstileVerify.json()
       if (!turnstileResult.success) {
-        return NextResponse.json(
-          { error: 'CAPTCHA verification failed' },
-          { status: 400 },
-        )
+        throw new ExternalServiceError('Cloudflare Turnstile', 'CAPTCHA verification failed')
       }
-    }
-
-    // Validate required fields
-    if (!tenantId || !name || !email || !message) {
-      return NextResponse.json(
-        { error: 'Missing required fields: tenantId, name, email, message' },
-        { status: 400 },
-      )
-    }
-
-    // Validate email format
-    if (!isValidEmail(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 },
-      )
     }
 
     // Validate tenant exists before creating enquiry
@@ -107,7 +94,7 @@ export async function POST(request: NextRequest) {
       (await tenants.getTenantById(tenantId)) ||
       (await tenants.getTenantBySlug(tenantId))
     if (!tenant) {
-      return NextResponse.json({ error: 'Invalid tenant' }, { status: 400 })
+      throw new NotFoundError('Tenant', tenantId)
     }
 
     // Get attribution from cookies
@@ -132,15 +119,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create the enquiry with attribution
+    // Create the enquiry with attribution (sanitize user text inputs)
     const enquiryInput: CreateEnquiryInput = {
-      name,
-      email,
-      message,
+      name: sanitizeInput(name),
+      email: sanitizeInput(email),
+      message: sanitizeInput(message),
       pieceId,
-      pieceName,
-      source: source || 'shop',
-      sourceDomain,
+      pieceName: pieceName ? sanitizeInput(pieceName) : undefined,
+      source: (source as 'shop' | 'custom_domain') || 'shop', // Type-checked, no sanitization needed
+      sourceDomain: sourceDomain ? sanitizeInput(sourceDomain) : undefined,
       trafficSource,
       trafficMedium,
       trafficCampaign,
@@ -163,9 +150,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ enquiry }, { status: 201 })
   } catch (error) {
-    console.error('Enquiry submission error:', error)
+    if (isMadeBuyError(error)) {
+      const { error: msg, code, statusCode, details } = toErrorResponse(error)
+      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+    }
+
+    // Log and return generic error for unexpected errors
+    console.error('Unexpected enquiry submission error:', error)
     return NextResponse.json(
-      { error: 'Failed to submit enquiry' },
+      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },
     )
   }

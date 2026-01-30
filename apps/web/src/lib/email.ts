@@ -877,3 +877,103 @@ export async function sendLowStockAlertEmail(
     }
   }
 }
+
+/**
+ * Send subscription cancellation notification email to tenant
+ */
+export interface SubscriptionCancelledEmailParams {
+  tenant: {
+    email: string
+    businessName?: string
+    name?: string
+  }
+  planName: string
+  lastDayOfService: Date
+}
+
+export async function sendSubscriptionCancelledEmail(
+  params: SubscriptionCancelledEmailParams,
+): Promise<void> {
+  const { tenant, planName, lastDayOfService } = params
+
+  const fromEmail = process.env.DEFAULT_FROM_EMAIL || 'billing@madebuy.com.au'
+
+  const formattedDate = lastDayOfService.toLocaleDateString('en-AU', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Cancelled</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px;">
+    <h1 style="color: #374151; margin-top: 0;">Subscription Cancelled</h1>
+
+    <p>Hi ${tenant.businessName || tenant.name || 'there'},</p>
+
+    <p>Your <strong>${planName}</strong> subscription has been cancelled as of ${formattedDate}.</p>
+
+    <div style="background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
+      <h2 style="margin-top: 0; color: #374151;">Your Free Plan Features</h2>
+      <p>Your account has been downgraded to the <strong>Free</strong> plan. You still have access to:</p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Up to 10 products</li>
+        <li>Basic storefront</li>
+        <li>Order management</li>
+      </ul>
+    </div>
+
+    <div style="background-color: #dbeafe; padding: 20px; border-radius: 5px; margin: 20px 0; border: 1px solid #93c5fd;">
+      <h3 style="margin-top: 0; color: #1e40af;">Your Data is Safe</h3>
+      <p style="margin: 0;">
+        All your data has been retained. You can resubscribe at any time to unlock premium features and continue growing your business.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://admin.madebuy.com.au/dashboard/settings/billing" style="display: inline-block; background-color: #2563eb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+        Resubscribe Now
+      </a>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+      <p>Thanks for being a MadeBuy seller! We hope to see you back soon.</p>
+      <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+        If you have any questions, please contact us at <a href="mailto:support@madebuy.com.au" style="color: #2563eb;">support@madebuy.com.au</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+  `
+
+  const client = getResendClient()
+
+  if (!client) {
+    console.warn(
+      'Resend API key not configured, skipping subscription cancelled email',
+    )
+    return
+  }
+
+  try {
+    const result = await client.emails.send({
+      from: `MadeBuy Billing <${fromEmail}>`,
+      to: tenant.email,
+      subject: 'Your MadeBuy subscription has ended',
+      html: emailHtml,
+    })
+
+    console.log('Subscription cancelled email sent:', result)
+  } catch (error) {
+    console.error('Failed to send subscription cancelled email:', error)
+    throw error
+  }
+}

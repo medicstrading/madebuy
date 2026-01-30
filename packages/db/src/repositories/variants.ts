@@ -17,7 +17,10 @@ import type {
   UpdateVariantInput,
   VariantCombination,
 } from '@madebuy/shared'
+import { createLogger } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+
+const logger = createLogger({ service: 'variants' })
 import { getDatabase } from '../client'
 
 const COLLECTION = 'variant_combinations'
@@ -440,8 +443,9 @@ export async function createVariant(
 
   await db.collection(COLLECTION).insertOne(newVariant)
 
-  console.log(
-    `[variants] Created variant ${newVariant.id} (SKU: ${data.sku}) for piece ${pieceId}`,
+  logger.info(
+    { tenantId, pieceId, variantId: newVariant.id, sku: data.sku },
+    'Created variant',
   )
 
   return sanitizeVariant(newVariant as VariantDocument)
@@ -488,7 +492,7 @@ export async function updateVariant(
     .collection(COLLECTION)
     .updateOne({ tenantId, pieceId, id: variantId }, { $set: updateData })
 
-  console.log(`[variants] Updated variant ${variantId} for piece ${pieceId}`)
+  logger.info({ tenantId, pieceId, variantId }, 'Updated variant')
 
   return getVariantById(tenantId, pieceId, variantId)
 }
@@ -527,8 +531,9 @@ export async function deleteVariant(
       pieceId,
       id: variantId,
     })
-    console.log(
-      `[variants] Hard deleted variant ${variantId} for piece ${pieceId}`,
+    logger.info(
+      { tenantId, pieceId, variantId },
+      'Hard deleted variant',
     )
   } else {
     await db.collection(COLLECTION).updateOne(
@@ -541,8 +546,9 @@ export async function deleteVariant(
         },
       },
     )
-    console.log(
-      `[variants] Soft deleted variant ${variantId} for piece ${pieceId}`,
+    logger.info(
+      { tenantId, pieceId, variantId },
+      'Soft deleted variant',
     )
   }
 }
@@ -617,8 +623,9 @@ export async function bulkCreateVariants(
 
   await db.collection(COLLECTION).insertMany(newVariants)
 
-  console.log(
-    `[variants] Bulk created ${newVariants.length} variants for piece ${pieceId}`,
+  logger.info(
+    { tenantId, pieceId, count: newVariants.length },
+    'Bulk created variants',
   )
 
   return newVariants.map((doc) => sanitizeVariant(doc as VariantDocument))
@@ -675,7 +682,7 @@ export async function bulkUpdateStock(
     .map((u) => u.variantId)
     .slice(0, updates.length - updated)
 
-  console.log(`[variants] Bulk stock update: ${updated} updated via bulkWrite`)
+  logger.info({ tenantId, updated, failed: failed.length }, 'Bulk stock update')
 
   return { updated, failed }
 }
@@ -697,8 +704,9 @@ export async function deleteAllVariants(
     pieceId,
   })
 
-  console.log(
-    `[variants] Deleted all ${result.deletedCount} variants for piece ${pieceId}`,
+  logger.info(
+    { tenantId, pieceId, count: result.deletedCount },
+    'Deleted all variants for piece',
   )
 
   return result.deletedCount

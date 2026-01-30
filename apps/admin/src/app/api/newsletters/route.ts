@@ -3,6 +3,7 @@ import type {
   CreateNewsletterInput,
   NewsletterListOptions,
 } from '@madebuy/shared'
+import { sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
@@ -69,7 +70,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const newsletter = await newsletters.createNewsletter(tenant.id, data)
+    // Sanitize text inputs
+    const sanitizedData: CreateNewsletterInput = {
+      ...data,
+      subject: sanitizeInput(data.subject),
+      previewText: data.previewText
+        ? sanitizeInput(data.previewText)
+        : undefined,
+      fromName: data.fromName ? sanitizeInput(data.fromName) : undefined,
+      replyTo: data.replyTo ? sanitizeInput(data.replyTo) : undefined,
+    }
+
+    const newsletter = await newsletters.createNewsletter(
+      tenant.id,
+      sanitizedData,
+    )
 
     return NextResponse.json({ newsletter }, { status: 201 })
   } catch (error) {

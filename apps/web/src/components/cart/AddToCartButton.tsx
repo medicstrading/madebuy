@@ -31,8 +31,8 @@ export function AddToCartButton({
     setAdded(true)
     setShowPreview(true)
 
-    // Track add to cart event
-    trackAddToCart(product.id)
+    // Track add to cart event with full product details
+    trackAddToCart(product.id, product.name, product.price, 1)
 
     // Reset button state after 2 seconds
     setTimeout(() => {

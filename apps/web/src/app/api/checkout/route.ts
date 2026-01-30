@@ -1,8 +1,21 @@
 import { media, pieces, stockReservations, tenants } from '@madebuy/db'
 import type { ProductVariant, ShippingMethod } from '@madebuy/shared'
+import {
+  createLogger,
+  safeValidateCheckoutRequest,
+  sanitizeInput,
+  isMadeBuyError,
+  toErrorResponse,
+  NotFoundError,
+  ValidationError,
+  ExternalServiceError,
+  InsufficientStockError,
+} from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { rateLimiters } from '@/lib/rate-limit'
+
+const log = createLogger('checkout')
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -41,11 +54,22 @@ function formatVariantOptions(options: Record<string, string>): string {
 
 export async function POST(request: NextRequest) {
   // Rate limit: 10 requests per minute
-  const rateLimitResponse = rateLimiters.checkout(request)
+  const rateLimitResponse = await rateLimiters.checkout(request)
   if (rateLimitResponse) return rateLimitResponse
 
   try {
     const body = await request.json()
+    const validation = safeValidateCheckoutRequest(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      )
+    }
     const {
       tenantId,
       items,
@@ -54,14 +78,7 @@ export async function POST(request: NextRequest) {
       notes,
       successUrl,
       cancelUrl,
-    } = body
-
-    if (!tenantId || !items || items.length === 0) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 },
-      )
-    }
+    } = validation.data
 
     // Generate a temporary session ID for reservations
     // Will be replaced with actual Stripe session ID after creation
@@ -88,18 +105,14 @@ export async function POST(request: NextRequest) {
       if (!piece) {
         // Release any reservations made so far
         await stockReservations.cancelReservation(tempSessionId)
-        return NextResponse.json(
-          { error: `Piece ${item.pieceId} not found` },
-          { status: 404 },
-        )
+        log.warn({ pieceId: item.pieceId, tenantId }, 'Piece not found during checkout')
+        throw new NotFoundError('Piece', item.pieceId)
       }
 
       if (piece.status !== 'available') {
         await stockReservations.cancelReservation(tempSessionId)
-        return NextResponse.json(
-          { error: `${piece.name} is no longer available` },
-          { status: 400 },
-        )
+        log.warn({ pieceId: item.pieceId, pieceName: piece.name, status: piece.status, tenantId }, 'Piece not available during checkout')
+        throw new ValidationError(`${piece.name} is no longer available`)
       }
 
       // Handle variant products
@@ -108,25 +121,16 @@ export async function POST(request: NextRequest) {
         selectedVariant = piece.variants?.find((v) => v.id === item.variantId)
         if (!selectedVariant) {
           await stockReservations.cancelReservation(tempSessionId)
-          return NextResponse.json(
-            { error: `Variant ${item.variantId} not found for ${piece.name}` },
-            { status: 404 },
-          )
+          throw new NotFoundError('Variant', item.variantId)
         }
         if (!selectedVariant.isAvailable) {
           await stockReservations.cancelReservation(tempSessionId)
-          return NextResponse.json(
-            { error: `Selected variant for ${piece.name} is not available` },
-            { status: 400 },
-          )
+          throw new ValidationError(`Selected variant for ${piece.name} is not available`)
         }
       } else if (piece.hasVariants && !item.variantId) {
         // Variant product but no variant selected
         await stockReservations.cancelReservation(tempSessionId)
-        return NextResponse.json(
-          { error: `Please select a variant for ${piece.name}` },
-          { status: 400 },
-        )
+        throw new ValidationError(`Please select a variant for ${piece.name}`)
       }
 
       // Try to reserve stock (handles race conditions, supports variants)
@@ -142,12 +146,9 @@ export async function POST(request: NextRequest) {
       if (!reservation) {
         // Release any reservations made so far
         await stockReservations.cancelReservation(tempSessionId)
-        return NextResponse.json(
-          {
-            error: `Insufficient stock for ${piece.name}${selectedVariant ? ` (${formatVariantOptions(selectedVariant.options)})` : ''}`,
-          },
-          { status: 400 },
-        )
+        log.warn({ pieceId: item.pieceId, pieceName: piece.name, variantId: item.variantId, quantity: item.quantity, tenantId }, 'Insufficient stock during checkout')
+        const variantLabel = selectedVariant ? ` (${formatVariantOptions(selectedVariant.options)})` : ''
+        throw new InsufficientStockError(`${piece.name}${variantLabel}`, item.quantity, 0)
       }
 
       reservedItems.push({
@@ -204,10 +205,7 @@ export async function POST(request: NextRequest) {
       let description = piece.description || ''
       if (item.personalization && item.personalization.length > 0) {
         const personalizationLines = item.personalization
-          .map(
-            (p: { fieldName: string; value: unknown }) =>
-              `${p.fieldName}: ${String(p.value)}`,
-          )
+          .map((p) => `${p.fieldName}: ${String(p.value)}`)
           .join(', ')
         description = description
           ? `${description}\n\nPersonalization: ${personalizationLines}`
@@ -262,7 +260,8 @@ export async function POST(request: NextRequest) {
     const tenant = await tenants.getTenantById(tenantId)
     if (!tenant) {
       await stockReservations.cancelReservation(tempSessionId)
-      return NextResponse.json({ error: 'Invalid tenant' }, { status: 400 })
+      log.error({ tenantId }, 'Tenant not found during checkout')
+      throw new NotFoundError('Tenant', tenantId)
     }
 
     // Verify seller has Stripe Connect set up and can accept payments
@@ -273,10 +272,8 @@ export async function POST(request: NextRequest) {
 
     if (!connectAccountId || connectStatus !== 'active' || !chargesEnabled) {
       await stockReservations.cancelReservation(tempSessionId)
-      return NextResponse.json(
-        { error: 'Store not ready for payments' },
-        { status: 400 },
-      )
+      log.warn({ tenantId, connectAccountId, connectStatus, chargesEnabled }, 'Stripe Connect not ready for payments')
+      throw new ExternalServiceError('Stripe Connect', 'Store not ready for payments')
     }
 
     // Marketplace mode with destination charges
@@ -353,31 +350,53 @@ export async function POST(request: NextRequest) {
       },
       metadata: {
         tenantId,
-        customerName: customerInfo.name,
-        customerPhone: customerInfo.phone || '',
-        shippingAddressLine1: shippingAddress?.line1 || '',
-        shippingAddressLine2: shippingAddress?.line2 || '',
-        shippingCity: shippingAddress?.city || '',
-        shippingState: shippingAddress?.state || '',
-        shippingPostalCode: shippingAddress?.postalCode || '',
-        shippingCountry: shippingAddress?.country || '',
-        notes: notes || '',
+        customerName: sanitizeInput(customerInfo.name),
+        customerPhone: customerInfo.phone ? sanitizeInput(customerInfo.phone) : '',
+        shippingAddressLine1: shippingAddress?.line1
+          ? sanitizeInput(shippingAddress.line1)
+          : '',
+        shippingAddressLine2: shippingAddress?.line2
+          ? sanitizeInput(shippingAddress.line2)
+          : '',
+        shippingCity: shippingAddress?.city
+          ? sanitizeInput(shippingAddress.city)
+          : '',
+        shippingState: shippingAddress?.state
+          ? sanitizeInput(shippingAddress.state)
+          : '',
+        shippingPostalCode: shippingAddress?.postalCode
+          ? sanitizeInput(shippingAddress.postalCode)
+          : '',
+        shippingCountry: shippingAddress?.country
+          ? sanitizeInput(shippingAddress.country)
+          : '',
+        notes: notes ? sanitizeInput(notes) : '',
         items: JSON.stringify(items),
         reservationSessionId: tempSessionId, // Link to stock reservations
         connectAccountId, // Track which Connect account received funds
       },
     })
 
+    log.info({
+      tenantId,
+      sessionId: session.id,
+      connectAccountId,
+      itemCount: items.length,
+      customerEmail: customerInfo.email,
+      reservationSessionId: tempSessionId
+    }, 'Checkout session created')
+
     return NextResponse.json({ url: session.url, sessionId: session.id })
   } catch (error) {
-    console.error('Checkout error:', error)
+    if (isMadeBuyError(error)) {
+      const { error: msg, code, statusCode, details } = toErrorResponse(error)
+      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+    }
+
+    // Log and return generic error for unexpected errors
+    log.error({ err: error }, 'Unexpected checkout error')
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to create checkout session',
-      },
+      { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },
     )
   }

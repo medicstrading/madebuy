@@ -16,7 +16,7 @@ const MAX_QUERY_LENGTH = 200
  */
 export async function GET(request: NextRequest) {
   // Rate limit: 30 requests per minute per IP
-  const rateLimitResponse = rateLimiters.search(request)
+  const rateLimitResponse = await rateLimiters.search(request)
   if (rateLimitResponse) return rateLimitResponse
 
   try {

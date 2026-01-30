@@ -53,6 +53,12 @@ export interface Order {
   }
   netAmount?: number // What seller actually receives (total - fees)
 
+  // Refund tracking
+  refundedAmount?: number // Amount refunded in cents
+  refundedAt?: Date // When the refund was processed
+  refundId?: string // Stripe refund ID
+  refundReason?: string // Refund reason from Stripe
+
   // UTM attribution for analytics
   trafficSource?: string
   trafficMedium?: string
@@ -131,6 +137,7 @@ export type OrderStatus =
   | 'shipped'
   | 'delivered'
   | 'cancelled'
+  | 'refunded'
 
 export type PaymentMethod = 'stripe' | 'paypal' | 'bank_transfer'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'

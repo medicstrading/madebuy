@@ -1,6 +1,8 @@
 import type {
   CreatePieceInput,
   Material,
+  PaginatedResult,
+  PaginationParams,
   Piece,
   PieceFilters,
   PieceMaterialUsage,
@@ -9,6 +11,8 @@ import type {
 } from '@madebuy/shared'
 import { calculateCOGS, calculateProfitMargin } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
+import { ObjectId } from 'mongodb'
+import { cache } from '../cache'
 import { getDatabase } from '../client'
 
 // Maximum items to return in a single query (prevents memory issues)
@@ -168,7 +172,8 @@ export async function getPiecesByIds(
 export async function listPieces(
   tenantId: string,
   filters?: PieceFilters & { limit?: number; offset?: number },
-): Promise<Piece[]> {
+  pagination?: PaginationParams,
+): Promise<Piece[] | PaginatedResult<Piece>> {
   const db = await getDatabase()
 
   const query: Record<string, unknown> = { tenantId }
@@ -189,7 +194,46 @@ export async function listPieces(
     query.isPublishedToWebsite = filters.isPublishedToWebsite
   }
 
-  // Apply pagination with maximum limit
+  // If pagination params provided, use cursor-based pagination
+  if (pagination) {
+    const limit = Math.min(pagination.limit || 50, MAX_QUERY_LIMIT)
+    const sortBy = pagination.sortBy || 'createdAt'
+    const sortOrder = pagination.sortOrder || 'desc'
+
+    // Add cursor condition to query
+    if (pagination.cursor) {
+      try {
+        query._id = {
+          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(pagination.cursor),
+        }
+      } catch (e) {
+        // Invalid cursor - ignore and start from beginning
+      }
+    }
+
+    // Fetch limit + 1 to check if there are more items
+    const items = (await db
+      .collection('pieces')
+      .find(query)
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: sortOrder === 'asc' ? 1 : -1 })
+      .limit(limit + 1)
+      .toArray()) as unknown as Piece[]
+
+    const hasMore = items.length > limit
+    if (hasMore) {
+      items.pop() // Remove the extra item
+    }
+
+    const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1] as any)._id.toString() : null
+
+    return {
+      data: items,
+      nextCursor,
+      hasMore,
+    }
+  }
+
+  // Legacy offset-based pagination for backward compatibility
   const limit = Math.min(filters?.limit || MAX_QUERY_LIMIT, MAX_QUERY_LIMIT)
   const offset = filters?.offset || 0
 
@@ -259,11 +303,23 @@ export async function updatePiece(
       },
     },
   )
+
+  // Invalidate cache after update
+  invalidatePieceCache(tenantId, id, updates.slug)
 }
 
 export async function deletePiece(tenantId: string, id: string): Promise<void> {
   const db = await getDatabase()
+
+  // Get piece to find slug before deleting
+  const piece = await getPiece(tenantId, id)
+
   await db.collection('pieces').deleteOne({ tenantId, id })
+
+  // Invalidate cache after delete
+  if (piece) {
+    invalidatePieceCache(tenantId, id, piece.slug)
+  }
 }
 
 export async function addMediaToPiece(
@@ -327,7 +383,8 @@ export async function getVariant(
 }
 
 /**
- * Update a specific variant's stock
+ * Update a specific variant's stock atomically
+ * Uses MongoDB $inc to prevent race conditions
  */
 export async function updateVariantStock(
   tenantId: string,
@@ -337,33 +394,80 @@ export async function updateVariantStock(
 ): Promise<boolean> {
   const db = await getDatabase()
 
-  // Find the piece and variant
-  const piece = await getPiece(tenantId, pieceId)
-  if (!piece?.variants) return false
-
-  const variantIndex = piece.variants.findIndex((v) => v.id === variantId)
-  if (variantIndex === -1) return false
-
-  const variant = piece.variants[variantIndex]
-  const currentStock = variant.stock ?? 0
-  const newStock = currentStock + stockChange
-
-  // Don't allow negative stock
-  if (newStock < 0) return false
-
-  // Update the variant's stock
+  // Atomic update using $inc with arrayFilters
+  // This prevents race conditions by not doing read-then-write
   const result = await db.collection('pieces').updateOne(
-    { tenantId, id: pieceId },
+    { tenantId, id: pieceId, 'variants.id': variantId },
     {
-      $set: {
-        [`variants.${variantIndex}.stock`]: newStock,
-        [`variants.${variantIndex}.isAvailable`]: newStock > 0,
-        updatedAt: new Date(),
-      },
+      $inc: { 'variants.$[v].stock': stockChange },
+      $set: { updatedAt: new Date() },
     },
+    { arrayFilters: [{ 'v.id': variantId }] },
   )
 
   return result.modifiedCount > 0
+}
+
+/**
+ * Update variant stock with safety check to prevent negative stock
+ * Use this for decrements where you want to ensure stock doesn't go negative
+ */
+export async function updateVariantStockSafe(
+  tenantId: string,
+  pieceId: string,
+  variantId: string,
+  stockChange: number,
+): Promise<{ success: boolean; newStock?: number }> {
+  const db = await getDatabase()
+
+  if (stockChange < 0) {
+    // For decrements, ensure we don't go negative
+    const filter = {
+      tenantId,
+      id: pieceId,
+      variants: {
+        $elemMatch: {
+          id: variantId,
+          stock: { $gte: Math.abs(stockChange) },
+        },
+      },
+    }
+
+    const result = await db.collection('pieces').findOneAndUpdate(
+      filter,
+      {
+        $inc: { 'variants.$[v].stock': stockChange },
+        $set: { updatedAt: new Date() },
+      },
+      {
+        arrayFilters: [{ 'v.id': variantId }],
+        returnDocument: 'after',
+      },
+    )
+
+    if (!result) {
+      return { success: false }
+    }
+
+    const variant = result.variants?.find((v: any) => v.id === variantId)
+    return { success: true, newStock: variant?.stock }
+  }
+
+  // For increments, just do it
+  const result = await db.collection('pieces').findOneAndUpdate(
+    { tenantId, id: pieceId, 'variants.id': variantId },
+    {
+      $inc: { 'variants.$[v].stock': stockChange },
+      $set: { updatedAt: new Date() },
+    },
+    {
+      arrayFilters: [{ 'v.id': variantId }],
+      returnDocument: 'after',
+    },
+  )
+
+  const variant = result?.variants?.find((v: any) => v.id === variantId)
+  return { success: !!result, newStock: variant?.stock }
 }
 
 /**
@@ -979,4 +1083,155 @@ export async function incrementStock(
       $set: { updatedAt: new Date() },
     },
   )
+}
+
+/**
+ * Increment stock for a variant (e.g., for restocking or order cancellations)
+ * Uses atomic $inc operation to prevent race conditions
+ */
+export async function incrementVariantStock(
+  tenantId: string,
+  pieceId: string,
+  variantId: string,
+  quantity: number = 1,
+): Promise<boolean> {
+  const db = await getDatabase()
+
+  const result = await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId, 'variants.id': variantId },
+    {
+      $inc: { 'variants.$[v].stock': quantity },
+      $set: { updatedAt: new Date() },
+    },
+    {
+      arrayFilters: [{ 'v.id': variantId }],
+    },
+  )
+
+  return result.modifiedCount > 0
+}
+
+/**
+ * Update stock atomically (for pieces without variants)
+ * Uses MongoDB $inc to prevent race conditions
+ */
+export async function updateStock(
+  tenantId: string,
+  pieceId: string,
+  stockChange: number,
+): Promise<boolean> {
+  const db = await getDatabase()
+
+  const result = await db.collection('pieces').updateOne(
+    { tenantId, id: pieceId },
+    {
+      $inc: { stock: stockChange },
+      $set: { updatedAt: new Date() },
+    },
+  )
+
+  return result.modifiedCount > 0
+}
+
+/**
+ * Update stock with safety check to prevent negative stock
+ * Use this for decrements where you want to ensure stock doesn't go negative
+ */
+export async function updateStockSafe(
+  tenantId: string,
+  pieceId: string,
+  stockChange: number,
+): Promise<{ success: boolean; newStock?: number }> {
+  const db = await getDatabase()
+
+  if (stockChange < 0) {
+    const result = await db.collection('pieces').findOneAndUpdate(
+      { tenantId, id: pieceId, stock: { $gte: Math.abs(stockChange) } },
+      {
+        $inc: { stock: stockChange },
+        $set: { updatedAt: new Date() },
+      },
+      { returnDocument: 'after' },
+    )
+
+    return { success: !!result, newStock: result?.stock }
+  }
+
+  const result = await db.collection('pieces').findOneAndUpdate(
+    { tenantId, id: pieceId },
+    {
+      $inc: { stock: stockChange },
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: 'after' },
+  )
+
+  return { success: !!result, newStock: result?.stock }
+}
+
+// =============================================================================
+// CACHED LOOKUPS
+// =============================================================================
+
+/**
+ * Get piece by ID with caching (1 minute TTL)
+ * Use this for display purposes where slightly stale data is acceptable
+ * DO NOT use for checkout/inventory operations - use getPiece() instead
+ */
+export async function getPieceCached(
+  tenantId: string,
+  id: string,
+): Promise<Piece | null> {
+  const cacheKey = `piece:${tenantId}:id:${id}`
+
+  // Try cache first
+  const cached = cache.get<Piece>(cacheKey)
+  if (cached) return cached
+
+  // Cache miss - fetch from DB
+  const piece = await getPiece(tenantId, id)
+  if (piece) {
+    cache.set(cacheKey, piece)
+  }
+
+  return piece
+}
+
+/**
+ * Get piece by slug with caching (1 minute TTL)
+ * Use this for product page views where slightly stale data is acceptable
+ * DO NOT use for checkout/inventory operations - use getPieceBySlug() instead
+ */
+export async function getPieceBySlugCached(
+  tenantId: string,
+  slug: string,
+): Promise<Piece | null> {
+  const cacheKey = `piece:${tenantId}:slug:${slug}`
+
+  // Try cache first
+  const cached = cache.get<Piece>(cacheKey)
+  if (cached) return cached
+
+  // Cache miss - fetch from DB
+  const piece = await getPieceBySlug(tenantId, slug)
+  if (piece) {
+    cache.set(cacheKey, piece)
+  }
+
+  return piece
+}
+
+/**
+ * Invalidate all cached data for a piece
+ * Call this after updating piece data to ensure cache consistency
+ */
+export function invalidatePieceCache(
+  tenantId: string,
+  pieceId: string,
+  slug?: string,
+): void {
+  cache.invalidate(`piece:${tenantId}:id:${pieceId}`)
+  if (slug) {
+    cache.invalidate(`piece:${tenantId}:slug:${slug}`)
+  }
 }

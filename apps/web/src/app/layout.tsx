@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
+import { Inter } from 'next/font/google'
 import './globals.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 // Dynamically import WebVitals with SSR disabled to prevent context issues during static generation
 const WebVitals = dynamic(
@@ -63,7 +70,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${inter.variable} font-sans`}>
         <WebVitals />
         {children}
       </body>

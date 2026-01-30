@@ -6,6 +6,9 @@
  */
 
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
+import { createLogger } from '@madebuy/shared'
+
+const logger = createLogger({ service: 'crypto' })
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12 // 96 bits for GCM
@@ -147,7 +150,7 @@ export function decrypt(ciphertext: string): string {
 export function encryptIfConfigured(plaintext: string): string {
   if (!isEncryptionConfigured()) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(
+      logger.warn(
         '[SECURITY WARNING] MARKETPLACE_ENCRYPTION_KEY not configured. ' +
           'OAuth tokens will be stored in plaintext.',
       )
@@ -175,7 +178,7 @@ export function decryptIfConfigured(ciphertext: string): string {
   } catch {
     // Likely unencrypted legacy data
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(
+      logger.warn(
         '[SECURITY WARNING] Found unencrypted token in database. ' +
           'Consider running a migration to encrypt existing tokens.',
       )

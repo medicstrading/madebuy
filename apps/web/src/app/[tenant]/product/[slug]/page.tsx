@@ -173,7 +173,12 @@ export default async function PieceDetailPage({
       />
       <div className="min-h-screen bg-gray-50">
         {/* Analytics Tracking */}
-        <ProductViewTracker tenantId={tenant.id} productId={piece.id} />
+        <ProductViewTracker
+          tenantId={tenant.id}
+          productId={piece.id}
+          productName={piece.name}
+          price={piece.price}
+        />
 
         {/* Header */}
         <header className="bg-white shadow-sm">

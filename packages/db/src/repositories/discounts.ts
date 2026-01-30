@@ -14,6 +14,56 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+// ============ Per-Customer Usage Tracking ============
+
+interface DiscountUsage {
+  tenantId: string
+  discountId: string
+  customerEmail: string
+  usageCount: number
+  lastUsedAt: Date
+}
+
+async function getCustomerUsage(
+  tenantId: string,
+  discountId: string,
+  customerEmail: string,
+): Promise<number> {
+  const db = await getDatabase()
+  const usage = (await db.collection('discount_usage').findOne({
+    tenantId,
+    discountId,
+    customerEmail: customerEmail.toLowerCase(),
+  })) as DiscountUsage | null
+
+  return usage?.usageCount ?? 0
+}
+
+async function incrementCustomerUsage(
+  tenantId: string,
+  discountId: string,
+  customerEmail: string,
+): Promise<void> {
+  const db = await getDatabase()
+  await db.collection('discount_usage').updateOne(
+    {
+      tenantId,
+      discountId,
+      customerEmail: customerEmail.toLowerCase(),
+    },
+    {
+      $inc: { usageCount: 1 },
+      $set: { lastUsedAt: new Date() },
+      $setOnInsert: {
+        tenantId,
+        discountId,
+        customerEmail: customerEmail.toLowerCase(),
+      },
+    },
+    { upsert: true },
+  )
+}
+
 // ============ CRUD Operations ============
 
 export async function createDiscountCode(
@@ -200,8 +250,7 @@ export async function validateDiscountCode(
   code: string,
   orderTotal: number,
   pieceIds: string[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _customerEmail?: string,
+  customerEmail?: string,
 ): Promise<DiscountValidationResult> {
   const discount = await getDiscountCodeByCode(tenantId, code)
 
@@ -228,6 +277,21 @@ export async function validateDiscountCode(
     return {
       valid: false,
       error: 'This discount code has reached its usage limit',
+    }
+  }
+
+  // Check per-customer usage limit
+  if (discount.maxUsesPerCustomer && customerEmail) {
+    const customerUsage = await getCustomerUsage(
+      tenantId,
+      discount.id,
+      customerEmail,
+    )
+    if (customerUsage >= discount.maxUsesPerCustomer) {
+      return {
+        valid: false,
+        error: 'You have reached the maximum uses for this discount code',
+      }
     }
   }
 
@@ -302,9 +366,11 @@ export async function validateDiscountCode(
 export async function incrementDiscountUsage(
   tenantId: string,
   id: string,
+  customerEmail?: string,
 ): Promise<void> {
   const db = await getDatabase()
 
+  // Increment global usage
   await db.collection('discount_codes').updateOne(
     { tenantId, id },
     {
@@ -312,6 +378,11 @@ export async function incrementDiscountUsage(
       $set: { updatedAt: new Date() },
     },
   )
+
+  // Track per-customer usage if email provided
+  if (customerEmail) {
+    await incrementCustomerUsage(tenantId, id, customerEmail)
+  }
 }
 
 // ============ Stats ============
