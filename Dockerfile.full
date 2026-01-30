@@ -73,6 +73,10 @@ COPY --from=builder /app/packages ./packages
 # PM2 ecosystem file
 COPY --from=builder /app/ecosystem.config.js ./
 
+# Start script - if APP_NAME is set, run that single app; otherwise run all via PM2
+COPY --from=builder /app/scripts/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 ENV NODE_ENV=production
 
 # Create logs directory and set ownership
@@ -84,8 +88,9 @@ USER nodejs
 # Expose ports (admin=3300, web=3301, manager=3399)
 EXPOSE 3300 3301 3399
 
-# Health check
+# Health check - dynamically check based on PORT env var
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3301/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3301}/api/health || exit 1
 
-CMD ["pm2-runtime", "ecosystem.config.js"]
+# APP_NAME can be: admin, web, or manager
+CMD ["./start.sh"]
