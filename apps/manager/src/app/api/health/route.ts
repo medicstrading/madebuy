@@ -7,5 +7,6 @@ export async function GET() {
     status: 'ok',
     app: 'manager',
     timestamp: new Date().toISOString(),
+    version: '2026-01-30',
   })
 }
