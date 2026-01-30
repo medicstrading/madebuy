@@ -1,5 +1,5 @@
 # Build stage
-# Cache bust: 2026-01-30-manager-fix-v3
+# Cache bust: 2026-01-30-v6-add-manager-back
 FROM node:20-alpine AS builder
 
 # Build-time args for NEXT_PUBLIC_* env vars (must be available during build)
@@ -18,7 +18,7 @@ WORKDIR /app
 COPY . .
 
 # Install ALL dependencies (dev + prod) for build
-ENV NODE_ENV=development
+# Note: Don't set NODE_ENV here - let pnpm install everything
 RUN pnpm install
 
 # Build packages
@@ -27,11 +27,11 @@ RUN pnpm --filter @madebuy/db build || true
 RUN pnpm --filter @madebuy/storage build || true
 RUN pnpm --filter @madebuy/social build || true
 
-# Build apps
+# Build apps - use inline NODE_ENV=production for Next.js builds
 ENV NODE_OPTIONS="--max_old_space_size=4096"
-RUN pnpm --filter @madebuy/admin build
-RUN pnpm --filter @madebuy/web build
-# Manager has its own Dockerfile - not built here
+RUN NODE_ENV=production pnpm --filter @madebuy/admin build
+RUN NODE_ENV=production pnpm --filter @madebuy/web build
+RUN NODE_ENV=production pnpm --filter @madebuy/manager build
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -62,7 +62,10 @@ COPY --from=builder /app/apps/admin/public ./apps/admin/public
 COPY --from=builder /app/apps/admin/package.json ./apps/admin/
 COPY --from=builder /app/apps/admin/node_modules ./apps/admin/node_modules
 
-# Manager has its own Dockerfile and Railway service
+COPY --from=builder /app/apps/manager/.next ./apps/manager/.next
+COPY --from=builder /app/apps/manager/public ./apps/manager/public
+COPY --from=builder /app/apps/manager/package.json ./apps/manager/
+COPY --from=builder /app/apps/manager/node_modules ./apps/manager/node_modules
 
 # Copy packages
 COPY --from=builder /app/packages ./packages
