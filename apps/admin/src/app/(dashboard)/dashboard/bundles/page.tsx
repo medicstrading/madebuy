@@ -190,7 +190,6 @@ export default function BundlesPage() {
                   {bundle.status === 'active' ? (
                     <button
                       type="button"
-                      type="button"
                       onClick={() => updateStatus(bundle.id, 'draft')}
                       className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                       title="Set to Draft"
@@ -199,7 +198,6 @@ export default function BundlesPage() {
                     </button>
                   ) : bundle.status === 'draft' ? (
                     <button
-                      type="button"
                       type="button"
                       onClick={() => updateStatus(bundle.id, 'active')}
                       className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
@@ -211,7 +209,6 @@ export default function BundlesPage() {
                   {bundle.status !== 'archived' && (
                     <button
                       type="button"
-                      type="button"
                       onClick={() => updateStatus(bundle.id, 'archived')}
                       className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                       title="Archive"
@@ -220,7 +217,6 @@ export default function BundlesPage() {
                     </button>
                   )}
                   <button
-                    type="button"
                     type="button"
                     onClick={() => deleteBundle(bundle.id)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"

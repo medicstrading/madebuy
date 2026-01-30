@@ -1,4 +1,5 @@
 import { customers } from '@madebuy/db'
+import type { Customer } from '@madebuy/shared'
 import { sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
@@ -34,12 +35,15 @@ export async function GET(request: NextRequest) {
       limit,
     })
 
+    // Since we pass { page, limit }, we get the legacy format
+    const response = result as { customers: Customer[]; total: number }
+
     return NextResponse.json({
-      customers: result.customers,
-      total: result.total,
+      customers: response.customers,
+      total: response.total,
       page,
       limit,
-      totalPages: Math.ceil(result.total / limit),
+      totalPages: Math.ceil(response.total / limit),
     })
   } catch (error) {
     console.error('Error fetching customers:', error)

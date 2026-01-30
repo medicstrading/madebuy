@@ -8,7 +8,7 @@ import { checkRateLimit } from '@/lib/rate-limit'
  */
 export async function POST(request: NextRequest) {
   // Rate limit: 20 requests per minute per IP (prevent brute-force code guessing)
-  const rateLimitResponse = checkRateLimit(request, {
+  const rateLimitResponse = await checkRateLimit(request, {
     limit: 20,
     windowMs: 60000, // 1 minute
     keyPrefix: 'discount-validate',

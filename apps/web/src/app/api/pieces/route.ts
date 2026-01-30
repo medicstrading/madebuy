@@ -54,12 +54,13 @@ export async function GET(request: NextRequest) {
       results = await pieces.searchPieces(tenant.id, query, options)
     } else {
       // List published pieces (no search query)
-      results = await pieces.listPieces(tenant.id, {
+      const listResult = await pieces.listPieces(tenant.id, {
         status: 'available',
         isPublishedToWebsite: true,
         category: options.category,
         limit: options.limit,
       })
+      results = 'data' in listResult ? listResult.data : listResult
     }
 
     return NextResponse.json({

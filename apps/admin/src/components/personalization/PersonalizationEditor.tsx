@@ -251,8 +251,7 @@ export function PersonalizationEditor({
 
         <div className="flex items-center gap-2">
           <button
-            type="button"
-            type="button"
+                        
             onClick={() => setShowPreview(!showPreview)}
             className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
@@ -265,8 +264,7 @@ export function PersonalizationEditor({
           </button>
           {showPreview && (
             <button
-              type="button"
-              type="button"
+                            
               onClick={() => setTestMode(!testMode)}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
                 testMode
@@ -391,7 +389,6 @@ export function PersonalizationEditor({
                   <button
                     type="button"
                     key={type}
-                    type="button"
                     onClick={() => addField(type)}
                     className="flex flex-col items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-center hover:border-blue-500 hover:bg-blue-50 transition-colors"
                   >
@@ -531,8 +528,7 @@ function FieldEditor({
 
         <div className="flex items-center gap-1">
           <button
-            type="button"
-            type="button"
+                        
             onClick={onMoveUp}
             disabled={!canMoveUp}
             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
@@ -540,8 +536,7 @@ function FieldEditor({
             <ChevronUp className="h-4 w-4" />
           </button>
           <button
-            type="button"
-            type="button"
+                        
             onClick={onMoveDown}
             disabled={!canMoveDown}
             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
@@ -549,8 +544,7 @@ function FieldEditor({
             <ChevronDown className="h-4 w-4" />
           </button>
           <button
-            type="button"
-            type="button"
+                        
             onClick={onToggleExpand}
             className="p-1 text-gray-400 hover:text-gray-600"
           >
@@ -561,8 +555,7 @@ function FieldEditor({
             )}
           </button>
           <button
-            type="button"
-            type="button"
+                        
             onClick={onRemove}
             className="p-1 text-red-400 hover:text-red-600"
           >
@@ -790,8 +783,7 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => {
                     const newOptions = (field.options || []).filter(
                       (_, i) => i !== index,
@@ -805,8 +797,7 @@ function TypeSpecificSettings({ field, onUpdate }: TypeSpecificSettingsProps) {
               </div>
             ))}
             <button
-              type="button"
-              type="button"
+                            
               onClick={() => {
                 const newOptions = [
                   ...(field.options || []),

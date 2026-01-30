@@ -228,8 +228,7 @@ export function CollectionForm({ collection }: CollectionFormProps) {
                   </span>
                 </div>
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => togglePiece(piece.id)}
                   className="p-1 text-gray-400 hover:text-red-600"
                 >
@@ -259,7 +258,6 @@ export function CollectionForm({ collection }: CollectionFormProps) {
                 <button
                   type="button"
                   key={piece.id}
-                  type="button"
                   onClick={() => togglePiece(piece.id)}
                   className="flex items-center gap-3 p-3 text-left bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
@@ -277,16 +275,14 @@ export function CollectionForm({ collection }: CollectionFormProps) {
       {/* Actions */}
       <div className="flex items-center justify-end gap-3">
         <button
-          type="button"
-          type="button"
+                    
           onClick={() => router.back()}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
-          type="button"
-          type="submit"
+                    
           disabled={loading}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >

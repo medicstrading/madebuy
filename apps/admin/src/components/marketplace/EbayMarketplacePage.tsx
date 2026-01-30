@@ -817,7 +817,7 @@ function ListItemsTab({
             <p className="font-medium text-amber-900">Setup Required</p>
             <p className="text-sm text-amber-700 mt-1">
               You need to configure eBay Business Policies before you can list
-              items. Go to the <strong>Settings</strong> tab to see what's
+              items. Go to the <strong>Settings</strong> tab to see what&apos;s
               missing.
             </p>
           </div>
@@ -1653,7 +1653,7 @@ function SettingsTab({
         <h4 className="font-medium text-red-900 mb-2">Danger Zone</h4>
         <p className="text-sm text-red-700 mb-4">
           Disconnecting will remove your eBay integration. Active listings will
-          remain on eBay but won't be synced.
+          remain on eBay but won&apos;t be synced.
         </p>
         <Link
           href="/dashboard/connections?tab=marketplaces"

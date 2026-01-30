@@ -77,13 +77,13 @@ export function UnlinkedMediaGrid({ media }: UnlinkedMediaGridProps) {
     overscan: 2,
   })
 
-  if (media.length === 0) {
-    return null
-  }
-
   const handlePreview = useCallback((index: number) => {
     setPreviewIndex(index)
   }, [])
+
+  if (media.length === 0) {
+    return null
+  }
 
   const previewItem = previewIndex !== null ? media[previewIndex] : null
 

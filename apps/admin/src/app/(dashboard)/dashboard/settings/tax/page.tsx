@@ -257,7 +257,6 @@ export default function TaxSettingsPage() {
               </div>
               <button
                 type="button"
-                type="button"
                 onClick={() =>
                   setSettings((s) => ({
                     ...s,
@@ -359,7 +358,6 @@ export default function TaxSettingsPage() {
                     </p>
                   </div>
                   <button
-                    type="button"
                     type="button"
                     onClick={() =>
                       setSettings((s) => ({

@@ -10,7 +10,8 @@ export default async function MaterialsReportPage() {
   // Get all materials and pieces
   const result = await materials.listMaterials(tenant.id)
   const allMaterials = result.materials
-  const allPieces = await pieces.listPieces(tenant.id)
+  const piecesResult = await pieces.listPieces(tenant.id)
+  const allPieces = 'data' in piecesResult ? piecesResult.data : piecesResult
 
   // Calculate total material value (stock on hand)
   const totalMaterialValue = allMaterials.reduce(

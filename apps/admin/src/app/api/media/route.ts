@@ -8,7 +8,7 @@ import {
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
-const log = createLogger('media')
+const log = createLogger({ module: 'media' })
 
 export async function GET() {
   try {

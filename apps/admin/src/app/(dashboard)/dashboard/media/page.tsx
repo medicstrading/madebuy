@@ -47,7 +47,8 @@ function serializePiece(piece: any): Piece {
 export default async function MediaPage() {
   const tenant = await requireTenant()
   const allMedia = await media.listMedia(tenant.id)
-  const allPieces = await pieces.listPieces(tenant.id)
+  const piecesResult = await pieces.listPieces(tenant.id)
+  const allPieces = 'data' in piecesResult ? piecesResult.data : piecesResult
 
   // Use stored URLs directly - no signed URL generation needed
   // Product images are public (visible on storefronts, social media, etc.)

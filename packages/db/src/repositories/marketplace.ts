@@ -663,10 +663,10 @@ export async function listOrders(
   if (filters?.fromDate || filters?.toDate) {
     query.orderDate = {}
     if (filters.fromDate) {
-      ;(query.orderDate as Record<string, Date>).$gte = filters.fromDate
+      (query.orderDate as Record<string, Date>).$gte = filters.fromDate
     }
     if (filters.toDate) {
-      ;(query.orderDate as Record<string, Date>).$lte = filters.toDate
+      (query.orderDate as Record<string, Date>).$lte = filters.toDate
     }
   }
 

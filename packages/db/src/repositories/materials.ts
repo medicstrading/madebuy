@@ -365,7 +365,7 @@ export async function restockMaterialFromInvoice(
 
   // Update cost per unit if provided
   if (costPerUnit !== undefined && updateData.$set) {
-    ;(updateData.$set as Record<string, unknown>).costPerUnit = costPerUnit
+    (updateData.$set as Record<string, unknown>).costPerUnit = costPerUnit
   }
 
   await db

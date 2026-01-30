@@ -1,3 +1,4 @@
+/* eslint-env browser */
 /**
  * Analytics Event Tracking
  * Provider-agnostic analytics system ready for GA4, Mixpanel, or other providers
@@ -136,7 +137,7 @@ export class ConsoleAnalyticsProvider implements AnalyticsProvider {
 export function trackPageView(path: string, title?: string, additionalProps?: AnalyticsEventProperties): void {
   analytics.trackEvent('page_view', {
     page_path: path,
-    page_title: title || document.title,
+    page_title: title || (typeof document !== 'undefined' ? document.title : ''),
     ...additionalProps,
   });
 }

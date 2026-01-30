@@ -463,7 +463,6 @@ export default function CalendarPage() {
                     <button
                       type="button"
                       key={color.value}
-                      type="button"
                       onClick={() =>
                         setFormData({ ...formData, color: color.value })
                       }
@@ -480,14 +479,12 @@ export default function CalendarPage() {
               <div className="flex items-center justify-end gap-3 pt-4">
                 <button
                   type="button"
-                  type="button"
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
-                  type="button"
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                 >

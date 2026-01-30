@@ -30,7 +30,7 @@ import {
   sendSubscriptionCancelledEmail,
 } from '@/lib/email'
 
-const log = createLogger('stripe-webhook')
+const log = createLogger({ module: 'stripe-webhook' })
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -132,7 +132,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Log and return generic error for unexpected errors
-    log.error({ err, eventType: event?.type, eventId: event?.id }, 'Unexpected webhook handler error')
+    log.error(
+      { err, eventType: event?.type, eventId: event?.id },
+      'Unexpected webhook handler error'
+    )
     return NextResponse.json(
       { error: 'Internal server error', code: 'INTERNAL_ERROR' },
       { status: 500 },
@@ -634,7 +637,10 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     nextRetryDate.setDate(nextRetryDate.getDate() + daysUntilRetry)
   }
 
-  log.error({ tenantId: tenant.id, invoiceId: invoice.id, attemptCount, customerId }, 'Invoice payment failed')
+  log.error(
+    { tenantId: tenant.id, invoiceId: invoice.id, attemptCount, customerId },
+    'Invoice payment failed'
+  )
 
   // Send email notification about failed payment
   try {

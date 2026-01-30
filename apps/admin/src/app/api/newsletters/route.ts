@@ -72,13 +72,8 @@ export async function POST(request: NextRequest) {
 
     // Sanitize text inputs
     const sanitizedData: CreateNewsletterInput = {
-      ...data,
       subject: sanitizeInput(data.subject),
-      previewText: data.previewText
-        ? sanitizeInput(data.previewText)
-        : undefined,
-      fromName: data.fromName ? sanitizeInput(data.fromName) : undefined,
-      replyTo: data.replyTo ? sanitizeInput(data.replyTo) : undefined,
+      content: data.content,
     }
 
     const newsletter = await newsletters.createNewsletter(

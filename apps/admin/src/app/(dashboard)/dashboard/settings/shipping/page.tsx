@@ -367,7 +367,6 @@ export default function ShippingSettingsPage() {
               />
               <button
                 type="button"
-                type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
               >
@@ -572,7 +571,6 @@ export default function ShippingSettingsPage() {
               </p>
             </div>
             <button
-              type="button"
               type="button"
               role="switch"
               aria-checked={freeShippingEnabled}

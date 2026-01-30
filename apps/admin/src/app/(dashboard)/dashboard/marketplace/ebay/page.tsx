@@ -35,7 +35,8 @@ export default async function EbayListingsPage() {
   }
 
   // Fetch inventory items available for listing
-  const inventoryItems = await pieces.listPieces(tenant.id, { limit: 100 })
+  const result = await pieces.listPieces(tenant.id, { limit: 100 })
+  const inventoryItems = 'data' in result ? result.data : result
 
   // Collect all media IDs to fetch in one batch
   const allMediaIds = inventoryItems

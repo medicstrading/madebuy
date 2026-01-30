@@ -15,7 +15,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { rateLimiters } from '@/lib/rate-limit'
 
-const log = createLogger('checkout')
+const log = createLogger({ module: 'checkout' })
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -139,8 +139,8 @@ export async function POST(request: NextRequest) {
         item.pieceId,
         item.quantity,
         tempSessionId,
-        30, // 30 minutes expiration
         item.variantId, // Pass variantId for variant-level stock
+        30, // 30 minutes expiration
       )
 
       if (!reservation) {
@@ -377,14 +377,17 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    log.info({
-      tenantId,
-      sessionId: session.id,
-      connectAccountId,
-      itemCount: items.length,
-      customerEmail: customerInfo.email,
-      reservationSessionId: tempSessionId
-    }, 'Checkout session created')
+    log.info(
+      {
+        tenantId,
+        sessionId: session.id,
+        connectAccountId,
+        itemCount: items.length,
+        customerEmail: customerInfo.email,
+        reservationSessionId: tempSessionId
+      },
+      'Checkout session created'
+    )
 
     return NextResponse.json({ url: session.url, sessionId: session.id })
   } catch (error) {

@@ -8,7 +8,7 @@ import {
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
-const log = createLogger('orders')
+const log = createLogger({ module: 'orders' })
 
 export async function GET() {
   try {

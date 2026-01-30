@@ -132,7 +132,6 @@ export default function AnalyticsPage() {
         </div>
         <button
           type="button"
-          type="button"
           onClick={fetchAnalytics}
           disabled={isLoading}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -151,7 +150,6 @@ export default function AnalyticsPage() {
             {(['7d', '30d', '90d'] as const).map((preset) => (
               <button
                 type="button"
-                type="button"
                 key={preset}
                 onClick={() => setDatePreset(preset)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
@@ -168,7 +166,6 @@ export default function AnalyticsPage() {
               </button>
             ))}
             <button
-              type="button"
               type="button"
               onClick={() => setDatePreset('custom')}
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${

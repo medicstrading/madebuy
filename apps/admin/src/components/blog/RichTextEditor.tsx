@@ -2,7 +2,7 @@
 
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
-import { EditorContent, useEditor } from '@tiptap/react'
+import { type Editor, EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import {
   Bold,
@@ -50,7 +50,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
           'prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none focus:outline-none min-h-[400px] px-4 py-3',
       },
     },
-  })
+  }) as Editor | null
 
   if (!editor) {
     return null
@@ -58,14 +58,14 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
   const addLink = () => {
     const url = window.prompt('Enter URL:')
-    if (url) {
+    if (url && editor) {
       editor.chain().focus().setLink({ href: url }).run()
     }
   }
 
   const addImage = () => {
     const url = window.prompt('Enter image URL:')
-    if (url) {
+    if (url && editor) {
       editor.chain().focus().setImage({ src: url }).run()
     }
   }
@@ -92,25 +92,19 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
         {/* Headings */}
         <ToolbarButton
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 1 }).run()
-          }
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
           icon={Heading1}
           title="Heading 1"
         />
         <ToolbarButton
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           isActive={editor.isActive('heading', { level: 2 })}
           icon={Heading2}
           title="Heading 2"
         />
         <ToolbarButton
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 3 }).run()
-          }
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           isActive={editor.isActive('heading', { level: 3 })}
           icon={Heading3}
           title="Heading 3"
@@ -194,7 +188,7 @@ function ToolbarButton({
 }: {
   onClick: () => void
   isActive: boolean
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   title: string
   disabled?: boolean
 }) {

@@ -14,8 +14,7 @@ export function InfoTooltip({ content, className = '' }: InfoTooltipProps) {
   return (
     <div className={`relative inline-block ${className}`}>
       <button
-        type="button"
-        type="button"
+                
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         className="rounded-full p-0.5 text-blue-500 transition-colors hover:bg-blue-50 hover:text-blue-600"

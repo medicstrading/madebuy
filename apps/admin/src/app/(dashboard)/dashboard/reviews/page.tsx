@@ -25,7 +25,7 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const offset = (page - 1) * PAGE_SIZE
 
   // Fetch reviews with optional status filter
-  const [allReviews, pendingCount, allPieces] = await Promise.all([
+  const [allReviews, pendingCount, piecesResult] = await Promise.all([
     reviews.listReviews(tenant.id, {
       filters: statusFilter ? { status: statusFilter } : undefined,
       limit: PAGE_SIZE,
@@ -36,6 +36,8 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
     reviews.getPendingReviewCount(tenant.id),
     pieces.listPieces(tenant.id),
   ])
+
+  const allPieces = 'data' in piecesResult ? piecesResult.data : piecesResult
 
   // Create a map of pieceId to piece for quick lookup
   const pieceMap = new Map(allPieces.map((p) => [p.id, p]))
@@ -243,7 +245,6 @@ function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
             <form action={`/api/reviews/${review.id}/moderate`} method="POST">
               <input type="hidden" name="status" value="approved" />
               <button
-                type="button"
                 type="submit"
                 className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
               >
@@ -254,7 +255,6 @@ function ReviewCard({ review, piece }: { review: Review; piece?: Piece }) {
             <form action={`/api/reviews/${review.id}/moderate`} method="POST">
               <input type="hidden" name="status" value="rejected" />
               <button
-                type="button"
                 type="submit"
                 className="flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
               >

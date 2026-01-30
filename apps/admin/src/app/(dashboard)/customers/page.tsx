@@ -147,7 +147,6 @@ export default function CustomersPage() {
         </div>
         <button
           type="button"
-          type="button"
           onClick={exportCustomers}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
@@ -320,7 +319,6 @@ export default function CustomersPage() {
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   <button
                     type="button"
-                    type="button"
                     onClick={() => setSortBy('orders')}
                     className="flex items-center gap-1 ml-auto hover:text-gray-700"
                   >
@@ -330,7 +328,6 @@ export default function CustomersPage() {
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   <button
-                    type="button"
                     type="button"
                     onClick={() => setSortBy('spent')}
                     className="flex items-center gap-1 ml-auto hover:text-gray-700"
@@ -347,7 +344,6 @@ export default function CustomersPage() {
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   <button
-                    type="button"
                     type="button"
                     onClick={() => setSortBy('recent')}
                     className="flex items-center gap-1 ml-auto hover:text-gray-700"
@@ -430,7 +426,6 @@ export default function CustomersPage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                type="button"
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
                 className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
@@ -438,7 +433,6 @@ export default function CustomersPage() {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
-                type="button"
                 type="button"
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}

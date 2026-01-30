@@ -469,7 +469,7 @@ export function WebsiteListingsClient({
               {selectedIds.size} selected
             </span>
             <span className="text-xs text-blue-600">
-              Use any row's dropdown to update all selected
+              Use any row&apos;s dropdown to update all selected
             </span>
             <button
               type="button"
@@ -705,7 +705,7 @@ export function WebsiteListingsClient({
                                       ) : (
                                         <Plus className="h-4 w-4" />
                                       )}
-                                      Create "{collectionInput.trim()}"
+                                      Create &ldquo;{collectionInput.trim()}&rdquo;
                                     </button>
                                   )}
 

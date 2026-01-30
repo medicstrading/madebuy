@@ -124,8 +124,7 @@ export function VariantEditor({
           {/* Undo/Redo */}
           <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
             <button
-              type="button"
-              type="button"
+                            
               onClick={editor.undo}
               disabled={!editor.canUndo || disabled}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -135,8 +134,7 @@ export function VariantEditor({
               <Undo2 className="h-4 w-4" />
             </button>
             <button
-              type="button"
-              type="button"
+                            
               onClick={editor.redo}
               disabled={!editor.canRedo || disabled}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -150,8 +148,7 @@ export function VariantEditor({
           {/* Bulk edit button */}
           {editor.selectedVariantIds.size > 0 && (
             <button
-              type="button"
-              type="button"
+                            
               onClick={() => setShowQuickEdit(true)}
               disabled={disabled}
               className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
@@ -173,8 +170,7 @@ export function VariantEditor({
 
           {/* Generate variants button */}
           <button
-            type="button"
-            type="button"
+                        
             onClick={handleGenerateVariants}
             disabled={!hasValidAttributes || editor.isGenerating || disabled}
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -194,8 +190,7 @@ export function VariantEditor({
 
           {/* Save button */}
           <button
-            type="button"
-            type="button"
+                        
             onClick={handleSave}
             disabled={!editor.isDirty || saveStatus === 'saving' || disabled}
             className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${

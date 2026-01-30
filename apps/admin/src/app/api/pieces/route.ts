@@ -108,12 +108,12 @@ export async function POST(request: NextRequest) {
     const data = validation.data
 
     // Sanitize text inputs
-    const sanitizedData: CreatePieceInput = {
+    const sanitizedData = {
       ...data,
       name: sanitizeInput(data.name),
       description: data.description ? sanitizeInput(data.description) : undefined,
       category: data.category ? sanitizeInput(data.category) : undefined,
-    }
+    } as CreatePieceInput
 
     // If piece has materialsUsed, fetch the materials catalog for COGS calculation
     let materialsCatalog

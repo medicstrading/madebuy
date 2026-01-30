@@ -122,10 +122,10 @@ export async function getAuditLogs(
   if (options?.startDate || options?.endDate) {
     query.createdAt = {}
     if (options.startDate) {
-      ;(query.createdAt as Record<string, Date>).$gte = options.startDate
+      (query.createdAt as Record<string, Date>).$gte = options.startDate
     }
     if (options.endDate) {
-      ;(query.createdAt as Record<string, Date>).$lte = options.endDate
+      (query.createdAt as Record<string, Date>).$lte = options.endDate
     }
   }
 

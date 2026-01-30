@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
       rating,
       title: title ? sanitizeInput(title) : undefined,
       text: sanitizeInput(text),
-      photos: photos || [],
+      photos: (photos || []).map((url, index) => ({ id: `photo-${index}`, url })),
     }
 
     const review = await reviews.createReview(tenantId, reviewInput)

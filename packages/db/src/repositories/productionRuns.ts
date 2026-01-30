@@ -164,10 +164,10 @@ export async function listProductionRuns(
   if (options?.dateFrom || options?.dateTo) {
     query.productionDate = {}
     if (options.dateFrom) {
-      ;(query.productionDate as Record<string, unknown>).$gte = options.dateFrom
+      (query.productionDate as Record<string, unknown>).$gte = options.dateFrom
     }
     if (options.dateTo) {
-      ;(query.productionDate as Record<string, unknown>).$lte = options.dateTo
+      (query.productionDate as Record<string, unknown>).$lte = options.dateTo
     }
   }
 

@@ -22,7 +22,7 @@ const SESSION_COOKIE = 'mb_session'
  */
 export async function POST(request: NextRequest) {
   // Rate limit: 5 requests per 15 minutes per IP (prevent spam)
-  const rateLimitResponse = checkRateLimit(request, {
+  const rateLimitResponse = await checkRateLimit(request, {
     limit: 5,
     windowMs: 900000, // 15 minutes
     keyPrefix: 'enquiry',

@@ -10,7 +10,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
 
-const log = createLogger('billing-portal')
+const log = createLogger({ module: 'billing-portal' })
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',

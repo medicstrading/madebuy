@@ -70,16 +70,12 @@ export function SearchResults({
     <div>
       <p className="text-gray-600 mb-6">
         Found {results.length} {results.length === 1 ? 'result' : 'results'} for{' '}
-        <span className="font-semibold">"{query}"</span>
+        <span className="font-semibold">&ldquo;{query}&rdquo;</span>
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {results.map((product) => {
-          const primaryImage = product.media?.[0]
-          const imageUrl =
-            primaryImage?.variants?.thumbnail?.url ||
-            primaryImage?.variants?.small?.url ||
-            primaryImage?.variants?.medium?.url
+          const imageUrl = product.primaryImage?.variants?.large?.url || product.primaryImage?.variants?.original?.url
 
           return (
             <Link

@@ -306,8 +306,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center rounded-lg border border-gray-200 bg-white">
                       <button
-                        type="button"
-                        type="button"
+                                                
                         onClick={() =>
                           updateQuantity(bp.pieceId, bp.quantity - 1)
                         }
@@ -319,8 +318,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                         {bp.quantity}
                       </span>
                       <button
-                        type="button"
-                        type="button"
+                                                
                         onClick={() =>
                           updateQuantity(bp.pieceId, bp.quantity + 1)
                         }
@@ -335,8 +333,7 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                     </span>
 
                     <button
-                      type="button"
-                      type="button"
+                                            
                       onClick={() => removePiece(bp.pieceId)}
                       className="p-2 text-gray-400 hover:text-red-600 rounded-lg"
                     >
@@ -370,7 +367,6 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
                 <button
                   type="button"
                   key={piece.id}
-                  type="button"
                   onClick={() => addPiece(piece.id)}
                   className="flex items-center gap-3 p-3 text-left bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
@@ -431,32 +427,28 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
               </div>
               <div className="mt-2 flex gap-2">
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => suggestPrice(10)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
                 >
                   10% off
                 </button>
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => suggestPrice(15)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
                 >
                   15% off
                 </button>
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => suggestPrice(20)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
                 >
                   20% off
                 </button>
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => suggestPrice(25)}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
                 >
@@ -507,16 +499,14 @@ export function BundleBuilder({ bundle }: BundleBuilderProps) {
       {/* Actions */}
       <div className="flex items-center justify-end gap-3">
         <button
-          type="button"
-          type="button"
+                    
           onClick={() => router.back()}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
-          type="button"
-          type="submit"
+                    
           disabled={loading || formData.pieces.length === 0}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >

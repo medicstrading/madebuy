@@ -7,10 +7,12 @@ export default async function OrdersPage() {
   const tenant = await requireTenant()
 
   // Fetch stats via aggregation and orders in parallel
-  const [stats, allOrders] = await Promise.all([
+  const [stats, ordersResult] = await Promise.all([
     orders.getOrderStats(tenant.id),
     orders.listOrders(tenant.id),
   ])
+
+  const allOrders = 'data' in ordersResult ? ordersResult.data : ordersResult
 
   return (
     <div>

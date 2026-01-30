@@ -10,11 +10,12 @@ export default async function WebsiteListingsPage() {
   const tenant = await requireTenant()
 
   // Fetch all pieces, media, and collections
-  const [allPieces, allMedia, collectionsResult] = await Promise.all([
+  const [piecesResult, allMedia, collectionsResult] = await Promise.all([
     pieces.listPieces(tenant.id),
     media.listMedia(tenant.id),
     collections.listCollections(tenant.id),
   ])
+  const allPieces = 'data' in piecesResult ? piecesResult.data : piecesResult
   const allCollections = collectionsResult.items
 
   // Create media lookup map for thumbnails

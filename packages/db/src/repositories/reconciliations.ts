@@ -78,11 +78,11 @@ export async function listReconciliations(
   if (options?.dateFrom || options?.dateTo) {
     query.reconciliationDate = {}
     if (options.dateFrom) {
-      ;(query.reconciliationDate as Record<string, unknown>).$gte =
+      (query.reconciliationDate as Record<string, unknown>).$gte =
         options.dateFrom
     }
     if (options.dateTo) {
-      ;(query.reconciliationDate as Record<string, unknown>).$lte =
+      (query.reconciliationDate as Record<string, unknown>).$lte =
         options.dateTo
     }
   }

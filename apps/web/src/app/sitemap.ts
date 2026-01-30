@@ -54,9 +54,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     for (const tenant of activeTenants) {
       try {
-        const tenantPieces = await pieces.listPieces(tenant.id, {
+        const piecesResult = await pieces.listPieces(tenant.id, {
           status: 'available',
         })
+        const tenantPieces = 'data' in piecesResult ? piecesResult.data : piecesResult
 
         for (const piece of tenantPieces) {
           const slug = piece.websiteSlug || piece.slug || piece.id

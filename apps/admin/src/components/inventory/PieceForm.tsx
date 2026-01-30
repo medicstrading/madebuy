@@ -574,8 +574,7 @@ export function PieceForm({
             </p>
           </div>
           <button
-            type="button"
-            type="button"
+                        
             onClick={addMaterialUsage}
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
@@ -674,8 +673,7 @@ export function PieceForm({
 
                   {/* Remove Button */}
                   <button
-                    type="button"
-                    type="button"
+                                        
                     onClick={() => removeMaterialUsage(index)}
                     className="mt-7 text-red-600 hover:text-red-700"
                   >
@@ -818,8 +816,7 @@ export function PieceForm({
                         ${suggestedPrice.toFixed(2)}
                       </span>
                       <button
-                        type="button"
-                        type="button"
+                                                
                         onClick={() =>
                           setFormData((prev) => ({
                             ...prev,
@@ -849,16 +846,14 @@ export function PieceForm({
       {/* Actions */}
       <div className="flex gap-3 justify-end">
         <button
-          type="button"
-          type="button"
+                    
           onClick={() => router.back()}
           className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
-          type="button"
-          type="submit"
+                    
           disabled={submitting}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >

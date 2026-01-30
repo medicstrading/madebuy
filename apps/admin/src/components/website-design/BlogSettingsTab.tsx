@@ -11,10 +11,6 @@ export function BlogSettingsTab() {
   const [title, setTitle] = useState('Blog')
   const [description, setDescription] = useState('')
 
-  useEffect(() => {
-    loadSettings()
-  }, [loadSettings])
-
   const loadSettings = async () => {
     try {
       const response = await fetch('/api/website-design')
@@ -34,6 +30,10 @@ export function BlogSettingsTab() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadSettings()
+  }, [])
 
   const handleSave = async () => {
     setSaving(true)

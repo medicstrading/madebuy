@@ -1731,7 +1731,7 @@ function CollectionDropdown({
                   ) : (
                     <Plus className="h-4 w-4" />
                   )}
-                  Create "{collectionInput.trim()}"
+                  Create &ldquo;{collectionInput.trim()}&rdquo;
                 </button>
               )}
 

@@ -107,24 +107,6 @@ export function SocialStep({
   // Filter to only social platforms (exclude blog)
   const socialPlatforms = connectedPlatforms.filter((p) => p !== 'website-blog')
 
-  // Auto-generate caption on mount if empty and has access
-  useEffect(() => {
-    if (
-      !caption &&
-      hasSocialAccess &&
-      hasAiCaptions &&
-      selectedMediaIds.length > 0
-    ) {
-      generateCaption()
-    }
-  }, [
-    caption,
-    generateCaption,
-    hasAiCaptions,
-    hasSocialAccess,
-    selectedMediaIds.length,
-  ])
-
   const generateCaption = async () => {
     setGeneratingCaption(true)
     try {
@@ -149,6 +131,19 @@ export function SocialStep({
       setGeneratingCaption(false)
     }
   }
+
+  // Auto-generate caption on mount if empty and has access
+  useEffect(() => {
+    if (
+      !caption &&
+      hasSocialAccess &&
+      hasAiCaptions &&
+      selectedMediaIds.length > 0
+    ) {
+      generateCaption()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const togglePlatform = (platform: SocialPlatform) => {
     setSelectedPlatforms((prev) =>
@@ -194,13 +189,14 @@ export function SocialStep({
           currentPlan={currentPlan}
           teaserTitle="Announce to the World"
           teaserDescription="Post to Instagram, Facebook, TikTok, and Pinterest directly from MadeBuy. Includes AI-generated captions that match your brand voice."
-        ></FeatureGate>
+        >
+          <></>
+        </FeatureGate>
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-4">
           <button
-            type="button"
-            type="button"
+                        
             onClick={onBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
@@ -209,8 +205,7 @@ export function SocialStep({
           </button>
 
           <button
-            type="button"
-            type="button"
+                        
             onClick={onSkip}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md transition-all"
           >
@@ -248,7 +243,6 @@ export function SocialStep({
               <button
                 type="button"
                 key={platform}
-                type="button"
                 onClick={() => togglePlatform(platform)}
                 className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2.5 transition-all ${
                   isSelected
@@ -288,8 +282,7 @@ export function SocialStep({
           <div className="flex items-center gap-2">
             {hasAiCaptions ? (
               <button
-                type="button"
-                type="button"
+                                
                 onClick={generateCaption}
                 disabled={generatingCaption || selectedMediaIds.length === 0}
                 className="flex items-center gap-1.5 rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -341,7 +334,6 @@ export function SocialStep({
               <button
                 type="button"
                 key={media.id}
-                type="button"
                 onClick={() => toggleMedia(media.id)}
                 className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
                   isSelected
@@ -410,8 +402,7 @@ export function SocialStep({
       {/* Actions */}
       <div className="flex items-center justify-between pt-4">
         <button
-          type="button"
-          type="button"
+                    
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -421,16 +412,14 @@ export function SocialStep({
 
         <div className="flex items-center gap-3">
           <button
-            type="button"
-            type="button"
+                        
             onClick={onSkip}
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             Skip social
           </button>
           <button
-            type="button"
-            type="button"
+                        
             onClick={handleSubmit}
             disabled={loading}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"

@@ -542,8 +542,7 @@ export function PublishComposer({
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     />
                     <button
-                      type="button"
-                      type="button"
+                                            
                       onClick={() => {
                         const tag = blogTagInput.trim()
                         if (tag && !blogTags.includes(tag)) {
@@ -564,8 +563,7 @@ export function PublishComposer({
                       >
                         {tag}
                         <button
-                          type="button"
-                          type="button"
+                                                    
                           onClick={() =>
                             setBlogTags(blogTags.filter((t) => t !== tag))
                           }
@@ -745,8 +743,7 @@ export function PublishComposer({
                     {/* Recurrence Toggle */}
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <button
-                        type="button"
-                        type="button"
+                                                
                         onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all w-full ${
                           recurrenceEnabled

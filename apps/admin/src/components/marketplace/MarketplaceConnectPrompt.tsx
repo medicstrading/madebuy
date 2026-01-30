@@ -138,7 +138,7 @@ export function MarketplaceConnectPrompt({
 
         {/* Help text */}
         <p className="text-center text-sm text-gray-500 mt-4">
-          You'll be redirected to {platformName} to authorize access.
+          You&apos;ll be redirected to {platformName} to authorize access.
           <br />
           We only request permissions needed for inventory sync.
         </p>

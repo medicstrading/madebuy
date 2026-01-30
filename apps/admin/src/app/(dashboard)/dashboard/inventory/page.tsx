@@ -34,6 +34,9 @@ export default async function InventoryPage() {
 
   const allCollections = collectionsResult.items
 
+  // Extract pieces array from paginated result
+  const piecesArray = 'data' in allPieces ? allPieces.data : allPieces
+
   // Create media lookup map (use thumb if available, fallback to original)
   const mediaMap = new Map(
     allMedia.map((m) => [
@@ -43,7 +46,7 @@ export default async function InventoryPage() {
   )
 
   // Batch fetch COGS for all pieces
-  const pieceIds = allPieces.map((p) => p.id)
+  const pieceIds = piecesArray.map((p) => p.id)
   const cogsMap = await materials.calculateBatchCOGS(tenant.id, pieceIds)
 
   // Create piece → collections map
@@ -61,7 +64,7 @@ export default async function InventoryPage() {
   }
 
   // Add COGS and thumbnail URLs to pieces
-  const piecesWithExtras = allPieces.map((piece) => ({
+  const piecesWithExtras = piecesArray.map((piece) => ({
     ...piece,
     cogs: cogsMap.get(piece.id) || 0,
     thumbnailUrl: piece.primaryMediaId

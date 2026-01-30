@@ -160,8 +160,13 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {stats.recentOrders.length > 0 ? (
-              stats.recentOrders.map((order: any) => (
+            {(() => {
+              const recentOrders =
+                'data' in stats.recentOrders
+                  ? stats.recentOrders.data
+                  : stats.recentOrders
+              return recentOrders.length > 0 ? (
+                recentOrders.map((order: any) => (
                 <div
                   key={order._id?.toString()}
                   className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors"
@@ -183,7 +188,7 @@ export default async function DashboardPage() {
                   </p>
                 </div>
               ))
-            ) : (
+              ) : (
               <div className="px-6 py-12 text-center">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 mb-4">
                   <ShoppingCart className="h-7 w-7 text-gray-400" />
@@ -195,7 +200,8 @@ export default async function DashboardPage() {
                   Orders will appear here once customers start buying
                 </p>
               </div>
-            )}
+              )
+            })()}
           </div>
         </section>
 

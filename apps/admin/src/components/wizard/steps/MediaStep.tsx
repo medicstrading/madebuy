@@ -51,48 +51,6 @@ export function MediaStep({
     .map((id) => allMedia.find((m) => m.id === id))
     .filter((m): m is MediaItem => !!m)
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-
-      // Check if this is a library item drag (not a file upload)
-      const mediaId = e.dataTransfer.getData('application/x-media-id')
-      if (mediaId) {
-        // It's a library item - just select it
-        if (!selectedIds.includes(mediaId)) {
-          setSelectedIds((prev) => {
-            const newIds = [...prev, mediaId]
-            if (!primaryId) {
-              setPrimaryId(mediaId)
-            }
-            return newIds
-          })
-        }
-        return
-      }
-
-      // Otherwise, check for actual file drops
-      const files = Array.from(e.dataTransfer.files).filter((f) =>
-        f.type.startsWith('image/'),
-      )
-
-      if (files.length > 0) {
-        uploadFiles(files)
-      }
-    },
-    [selectedIds, primaryId, uploadFiles],
-  )
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    if (files.length > 0) {
-      uploadFiles(files)
-    }
-    // Reset input
-    e.target.value = ''
-  }
-
   const uploadFiles = async (files: File[]) => {
     const newUploading: UploadingFile[] = files.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -146,6 +104,48 @@ export function MediaStep({
         )
       }
     }
+  }
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
+
+      // Check if this is a library item drag (not a file upload)
+      const mediaId = e.dataTransfer.getData('application/x-media-id')
+      if (mediaId) {
+        // It's a library item - just select it
+        if (!selectedIds.includes(mediaId)) {
+          setSelectedIds((prev) => {
+            const newIds = [...prev, mediaId]
+            if (!primaryId) {
+              setPrimaryId(mediaId)
+            }
+            return newIds
+          })
+        }
+        return
+      }
+
+      // Otherwise, check for actual file drops
+      const files = Array.from(e.dataTransfer.files).filter((f) =>
+        f.type.startsWith('image/'),
+      )
+
+      if (files.length > 0) {
+        uploadFiles(files)
+      }
+    },
+    [selectedIds, primaryId],
+  )
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      uploadFiles(files)
+    }
+    // Reset input
+    e.target.value = ''
   }
 
   const toggleMedia = (mediaId: string) => {
@@ -284,8 +284,7 @@ export function MediaStep({
             {selectedMedia.map((media, _index) => (
               <div key={media.id} className="relative group">
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => setPrimary(media.id)}
                   className={`relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all ${
                     primaryId === media.id
@@ -308,8 +307,7 @@ export function MediaStep({
                   )}
                 </button>
                 <button
-                  type="button"
-                  type="button"
+                                    
                   onClick={() => toggleMedia(media.id)}
                   className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -335,7 +333,6 @@ export function MediaStep({
                   <button
                     type="button"
                     key={media.id}
-                    type="button"
                     draggable
                     onClick={() => toggleMedia(media.id)}
                     onDragStart={(e) => {
@@ -372,8 +369,7 @@ export function MediaStep({
       {/* Actions */}
       <div className="flex items-center justify-between pt-4">
         <button
-          type="button"
-          type="button"
+                    
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -383,16 +379,14 @@ export function MediaStep({
 
         <div className="flex items-center gap-3">
           <button
-            type="button"
-            type="button"
+                        
             onClick={onSkip}
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             Skip for now
           </button>
           <button
-            type="button"
-            type="button"
+                        
             onClick={handleSubmit}
             disabled={loading || hasUploads}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"

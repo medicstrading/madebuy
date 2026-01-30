@@ -10,7 +10,7 @@ import {
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
-const log = createLogger('materials')
+const log = createLogger({ module: 'materials' })
 
 export async function GET() {
   try {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const sanitizedData: CreateMaterialInput = {
       ...data,
       name: sanitizeInput(data.name),
-      category: data.category ? sanitizeInput(data.category) : undefined,
+      category: data.category,
       supplier: data.supplier ? sanitizeInput(data.supplier) : undefined,
       notes: data.notes ? sanitizeInput(data.notes) : undefined,
     }

@@ -48,9 +48,12 @@ export async function GET(request: NextRequest) {
     const fromDate = searchParams.get('from')
     const toDate = searchParams.get('to')
 
-    let filteredOrders = orderData
+    // Extract array from PaginatedResult or use directly
+    const orderList = 'data' in orderData ? orderData.data : orderData
+
+    let filteredOrders = orderList
     if (fromDate || toDate) {
-      filteredOrders = orderData.filter((order) => {
+      filteredOrders = orderList.filter((order) => {
         const orderDate = new Date(order.createdAt)
         if (fromDate && orderDate < new Date(fromDate)) return false
         if (toDate && orderDate > new Date(`${toDate}T23:59:59`)) return false
