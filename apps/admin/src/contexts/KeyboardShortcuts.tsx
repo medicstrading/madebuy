@@ -7,6 +7,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 
@@ -61,23 +62,33 @@ const NEW_ITEM_PATHS: Record<string, string> = {
   '/dashboard/bundles': '/dashboard/bundles/new',
 }
 
-interface KeyboardShortcutsContextType {
+// Stable context (rarely changes)
+interface StableKeyboardContextType {
   showHelp: boolean
   setShowHelp: (show: boolean) => void
+}
+
+// Transient context (changes frequently during key sequences)
+interface TransientKeyboardContextType {
   pendingKey: string | null
 }
 
-const KeyboardShortcutsContext =
-  createContext<KeyboardShortcutsContextType | null>(null)
+const StableKeyboardContext = createContext<StableKeyboardContextType | null>(null)
+const TransientKeyboardContext = createContext<TransientKeyboardContextType | null>(null)
 
 export function useKeyboardShortcuts() {
-  const context = useContext(KeyboardShortcutsContext)
-  if (!context) {
+  const stable = useContext(StableKeyboardContext)
+  if (!stable) {
     throw new Error(
       'useKeyboardShortcuts must be used within KeyboardShortcutsProvider',
     )
   }
-  return context
+  return stable
+}
+
+export function useKeyboardPendingKey() {
+  const transient = useContext(TransientKeyboardContext)
+  return transient?.pendingKey ?? null
 }
 
 interface KeyboardShortcutsProviderProps {
@@ -242,15 +253,21 @@ export function KeyboardShortcutsProvider({
     focusSearch,
   ])
 
+  const stableValue = useMemo(
+    () => ({ showHelp, setShowHelp }),
+    [showHelp]
+  )
+
+  const transientValue = useMemo(
+    () => ({ pendingKey }),
+    [pendingKey]
+  )
+
   return (
-    <KeyboardShortcutsContext.Provider
-      value={{
-        showHelp,
-        setShowHelp,
-        pendingKey,
-      }}
-    >
-      {children}
-    </KeyboardShortcutsContext.Provider>
+    <StableKeyboardContext.Provider value={stableValue}>
+      <TransientKeyboardContext.Provider value={transientValue}>
+        {children}
+      </TransientKeyboardContext.Provider>
+    </StableKeyboardContext.Provider>
   )
 }

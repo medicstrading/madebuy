@@ -19,11 +19,17 @@ interface FunnelData {
   overallConversionRate: number
 }
 
-export function AnalyticsWidget() {
-  const [data, setData] = useState<FunnelData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+interface AnalyticsWidgetProps {
+  initialData?: FunnelData
+}
+
+export function AnalyticsWidget({ initialData }: AnalyticsWidgetProps) {
+  const [data, setData] = useState<FunnelData | null>(initialData ?? null)
+  const [isLoading, setIsLoading] = useState(!initialData)
 
   useEffect(() => {
+    if (initialData) return // Skip fetch if we have initial data
+
     async function fetchData() {
       try {
         const res = await fetch('/api/analytics/funnel')
@@ -38,7 +44,7 @@ export function AnalyticsWidget() {
       }
     }
     fetchData()
-  }, [])
+  }, [initialData])
 
   const maxValue = data ? Math.max(data.viewProduct, 1) : 1
 

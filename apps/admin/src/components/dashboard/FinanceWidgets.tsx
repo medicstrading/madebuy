@@ -70,12 +70,18 @@ function _formatDate(dateString: string | null): string {
   }).format(new Date(dateString))
 }
 
-export function FinanceWidgets() {
-  const [data, setData] = useState<LedgerSummary | null>(null)
-  const [loading, setLoading] = useState(true)
+interface FinanceWidgetsProps {
+  initialData?: LedgerSummary
+}
+
+export function FinanceWidgets({ initialData }: FinanceWidgetsProps) {
+  const [data, setData] = useState<LedgerSummary | null>(initialData ?? null)
+  const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (initialData) return // Skip fetch if we have initial data
+
     async function fetchSummary() {
       try {
         const response = await fetch('/api/ledger/summary')
@@ -92,7 +98,7 @@ export function FinanceWidgets() {
     }
 
     fetchSummary()
-  }, [])
+  }, [initialData])
 
   if (loading) {
     return (

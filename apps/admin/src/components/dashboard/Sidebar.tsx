@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface MarketplaceConnections {
@@ -149,7 +149,7 @@ const navigationGroups = [
   },
 ]
 
-export function Sidebar({
+export const Sidebar = memo(function Sidebar({
   tenant,
   isOpen,
   onClose,
@@ -466,4 +466,4 @@ export function Sidebar({
       )}
     </>
   )
-}
+})

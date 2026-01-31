@@ -1,8 +1,9 @@
 import { CartProvider } from '@/contexts/CartContext'
 import { requireTenant } from '@/lib/tenant'
 
-// Force dynamic rendering for all tenant routes - they require database access
-export const dynamic = 'force-dynamic'
+// Enable ISR with 2-minute revalidation for tenant storefronts
+// Tenant data rarely changes; cart/wishlist handled client-side
+export const revalidate = 120
 
 import type { ReactNode } from 'react'
 import { TenantTheme } from '@/components/TenantTheme'

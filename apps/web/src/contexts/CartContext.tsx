@@ -203,13 +203,20 @@ export function CartProvider({
     setItems([])
   }, [])
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-  const totalAmount = items.reduce(
-    (sum, item) =>
-      sum +
-      ((item.product.price || 0) + (item.personalizationTotal || 0)) *
-        item.quantity,
-    0,
+  const totalItems = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items]
+  )
+
+  const totalAmount = useMemo(
+    () => items.reduce(
+      (sum, item) =>
+        sum +
+        ((item.product.price || 0) + (item.personalizationTotal || 0)) *
+          item.quantity,
+      0,
+    ),
+    [items]
   )
 
   const value = useMemo(

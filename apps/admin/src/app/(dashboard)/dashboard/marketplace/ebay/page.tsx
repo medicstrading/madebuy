@@ -1,7 +1,16 @@
+import dynamic from 'next/dynamic'
 import { marketplace, media, pieces } from '@madebuy/db'
-import { EbayMarketplacePage } from '@/components/marketplace/EbayMarketplacePage'
+import { EbayMarketplacePageSkeleton } from '@/components/marketplace/EbayMarketplacePageSkeleton'
 import { MarketplaceConnectPrompt } from '@/components/marketplace/MarketplaceConnectPrompt'
 import { requireTenant } from '@/lib/session'
+
+const EbayMarketplacePage = dynamic(
+  () => import('@/components/marketplace/EbayMarketplacePage').then(m => m.EbayMarketplacePage),
+  {
+    loading: () => <EbayMarketplacePageSkeleton />,
+    ssr: false
+  }
+)
 
 export const metadata = {
   title: 'eBay Marketplace - MadeBuy Admin',

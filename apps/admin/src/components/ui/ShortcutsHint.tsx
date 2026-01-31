@@ -1,9 +1,10 @@
 'use client'
 
-import { useKeyboardShortcuts } from '@/contexts/KeyboardShortcuts'
+import { useKeyboardShortcuts, useKeyboardPendingKey } from '@/contexts/KeyboardShortcuts'
 
 export function ShortcutsHint() {
-  const { setShowHelp, pendingKey } = useKeyboardShortcuts()
+  const { setShowHelp } = useKeyboardShortcuts()
+  const pendingKey = useKeyboardPendingKey()
 
   return (
     <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
