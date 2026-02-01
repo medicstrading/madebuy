@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { HelpButton } from '@/components/ui/HelpButton'
 
 // =============================================================================
 // Types
@@ -1413,8 +1414,14 @@ export function ConnectionsPage({ tenant }: ConnectionsPageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Connections</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900">Connections</h1>
+            <HelpButton
+              href="/dashboard/help#stripe"
+              tooltip="Get help with connections"
+            />
+          </div>
           <p className="mt-1 text-gray-500">
             Connect your accounts to publish content, sync inventory, and
             receive payments

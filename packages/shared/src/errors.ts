@@ -33,7 +33,8 @@ export const UserMessages = {
   DUPLICATE: 'This item already exists.',
   RATE_LIMIT_EXCEEDED: 'Too many requests. Please try again later.',
   INSUFFICIENT_STOCK: 'Insufficient stock available.',
-  EXTERNAL_SERVICE_ERROR: 'A temporary service issue occurred. Please try again in a few moments.',
+  EXTERNAL_SERVICE_ERROR:
+    'A temporary service issue occurred. Please try again in a few moments.',
   SUBSCRIPTION_LIMIT: 'You have reached your plan limit.',
   INTERNAL_ERROR: 'Something went wrong. Please try again later.',
   UNKNOWN_ERROR: 'An unexpected error occurred. Please try again later.',
@@ -122,14 +123,9 @@ export class ConflictError extends MadeBuyError {
 export class DuplicateError extends MadeBuyError {
   constructor(resource: string, field: string, value: string) {
     const message = `${resource} with ${field} "${value}" already exists`
-    const userMessage = 'This item already exists. Please use a different value.'
-    super(
-      'DUPLICATE',
-      message,
-      409,
-      userMessage,
-      { resource, field, value },
-    )
+    const userMessage =
+      'This item already exists. Please use a different value.'
+    super('DUPLICATE', message, 409, userMessage, { resource, field, value })
     this.name = 'DuplicateError'
   }
 }
@@ -180,13 +176,11 @@ export class InsufficientStockError extends MadeBuyError {
   constructor(productName: string, requested: number, available: number) {
     const message = `Insufficient stock for ${productName}. Requested: ${requested}, Available: ${available}`
     const userMessage = `Sorry, we don't have enough stock for "${productName}". Only ${available} available.`
-    super(
-      'INSUFFICIENT_STOCK',
-      message,
-      400,
-      userMessage,
-      { productName, requested, available },
-    )
+    super('INSUFFICIENT_STOCK', message, 400, userMessage, {
+      productName,
+      requested,
+      available,
+    })
     this.name = 'InsufficientStockError'
   }
 }
@@ -197,7 +191,8 @@ export class InsufficientStockError extends MadeBuyError {
 export class ExternalServiceError extends MadeBuyError {
   constructor(service: string, originalError?: string) {
     const message = `External service error: ${service}`
-    const userMessage = 'A temporary service issue occurred. Please try again in a few moments.'
+    const userMessage =
+      'A temporary service issue occurred. Please try again in a few moments.'
     super('EXTERNAL_SERVICE_ERROR', message, 502, userMessage, {
       service,
       originalError,
@@ -217,13 +212,10 @@ export class SubscriptionLimitError extends MadeBuyError {
     const userMessage = requiredPlan
       ? `This feature requires the ${requiredPlan} plan. Please upgrade to continue.`
       : `You've reached your plan's limit for this feature. Please upgrade to continue.`
-    super(
-      'SUBSCRIPTION_LIMIT',
-      message,
-      403,
-      userMessage,
-      { feature, requiredPlan },
-    )
+    super('SUBSCRIPTION_LIMIT', message, 403, userMessage, {
+      feature,
+      requiredPlan,
+    })
     this.name = 'SubscriptionLimitError'
   }
 }

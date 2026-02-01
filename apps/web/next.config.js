@@ -19,6 +19,8 @@ const nextConfig = {
   experimental: {
     // Optimize package imports to reduce bundle size
     optimizePackageImports: ['@madebuy/shared', '@madebuy/db', 'lucide-react'],
+    // Externalize jsdom to prevent build errors from isomorphic-dompurify
+    serverComponentsExternalPackages: ['jsdom'],
   },
 
   // Security Headers
@@ -90,6 +92,19 @@ const nextConfig = {
         ],
       },
     ]
+  },
+
+  // Webpack config to externalize jsdom (fixes isomorphic-dompurify build error)
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Externalize jsdom and its dependencies to prevent bundling issues
+      config.externals = config.externals || []
+      config.externals.push({
+        jsdom: 'commonjs jsdom',
+        'isomorphic-dompurify': 'commonjs isomorphic-dompurify',
+      })
+    }
+    return config
   },
 
   images: {

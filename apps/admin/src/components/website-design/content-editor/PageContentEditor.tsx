@@ -1,10 +1,10 @@
 'use client'
 
-import type {
-  PageSection,
-  PageSectionType,
-  WebsitePage,
-} from '@madebuy/shared/src/types/template'
+import {
+  type PageSection,
+  type PageSectionType,
+  type WebsitePage,
+} from '@madebuy/shared'
 import {
   Check,
   ChevronDown,

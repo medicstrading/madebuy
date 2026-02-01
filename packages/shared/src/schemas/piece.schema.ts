@@ -1,11 +1,11 @@
 import { z } from 'zod'
 import {
   CurrencyCodeSchema,
+  LongTextSchema,
   NonNegativeNumberSchema,
   ObjectIdSchema,
   PositiveNumberSchema,
   ShortTextSchema,
-  LongTextSchema,
 } from './common.schema'
 
 /**
@@ -140,7 +140,9 @@ export type PieceStatus = z.infer<typeof PieceStatusSchema>
 export type MaterialUsage = z.infer<typeof MaterialUsageSchema>
 export type VariantOption = z.infer<typeof VariantOptionSchema>
 export type ProductVariant = z.infer<typeof ProductVariantSchema>
-export type PiecePersonalizationField = z.infer<typeof PiecePersonalizationFieldSchema>
+export type PiecePersonalizationField = z.infer<
+  typeof PiecePersonalizationFieldSchema
+>
 export type ShippingDimensions = z.infer<typeof ShippingDimensionsSchema>
 export type DigitalFile = z.infer<typeof DigitalFileSchema>
 export type CreatePieceInput = z.infer<typeof CreatePieceSchema>

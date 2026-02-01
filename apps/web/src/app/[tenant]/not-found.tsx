@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { ArrowLeft, Home, Search, ShoppingBag } from 'lucide-react'
+import Link from 'next/link'
 
 // Force dynamic rendering for tenant-specific 404
 export const dynamic = 'force-dynamic'

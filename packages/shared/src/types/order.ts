@@ -45,6 +45,10 @@ export interface Order {
   stripePaymentIntentId?: string
   stripeChargeId?: string
 
+  // PayPal references
+  paypalOrderId?: string
+  paypalCaptureId?: string
+
   // Fee breakdown (all amounts in cents)
   fees?: {
     stripe: number // Stripe processing fee

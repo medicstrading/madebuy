@@ -1,6 +1,9 @@
 import { generateIdempotencyKey } from './retry'
 
-export function stripeIdempotencyKey(operation: string, resourceId: string): string {
+export function stripeIdempotencyKey(
+  operation: string,
+  resourceId: string,
+): string {
   return generateIdempotencyKey('stripe', operation, resourceId)
 }
 

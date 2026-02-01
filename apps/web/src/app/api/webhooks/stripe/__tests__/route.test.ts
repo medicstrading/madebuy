@@ -13,9 +13,9 @@
  * 9. Missing tenantId in metadata - Logs error, returns 200
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NextRequest } from 'next/server'
 import type Stripe from 'stripe'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // =============================================================================
 // MOCKS - Must be hoisted before imports
@@ -159,7 +159,14 @@ function createCheckoutSessionEvent(
   const session: Stripe.Checkout.Session = {
     id: 'cs_test_123',
     object: 'checkout.session',
-    customer_details: { email: 'customer@example.com', phone: null, tax_exempt: 'none', tax_ids: null, name: null, address: null },
+    customer_details: {
+      email: 'customer@example.com',
+      phone: null,
+      tax_exempt: 'none',
+      tax_ids: null,
+      name: null,
+      address: null,
+    },
     customer_email: 'customer@example.com',
     shipping_details: {
       name: 'Test Customer',
@@ -261,7 +268,10 @@ function createCheckoutSessionExpiredEvent(
 }
 
 function createSubscriptionEvent(
-  type: 'customer.subscription.created' | 'customer.subscription.updated' | 'customer.subscription.deleted',
+  type:
+    | 'customer.subscription.created'
+    | 'customer.subscription.updated'
+    | 'customer.subscription.deleted',
   subscriptionOverrides: Partial<Stripe.Subscription> = {},
   metadataOverrides: Record<string, string> = {},
 ): Stripe.Event {
@@ -420,7 +430,9 @@ describe('Stripe Webhook Route', () => {
       vi.mocked(orders.createOrder).mockResolvedValue(mockOrder as any)
       vi.mocked(stockReservations.completeReservation).mockResolvedValue(true)
       vi.mocked(pieces.getLowStockPieces).mockResolvedValue([])
-      vi.mocked(transactions.createTransaction).mockResolvedValue({ id: 'txn_123' } as any)
+      vi.mocked(transactions.createTransaction).mockResolvedValue({
+        id: 'txn_123',
+      } as any)
 
       const request = createMockRequest(JSON.stringify(event))
       const response = await POST(request)
@@ -437,7 +449,9 @@ describe('Stripe Webhook Route', () => {
       )
 
       // Verify stock reservation completed
-      expect(stockReservations.completeReservation).toHaveBeenCalledWith('res_123')
+      expect(stockReservations.completeReservation).toHaveBeenCalledWith(
+        'res_123',
+      )
 
       // Verify order created
       expect(orders.createOrder).toHaveBeenCalledWith(
@@ -480,7 +494,9 @@ describe('Stripe Webhook Route', () => {
       const event = createCheckoutSessionEvent()
 
       // Return existing order - simulate duplicate webhook
-      vi.mocked(orders.getOrderByStripeSessionId).mockResolvedValue(mockOrder as any)
+      vi.mocked(orders.getOrderByStripeSessionId).mockResolvedValue(
+        mockOrder as any,
+      )
 
       const request = createMockRequest(JSON.stringify(event))
       const response = await POST(request)
@@ -515,7 +531,9 @@ describe('Stripe Webhook Route', () => {
       expect(responseBody).toEqual({ received: true })
 
       // Verify reservation was cancelled
-      expect(stockReservations.cancelReservation).toHaveBeenCalledWith('res_failed_123')
+      expect(stockReservations.cancelReservation).toHaveBeenCalledWith(
+        'res_failed_123',
+      )
     })
   })
 
@@ -536,7 +554,9 @@ describe('Stripe Webhook Route', () => {
       expect(responseBody).toEqual({ received: true })
 
       // Verify reservation was released
-      expect(stockReservations.cancelReservation).toHaveBeenCalledWith('res_expired_123')
+      expect(stockReservations.cancelReservation).toHaveBeenCalledWith(
+        'res_expired_123',
+      )
     })
   })
 
@@ -617,7 +637,9 @@ describe('Stripe Webhook Route', () => {
     it('should send payment failed notification email', async () => {
       const event = createInvoicePaymentFailedEvent()
 
-      vi.mocked(tenants.getTenantByStripeCustomerId).mockResolvedValue(mockTenant as any)
+      vi.mocked(tenants.getTenantByStripeCustomerId).mockResolvedValue(
+        mockTenant as any,
+      )
 
       const request = createMockRequest(JSON.stringify(event))
       const response = await POST(request)
@@ -627,7 +649,9 @@ describe('Stripe Webhook Route', () => {
       expect(responseBody).toEqual({ received: true })
 
       // Verify tenant lookup by Stripe customer ID
-      expect(tenants.getTenantByStripeCustomerId).toHaveBeenCalledWith('cus_123')
+      expect(tenants.getTenantByStripeCustomerId).toHaveBeenCalledWith(
+        'cus_123',
+      )
 
       // Verify payment failed email was sent
       expect(mockSendPaymentFailedEmail).toHaveBeenCalledWith(
@@ -687,7 +711,9 @@ describe('Stripe Webhook Route', () => {
       const event = createCheckoutSessionEvent({}, { tenantId: '' })
       // Remove the tenantId entirely
       ;(event.data.object as Stripe.Checkout.Session).metadata = {
-        items: JSON.stringify([{ pieceId: 'piece-456', price: 99.99, quantity: 1 }]),
+        items: JSON.stringify([
+          { pieceId: 'piece-456', price: 99.99, quantity: 1 },
+        ]),
       }
 
       const request = createMockRequest(JSON.stringify(event))
@@ -709,7 +735,11 @@ describe('Stripe Webhook Route', () => {
     })
 
     it('should log error but return 200 when tenantId is missing from subscription', async () => {
-      const event = createSubscriptionEvent('customer.subscription.created', {}, {})
+      const event = createSubscriptionEvent(
+        'customer.subscription.created',
+        {},
+        {},
+      )
       // Remove tenantId from metadata
       ;(event.data.object as Stripe.Subscription).metadata = {}
 
@@ -723,7 +753,9 @@ describe('Stripe Webhook Route', () => {
       expect(responseBody).toEqual({ received: true })
 
       // Should log the error via console.error (subscription handler uses console.error)
-      expect(consoleSpy).toHaveBeenCalledWith('No tenantId in subscription metadata')
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'No tenantId in subscription metadata',
+      )
       expect(tenants.updateTenant).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()

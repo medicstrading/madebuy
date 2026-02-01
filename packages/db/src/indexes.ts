@@ -293,9 +293,7 @@ export async function ensureIndexes(db: Db): Promise<void> {
   await db
     .collection('transactions')
     .createIndex({ type: 1, status: 1, createdAt: -1 })
-  await db
-    .collection('transactions')
-    .createIndex({ createdAt: -1, type: 1 })
+  await db.collection('transactions').createIndex({ createdAt: -1, type: 1 })
 
   // Tenants (platform-wide tenant analytics)
   await db.collection('tenants').createIndex({ createdAt: -1 })

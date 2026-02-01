@@ -77,7 +77,6 @@ export async function getMongoClient(): Promise<MongoClient> {
   return cachedClient!
 }
 
-
 // Utility function to serialize MongoDB documents
 export function serializeMongo<T>(doc: any): T {
   if (!doc) return doc

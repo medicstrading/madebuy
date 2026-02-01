@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/session'
 export const dynamic = 'force-dynamic'
 
 // In-memory settings store (in production, this would be stored in database)
-let platformSettings = {
+const platformSettings = {
   general: {
     platformName: 'MadeBuy',
     supportEmail: 'support@madebuy.com.au',

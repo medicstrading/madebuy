@@ -10,14 +10,17 @@
  * RESTORED (2026-01-30): stockReservations - real implementation with atomic operations
  */
 
-// Export database client and utilities
-export { getDatabase, getMongoClient, serializeMongo, serializeMongoArray } from './client'
-
-// Export indexes
-export { ensureIndexes } from './indexes'
-
 // Export cache
 export { cache } from './cache'
+// Export database client and utilities
+export {
+  getDatabase,
+  getMongoClient,
+  serializeMongo,
+  serializeMongoArray,
+} from './client'
+// Export indexes
+export { ensureIndexes } from './indexes'
 export * as abandonedCarts from './repositories/abandonedCarts'
 export * as admins from './repositories/admins'
 export * as analytics from './repositories/analytics'
@@ -39,14 +42,15 @@ export * as keyDates from './repositories/keyDates'
 export * as marketplace from './repositories/marketplace'
 export * as materials from './repositories/materials'
 export * as media from './repositories/media'
+export * as messages from './repositories/messages'
 export * as newsletters from './repositories/newsletters'
 export * as orders from './repositories/orders'
 export * as passwordResets from './repositories/passwordResets'
 export * as payouts from './repositories/payouts'
-export * as platformAnalytics from './repositories/platformAnalytics'
 // Export types
 export type { LowStockPiece } from './repositories/pieces'
 export * as pieces from './repositories/pieces'
+export * as platformAnalytics from './repositories/platformAnalytics'
 export * as previews from './repositories/previews'
 export * as productionRuns from './repositories/productionRuns'
 export * as publish from './repositories/publish'
@@ -59,6 +63,7 @@ export * as tracking from './repositories/tracking'
 export * as transactions from './repositories/transactions'
 export * as variants from './repositories/variants'
 export * as wishlist from './repositories/wishlist'
+export * as workshops from './repositories/workshops'
 
 // =============================================================================
 // ARCHIVED REPOSITORIES (removed 2026-01-02)

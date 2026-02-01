@@ -21,6 +21,7 @@ import { createLogger } from '@madebuy/shared'
 import { nanoid } from 'nanoid'
 
 const logger = createLogger({ service: 'variants' })
+
 import { getDatabase } from '../client'
 
 const COLLECTION = 'variant_combinations'
@@ -531,10 +532,7 @@ export async function deleteVariant(
       pieceId,
       id: variantId,
     })
-    logger.info(
-      { tenantId, pieceId, variantId },
-      'Hard deleted variant',
-    )
+    logger.info({ tenantId, pieceId, variantId }, 'Hard deleted variant')
   } else {
     await db.collection(COLLECTION).updateOne(
       { tenantId, pieceId, id: variantId },
@@ -546,10 +544,7 @@ export async function deleteVariant(
         },
       },
     )
-    logger.info(
-      { tenantId, pieceId, variantId },
-      'Soft deleted variant',
-    )
+    logger.info({ tenantId, pieceId, variantId }, 'Soft deleted variant')
   }
 }
 

@@ -412,7 +412,10 @@ async function handleDisputeCreated(
           typeof charge.payment_intent === 'string'
             ? charge.payment_intent
             : charge.payment_intent.id
-        const order = await orders.getOrderByPaymentIntent(tenant.id, paymentIntentId)
+        const order = await orders.getOrderByPaymentIntent(
+          tenant.id,
+          paymentIntentId,
+        )
         if (order) {
           orderId = order.id
         }

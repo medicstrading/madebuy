@@ -291,14 +291,12 @@ export function MaterialForm({ tenantId, material }: MaterialFormProps) {
       {/* Actions */}
       <div className="flex gap-3 justify-end">
         <button
-                    
           onClick={() => router.back()}
           className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
-                    
           disabled={submitting}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >

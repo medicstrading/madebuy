@@ -1,6 +1,6 @@
 import { orders, reviews, tenants } from '@madebuy/db'
 import type { CreateReviewInput } from '@madebuy/shared'
-import { sanitizeInput, safeValidateCreateReview } from '@madebuy/shared'
+import { safeValidateCreateReview, sanitizeInput } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -159,7 +159,10 @@ export async function POST(request: NextRequest) {
       rating,
       title: title ? sanitizeInput(title) : undefined,
       text: sanitizeInput(text),
-      photos: (photos || []).map((url, index) => ({ id: `photo-${index}`, url })),
+      photos: (photos || []).map((url, index) => ({
+        id: `photo-${index}`,
+        url,
+      })),
     }
 
     const review = await reviews.createReview(tenantId, reviewInput)

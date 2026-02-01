@@ -35,7 +35,12 @@ interface RevenueData {
   ordersToday: number
   avgOrderValue: number
   mrrTimeSeries: { date: string; mrr: number }[]
-  revenueByTier: { tier: string; revenue: number; count: number; percentage: number }[]
+  revenueByTier: {
+    tier: string
+    revenue: number
+    count: number
+    percentage: number
+  }[]
   topSellers: {
     tenantId: string
     businessName: string
@@ -117,7 +122,11 @@ function TierPieChart({ data }: { data: RevenueData['revenueByTier'] }) {
   )
 }
 
-function DailyRevenueChart({ data }: { data: RevenueData['revenueTimeSeries'] }) {
+function DailyRevenueChart({
+  data,
+}: {
+  data: RevenueData['revenueTimeSeries']
+}) {
   if (!data?.length) {
     return (
       <div className="h-64 flex items-center justify-center text-muted-foreground">
@@ -129,7 +138,10 @@ function DailyRevenueChart({ data }: { data: RevenueData['revenueTimeSeries'] })
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        >
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="hsl(217, 33%, 22%)"
@@ -162,7 +174,13 @@ function DailyRevenueChart({ data }: { data: RevenueData['revenueTimeSeries'] })
   )
 }
 
-function TopSellersTable({ sellers, loading }: { sellers: RevenueData['topSellers']; loading: boolean }) {
+function TopSellersTable({
+  sellers,
+  loading,
+}: {
+  sellers: RevenueData['topSellers']
+  loading: boolean
+}) {
   if (loading) {
     return (
       <div className="space-y-3">
@@ -215,7 +233,9 @@ function TopSellersTable({ sellers, loading }: { sellers: RevenueData['topSeller
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
                     {seller.businessName.charAt(0).toUpperCase()}
                   </div>
-                  <span className="font-medium text-foreground">{seller.businessName}</span>
+                  <span className="font-medium text-foreground">
+                    {seller.businessName}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-4 text-right font-semibold text-foreground tabular-nums">
@@ -231,9 +251,12 @@ function TopSellersTable({ sellers, loading }: { sellers: RevenueData['topSeller
                 <span
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium capitalize',
-                    seller.plan === 'studio' && 'bg-violet-500/10 text-violet-400',
-                    seller.plan === 'professional' && 'bg-blue-500/10 text-blue-400',
-                    seller.plan === 'maker' && 'bg-emerald-500/10 text-emerald-400',
+                    seller.plan === 'studio' &&
+                      'bg-violet-500/10 text-violet-400',
+                    seller.plan === 'professional' &&
+                      'bg-blue-500/10 text-blue-400',
+                    seller.plan === 'maker' &&
+                      'bg-emerald-500/10 text-emerald-400',
                     seller.plan === 'free' && 'bg-muted text-muted-foreground',
                   )}
                 >
@@ -288,9 +311,10 @@ export function RevenueContent() {
     return () => clearInterval(interval)
   }, [fetchData])
 
-  const mrrChange = data.previousMrr > 0
-    ? ((data.mrr - data.previousMrr) / data.previousMrr) * 100
-    : 0
+  const mrrChange =
+    data.previousMrr > 0
+      ? ((data.mrr - data.previousMrr) / data.previousMrr) * 100
+      : 0
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -355,11 +379,15 @@ export function RevenueContent() {
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-foreground">MRR Trend</h3>
-              <div className={cn(
-                'flex items-center gap-1 text-sm',
-                mrrChange >= 0 ? 'text-emerald-400' : 'text-red-400'
-              )}>
+              <h3 className="text-lg font-semibold text-foreground">
+                MRR Trend
+              </h3>
+              <div
+                className={cn(
+                  'flex items-center gap-1 text-sm',
+                  mrrChange >= 0 ? 'text-emerald-400' : 'text-red-400',
+                )}
+              >
                 {mrrChange >= 0 ? (
                   <ArrowUpRight className="h-4 w-4" />
                 ) : (
@@ -373,8 +401,12 @@ export function RevenueContent() {
 
           <div className="rounded-xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-foreground">Daily Revenue</h3>
-              <span className="text-sm text-muted-foreground">Last 30 days</span>
+              <h3 className="text-lg font-semibold text-foreground">
+                Daily Revenue
+              </h3>
+              <span className="text-sm text-muted-foreground">
+                Last 30 days
+              </span>
             </div>
             <DailyRevenueChart data={data.revenueTimeSeries} />
           </div>
@@ -389,16 +421,26 @@ export function RevenueContent() {
             <TierPieChart data={data.revenueByTier} />
             <div className="mt-4 space-y-2">
               {data.revenueByTier.map((tier) => (
-                <div key={tier.tier} className="flex items-center justify-between text-sm">
+                <div
+                  key={tier.tier}
+                  className="flex items-center justify-between text-sm"
+                >
                   <div className="flex items-center gap-2">
                     <div
                       className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: TIER_COLORS[tier.tier] || 'hsl(215, 20%, 50%)' }}
+                      style={{
+                        backgroundColor:
+                          TIER_COLORS[tier.tier] || 'hsl(215, 20%, 50%)',
+                      }}
                     />
-                    <span className="capitalize text-muted-foreground">{tier.tier}</span>
+                    <span className="capitalize text-muted-foreground">
+                      {tier.tier}
+                    </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-muted-foreground">{tier.count} tenants</span>
+                    <span className="text-muted-foreground">
+                      {tier.count} tenants
+                    </span>
                     <span className="font-semibold text-foreground tabular-nums">
                       {formatCurrency(tier.revenue)}
                     </span>

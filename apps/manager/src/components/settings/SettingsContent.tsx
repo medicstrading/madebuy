@@ -196,14 +196,22 @@ export function SettingsContent() {
           name: 'Maker',
           price: 15,
           interval: 'month',
-          features: ['Unlimited products', 'Social publishing', 'Custom domain'],
+          features: [
+            'Unlimited products',
+            'Social publishing',
+            'Custom domain',
+          ],
           limits: { products: -1, orders: -1, storage: 1000 },
         },
         {
           name: 'Professional',
           price: 29,
           interval: 'month',
-          features: ['Everything in Maker', 'AI captions', 'Advanced analytics'],
+          features: [
+            'Everything in Maker',
+            'AI captions',
+            'Advanced analytics',
+          ],
           limits: { products: -1, orders: -1, storage: 5000 },
         },
         {
@@ -270,14 +278,20 @@ export function SettingsContent() {
     }
   }
 
-  const updateGeneral = (key: keyof PlatformSettings['general'], value: any) => {
+  const updateGeneral = (
+    key: keyof PlatformSettings['general'],
+    value: any,
+  ) => {
     setSettings((prev) => ({
       ...prev,
       general: { ...prev.general, [key]: value },
     }))
   }
 
-  const updateFeature = (key: keyof PlatformSettings['features'], value: boolean) => {
+  const updateFeature = (
+    key: keyof PlatformSettings['features'],
+    value: boolean,
+  ) => {
     setSettings((prev) => ({
       ...prev,
       features: { ...prev.features, [key]: value },
@@ -471,7 +485,9 @@ export function SettingsContent() {
                   key={tier.name}
                   className="rounded-lg border border-border bg-background p-4"
                 >
-                  <h4 className="font-semibold text-foreground mb-1">{tier.name}</h4>
+                  <h4 className="font-semibold text-foreground mb-1">
+                    {tier.name}
+                  </h4>
                   <p className="text-2xl font-bold text-primary mb-3">
                     ${tier.price}
                     <span className="text-sm font-normal text-muted-foreground">
@@ -490,7 +506,8 @@ export function SettingsContent() {
               ))}
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              To update pricing, modify the Stripe products and update environment variables.
+              To update pricing, modify the Stripe products and update
+              environment variables.
             </p>
           </SettingSection>
 

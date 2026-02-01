@@ -32,6 +32,13 @@ class SimpleCache {
   }
 
   /**
+   * Delete a specific key from the cache
+   */
+  del(key: string): void {
+    this.cache.delete(key)
+  }
+
+  /**
    * Invalidate keys matching a pattern (simple prefix match)
    * Example: invalidate('tenant:') clears all tenant-related cache entries
    */

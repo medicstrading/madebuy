@@ -1,6 +1,8 @@
 import { enquiries, media, orders, pieces } from '@madebuy/db'
 import {
+  AlertCircle,
   ArrowRight,
+  CreditCard,
   Image,
   Mail,
   Package,
@@ -15,6 +17,7 @@ import { redirect } from 'next/navigation'
 import { AnalyticsWidget } from '@/components/dashboard/AnalyticsWidget'
 import { FinanceWidgets } from '@/components/dashboard/FinanceWidgets'
 import { LowStockAlerts } from '@/components/dashboard/LowStockAlerts'
+import { GettingStartedChecklist } from '@/components/onboarding/GettingStartedChecklist'
 import { requireTenant } from '@/lib/session'
 
 const getCachedDashboardStats = unstable_cache(
@@ -58,8 +61,41 @@ export default async function DashboardPage() {
   const stats = await getCachedDashboardStats(tenant.id)
   const greeting = getTimeOfDayGreeting()
 
+  // Check if there's at least one product
+  const hasProducts = stats.pieces > 0
+
   return (
     <div className="space-y-6">
+      {/* Getting Started Checklist */}
+      <div className="animate-fade-in-up delay-0">
+        <GettingStartedChecklist tenant={{ ...tenant, hasProducts }} />
+      </div>
+
+      {/* Stripe Warning Banner */}
+      {!tenant.paymentConfig?.stripe?.connectAccountId && (
+        <div className="animate-fade-in-up delay-0 rounded-xl border-2 border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-yellow-900 mb-1">
+                Payment setup required
+              </h3>
+              <p className="text-sm text-yellow-800 mb-3">
+                You cannot receive payments yet. Connect your Stripe account to
+                start accepting orders.
+              </p>
+              <Link
+                href="/dashboard/connections"
+                className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 transition-colors"
+              >
+                <CreditCard className="h-4 w-4" />
+                Connect Stripe
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Banner - Hero Moment */}
       <div className="animate-fade-in-scale delay-0 relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-10 text-white shadow-2xl">
         {/* Grain texture overlay */}
@@ -167,39 +203,39 @@ export default async function DashboardPage() {
                   : stats.recentOrders
               return recentOrders.length > 0 ? (
                 recentOrders.map((order: any) => (
-                <div
-                  key={order._id?.toString()}
-                  className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
-                    <ShoppingCart className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      Order #{order._id?.toString().slice(-6)}
+                  <div
+                    key={order._id?.toString()}
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
+                      <ShoppingCart className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        Order #{order._id?.toString().slice(-6)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {order.customerEmail || 'No email'}
+                      </p>
+                    </div>
+                    <OrderStatusBadge status={order.status} />
+                    <p className="text-sm font-semibold text-gray-900 tabular-nums">
+                      ${(order.total / 100).toFixed(2)}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {order.customerEmail || 'No email'}
-                    </p>
                   </div>
-                  <OrderStatusBadge status={order.status} />
-                  <p className="text-sm font-semibold text-gray-900 tabular-nums">
-                    ${(order.total / 100).toFixed(2)}
+                ))
+              ) : (
+                <div className="px-6 py-12 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 mb-4">
+                    <ShoppingCart className="h-7 w-7 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-600">
+                    No orders yet
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
+                    Orders will appear here once customers start buying
                   </p>
                 </div>
-              ))
-              ) : (
-              <div className="px-6 py-12 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 mb-4">
-                  <ShoppingCart className="h-7 w-7 text-gray-400" />
-                </div>
-                <p className="text-sm font-medium text-gray-600">
-                  No orders yet
-                </p>
-                <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
-                  Orders will appear here once customers start buying
-                </p>
-              </div>
               )
             })()}
           </div>

@@ -328,14 +328,12 @@ export function DiscountForm({ discount }: DiscountFormProps) {
       {/* Actions */}
       <div className="flex items-center justify-end gap-3">
         <button
-                    
           onClick={() => router.back()}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
-                    
           disabled={loading}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >

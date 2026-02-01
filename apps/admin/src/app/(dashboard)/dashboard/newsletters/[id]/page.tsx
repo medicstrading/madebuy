@@ -1,7 +1,7 @@
 'use client'
 
 import type { Newsletter } from '@madebuy/shared'
-import { sanitizeHtml } from '@madebuy/shared'
+import { sanitizeHtml } from '@/lib/sanitize'
 import { ArrowLeft, Eye, Save, Send } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'

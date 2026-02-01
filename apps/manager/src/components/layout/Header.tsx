@@ -34,11 +34,23 @@ interface HeaderProps {
 
 function NotificationIcon({ type }: { type: Notification['type'] }) {
   const config = {
-    signup: { icon: UserPlus, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    signup: {
+      icon: UserPlus,
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10',
+    },
     order: { icon: ShoppingCart, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    alert: { icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+    alert: {
+      icon: AlertTriangle,
+      color: 'text-yellow-400',
+      bg: 'bg-yellow-500/10',
+    },
     churn: { icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10' },
-    milestone: { icon: Trophy, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+    milestone: {
+      icon: Trophy,
+      color: 'text-violet-400',
+      bg: 'bg-violet-500/10',
+    },
   }
 
   const { icon: Icon, color, bg } = config[type]
@@ -117,7 +129,10 @@ export function Header({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false)
       }
     }
@@ -241,10 +256,14 @@ export function Header({
                       >
                         <NotificationIcon type={notification.type} />
                         <div className="flex-1 min-w-0">
-                          <p className={cn(
-                            'text-sm',
-                            notification.read ? 'text-muted-foreground' : 'text-foreground font-medium',
-                          )}>
+                          <p
+                            className={cn(
+                              'text-sm',
+                              notification.read
+                                ? 'text-muted-foreground'
+                                : 'text-foreground font-medium',
+                            )}
+                          >
                             {notification.title}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">

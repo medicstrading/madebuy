@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { Home, Search } from 'lucide-react'
+import Link from 'next/link'
 
 // Force dynamic rendering to avoid useContext issues during static generation
 // This is a known Next.js App Router issue where /_not-found prerendering fails with null React context

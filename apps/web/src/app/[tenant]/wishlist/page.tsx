@@ -26,8 +26,11 @@ export default async function WishlistPage({
 
   // Get all pieces so we can display wishlist items
   // The actual wishlist filtering happens client-side via the API
-  const rawPiecesResult = await pieces.listPieces(tenant.id, { status: 'available' })
-  const rawPieces = 'data' in rawPiecesResult ? rawPiecesResult.data : rawPiecesResult
+  const rawPiecesResult = await pieces.listPieces(tenant.id, {
+    status: 'available',
+  })
+  const rawPieces =
+    'data' in rawPiecesResult ? rawPiecesResult.data : rawPiecesResult
   const allPieces = await populatePiecesWithMedia(rawPieces)
 
   return (

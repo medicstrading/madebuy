@@ -196,7 +196,6 @@ export function VariantQuickEdit({
             {selectedVariants.length !== 1 ? 's' : ''}
           </h2>
           <button
-                        
             onClick={onClose}
             className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             aria-label="Close"
@@ -234,7 +233,6 @@ export function VariantQuickEdit({
             <div className="space-y-4">
               <div className="flex rounded-lg border border-gray-200 p-1">
                 <button
-                                    
                   onClick={() => setPriceMode('set')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
                     priceMode === 'set'
@@ -245,7 +243,6 @@ export function VariantQuickEdit({
                   Set Price
                 </button>
                 <button
-                                    
                   onClick={() => setPriceMode('adjust')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
                     priceMode === 'adjust'
@@ -260,7 +257,6 @@ export function VariantQuickEdit({
               {priceMode === 'adjust' && (
                 <div className="flex rounded-lg border border-gray-200 p-1">
                   <button
-                                        
                     onClick={() => setPriceAdjustMode('add')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       priceAdjustMode === 'add'
@@ -272,7 +268,6 @@ export function VariantQuickEdit({
                     Add
                   </button>
                   <button
-                                        
                     onClick={() => setPriceAdjustMode('subtract')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       priceAdjustMode === 'subtract'
@@ -284,7 +279,6 @@ export function VariantQuickEdit({
                     Subtract
                   </button>
                   <button
-                                        
                     onClick={() => setPriceAdjustMode('percentage')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       priceAdjustMode === 'percentage'
@@ -334,7 +328,6 @@ export function VariantQuickEdit({
             <div className="space-y-4">
               <div className="flex rounded-lg border border-gray-200 p-1">
                 <button
-                                    
                   onClick={() => setStockMode('set')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
                     stockMode === 'set'
@@ -345,7 +338,6 @@ export function VariantQuickEdit({
                   Set Stock
                 </button>
                 <button
-                                    
                   onClick={() => setStockMode('adjust')}
                   className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
                     stockMode === 'adjust'
@@ -360,7 +352,6 @@ export function VariantQuickEdit({
               {stockMode === 'adjust' && (
                 <div className="flex rounded-lg border border-gray-200 p-1">
                   <button
-                                        
                     onClick={() => setStockAdjustMode('add')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       stockAdjustMode === 'add'
@@ -372,7 +363,6 @@ export function VariantQuickEdit({
                     Add Stock
                   </button>
                   <button
-                                        
                     onClick={() => setStockAdjustMode('subtract')}
                     className={`flex flex-1 items-center justify-center gap-1 rounded-md py-2 text-sm font-medium transition-colors ${
                       stockAdjustMode === 'subtract'
@@ -413,7 +403,6 @@ export function VariantQuickEdit({
             <div className="space-y-4">
               <div className="flex rounded-lg border border-gray-200 p-1">
                 <button
-                                    
                   onClick={() => setAvailabilityValue(true)}
                   className={`flex-1 rounded-md py-3 text-sm font-medium transition-colors ${
                     availabilityValue
@@ -424,7 +413,6 @@ export function VariantQuickEdit({
                   Available
                 </button>
                 <button
-                                    
                   onClick={() => setAvailabilityValue(false)}
                   className={`flex-1 rounded-md py-3 text-sm font-medium transition-colors ${
                     !availabilityValue
@@ -533,14 +521,12 @@ export function VariantQuickEdit({
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-4 py-3">
           <button
-                        
             onClick={onClose}
             className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
-                        
             onClick={handleApply}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >

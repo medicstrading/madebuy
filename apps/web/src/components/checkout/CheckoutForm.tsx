@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useCart } from '@/contexts/CartContext'
 import {
@@ -12,6 +13,7 @@ import {
   type ShippingQuote,
 } from '@/lib/checkout/shipping'
 import { formatCurrency } from '@/lib/utils'
+import { PayPalButton } from './PayPalButton'
 import { ShippingSelector } from './ShippingSelector'
 
 // Update abandoned cart with customer email
@@ -39,10 +41,14 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
+  const router = useRouter()
   const { items, totalAmount, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<'shipping' | 'review'>('shipping')
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>(
+    'stripe',
+  )
 
   // Shipping state
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(
@@ -126,6 +132,12 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // If PayPal is selected, don't submit the form (PayPal button handles it)
+    if (paymentMethod === 'paypal') {
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -189,6 +201,16 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
       setError(err instanceof Error ? err.message : 'An error occurred')
       setLoading(false)
     }
+  }
+
+  const handlePayPalSuccess = (orderId: string, orderNumber: string) => {
+    // Clear cart and redirect to success page
+    clearCart()
+    router.push(`/${tenant}/checkout/success?order=${orderNumber}`)
+  }
+
+  const handlePayPalError = (errorMsg: string) => {
+    setError(errorMsg)
   }
 
   if (items.length === 0) {
@@ -505,44 +527,132 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-lg bg-blue-600 px-6 py-3 text-lg font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="mr-2 h-5 w-5 animate-spin"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Processing...
-                    </span>
-                  ) : (
-                    'Proceed to Payment'
-                  )}
-                </button>
+                {/* Payment Method Selection */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Choose Payment Method
+                  </h3>
 
-                <p className="text-center text-xs text-gray-500">
-                  You&apos;ll be redirected to our secure payment partner to
-                  complete your purchase.
-                </p>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('stripe')}
+                      className={`flex-1 rounded-lg border-2 p-4 text-center transition-colors ${
+                        paymentMethod === 'stripe'
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-medium text-gray-900">
+                        Credit Card
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        Powered by Stripe
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('paypal')}
+                      className={`flex-1 rounded-lg border-2 p-4 text-center transition-colors ${
+                        paymentMethod === 'paypal'
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-medium text-gray-900">PayPal</div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        Pay with PayPal
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Payment Buttons */}
+                {paymentMethod === 'stripe' ? (
+                  <>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-lg bg-blue-600 px-6 py-3 text-lg font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center">
+                          <svg
+                            className="mr-2 h-5 w-5 animate-spin"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        'Pay with Card'
+                      )}
+                    </button>
+
+                    <p className="text-center text-xs text-gray-500">
+                      You&apos;ll be redirected to Stripe to complete your
+                      purchase securely.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <PayPalButton
+                      tenantId={tenantId}
+                      items={items.map((item) => ({
+                        pieceId: item.product.id,
+                        quantity: item.quantity,
+                        price:
+                          (item.product.price || 0) +
+                          (item.personalizationTotal || 0),
+                        basePrice: item.product.price,
+                        currency: item.product.currency,
+                        variantId: item.product.selectedVariantId,
+                        personalization: item.personalization,
+                        personalizationTotal: item.personalizationTotal,
+                      }))}
+                      customerInfo={{
+                        email: shippingAddress.email || '',
+                        name: shippingAddress.name || '',
+                        phone: shippingAddress.phone,
+                      }}
+                      shippingAddress={
+                        needsShipping
+                          ? {
+                              line1: shippingAddress.line1 || '',
+                              line2: shippingAddress.line2,
+                              city: shippingAddress.suburb || '',
+                              state: shippingAddress.state || '',
+                              postalCode: shippingAddress.postcode || '',
+                              country: shippingAddress.country || '',
+                            }
+                          : undefined
+                      }
+                      notes={notes}
+                      onSuccess={handlePayPalSuccess}
+                      onError={handlePayPalError}
+                      disabled={loading}
+                    />
+
+                    <p className="text-center text-xs text-gray-500">
+                      Click the PayPal button above to complete your purchase.
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -184,7 +184,6 @@ export function CompleteStep({
             label="Share more"
           />
           <button
-                        
             onClick={onAddAnother}
             className="flex flex-col items-center gap-2 rounded-xl bg-white border-2 border-dashed border-gray-300 p-4 text-gray-600 hover:border-purple-400 hover:text-purple-600 transition-colors"
           >
@@ -203,7 +202,6 @@ export function CompleteStep({
           View Inventory
         </Link>
         <button
-                    
           onClick={onAddAnother}
           className="rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md transition-all"
         >

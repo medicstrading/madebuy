@@ -2,9 +2,14 @@ import { auditLog, passwordResets, tenants } from '@madebuy/db'
 import { ADMIN_PASSWORD_REQUIREMENTS, validatePassword } from '@madebuy/shared'
 import bcrypt from 'bcryptjs'
 import { type NextRequest, NextResponse } from 'next/server'
+import { rateLimit, rateLimiters } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 password reset attempts per 15 minutes
+    const rateLimitResponse = await rateLimit(request, rateLimiters.auth)
+    if (rateLimitResponse) return rateLimitResponse
+
     const body = await request.json()
     const { token, password } = body
 

@@ -330,7 +330,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
       <div className="grid gap-5 md:grid-cols-2">
         {/* Option 1: MadeBuy Subdomain */}
         <button
-                    
           onClick={() => setSelectedChoice('subdomain')}
           className={`group relative rounded-2xl border-2 p-6 text-left transition-all duration-200 ${
             selectedChoice === 'subdomain'
@@ -451,7 +450,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
         ) : (
           /* Unlocked state */
           <button
-                        
             onClick={() => setSelectedChoice('custom')}
             className={`group relative rounded-2xl border-2 p-6 text-left transition-all duration-200 ${
               selectedChoice === 'custom'
@@ -710,7 +708,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
                   </div>
 
                   <button
-                                        
                     disabled={isSaving || !newDomain.trim()}
                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
@@ -755,7 +752,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
                 {/* Cloudflare integration */}
                 <div className="border-t border-gray-200 pt-6">
                   <button
-                                        
                     onClick={() =>
                       setShowCloudflareSection(!showCloudflareSection)
                     }
@@ -816,7 +812,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
                               </div>
 
                               <button
-                                                                
                                 onClick={handleAutoConfigureDns}
                                 disabled={!selectedZone || isConfiguring}
                                 className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm text-white font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors"
@@ -836,7 +831,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
                           )}
 
                           <button
-                                                        
                             onClick={handleDisconnectCloudflare}
                             disabled={cloudflareLoading}
                             className="text-xs text-gray-500 hover:text-red-600 transition-colors"
@@ -885,7 +879,6 @@ export function DomainTab({ tenant }: DomainTabProps) {
                               </div>
 
                               <button
-                                                                
                                 disabled={
                                   cloudflareLoading || !cloudflareToken.trim()
                                 }

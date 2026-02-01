@@ -219,7 +219,6 @@ export function VariantMatrix({
     className?: string
   }) => (
     <button
-            
       onClick={() => handleSort(field)}
       className={`flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 ${className}`}
     >
@@ -295,7 +294,6 @@ export function VariantMatrix({
                 {selectedIds.size} selected
               </span>
               <button
-                                
                 onClick={handleDeleteSelected}
                 disabled={disabled}
                 className="rounded p-1 text-blue-700 hover:bg-blue-100"
@@ -312,7 +310,6 @@ export function VariantMatrix({
             filters.priceRange.min !== null ||
             filters.priceRange.max !== null) && (
             <button
-                            
               onClick={handleClearFilters}
               className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
             >
@@ -410,7 +407,6 @@ export function VariantMatrix({
           </div>
           <div className="flex items-center gap-1">
             <button
-                            
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -420,7 +416,6 @@ export function VariantMatrix({
               <ChevronLeft className="-ml-2 h-4 w-4" />
             </button>
             <button
-                            
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -461,7 +456,6 @@ export function VariantMatrix({
             </div>
 
             <button
-                            
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -470,7 +464,6 @@ export function VariantMatrix({
               <ChevronRight className="h-4 w-4" />
             </button>
             <button
-                            
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
               className="rounded p-1.5 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"

@@ -64,7 +64,12 @@ export const NotificationPreferencesSchema = z.object({
 })
 
 // Subscription plan
-export const SubscriptionPlanSchema = z.enum(['free', 'maker', 'pro', 'business'])
+export const SubscriptionPlanSchema = z.enum([
+  'free',
+  'maker',
+  'pro',
+  'business',
+])
 
 // Feature flags
 export const FeatureFlagsSchema = z.object({
@@ -139,14 +144,17 @@ export const UpdateTaxSettingsSchema = z.object({
 })
 
 // Notification settings update
-export const UpdateNotificationSettingsSchema = NotificationPreferencesSchema.partial()
+export const UpdateNotificationSettingsSchema =
+  NotificationPreferencesSchema.partial()
 
 // Inferred types
 export type MakerType = z.infer<typeof MakerTypeSchema>
 export type RegionalSettings = z.infer<typeof RegionalSettingsSchema>
 export type SocialLinks = z.infer<typeof SocialLinksSchema>
 export type WebsiteDesign = z.infer<typeof WebsiteDesignSchema>
-export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>
+export type NotificationPreferences = z.infer<
+  typeof NotificationPreferencesSchema
+>
 export type SubscriptionPlan = z.infer<typeof SubscriptionPlanSchema>
 export type FeatureFlags = z.infer<typeof FeatureFlagsSchema>
 export type ShippingMethod = z.infer<typeof ShippingMethodSchema>
@@ -174,7 +182,9 @@ export function safeValidateUpdateTenant(data: unknown) {
   return UpdateTenantSchema.safeParse(data)
 }
 
-export function validateUpdateTaxSettings(data: unknown): UpdateTaxSettingsInput {
+export function validateUpdateTaxSettings(
+  data: unknown,
+): UpdateTaxSettingsInput {
   return UpdateTaxSettingsSchema.parse(data)
 }
 

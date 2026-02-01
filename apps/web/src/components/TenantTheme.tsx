@@ -2,8 +2,8 @@ import {
   getDefaultWebsiteDesign,
   getGoogleFontsUrl,
   getTypographyConfig,
-} from '@madebuy/shared/src/constants/typography'
-import type { Tenant } from '@madebuy/shared/src/types/tenant'
+  type Tenant,
+} from '@madebuy/shared'
 
 interface TenantThemeProps {
   tenant: Tenant

@@ -83,10 +83,7 @@ describe('Discounts Repository', () => {
     })
 
     it('should find discount by code (case-insensitive)', async () => {
-      const discount = await discounts.getDiscountCodeByCode(
-        tenantId,
-        'save10',
-      )
+      const discount = await discounts.getDiscountCodeByCode(tenantId, 'save10')
 
       expect(discount?.code).toBe('SAVE10')
     })
@@ -524,7 +521,9 @@ describe('Discounts Repository', () => {
 
       const usageData = getMockCollectionData('discount_usage')
       const usage = usageData.find(
-        (u) => u.discountId === 'discount-1' && u.customerEmail === 'test@example.com',
+        (u) =>
+          u.discountId === 'discount-1' &&
+          u.customerEmail === 'test@example.com',
       )
 
       expect(usage.usageCount).toBe(3)
@@ -603,7 +602,10 @@ describe('Discounts Repository', () => {
     })
 
     it('should return false for non-existent discount', async () => {
-      const result = await discounts.deleteDiscountCode(tenantId, 'non-existent')
+      const result = await discounts.deleteDiscountCode(
+        tenantId,
+        'non-existent',
+      )
 
       expect(result).toBe(false)
     })

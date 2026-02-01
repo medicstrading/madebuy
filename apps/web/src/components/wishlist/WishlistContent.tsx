@@ -53,7 +53,7 @@ export function WishlistContent({
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Your wishlist is empty
         </h2>
-        <p className="text-gray-500 mb-8">Save items you love for later</p>
+        <p className="text-gray-600 mb-8">Save items you love for later</p>
         <Link
           href={`/${tenant}`}
           className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 font-medium text-white hover:bg-gray-800 transition-colors"

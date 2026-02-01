@@ -1,15 +1,13 @@
 'use client'
 
-import type {
-  PageSection,
-  PageSectionType,
-  PageType,
-  WebsitePage,
-} from '@madebuy/shared/src/types/template'
 import {
   createCustomPage,
+  type PageSection,
+  type PageSectionType,
+  type PageType,
   SECTION_TYPE_LABELS,
-} from '@madebuy/shared/src/types/template'
+  type WebsitePage,
+} from '@madebuy/shared'
 import {
   ArrowRight,
   BookOpen,

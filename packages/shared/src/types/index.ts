@@ -7,6 +7,15 @@
  * See: archive/packages/shared/src/types/
  */
 
+export type {
+  CelebrationCheckParams,
+  Milestone,
+} from '../lib/milestones'
+export {
+  getMilestone,
+  getPendingCelebrations,
+  MILESTONES,
+} from '../lib/milestones'
 // Platform Admin Types
 export type {
   Admin,
@@ -17,32 +26,6 @@ export type {
   UpdateAdminInput,
 } from './admin'
 export * from './admin'
-
-// Platform Analytics Types
-export type {
-  CollectionStats,
-  ComponentHealth,
-  DashboardAlert,
-  DashboardSummary,
-  ErrorStats,
-  FeatureAdoption,
-  MarketplaceStats,
-  MongoStats,
-  MRRBreakdown,
-  MRRDataPoint,
-  OrdersDataPoint,
-  RevenueByTier,
-  RevenueDataPoint,
-  SignupDataPoint,
-  SystemHealth,
-  TenantCounts,
-  TenantHealthScore,
-  TenantsByPlan,
-  TopProduct,
-  TopSeller,
-  WebhookStats,
-} from './platformAnalytics'
-export * from './platformAnalytics'
 
 export type {
   BlogConfig,
@@ -217,6 +200,14 @@ export {
   VALID_VIDEO_TYPES,
   VIDEO_EXTENSIONS,
 } from './media'
+export type {
+  CreateMessageInput,
+  Message,
+  MessageAttachment,
+  MessageThread,
+  OrderAccessToken,
+} from './message'
+export * from './message'
 export * from './newsletter'
 export type {
   CreateOrderInput,
@@ -278,6 +269,31 @@ export type {
   VariationOption,
 } from './piece'
 export * from './piece'
+// Platform Analytics Types
+export type {
+  CollectionStats,
+  ComponentHealth,
+  DashboardAlert,
+  DashboardSummary,
+  ErrorStats,
+  FeatureAdoption,
+  MarketplaceStats,
+  MongoStats,
+  MRRBreakdown,
+  MRRDataPoint,
+  OrdersDataPoint,
+  RevenueByTier,
+  RevenueDataPoint,
+  SignupDataPoint,
+  SystemHealth,
+  TenantCounts,
+  TenantHealthScore,
+  TenantsByPlan,
+  TopProduct,
+  TopSeller,
+  WebhookStats,
+} from './platformAnalytics'
+export * from './platformAnalytics'
 export type {
   CartProduct,
   CreateProductInput,
@@ -424,6 +440,21 @@ export {
   parseQuarter,
 } from './transaction'
 export * from './wishlist'
+export type {
+  BookingFilters,
+  CreateBookingInput,
+  CreateSlotInput,
+  CreateWorkshopInput,
+  UpdateBookingInput,
+  UpdateSlotInput,
+  UpdateWorkshopInput,
+  Workshop,
+  WorkshopBooking,
+  WorkshopFilters,
+  WorkshopListOptions,
+  WorkshopSlot,
+} from './workshop'
+export * from './workshop'
 
 // =============================================================================
 // ARCHIVED TYPES (removed 2026-01-02)

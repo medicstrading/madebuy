@@ -196,7 +196,6 @@ export function SocialStep({
         {/* Actions */}
         <div className="flex items-center justify-between pt-4">
           <button
-                        
             onClick={onBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
@@ -205,7 +204,6 @@ export function SocialStep({
           </button>
 
           <button
-                        
             onClick={onSkip}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md transition-all"
           >
@@ -282,7 +280,6 @@ export function SocialStep({
           <div className="flex items-center gap-2">
             {hasAiCaptions ? (
               <button
-                                
                 onClick={generateCaption}
                 disabled={generatingCaption || selectedMediaIds.length === 0}
                 className="flex items-center gap-1.5 rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -402,7 +399,6 @@ export function SocialStep({
       {/* Actions */}
       <div className="flex items-center justify-between pt-4">
         <button
-                    
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -412,14 +408,12 @@ export function SocialStep({
 
         <div className="flex items-center gap-3">
           <button
-                        
             onClick={onSkip}
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             Skip social
           </button>
           <button
-                        
             onClick={handleSubmit}
             disabled={loading}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"

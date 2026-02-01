@@ -62,15 +62,19 @@ export async function PATCH(request: NextRequest) {
     // Sanitize text fields
     const sanitizedUpdates = {
       ...updates,
-      businessName: updates.businessName ? sanitizeInput(updates.businessName) : undefined,
+      businessName: updates.businessName
+        ? sanitizeInput(updates.businessName)
+        : undefined,
       tagline: updates.tagline ? sanitizeInput(updates.tagline) : undefined,
-      description: updates.description ? sanitizeInput(updates.description) : undefined,
+      description: updates.description
+        ? sanitizeInput(updates.description)
+        : undefined,
       location: updates.location ? sanitizeInput(updates.location) : undefined,
     }
 
     // Remove undefined fields
     const cleanedUpdates = Object.fromEntries(
-      Object.entries(sanitizedUpdates).filter(([_, v]) => v !== undefined)
+      Object.entries(sanitizedUpdates).filter(([_, v]) => v !== undefined),
     )
 
     await tenants.updateTenant(user.id, cleanedUpdates)

@@ -95,7 +95,10 @@ export function createRateLimiter(config: RateLimitConfig) {
         try {
           return await checkRedis(redis, identifier, limit, interval)
         } catch (error) {
-          console.error('[RateLimit] Redis check failed, falling back to in-memory:', error)
+          console.error(
+            '[RateLimit] Redis check failed, falling back to in-memory:',
+            error,
+          )
           return checkInMemory(identifier, limit, interval)
         }
       }

@@ -29,10 +29,7 @@ export const CurrencyCodeSchema = z
   .default('AUD')
 
 // Country code (ISO 3166-1 alpha-2)
-export const CountryCodeSchema = z
-  .string()
-  .length(2)
-  .toUpperCase()
+export const CountryCodeSchema = z.string().length(2).toUpperCase()
 
 // Email validation
 export const EmailSchema = z.string().email('Invalid email address').max(255)

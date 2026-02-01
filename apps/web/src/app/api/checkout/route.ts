@@ -2,14 +2,14 @@ import { media, pieces, stockReservations, tenants } from '@madebuy/db'
 import type { ProductVariant, ShippingMethod } from '@madebuy/shared'
 import {
   createLogger,
-  safeValidateCheckoutRequest,
-  sanitizeInput,
-  isMadeBuyError,
-  toErrorResponse,
-  NotFoundError,
-  ValidationError,
   ExternalServiceError,
   InsufficientStockError,
+  isMadeBuyError,
+  NotFoundError,
+  safeValidateCheckoutRequest,
+  sanitizeInput,
+  toErrorResponse,
+  ValidationError,
 } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
@@ -105,13 +105,24 @@ export async function POST(request: NextRequest) {
       if (!piece) {
         // Release any reservations made so far
         await stockReservations.cancelReservation(tempSessionId)
-        log.warn({ pieceId: item.pieceId, tenantId }, 'Piece not found during checkout')
+        log.warn(
+          { pieceId: item.pieceId, tenantId },
+          'Piece not found during checkout',
+        )
         throw new NotFoundError('Piece', item.pieceId)
       }
 
       if (piece.status !== 'available') {
         await stockReservations.cancelReservation(tempSessionId)
-        log.warn({ pieceId: item.pieceId, pieceName: piece.name, status: piece.status, tenantId }, 'Piece not available during checkout')
+        log.warn(
+          {
+            pieceId: item.pieceId,
+            pieceName: piece.name,
+            status: piece.status,
+            tenantId,
+          },
+          'Piece not available during checkout',
+        )
         throw new ValidationError(`${piece.name} is no longer available`)
       }
 
@@ -125,7 +136,9 @@ export async function POST(request: NextRequest) {
         }
         if (!selectedVariant.isAvailable) {
           await stockReservations.cancelReservation(tempSessionId)
-          throw new ValidationError(`Selected variant for ${piece.name} is not available`)
+          throw new ValidationError(
+            `Selected variant for ${piece.name} is not available`,
+          )
         }
       } else if (piece.hasVariants && !item.variantId) {
         // Variant product but no variant selected
@@ -146,9 +159,24 @@ export async function POST(request: NextRequest) {
       if (!reservation) {
         // Release any reservations made so far
         await stockReservations.cancelReservation(tempSessionId)
-        log.warn({ pieceId: item.pieceId, pieceName: piece.name, variantId: item.variantId, quantity: item.quantity, tenantId }, 'Insufficient stock during checkout')
-        const variantLabel = selectedVariant ? ` (${formatVariantOptions(selectedVariant.options)})` : ''
-        throw new InsufficientStockError(`${piece.name}${variantLabel}`, item.quantity, 0)
+        log.warn(
+          {
+            pieceId: item.pieceId,
+            pieceName: piece.name,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            tenantId,
+          },
+          'Insufficient stock during checkout',
+        )
+        const variantLabel = selectedVariant
+          ? ` (${formatVariantOptions(selectedVariant.options)})`
+          : ''
+        throw new InsufficientStockError(
+          `${piece.name}${variantLabel}`,
+          item.quantity,
+          0,
+        )
       }
 
       reservedItems.push({
@@ -272,8 +300,14 @@ export async function POST(request: NextRequest) {
 
     if (!connectAccountId || connectStatus !== 'active' || !chargesEnabled) {
       await stockReservations.cancelReservation(tempSessionId)
-      log.warn({ tenantId, connectAccountId, connectStatus, chargesEnabled }, 'Stripe Connect not ready for payments')
-      throw new ExternalServiceError('Stripe Connect', 'Store not ready for payments')
+      log.warn(
+        { tenantId, connectAccountId, connectStatus, chargesEnabled },
+        'Stripe Connect not ready for payments',
+      )
+      throw new ExternalServiceError(
+        'Stripe Connect',
+        'Store not ready for payments',
+      )
     }
 
     // Marketplace mode with destination charges
@@ -351,7 +385,9 @@ export async function POST(request: NextRequest) {
       metadata: {
         tenantId,
         customerName: sanitizeInput(customerInfo.name),
-        customerPhone: customerInfo.phone ? sanitizeInput(customerInfo.phone) : '',
+        customerPhone: customerInfo.phone
+          ? sanitizeInput(customerInfo.phone)
+          : '',
         shippingAddressLine1: shippingAddress?.line1
           ? sanitizeInput(shippingAddress.line1)
           : '',
@@ -384,16 +420,19 @@ export async function POST(request: NextRequest) {
         connectAccountId,
         itemCount: items.length,
         customerEmail: customerInfo.email,
-        reservationSessionId: tempSessionId
+        reservationSessionId: tempSessionId,
       },
-      'Checkout session created'
+      'Checkout session created',
     )
 
     return NextResponse.json({ url: session.url, sessionId: session.id })
   } catch (error) {
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+      return NextResponse.json(
+        { error: msg, code, details },
+        { status: statusCode },
+      )
     }
 
     // Log and return generic error for unexpected errors

@@ -6,7 +6,12 @@ import { EmailSchema, ObjectIdSchema, ShortTextSchema } from './common.schema'
  */
 
 // Enquiry status enum
-export const EnquiryStatusSchema = z.enum(['new', 'replied', 'resolved', 'archived'])
+export const EnquiryStatusSchema = z.enum([
+  'new',
+  'replied',
+  'resolved',
+  'archived',
+])
 
 // Enquiry source
 export const EnquirySourceSchema = z.enum(['shop', 'custom_domain'])

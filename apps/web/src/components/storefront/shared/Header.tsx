@@ -124,11 +124,14 @@ export function Header({
         <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between">
           {/* Mobile menu trigger */}
           <button
+            type="button"
             className={`lg:hidden p-1 ${isTransparent ? 'text-white' : 'text-gray-700'}`}
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open mobile menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-6 h-6" aria-hidden="true" />
           </button>
 
           {/* Logo and business name */}
@@ -279,6 +282,9 @@ export function Header({
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
         }`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-menu-title"
       >
         {/* Backdrop */}
         <div
@@ -286,10 +292,12 @@ export function Header({
             mobileMenuOpen ? 'opacity-50' : 'opacity-0'
           }`}
           onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
         />
 
         {/* Drawer */}
         <div
+          id="mobile-menu"
           className={`fixed top-0 left-0 bottom-0 w-[280px] bg-white shadow-xl transform transition-transform duration-300 ease-out ${
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
@@ -297,15 +305,19 @@ export function Header({
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <span className="text-xl font-serif text-gray-900">
+            <span
+              id="mobile-menu-title"
+              className="text-xl font-serif text-gray-900"
+            >
               {businessName}
             </span>
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(false)}
               className="p-1 text-gray-500"
               aria-label="Close menu"
             >
-              <X className="w-6 h-6" />
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
 

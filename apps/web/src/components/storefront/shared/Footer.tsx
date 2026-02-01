@@ -93,7 +93,7 @@ export function Footer({
                   <>
                     <li>
                       <Link
-                        href={`/${tenantSlug}/shop`}
+                        href={`/${tenantSlug}`}
                         className="hover:text-white transition-colors"
                       >
                         Shop

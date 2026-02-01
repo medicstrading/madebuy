@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { CategoryManager } from '@/components/settings/CategoryManager'
 import { MakerTypeSelector } from '@/components/settings/MakerTypeSelector'
+import { HelpButton } from '@/components/ui/HelpButton'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -150,8 +151,14 @@ export default function SettingsPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+            <HelpButton
+              href="/dashboard/help#business-profile"
+              tooltip="Get help with settings"
+            />
+          </div>
           <p className="mt-1 text-gray-500">
             Configure your store type and manage categories
           </p>

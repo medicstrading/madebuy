@@ -21,6 +21,7 @@ import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
 
 const logger = createLogger({ service: 'customers' })
+
 import { ObjectId } from 'mongodb'
 import { getDatabase } from '../client'
 
@@ -170,7 +171,9 @@ export async function listCustomers(
   tenantId: string,
   filters?: CustomerFilters,
   pagination?: { page?: number; limit?: number } | PaginationParams,
-): Promise<{ customers: Customer[]; total: number } | PaginatedResult<Customer>> {
+): Promise<
+  { customers: Customer[]; total: number } | PaginatedResult<Customer>
+> {
   const db = await getDatabase()
   const query: Record<string, unknown> = { tenantId }
 
@@ -209,7 +212,9 @@ export async function listCustomers(
     if (pagination.cursor) {
       try {
         query._id = {
-          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(pagination.cursor),
+          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(
+            pagination.cursor,
+          ),
         }
       } catch (e) {
         // Invalid cursor - ignore and start from beginning
@@ -220,7 +225,10 @@ export async function listCustomers(
     const items = (await db
       .collection('customers')
       .find(query)
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: sortOrder === 'asc' ? 1 : -1 })
+      .sort({
+        [sortBy]: sortOrder === 'asc' ? 1 : -1,
+        _id: sortOrder === 'asc' ? 1 : -1,
+      })
       .limit(limit + 1)
       .toArray()) as unknown as Customer[]
 
@@ -229,7 +237,10 @@ export async function listCustomers(
       items.pop() // Remove the extra item
     }
 
-    const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1] as any)._id.toString() : null
+    const nextCursor =
+      hasMore && items.length > 0
+        ? (items[items.length - 1] as any)._id.toString()
+        : null
 
     return {
       data: items,
@@ -808,7 +819,12 @@ export async function authenticateCustomer(
       { tenantId, id: customer.id },
       { $set: { lastLoginAt: new Date() } },
     )
-    .catch((e) => logger.error({ e, customerId: customer.id }, 'Failed to update lastLoginAt'))
+    .catch((e) =>
+      logger.error(
+        { e, customerId: customer.id },
+        'Failed to update lastLoginAt',
+      ),
+    )
 
   return { success: true, customer: customer as unknown as Customer }
 }

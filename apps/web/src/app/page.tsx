@@ -21,8 +21,8 @@ import {
   Video,
   Youtube,
 } from 'lucide-react'
-import Link from 'next/link'
 import dynamicImport from 'next/dynamic'
+import Link from 'next/link'
 
 // Opt out of static generation for this page
 export const dynamic = 'force-dynamic'
@@ -30,7 +30,9 @@ export const dynamic = 'force-dynamic'
 // Dynamically import interactive pricing section to avoid SSR context issues
 const PricingSection = dynamicImport(
   () =>
-    import('@/components/landing/PricingToggle').then((mod) => mod.PricingSection),
+    import('@/components/landing/PricingToggle').then(
+      (mod) => mod.PricingSection,
+    ),
   {
     ssr: false,
     loading: () => (
@@ -44,7 +46,7 @@ const PricingSection = dynamicImport(
         </div>
       </section>
     ),
-  }
+  },
 )
 
 // Platform icons as SVG components for better quality

@@ -1,5 +1,4 @@
 import { pieces } from '@madebuy/db'
-import type { Plan, Tenant, TenantFeatures } from '@madebuy/shared'
 import {
   canAddMoreMedia,
   canAddMorePieces,
@@ -8,7 +7,10 @@ import {
   getUpgradeMessage,
   needsUpgradeFor,
   PLAN_NAMES,
-} from '@madebuy/shared/src/lib/subscription'
+  type Plan,
+  type Tenant,
+  type TenantFeatures,
+} from '@madebuy/shared'
 
 /**
  * Subscription Enforcement

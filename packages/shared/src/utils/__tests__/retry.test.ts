@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { withRetry, generateIdempotencyKey } from '../retry'
+import { describe, expect, it, vi } from 'vitest'
+import { generateIdempotencyKey, withRetry } from '../retry'
 
 describe('withRetry', () => {
   it('returns result on first success', async () => {
@@ -10,7 +10,8 @@ describe('withRetry', () => {
   })
 
   it('retries on failure and eventually succeeds', async () => {
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error('fail 1'))
       .mockRejectedValueOnce(new Error('fail 2'))
       .mockResolvedValue('success')
@@ -24,7 +25,7 @@ describe('withRetry', () => {
     const fn = vi.fn().mockRejectedValue(new Error('always fails'))
 
     await expect(
-      withRetry(fn, { maxRetries: 2, baseDelayMs: 10 })
+      withRetry(fn, { maxRetries: 2, baseDelayMs: 10 }),
     ).rejects.toThrow('always fails')
     expect(fn).toHaveBeenCalledTimes(3) // initial + 2 retries
   })
@@ -32,9 +33,9 @@ describe('withRetry', () => {
   it('respects shouldRetry option', async () => {
     const fn = vi.fn().mockRejectedValue(new Error('non-retryable'))
 
-    await expect(
-      withRetry(fn, { shouldRetry: () => false })
-    ).rejects.toThrow('non-retryable')
+    await expect(withRetry(fn, { shouldRetry: () => false })).rejects.toThrow(
+      'non-retryable',
+    )
     expect(fn).toHaveBeenCalledTimes(1) // no retries
   })
 
@@ -43,7 +44,7 @@ describe('withRetry', () => {
     const start = Date.now()
 
     await expect(
-      withRetry(fn, { maxRetries: 2, baseDelayMs: 100, maxDelayMs: 150 })
+      withRetry(fn, { maxRetries: 2, baseDelayMs: 100, maxDelayMs: 150 }),
     ).rejects.toThrow('fail')
 
     const elapsed = Date.now() - start

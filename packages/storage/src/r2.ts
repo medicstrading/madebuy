@@ -115,7 +115,7 @@ export async function uploadToR2(
   if (buffer.length > maxSize) {
     throw new Error(
       `File too large. Maximum size for ${contentType} is ${formatFileSize(maxSize)}. ` +
-      `Your file is ${formatFileSize(buffer.length)}.`,
+        `Your file is ${formatFileSize(buffer.length)}.`,
     )
   }
 
@@ -235,7 +235,7 @@ export async function putToR2(
   if (buffer.length > maxSize) {
     throw new Error(
       `File too large. Maximum size for ${contentType} is ${formatFileSize(maxSize)}. ` +
-      `Your file is ${formatFileSize(buffer.length)}.`,
+        `Your file is ${formatFileSize(buffer.length)}.`,
     )
   }
 

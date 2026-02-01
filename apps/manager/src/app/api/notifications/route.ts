@@ -31,7 +31,9 @@ export async function GET() {
 
     // Check for at-risk tenants
     const atRiskTenants = healthScores.filter((t) => t.riskLevel === 'at-risk')
-    const churningTenants = healthScores.filter((t) => t.riskLevel === 'churning')
+    const churningTenants = healthScores.filter(
+      (t) => t.riskLevel === 'churning',
+    )
 
     if (churningTenants.length > 0) {
       notifications.push({
@@ -40,7 +42,9 @@ export async function GET() {
         title: 'Churn Risk Alert',
         message: `${churningTenants.length} tenant(s) showing signs of churning`,
         timestamp: now.toISOString(),
-        read: readNotifications.has(`churn-alert-${now.toISOString().split('T')[0]}`),
+        read: readNotifications.has(
+          `churn-alert-${now.toISOString().split('T')[0]}`,
+        ),
         data: { count: churningTenants.length },
       })
     }
@@ -52,7 +56,9 @@ export async function GET() {
         title: 'At-Risk Tenants',
         message: `${atRiskTenants.length} tenant(s) need attention`,
         timestamp: now.toISOString(),
-        read: readNotifications.has(`risk-alert-${now.toISOString().split('T')[0]}`),
+        read: readNotifications.has(
+          `risk-alert-${now.toISOString().split('T')[0]}`,
+        ),
         data: { count: atRiskTenants.length },
       })
     }
@@ -83,7 +89,10 @@ export async function GET() {
 
     // Combine and sort by timestamp
     const allNotifications = [...notifications, ...staticNotifications]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      )
       .slice(0, 10)
 
     const unreadCount = allNotifications.filter((n) => !n.read).length

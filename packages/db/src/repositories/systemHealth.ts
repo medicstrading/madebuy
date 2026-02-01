@@ -73,7 +73,8 @@ export async function getSystemHealth(): Promise<SystemHealth> {
 
     components.push({
       name: 'MongoDB',
-      status: latency < 100 ? 'healthy' : latency < 500 ? 'degraded' : 'critical',
+      status:
+        latency < 100 ? 'healthy' : latency < 500 ? 'degraded' : 'critical',
       latency,
     })
   } catch (error) {
@@ -121,9 +122,7 @@ export async function getRecentErrors(limit: number = 50): Promise<unknown[]> {
 /**
  * Get error rate over time
  */
-export async function getErrorRate(
-  hours: number = 24,
-): Promise<ErrorStats[]> {
+export async function getErrorRate(hours: number = 24): Promise<ErrorStats[]> {
   const db = await getDatabase()
   const startDate = subHours(new Date(), hours)
 
@@ -190,7 +189,10 @@ export async function getWebhookStats(): Promise<WebhookStats> {
     },
   ]
 
-  const results = await db.collection('webhook_logs').aggregate(pipeline).toArray()
+  const results = await db
+    .collection('webhook_logs')
+    .aggregate(pipeline)
+    .toArray()
 
   let total = 0
   let successful = 0
@@ -229,7 +231,9 @@ export async function getWebhookStats(): Promise<WebhookStats> {
  */
 export async function getApiMetrics(
   hours: number = 24,
-): Promise<{ endpoint: string; avgLatency: number; count: number; errorRate: number }[]> {
+): Promise<
+  { endpoint: string; avgLatency: number; count: number; errorRate: number }[]
+> {
   const db = await getDatabase()
   const startDate = subHours(new Date(), hours)
 
@@ -269,7 +273,9 @@ export async function getApiMetrics(
  */
 export async function getStorageByTenant(
   limit: number = 10,
-): Promise<{ tenantId: string; businessName: string; size: number; mediaCount: number }[]> {
+): Promise<
+  { tenantId: string; businessName: string; size: number; mediaCount: number }[]
+> {
   const db = await getDatabase()
 
   const pipeline = [

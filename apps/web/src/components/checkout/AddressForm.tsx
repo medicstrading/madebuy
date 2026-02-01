@@ -141,9 +141,17 @@ export function AddressForm({
               className={inputClasses('name')}
               placeholder="John Smith"
               autoComplete="name"
+              aria-describedby={allErrors.name ? 'name-error' : undefined}
+              aria-invalid={allErrors.name ? 'true' : 'false'}
             />
             {allErrors.name && (
-              <p className="mt-1 text-sm text-red-600">{allErrors.name}</p>
+              <p
+                id="name-error"
+                className="mt-1 text-sm text-red-600"
+                role="alert"
+              >
+                {allErrors.name}
+              </p>
             )}
           </div>
 
@@ -163,9 +171,17 @@ export function AddressForm({
                 className={inputClasses('email')}
                 placeholder="john@example.com"
                 autoComplete="email"
+                aria-describedby={allErrors.email ? 'email-error' : undefined}
+                aria-invalid={allErrors.email ? 'true' : 'false'}
               />
               {allErrors.email && (
-                <p className="mt-1 text-sm text-red-600">{allErrors.email}</p>
+                <p
+                  id="email-error"
+                  className="mt-1 text-sm text-red-600"
+                  role="alert"
+                >
+                  {allErrors.email}
+                </p>
               )}
             </div>
 
@@ -218,7 +234,7 @@ export function AddressForm({
       <div>
         <label htmlFor="address-line2" className={labelClasses}>
           Apartment, suite, etc.{' '}
-          <span className="text-gray-400">(optional)</span>
+          <span className="text-gray-600">(optional)</span>
         </label>
         <input
           type="text"
@@ -321,12 +337,32 @@ export function AddressForm({
             placeholder={isAustralia ? '2000' : 'Postcode'}
             autoComplete="postal-code"
             maxLength={isAustralia ? 4 : 10}
+            aria-describedby={
+              allErrors.postcode
+                ? 'postcode-error'
+                : postcodeWarning
+                  ? 'postcode-warning'
+                  : undefined
+            }
+            aria-invalid={allErrors.postcode ? 'true' : 'false'}
           />
           {allErrors.postcode && (
-            <p className="mt-1 text-sm text-red-600">{allErrors.postcode}</p>
+            <p
+              id="postcode-error"
+              className="mt-1 text-sm text-red-600"
+              role="alert"
+            >
+              {allErrors.postcode}
+            </p>
           )}
           {postcodeWarning && !allErrors.postcode && (
-            <p className="mt-1 text-sm text-amber-600">{postcodeWarning}</p>
+            <p
+              id="postcode-warning"
+              className="mt-1 text-sm text-amber-600"
+              role="status"
+            >
+              {postcodeWarning}
+            </p>
           )}
         </div>
 
@@ -360,7 +396,7 @@ export function AddressForm({
       <div>
         <label htmlFor="address-instructions" className={labelClasses}>
           Delivery Instructions{' '}
-          <span className="text-gray-400">(optional)</span>
+          <span className="text-gray-600">(optional)</span>
         </label>
         <textarea
           id="address-instructions"

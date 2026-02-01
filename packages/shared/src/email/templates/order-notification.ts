@@ -23,11 +23,14 @@ const STYLES = {
   body: 'background: #fff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 12px 12px;',
   button:
     'display: inline-block; background: #2563eb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;',
-  infoBox: 'background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;',
-  alertBox: 'background: #dbeafe; border-radius: 8px; padding: 20px; margin: 24px 0;',
+  infoBox:
+    'background: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;',
+  alertBox:
+    'background: #dbeafe; border-radius: 8px; padding: 20px; margin: 24px 0;',
   footer: 'text-align: center; color: #999; font-size: 12px; margin-top: 20px;',
   table: 'width: 100%; border-collapse: collapse;',
-  tableHeader: 'border-bottom: 2px solid #eee; padding: 12px 8px; text-align: left; font-weight: 600;',
+  tableHeader:
+    'border-bottom: 2px solid #eee; padding: 12px 8px; text-align: left; font-weight: 600;',
   tableCell: 'border-bottom: 1px solid #eee; padding: 12px 8px;',
 }
 
@@ -75,7 +78,15 @@ function renderOrderItemsHtml(items: OrderItem[], currency: string): string {
           <tr>
             <td style="${STYLES.tableCell}">
               <div style="font-weight: 600;">${item.name}</div>
-              ${item.variantAttributes ? `<div style="color: #666; font-size: 14px;">${Object.entries(item.variantAttributes).map(([key, value]) => `${key}: ${value}`).join(', ')}</div>` : ''}
+              ${
+                item.variantAttributes
+                  ? `<div style="color: #666; font-size: 14px;">${Object.entries(
+                      item.variantAttributes,
+                    )
+                      .map(([key, value]) => `${key}: ${value}`)
+                      .join(', ')}</div>`
+                  : ''
+              }
               ${item.personalizations && item.personalizations.length > 0 ? `<div style="color: #e11d48; font-size: 14px;">⚠ Personalization Required</div>` : ''}
               ${item.isDigital ? `<div style="color: #7c3aed; font-size: 14px;">Digital Product</div>` : ''}
             </td>
@@ -98,7 +109,9 @@ function renderOrderItemsText(items: OrderItem[], currency: string): string {
     .map((item) => {
       let line = `${item.quantity}x ${item.name} - ${formatCurrency(item.price * item.quantity + (item.personalizationTotal || 0), currency)}`
       if (item.variantAttributes) {
-        line += `\n   ${Object.entries(item.variantAttributes).map(([key, value]) => `${key}: ${value}`).join(', ')}`
+        line += `\n   ${Object.entries(item.variantAttributes)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(', ')}`
       }
       if (item.personalizations && item.personalizations.length > 0) {
         line += `\n   ⚠ Personalization Required`
@@ -126,9 +139,11 @@ function renderAddress(address: Order['shippingAddress']): string {
 /**
  * Render order notification email (to seller)
  */
-export function renderOrderNotificationEmail(
-  data: OrderNotificationData,
-): { subject: string; html: string; text: string } {
+export function renderOrderNotificationEmail(data: OrderNotificationData): {
+  subject: string
+  html: string
+  text: string
+} {
   const { order, tenant, adminUrl } = data
 
   const subject = `New Order #${order.orderNumber} - ${formatCurrency(order.total, order.currency)}`

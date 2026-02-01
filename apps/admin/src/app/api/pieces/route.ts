@@ -2,9 +2,9 @@ import { materials, pieces } from '@madebuy/db'
 import {
   type CreatePieceInput,
   isMadeBuyError,
+  safeValidateCreatePiece,
   sanitizeInput,
   toErrorResponse,
-  safeValidateCreatePiece,
 } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
@@ -111,7 +111,9 @@ export async function POST(request: NextRequest) {
     const sanitizedData = {
       ...data,
       name: sanitizeInput(data.name),
-      description: data.description ? sanitizeInput(data.description) : undefined,
+      description: data.description
+        ? sanitizeInput(data.description)
+        : undefined,
       category: data.category ? sanitizeInput(data.category) : undefined,
     } as CreatePieceInput
 

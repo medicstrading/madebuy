@@ -1,13 +1,13 @@
 import { enquiries, tenants, tracking } from '@madebuy/db'
 import type { CreateEnquiryInput } from '@madebuy/shared'
 import {
-  sanitizeInput,
+  ExternalServiceError,
   isMadeBuyError,
+  NotFoundError,
+  safeValidateCreateEnquiry,
+  sanitizeInput,
   toErrorResponse,
   ValidationError,
-  NotFoundError,
-  ExternalServiceError,
-  safeValidateCreateEnquiry,
 } from '@madebuy/shared'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -85,7 +85,10 @@ export async function POST(request: NextRequest) {
 
       const turnstileResult = await turnstileVerify.json()
       if (!turnstileResult.success) {
-        throw new ExternalServiceError('Cloudflare Turnstile', 'CAPTCHA verification failed')
+        throw new ExternalServiceError(
+          'Cloudflare Turnstile',
+          'CAPTCHA verification failed',
+        )
       }
     }
 
@@ -152,7 +155,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+      return NextResponse.json(
+        { error: msg, code, details },
+        { status: statusCode },
+      )
     }
 
     // Log and return generic error for unexpected errors

@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  TYPOGRAPHY_PRESETS,
-  type TypographyPreset,
-} from '@madebuy/shared/src/constants/typography'
+import { TYPOGRAPHY_PRESETS, type TypographyPreset } from '@madebuy/shared'
 import {
   Check,
   Image as ImageIcon,

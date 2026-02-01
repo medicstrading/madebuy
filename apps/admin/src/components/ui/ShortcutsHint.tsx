@@ -1,6 +1,9 @@
 'use client'
 
-import { useKeyboardShortcuts, useKeyboardPendingKey } from '@/contexts/KeyboardShortcuts'
+import {
+  useKeyboardPendingKey,
+  useKeyboardShortcuts,
+} from '@/contexts/KeyboardShortcuts'
 
 export function ShortcutsHint() {
   const { setShowHelp } = useKeyboardShortcuts()

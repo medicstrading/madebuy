@@ -1,13 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
 import type { ProductWithMedia } from '@madebuy/shared'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  trackProductView,
   trackAddToCart,
-  trackRemoveFromCart,
   trackCheckoutStarted,
+  trackProductView,
   trackPurchaseCompleted,
+  trackRemoveFromCart,
 } from '@/lib/analytics'
 
 interface UseAnalyticsOptions {
@@ -18,21 +18,21 @@ export function useAnalytics(tenantId: string) {
   // Track product view with product details
   const handleTrackProductView = useCallback(
     (productId: string, productName?: string, price?: number) => {
-      trackProductView(productId, productName || 'Unknown Product', price || 0, {
-        tenant_id: tenantId,
-      })
+      trackProductView(
+        productId,
+        productName || 'Unknown Product',
+        price || 0,
+        {
+          tenant_id: tenantId,
+        },
+      )
     },
-    [tenantId]
+    [tenantId],
   )
 
   // Track add to cart with full product details
   const handleTrackAddToCart = useCallback(
-    (
-      productId: string,
-      productName?: string,
-      price?: number,
-      quantity = 1
-    ) => {
+    (productId: string, productName?: string, price?: number, quantity = 1) => {
       trackAddToCart(
         productId,
         productName || 'Unknown Product',
@@ -40,20 +40,15 @@ export function useAnalytics(tenantId: string) {
         quantity,
         {
           tenant_id: tenantId,
-        }
+        },
       )
     },
-    [tenantId]
+    [tenantId],
   )
 
   // Track remove from cart
   const handleTrackRemoveFromCart = useCallback(
-    (
-      productId: string,
-      productName?: string,
-      price?: number,
-      quantity = 1
-    ) => {
+    (productId: string, productName?: string, price?: number, quantity = 1) => {
       trackRemoveFromCart(
         productId,
         productName || 'Unknown Product',
@@ -61,10 +56,10 @@ export function useAnalytics(tenantId: string) {
         quantity,
         {
           tenant_id: tenantId,
-        }
+        },
       )
     },
-    [tenantId]
+    [tenantId],
   )
 
   // Track checkout started
@@ -74,7 +69,7 @@ export function useAnalytics(tenantId: string) {
         tenant_id: tenantId,
       })
     },
-    [tenantId]
+    [tenantId],
   )
 
   // Track purchase completed
@@ -83,13 +78,13 @@ export function useAnalytics(tenantId: string) {
       orderId: string,
       total: number,
       itemCount: number,
-      paymentMethod: string
+      paymentMethod: string,
     ) => {
       trackPurchaseCompleted(orderId, total, itemCount, paymentMethod, {
         tenant_id: tenantId,
       })
     },
-    [tenantId]
+    [tenantId],
   )
 
   return {

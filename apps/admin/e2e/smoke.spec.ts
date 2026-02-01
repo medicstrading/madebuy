@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 const ADMIN_URL = 'https://madebuyadmin-production.up.railway.app'
 const WEB_URL = 'https://madebuyweb-production.up.railway.app'

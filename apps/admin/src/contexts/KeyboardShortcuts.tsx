@@ -73,8 +73,11 @@ interface TransientKeyboardContextType {
   pendingKey: string | null
 }
 
-const StableKeyboardContext = createContext<StableKeyboardContextType | null>(null)
-const TransientKeyboardContext = createContext<TransientKeyboardContextType | null>(null)
+const StableKeyboardContext = createContext<StableKeyboardContextType | null>(
+  null,
+)
+const TransientKeyboardContext =
+  createContext<TransientKeyboardContextType | null>(null)
 
 export function useKeyboardShortcuts() {
   const stable = useContext(StableKeyboardContext)
@@ -253,15 +256,9 @@ export function KeyboardShortcutsProvider({
     focusSearch,
   ])
 
-  const stableValue = useMemo(
-    () => ({ showHelp, setShowHelp }),
-    [showHelp]
-  )
+  const stableValue = useMemo(() => ({ showHelp, setShowHelp }), [showHelp])
 
-  const transientValue = useMemo(
-    () => ({ pendingKey }),
-    [pendingKey]
-  )
+  const transientValue = useMemo(() => ({ pendingKey }), [pendingKey])
 
   return (
     <StableKeyboardContext.Provider value={stableValue}>

@@ -24,7 +24,10 @@ export async function GET() {
   } catch (error) {
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+      return NextResponse.json(
+        { error: msg, code, details },
+        { status: statusCode },
+      )
     }
 
     // Log and return generic error for unexpected errors
@@ -53,7 +56,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+      return NextResponse.json(
+        { error: msg, code, details },
+        { status: statusCode },
+      )
     }
 
     // Log and return generic error for unexpected errors

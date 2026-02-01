@@ -1,14 +1,14 @@
 'use client'
 
-import type {
-  FooterConfig,
-  HeaderConfig,
-  Tenant,
-  WebsitePage,
-  WebsiteTemplate,
+import {
+  createCustomPage,
+  type FooterConfig,
+  type HeaderConfig,
+  type Tenant,
+  type TypographyPreset,
+  type WebsitePage,
+  type WebsiteTemplate,
 } from '@madebuy/shared'
-import type { TypographyPreset } from '@madebuy/shared/src/constants/typography'
-import { createCustomPage } from '@madebuy/shared/src/types/template'
 import {
   ExternalLink,
   FileText,

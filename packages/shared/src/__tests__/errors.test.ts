@@ -9,16 +9,16 @@ import {
   DuplicateError,
   ExternalServiceError,
   ForbiddenError,
+  formatErrorResponse,
   InsufficientStockError,
+  isMadeBuyError,
   MadeBuyError,
   NotFoundError,
   RateLimitError,
   SubscriptionLimitError,
+  toErrorResponse,
   UnauthorizedError,
   ValidationError,
-  formatErrorResponse,
-  isMadeBuyError,
-  toErrorResponse,
 } from '../errors'
 
 describe('MadeBuyError', () => {
@@ -129,9 +129,7 @@ describe('DuplicateError', () => {
 
     expect(error.code).toBe('DUPLICATE')
     expect(error.statusCode).toBe(409)
-    expect(error.message).toBe(
-      'Piece with slug "silver-ring" already exists',
-    )
+    expect(error.message).toBe('Piece with slug "silver-ring" already exists')
     expect(error.details).toEqual({
       resource: 'Piece',
       field: 'slug',
@@ -246,7 +244,9 @@ describe('SubscriptionLimitError', () => {
   it('should create error with required plan', () => {
     const error = new SubscriptionLimitError('AI Captions', 'Professional')
 
-    expect(error.message).toBe('AI Captions requires Professional plan or higher')
+    expect(error.message).toBe(
+      'AI Captions requires Professional plan or higher',
+    )
     expect(error.userMessage).toContain('requires the Professional plan')
     expect(error.details).toEqual({
       feature: 'AI Captions',

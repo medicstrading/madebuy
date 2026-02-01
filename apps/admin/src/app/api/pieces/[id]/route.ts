@@ -44,13 +44,15 @@ export async function PATCH(
     const sanitizedUpdates = {
       ...updates,
       name: updates.name ? sanitizeInput(updates.name) : undefined,
-      description: updates.description ? sanitizeInput(updates.description) : undefined,
+      description: updates.description
+        ? sanitizeInput(updates.description)
+        : undefined,
       category: updates.category ? sanitizeInput(updates.category) : undefined,
     }
 
     // Remove undefined fields
     const cleanedUpdates = Object.fromEntries(
-      Object.entries(sanitizedUpdates).filter(([_, v]) => v !== undefined)
+      Object.entries(sanitizedUpdates).filter(([_, v]) => v !== undefined),
     )
 
     // Update the piece

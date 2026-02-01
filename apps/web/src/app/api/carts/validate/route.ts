@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { pieces, tenants } from '@madebuy/db'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface CartItem {
   pieceId: string

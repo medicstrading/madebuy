@@ -7,13 +7,13 @@ interface RetryOptions {
 
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const {
     maxRetries = 3,
     baseDelayMs = 1000,
     maxDelayMs = 10000,
-    shouldRetry = () => true
+    shouldRetry = () => true,
   } = options
 
   let lastError: unknown
@@ -25,13 +25,16 @@ export async function withRetry<T>(
       if (attempt === maxRetries || !shouldRetry(error)) {
         throw error
       }
-      const delay = Math.min(baseDelayMs * Math.pow(2, attempt), maxDelayMs)
-      await new Promise(resolve => setTimeout(resolve, delay))
+      const delay = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs)
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
   }
   throw lastError
 }
 
-export function generateIdempotencyKey(prefix: string, ...parts: string[]): string {
+export function generateIdempotencyKey(
+  prefix: string,
+  ...parts: string[]
+): string {
   return `${prefix}_${parts.join('_')}_${Date.now()}`
 }

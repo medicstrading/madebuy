@@ -5,7 +5,9 @@ import {
   Bell,
   ChevronDown,
   ChevronRight,
+  CreditCard,
   Gift,
+  HelpCircle,
   Image,
   Layers,
   LayoutDashboard,
@@ -115,6 +117,7 @@ const navigationGroups = [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Quick Launch', href: '/dashboard/wizard', icon: Rocket },
       { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+      { name: 'Help Center', href: '/dashboard/help', icon: HelpCircle },
     ],
   },
   {
@@ -130,6 +133,7 @@ const navigationGroups = [
     label: 'Sales',
     items: [
       { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
+      { name: 'Point of Sale', href: '/dashboard/pos', icon: CreditCard },
       { name: 'Customers', href: '/dashboard/customers', icon: Users },
       { name: 'Reports', href: '/dashboard/reports', icon: Receipt },
       { name: 'Reviews', href: '/dashboard/reviews', icon: Star },

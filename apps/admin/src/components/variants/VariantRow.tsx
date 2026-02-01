@@ -126,7 +126,6 @@ function EditableCell({
 
   return (
     <button
-            
       onClick={() => !disabled && setIsEditing(true)}
       disabled={disabled}
       className={`w-full rounded px-2 py-1 text-left text-sm transition-colors ${
@@ -192,7 +191,6 @@ function ImageSelector({
   return (
     <div ref={containerRef} className="relative">
       <button
-                
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded border transition-colors ${
@@ -217,7 +215,6 @@ function ImageSelector({
         <div className="absolute left-0 top-full z-20 mt-1 w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
           <div className="grid grid-cols-4 gap-1">
             <button
-                            
               onClick={() => {
                 onSelect(undefined)
                 setIsOpen(false)
@@ -433,7 +430,6 @@ export const VariantRow = memo(function VariantRow({
       {/* Availability toggle */}
       <td className="w-16 px-2 py-2">
         <button
-                    
           onClick={() => onChange({ isAvailable: !variant.isAvailable })}
           disabled={disabled}
           className={`flex h-8 w-8 items-center justify-center rounded transition-colors ${
@@ -457,7 +453,6 @@ export const VariantRow = memo(function VariantRow({
         {showDeleteConfirm ? (
           <div className="flex items-center gap-1">
             <button
-                            
               onClick={handleDelete}
               className="rounded bg-red-600 p-1 text-white hover:bg-red-700"
               aria-label="Confirm delete"
@@ -465,7 +460,6 @@ export const VariantRow = memo(function VariantRow({
               <Check className="h-3 w-3" />
             </button>
             <button
-                            
               onClick={() => setShowDeleteConfirm(false)}
               className="rounded bg-gray-200 p-1 text-gray-600 hover:bg-gray-300"
               aria-label="Cancel delete"
@@ -475,7 +469,6 @@ export const VariantRow = memo(function VariantRow({
           </div>
         ) : (
           <button
-                        
             onClick={handleDelete}
             disabled={disabled}
             className="rounded p-1 text-gray-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-0"

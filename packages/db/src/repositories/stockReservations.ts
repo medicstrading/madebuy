@@ -138,10 +138,12 @@ export async function completeReservation(
   reservationId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
-  const result = await db.collection('stock_reservations').updateOne(
-    { id: reservationId, status: 'active' },
-    { $set: { status: 'completed', completedAt: new Date() } },
-  )
+  const result = await db
+    .collection('stock_reservations')
+    .updateOne(
+      { id: reservationId, status: 'active' },
+      { $set: { status: 'completed', completedAt: new Date() } },
+    )
   return result.modifiedCount > 0
 }
 
@@ -155,9 +157,10 @@ export async function cancelReservation(
   const db = await getDatabase()
 
   // Get reservation details
-  const reservation = (await db
-    .collection('stock_reservations')
-    .findOne({ id: reservationId, status: 'active' })) as StockReservation | null
+  const reservation = (await db.collection('stock_reservations').findOne({
+    id: reservationId,
+    status: 'active',
+  })) as StockReservation | null
 
   if (!reservation) return false
 
@@ -198,10 +201,12 @@ export async function cancelReservation(
   }
 
   // Mark reservation as cancelled
-  await db.collection('stock_reservations').updateOne(
-    { id: reservationId },
-    { $set: { status: 'cancelled', cancelledAt: new Date() } },
-  )
+  await db
+    .collection('stock_reservations')
+    .updateOne(
+      { id: reservationId },
+      { $set: { status: 'cancelled', cancelledAt: new Date() } },
+    )
 
   return true
 }
@@ -221,9 +226,9 @@ export async function getAvailableStock(
   if (!piece) return 0
 
   if (variantId && piece.variants) {
-    const variant = (piece.variants as Array<{ id: string; stock?: number }>).find(
-      (v) => v.id === variantId,
-    )
+    const variant = (
+      piece.variants as Array<{ id: string; stock?: number }>
+    ).find((v) => v.id === variantId)
     return variant?.stock ?? 0
   }
 

@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server'
 import { createRateLimiter } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Rate Limiting Implementation (Web App)

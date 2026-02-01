@@ -21,16 +21,19 @@ const STYLES = {
   body: 'background: #fff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 12px 12px;',
   button:
     'display: inline-block; background: #dc2626; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;',
-  infoBox: 'background: #fef2f2; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #dc2626;',
+  infoBox:
+    'background: #fef2f2; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #dc2626;',
   footer: 'text-align: center; color: #999; font-size: 12px; margin-top: 20px;',
 }
 
 /**
  * Render password reset email
  */
-export function renderPasswordResetEmail(
-  data: PasswordResetData,
-): { subject: string; html: string; text: string } {
+export function renderPasswordResetEmail(data: PasswordResetData): {
+  subject: string
+  html: string
+  text: string
+} {
   const { tenantName, resetLink, expiresInMinutes = 60 } = data
 
   const subject = 'Reset Your MadeBuy Password'

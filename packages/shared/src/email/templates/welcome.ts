@@ -22,20 +22,24 @@ const STYLES = {
   body: 'background: #fff; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 12px 12px;',
   button:
     'display: inline-block; background: #16a34a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600; margin: 8px;',
-  infoBox: 'background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #16a34a;',
-  stepBox: 'background: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;',
+  infoBox:
+    'background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #16a34a;',
+  stepBox:
+    'background: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;',
   footer: 'text-align: center; color: #999; font-size: 12px; margin-top: 20px;',
 }
 
 /**
  * Render welcome email
  */
-export function renderWelcomeEmail(
-  data: WelcomeEmailData,
-): { subject: string; html: string; text: string } {
+export function renderWelcomeEmail(data: WelcomeEmailData): {
+  subject: string
+  html: string
+  text: string
+} {
   const { tenant, adminUrl, marketplaceUrl } = data
 
-  const subject = 'Welcome to MadeBuy - Let\'s Get You Started!'
+  const subject = "Welcome to MadeBuy - Let's Get You Started!"
 
   const storefrontUrl = `${marketplaceUrl}/${tenant.slug}`
   const dashboardUrl = adminUrl

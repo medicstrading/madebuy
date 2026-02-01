@@ -6,6 +6,8 @@
  * See: archive/packages/shared/src/
  */
 
+// Export analytics utilities
+export * from './analytics'
 // Export country/regional presets
 export {
   COUNTRY_PRESETS,
@@ -26,33 +28,44 @@ export {
   type MakerTypeInfo,
 } from './constants/makerPresets'
 // Export typography constants
-export { getTypographyConfig, TYPOGRAPHY_PRESETS } from './constants/typography'
+export {
+  getDefaultWebsiteDesign,
+  getGoogleFontsUrl,
+  getTypographyConfig,
+  type TypographyConfig,
+  type TypographyPreset,
+  TYPOGRAPHY_PRESETS,
+} from './constants/typography'
+// Export banner presets
+export { BANNER_PRESETS, type BannerPreset } from './constants/bannerPresets'
 // Export email templates
 export * from './email'
 // Export error classes
 export * from './errors'
+// Export accessibility hooks
+export { useFocusTrap } from './hooks/useFocusTrap'
 // Export COGS calculation utilities
 export * from './lib/cogs'
 // Export cryptographic utilities
 export * from './lib/crypto'
-// Export logger utilities
-export { logger, createLogger, getRequestContext } from './lib/logger'
 export type { Logger } from './lib/logger'
+// Export logger utilities
+export { createLogger, getRequestContext, logger } from './lib/logger'
+export type { RateLimitConfig, RateLimitResult } from './lib/rate-limit'
 // Export rate limiting utilities
 export { createRateLimiter } from './lib/rate-limit'
-export type { RateLimitConfig, RateLimitResult } from './lib/rate-limit'
 // Export sanitization utilities
-export * from './lib/sanitize'
+// Pure JS functions (safe for API routes and server components)
+export { escapeHtml, sanitizeInput, stripHtml } from './lib/sanitize-input'
+// NOTE: sanitizeHtml is NOT exported here because it uses DOMPurify/jsdom
+// which breaks Next.js server-side builds. Import it directly from:
+// import { sanitizeHtml } from '@madebuy/shared/lib/sanitize'
 // Export subscription utilities
 export * from './lib/subscription'
-// Export retry utilities
-export * from './utils/retry'
-// Export Stripe helpers
-export * from './utils/stripe-helpers'
+// Export Zod validation schemas
+export * from './schemas'
 // Export digital delivery service
 export * from './services/digital-delivery'
-// Export analytics utilities
-export * from './analytics'
 // Export Stripe utilities (config only - Connect archived)
 export * from './stripe'
 // Export all types
@@ -70,11 +83,30 @@ export {
   VIDEO_EXTENSIONS,
 } from './types'
 // Export template utilities
-export { getDefaultPages, getDefaultSections } from './types/template'
+export {
+  createCustomPage,
+  type FAQItem,
+  type FeatureItem,
+  generatePageId,
+  generateSectionId,
+  getDefaultPages,
+  getDefaultSections,
+  type PageSection,
+  type PageSectionSettings,
+  type PageSectionType,
+  type PageType,
+  SECTION_TYPE_LABELS,
+  TEMPLATE_DEFINITIONS,
+  type TestimonialItem,
+  type WebsitePage,
+  type WebsiteTemplate,
+} from './types/template'
+// Export retry utilities
+export * from './utils/retry'
+// Export Stripe helpers
+export * from './utils/stripe-helpers'
 // Export validation schemas
 export * from './validation'
-// Export Zod validation schemas
-export * from './schemas'
 
 // =============================================================================
 // ARCHIVED EXPORTS (removed 2026-01-02)

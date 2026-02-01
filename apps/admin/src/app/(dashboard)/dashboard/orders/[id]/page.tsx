@@ -1,11 +1,13 @@
-import { orders } from '@madebuy/db'
+import { messages, orders } from '@madebuy/db'
 import {
   ArrowLeft,
   CreditCard,
   FileText,
   MapPin,
+  MessageSquare,
   Package,
   Palette,
+  Printer,
   User,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -27,6 +29,13 @@ export default async function OrderDetailPage({
   if (!order) {
     notFound()
   }
+
+  // Get unread message count
+  const unreadMessageCount = await messages.countUnreadByOrder(
+    tenant.id,
+    params.id,
+    'customer',
+  )
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -248,8 +257,29 @@ export default async function OrderDetailPage({
               </div>
             </div>
 
-            {/* Shipping Actions */}
+            {/* Packing Slip */}
             <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  Fulfillment
+                </h3>
+                <Link
+                  href={`/dashboard/orders/${order.id}/packing-slip`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <Printer className="h-4 w-4" />
+                  Print Packing Slip
+                </Link>
+              </div>
+            </div>
+
+            {/* Shipping Actions */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Shipping Label
+              </h3>
               <ShippingActions
                 orderId={order.id}
                 orderStatus={order.status}
@@ -324,6 +354,24 @@ export default async function OrderDetailPage({
                   </a>
                 </div>
               )}
+            </div>
+
+            {/* Messages Link */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <Link
+                href={`/dashboard/orders/${order.id}/messages`}
+                className="flex items-center justify-between w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-blue-900">Messages</span>
+                </div>
+                {unreadMessageCount > 0 && (
+                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                    {unreadMessageCount}
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
 

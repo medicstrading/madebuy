@@ -1,17 +1,19 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 interface DeletePieceButtonProps {
   pieceId: string
   pieceName: string
+  variant?: 'icon' | 'menu-item'
 }
 
 export function DeletePieceButton({
   pieceId,
   pieceName,
+  variant = 'icon',
 }: DeletePieceButtonProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
@@ -42,6 +44,20 @@ export function DeletePieceButton({
     } finally {
       setDeleting(false)
     }
+  }
+
+  if (variant === 'menu-item') {
+    return (
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={deleting}
+        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+      >
+        <Trash2 className="h-4 w-4" />
+        {deleting ? 'Deleting...' : 'Delete Product'}
+      </button>
+    )
   }
 
   return (

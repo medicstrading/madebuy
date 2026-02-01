@@ -75,7 +75,9 @@ export function SearchResults({
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {results.map((product) => {
-          const imageUrl = product.primaryImage?.variants?.large?.url || product.primaryImage?.variants?.original?.url
+          const imageUrl =
+            product.primaryImage?.variants?.large?.url ||
+            product.primaryImage?.variants?.original?.url
 
           return (
             <Link

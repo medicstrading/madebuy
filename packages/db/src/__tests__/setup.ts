@@ -371,29 +371,31 @@ function createMockCollection(name: string): Collection<any> {
       },
     ),
 
-    findOneAndUpdate: vi.fn(
-      async (filter: any, update: any, options?: any) => {
-        const index = mockCollections[name].findIndex((doc) =>
-          Object.keys(filter).every((key) => {
-            if (typeof filter[key] === 'object' && filter[key] !== null && '$ne' in filter[key]) {
-              return doc[key] !== filter[key].$ne
-            }
-            return doc[key] === filter[key]
-          }),
-        )
-        if (index !== -1) {
-          if (update.$set) {
-            Object.keys(update.$set).forEach((setKey) => {
-              mockCollections[name][index][setKey] = update.$set[setKey]
-            })
+    findOneAndUpdate: vi.fn(async (filter: any, update: any, options?: any) => {
+      const index = mockCollections[name].findIndex((doc) =>
+        Object.keys(filter).every((key) => {
+          if (
+            typeof filter[key] === 'object' &&
+            filter[key] !== null &&
+            '$ne' in filter[key]
+          ) {
+            return doc[key] !== filter[key].$ne
           }
-          if (options?.returnDocument === 'after') {
-            return mockCollections[name][index]
-          }
+          return doc[key] === filter[key]
+        }),
+      )
+      if (index !== -1) {
+        if (update.$set) {
+          Object.keys(update.$set).forEach((setKey) => {
+            mockCollections[name][index][setKey] = update.$set[setKey]
+          })
         }
-        return null
-      },
-    ),
+        if (options?.returnDocument === 'after') {
+          return mockCollections[name][index]
+        }
+      }
+      return null
+    }),
 
     deleteOne: vi.fn(async (filter: any): Promise<DeleteResult> => {
       const index = mockCollections[name].findIndex((doc) =>

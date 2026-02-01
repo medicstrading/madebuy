@@ -705,7 +705,8 @@ export function WebsiteListingsClient({
                                       ) : (
                                         <Plus className="h-4 w-4" />
                                       )}
-                                      Create &ldquo;{collectionInput.trim()}&rdquo;
+                                      Create &ldquo;{collectionInput.trim()}
+                                      &rdquo;
                                     </button>
                                   )}
 

@@ -226,9 +226,7 @@ function PreviewHero({
             >
               Shop Now
             </button>
-            <button
-              className="px-6 py-3 rounded-lg border border-gray-300 font-medium hover:bg-gray-50"
-            >
+            <button className="px-6 py-3 rounded-lg border border-gray-300 font-medium hover:bg-gray-50">
               Learn More
             </button>
           </div>
@@ -383,9 +381,7 @@ function PreviewCTA({ primaryColor }: { primaryColor: string }) {
             placeholder="Enter your email"
             className="flex-1 px-4 py-3 rounded-lg"
           />
-          <button
-            className="px-6 py-3 bg-white rounded-lg font-medium hover:bg-gray-100"
-          >
+          <button className="px-6 py-3 bg-white rounded-lg font-medium hover:bg-gray-100">
             Subscribe
           </button>
         </div>

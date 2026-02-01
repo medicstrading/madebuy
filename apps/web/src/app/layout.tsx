@@ -12,7 +12,7 @@ const inter = Inter({
 // Dynamically import WebVitals with SSR disabled to prevent context issues during static generation
 const WebVitals = dynamic(
   () => import('@/components/analytics/WebVitals').then((mod) => mod.WebVitals),
-  { ssr: false }
+  { ssr: false },
 )
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'

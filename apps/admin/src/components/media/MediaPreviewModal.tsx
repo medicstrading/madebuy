@@ -1,6 +1,7 @@
 'use client'
 
 import type { MediaItem } from '@madebuy/shared'
+import { useFocusTrap } from '@madebuy/shared'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useCallback, useEffect, useRef } from 'react'
 
@@ -22,6 +23,7 @@ export function MediaPreviewModal({
   hasNext = false,
 }: MediaPreviewModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const focusTrapRef = useFocusTrap(true)
 
   // Keyboard navigation
   useEffect(() => {
@@ -66,6 +68,7 @@ export function MediaPreviewModal({
 
   return (
     <div
+      ref={focusTrapRef as React.RefObject<HTMLDivElement>}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
       onClick={handleBackdropClick}
       onKeyDown={(e) => {
@@ -76,16 +79,19 @@ export function MediaPreviewModal({
           }
         }
       }}
-      role="button"
-      tabIndex={0}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Media preview"
+      tabIndex={-1}
     >
       {/* Close button */}
       <button
         type="button"
         onClick={onClose}
         className="absolute top-4 right-4 z-10 p-2 text-white/70 hover:text-white transition-colors"
+        aria-label="Close preview"
       >
-        <X className="h-8 w-8" />
+        <X className="h-8 w-8" aria-hidden="true" />
       </button>
 
       {/* Navigation arrows */}
@@ -97,8 +103,9 @@ export function MediaPreviewModal({
             onPrev()
           }}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          aria-label="Previous media"
         >
-          <ChevronLeft className="h-8 w-8" />
+          <ChevronLeft className="h-8 w-8" aria-hidden="true" />
         </button>
       )}
 
@@ -110,8 +117,9 @@ export function MediaPreviewModal({
             onNext()
           }}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          aria-label="Next media"
         >
-          <ChevronRight className="h-8 w-8" />
+          <ChevronRight className="h-8 w-8" aria-hidden="true" />
         </button>
       )}
 

@@ -33,6 +33,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { BulkActionsToolbar } from './BulkActionsToolbar'
 import { DeletePieceButton } from './DeletePieceButton'
+import { ProductCard } from './ProductCard'
 
 // ============================================================================
 // Types
@@ -412,8 +413,29 @@ function AllItemsTab({ pieces }: { pieces: PieceWithExtras[] }) {
         />
       )}
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      {/* Mobile Card View (< md breakpoint) */}
+      <div className="md:hidden">
+        {filteredPieces.length === 0 ? (
+          <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
+            <Package className="mx-auto h-12 w-12 text-gray-300" />
+            <p className="mt-4 text-gray-500">No pieces found</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredPieces.map((piece) => (
+              <ProductCard
+                key={piece.id}
+                piece={piece}
+                isSelected={selectedIds.has(piece.id)}
+                onSelect={handleSelectPiece}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View (>= md breakpoint) */}
+      <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         {shouldVirtualize ? (
           <div
             ref={parentRef}

@@ -244,7 +244,6 @@ export function VariantAttributeEditor({
           {/* Presets dropdown */}
           <div className="relative" ref={presetsRef}>
             <button
-                            
               onClick={() => setShowPresets(!showPresets)}
               disabled={!canAddAttribute}
               className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -285,7 +284,6 @@ export function VariantAttributeEditor({
 
           {/* Add attribute button */}
           <button
-                        
             onClick={handleAddAttribute}
             disabled={!canAddAttribute}
             className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -327,7 +325,6 @@ export function VariantAttributeEditor({
           </p>
           <div className="mt-4 flex items-center justify-center gap-2">
             <button
-                            
               onClick={handleAddAttribute}
               disabled={disabled}
               className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
@@ -336,7 +333,6 @@ export function VariantAttributeEditor({
               Add Attribute
             </button>
             <button
-                            
               onClick={() => setShowPresets(true)}
               disabled={disabled}
               className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
@@ -365,7 +361,6 @@ export function VariantAttributeEditor({
               <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
                 {/* Drag handle */}
                 <button
-                                    
                   className="cursor-grab text-gray-400 hover:text-gray-600 active:cursor-grabbing"
                   aria-label="Drag to reorder"
                 >
@@ -392,7 +387,6 @@ export function VariantAttributeEditor({
                   />
                 ) : (
                   <button
-                                        
                     onClick={() => !disabled && setEditingNameId(attribute.id)}
                     className="flex-1 text-left text-sm font-medium text-gray-900 hover:text-blue-600"
                   >
@@ -410,7 +404,6 @@ export function VariantAttributeEditor({
 
                 {/* Remove attribute */}
                 <button
-                                    
                   onClick={() => handleRemoveAttribute(attribute.id)}
                   disabled={disabled}
                   className="text-gray-400 hover:text-red-600 disabled:opacity-50"
@@ -444,7 +437,6 @@ export function VariantAttributeEditor({
                       <GripVertical className="h-3 w-3 cursor-grab text-gray-400 opacity-0 group-hover:opacity-100" />
                       <span className="text-gray-700">{value.value}</span>
                       <button
-                                                
                         onClick={() =>
                           handleRemoveValue(attribute.id, value.id)
                         }
@@ -474,7 +466,6 @@ export function VariantAttributeEditor({
                       className="w-24 rounded-l-lg border border-gray-200 px-2 py-1 text-sm focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:bg-gray-50"
                     />
                     <button
-                                            
                       onClick={() =>
                         handleAddValue(
                           attribute.id,

@@ -1,6 +1,7 @@
 'use client'
 
 import type { Material, Piece, PieceMaterialUsage } from '@madebuy/shared'
+import { useFocusTrap } from '@madebuy/shared'
 import {
   AlertTriangle,
   Calendar,
@@ -46,6 +47,7 @@ export function RecordProductionModal({
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const focusTrapRef = useFocusTrap(isOpen)
 
   // Build materials lookup map
   const materialsMap = new Map(materials.map((m) => [m.id, m]))
@@ -129,17 +131,26 @@ export function RecordProductionModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div
+      ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="production-modal-title"
+    >
       <div className="mx-4 w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg" aria-hidden="true">
                 <Layers className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">
+                <h3
+                  id="production-modal-title"
+                  className="text-lg font-semibold text-white"
+                >
                   Log Production
                 </h3>
                 <p className="text-emerald-100 text-sm">{piece.name}</p>
@@ -149,8 +160,9 @@ export function RecordProductionModal({
               type="button"
               onClick={onClose}
               className="text-white/80 hover:text-white transition-colors"
+              aria-label="Close production modal"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -164,11 +176,12 @@ export function RecordProductionModal({
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                 <button
-                                    
+                  type="button"
                   onClick={decrementQuantity}
                   className="px-3 py-2 hover:bg-gray-100 transition-colors"
+                  aria-label="Decrease quantity"
                 >
-                  <Minus className="h-4 w-4 text-gray-600" />
+                  <Minus className="h-4 w-4 text-gray-600" aria-hidden="true" />
                 </button>
                 <input
                   type="number"
@@ -178,16 +191,18 @@ export function RecordProductionModal({
                   }
                   className="w-20 text-center text-lg font-semibold border-x border-gray-300 py-2 focus:outline-none"
                   min={1}
+                  aria-label="Quantity to produce"
                 />
                 <button
-                                    
+                  type="button"
                   onClick={incrementQuantity}
                   className="px-3 py-2 hover:bg-gray-100 transition-colors"
+                  aria-label="Increase quantity"
                 >
-                  <Plus className="h-4 w-4 text-gray-600" />
+                  <Plus className="h-4 w-4 text-gray-600" aria-hidden="true" />
                 </button>
               </div>
-              <span className="text-gray-500 text-sm">
+              <span className="text-gray-600 text-sm">
                 units of{' '}
                 <span className="font-medium text-gray-700">{piece.name}</span>
               </span>

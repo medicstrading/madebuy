@@ -90,13 +90,42 @@ function formatUptime(seconds?: number): string {
   return `${hours}h ${minutes}m`
 }
 
-function StatusBadge({ status }: { status: 'healthy' | 'degraded' | 'critical' | 'online' | 'offline' }) {
+function StatusBadge({
+  status,
+}: {
+  status: 'healthy' | 'degraded' | 'critical' | 'online' | 'offline'
+}) {
   const config = {
-    healthy: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'Healthy' },
-    online: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', label: 'Online' },
-    degraded: { icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10', label: 'Degraded' },
-    critical: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10', label: 'Critical' },
-    offline: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10', label: 'Offline' },
+    healthy: {
+      icon: CheckCircle,
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10',
+      label: 'Healthy',
+    },
+    online: {
+      icon: CheckCircle,
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10',
+      label: 'Online',
+    },
+    degraded: {
+      icon: AlertTriangle,
+      color: 'text-yellow-400',
+      bg: 'bg-yellow-500/10',
+      label: 'Degraded',
+    },
+    critical: {
+      icon: XCircle,
+      color: 'text-red-400',
+      bg: 'bg-red-500/10',
+      label: 'Critical',
+    },
+    offline: {
+      icon: XCircle,
+      color: 'text-red-400',
+      bg: 'bg-red-500/10',
+      label: 'Offline',
+    },
   }
 
   const { icon: Icon, color, bg, label } = config[status]
@@ -109,17 +138,30 @@ function StatusBadge({ status }: { status: 'healthy' | 'degraded' | 'critical' |
   )
 }
 
-function ProgressBar({ value, max = 100, color = 'primary' }: { value: number; max?: number; color?: string }) {
+function ProgressBar({
+  value,
+  max = 100,
+  color = 'primary',
+}: {
+  value: number
+  max?: number
+  color?: string
+}) {
   const percentage = Math.min((value / max) * 100, 100)
   const colorClass =
-    percentage > 80 ? 'bg-red-500' :
-    percentage > 60 ? 'bg-yellow-500' :
-    'bg-emerald-500'
+    percentage > 80
+      ? 'bg-red-500'
+      : percentage > 60
+        ? 'bg-yellow-500'
+        : 'bg-emerald-500'
 
   return (
     <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
       <div
-        className={cn('h-full rounded-full transition-all duration-500', colorClass)}
+        className={cn(
+          'h-full rounded-full transition-all duration-500',
+          colorClass,
+        )}
         style={{ width: `${percentage}%` }}
       />
     </div>
@@ -131,14 +173,22 @@ function ServiceCard({ service }: { service: SystemData['services'][0] }) {
     <div className="rounded-lg border border-border bg-card/50 p-4 hover:bg-card transition-colors">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className={cn(
-            'h-10 w-10 rounded-lg flex items-center justify-center',
-            service.status === 'online' ? 'bg-emerald-500/10' : 'bg-red-500/10'
-          )}>
-            <Server className={cn(
-              'h-5 w-5',
-              service.status === 'online' ? 'text-emerald-400' : 'text-red-400'
-            )} />
+          <div
+            className={cn(
+              'h-10 w-10 rounded-lg flex items-center justify-center',
+              service.status === 'online'
+                ? 'bg-emerald-500/10'
+                : 'bg-red-500/10',
+            )}
+          >
+            <Server
+              className={cn(
+                'h-5 w-5',
+                service.status === 'online'
+                  ? 'text-emerald-400'
+                  : 'text-red-400',
+              )}
+            />
           </div>
           <div>
             <h4 className="font-medium text-foreground">{service.name}</h4>
@@ -167,9 +217,20 @@ function ServiceCard({ service }: { service: SystemData['services'][0] }) {
   )
 }
 
-function MetricGauge({ label, value, max = 100, icon: Icon }: { label: string; value: number; max?: number; icon: any }) {
+function MetricGauge({
+  label,
+  value,
+  max = 100,
+  icon: Icon,
+}: {
+  label: string
+  value: number
+  max?: number
+  icon: any
+}) {
   const percentage = (value / max) * 100
-  const status = percentage > 80 ? 'critical' : percentage > 60 ? 'warning' : 'good'
+  const status =
+    percentage > 80 ? 'critical' : percentage > 60 ? 'warning' : 'good'
 
   return (
     <div className="text-center">
@@ -188,7 +249,13 @@ function MetricGauge({ label, value, max = 100, icon: Icon }: { label: string; v
             cy="50"
             r="40"
             fill="none"
-            stroke={status === 'critical' ? 'hsl(0, 84%, 60%)' : status === 'warning' ? 'hsl(45, 93%, 47%)' : 'hsl(142, 71%, 45%)'}
+            stroke={
+              status === 'critical'
+                ? 'hsl(0, 84%, 60%)'
+                : status === 'warning'
+                  ? 'hsl(45, 93%, 47%)'
+                  : 'hsl(142, 71%, 45%)'
+            }
             strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={`${percentage * 2.51} 251`}
@@ -197,7 +264,9 @@ function MetricGauge({ label, value, max = 100, icon: Icon }: { label: string; v
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <Icon className="h-5 w-5 text-muted-foreground mb-1" />
-          <span className="text-lg font-bold text-foreground tabular-nums">{value.toFixed(0)}%</span>
+          <span className="text-lg font-bold text-foreground tabular-nums">
+            {value.toFixed(0)}%
+          </span>
         </div>
       </div>
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -213,7 +282,13 @@ export function SystemContent() {
   const [data, setData] = useState<SystemData>({
     status: 'healthy',
     services: [],
-    metrics: { cpuUsage: 0, memoryUsage: 0, diskUsage: 0, networkIn: 0, networkOut: 0 },
+    metrics: {
+      cpuUsage: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      networkIn: 0,
+      networkOut: 0,
+    },
     database: {
       status: 'healthy',
       connections: 0,
@@ -283,17 +358,29 @@ export function SystemContent() {
 
         {/* Resource Usage Gauges */}
         <div className="mb-8 rounded-xl border border-border bg-card p-6">
-          <h3 className="mb-6 text-lg font-semibold text-foreground">Resource Usage</h3>
+          <h3 className="mb-6 text-lg font-semibold text-foreground">
+            Resource Usage
+          </h3>
           <div className="grid grid-cols-3 gap-8">
             <MetricGauge label="CPU" value={data.metrics.cpuUsage} icon={Cpu} />
-            <MetricGauge label="Memory" value={data.metrics.memoryUsage} icon={Activity} />
-            <MetricGauge label="Disk" value={data.metrics.diskUsage} icon={HardDrive} />
+            <MetricGauge
+              label="Memory"
+              value={data.metrics.memoryUsage}
+              icon={Activity}
+            />
+            <MetricGauge
+              label="Disk"
+              value={data.metrics.diskUsage}
+              icon={HardDrive}
+            />
           </div>
         </div>
 
         {/* Services Grid */}
         <div className="mb-8">
-          <h3 className="mb-4 text-lg font-semibold text-foreground">Services</h3>
+          <h3 className="mb-4 text-lg font-semibold text-foreground">
+            Services
+          </h3>
           {loading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -326,37 +413,58 @@ export function SystemContent() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Connections</span>
+                  <span className="text-sm text-muted-foreground">
+                    Connections
+                  </span>
                   <span className="text-sm font-medium tabular-nums">
                     {data.database.connections} / {data.database.maxConnections}
                   </span>
                 </div>
-                <ProgressBar value={data.database.connections} max={data.database.maxConnections} />
+                <ProgressBar
+                  value={data.database.connections}
+                  max={data.database.maxConnections}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Storage</p>
-                  <p className="font-semibold text-foreground">{formatBytes(data.database.storageSize)}</p>
+                  <p className="font-semibold text-foreground">
+                    {formatBytes(data.database.storageSize)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Data Size</p>
-                  <p className="font-semibold text-foreground">{formatBytes(data.database.dataSize)}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Data Size
+                  </p>
+                  <p className="font-semibold text-foreground">
+                    {formatBytes(data.database.dataSize)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Index Size</p>
-                  <p className="font-semibold text-foreground">{formatBytes(data.database.indexSize)}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Index Size
+                  </p>
+                  <p className="font-semibold text-foreground">
+                    {formatBytes(data.database.indexSize)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Avg Query Time</p>
-                  <p className="font-semibold text-foreground">{formatMs(data.database.avgQueryTime)}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Avg Query Time
+                  </p>
+                  <p className="font-semibold text-foreground">
+                    {formatMs(data.database.avgQueryTime)}
+                  </p>
                 </div>
               </div>
 
               {data.database.slowQueries > 0 && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-yellow-500/10 text-yellow-400">
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="text-sm">{data.database.slowQueries} slow queries detected</span>
+                  <span className="text-sm">
+                    {data.database.slowQueries} slow queries detected
+                  </span>
                 </div>
               )}
             </div>
@@ -375,34 +483,52 @@ export function SystemContent() {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Requests/min</p>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Requests/min
+                </p>
                 <p className="text-xl font-bold text-foreground tabular-nums">
                   {data.api.requestsPerMinute.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Avg Latency</p>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Avg Latency
+                </p>
                 <p className="text-xl font-bold text-foreground tabular-nums">
                   {formatMs(data.api.avgLatency)}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Success Rate</p>
-                <p className={cn(
-                  'text-xl font-bold tabular-nums',
-                  data.api.successRate >= 99 ? 'text-emerald-400' :
-                  data.api.successRate >= 95 ? 'text-yellow-400' : 'text-red-400'
-                )}>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Success Rate
+                </p>
+                <p
+                  className={cn(
+                    'text-xl font-bold tabular-nums',
+                    data.api.successRate >= 99
+                      ? 'text-emerald-400'
+                      : data.api.successRate >= 95
+                        ? 'text-yellow-400'
+                        : 'text-red-400',
+                  )}
+                >
                   {data.api.successRate.toFixed(1)}%
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Errors (24h)</p>
-                <p className={cn(
-                  'text-xl font-bold tabular-nums',
-                  data.api.errorsLast24h === 0 ? 'text-foreground' :
-                  data.api.errorsLast24h < 10 ? 'text-yellow-400' : 'text-red-400'
-                )}>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Errors (24h)
+                </p>
+                <p
+                  className={cn(
+                    'text-xl font-bold tabular-nums',
+                    data.api.errorsLast24h === 0
+                      ? 'text-foreground'
+                      : data.api.errorsLast24h < 10
+                        ? 'text-yellow-400'
+                        : 'text-red-400',
+                  )}
+                >
                   {data.api.errorsLast24h}
                 </p>
               </div>
@@ -425,7 +551,9 @@ export function SystemContent() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-red-400 uppercase">{error.service}</span>
+                      <span className="text-xs font-medium text-red-400 uppercase">
+                        {error.service}
+                      </span>
                       {error.count > 1 && (
                         <span className="px-1.5 py-0.5 text-xs rounded bg-red-500/20 text-red-400">
                           x{error.count}

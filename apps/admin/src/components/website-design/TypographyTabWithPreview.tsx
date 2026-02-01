@@ -1,10 +1,10 @@
 'use client'
 
-import type { Tenant } from '@madebuy/shared'
 import {
+  type Tenant,
   TYPOGRAPHY_PRESETS,
   type TypographyPreset,
-} from '@madebuy/shared/src/constants/typography'
+} from '@madebuy/shared'
 import { Loader2, Type } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'

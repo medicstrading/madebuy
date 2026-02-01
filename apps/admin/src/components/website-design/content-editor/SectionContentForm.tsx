@@ -1,12 +1,12 @@
 'use client'
 
-import type {
-  FAQItem,
-  FeatureItem,
-  PageSection,
-  PageSectionSettings,
-  TestimonialItem,
-} from '@madebuy/shared/src/types/template'
+import {
+  type FAQItem,
+  type FeatureItem,
+  type PageSection,
+  type PageSectionSettings,
+  type TestimonialItem,
+} from '@madebuy/shared'
 import { Check, Loader2, Plus, Trash2, Upload } from 'lucide-react'
 import { useState } from 'react'
 

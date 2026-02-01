@@ -1,10 +1,6 @@
 'use client'
 
-import type { Tenant } from '@madebuy/shared'
-import {
-  BANNER_PRESETS,
-  type BannerPreset,
-} from '@madebuy/shared/src/constants/bannerPresets'
+import { BANNER_PRESETS, type BannerPreset, type Tenant } from '@madebuy/shared'
 import { Loader2, Sparkles, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'

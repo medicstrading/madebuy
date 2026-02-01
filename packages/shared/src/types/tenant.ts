@@ -110,6 +110,9 @@ export interface Tenant {
   // Domain onboarding state (AI-generated design suggestions)
   domainOnboarding?: DomainOnboardingState
 
+  // Celebration tracking - IDs of celebrations that have been shown
+  celebrationsShown?: string[]
+
   // Timestamps
   createdAt: Date
   updatedAt: Date

@@ -1,7 +1,13 @@
 'use client'
 
 import type { OnboardingStep } from '@madebuy/shared'
-import { CheckCircle2, Loader2, MapPin, Palette } from 'lucide-react'
+import {
+  CheckCircle2,
+  CreditCard,
+  Loader2,
+  MapPin,
+  Palette,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -26,6 +32,13 @@ const STEPS = [
     description: 'Choose your look and customize your storefront',
     icon: Palette,
     href: '/dashboard/onboarding/design',
+  },
+  {
+    id: 'payments',
+    title: 'Set Up Payments',
+    description: 'Connect your bank account to receive payments',
+    icon: CreditCard,
+    href: '/dashboard/onboarding/payments',
   },
 ]
 

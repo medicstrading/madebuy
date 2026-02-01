@@ -5,8 +5,9 @@ import {
   getTenantMaterialCategories,
   MAKER_CATEGORY_PRESETS,
   MAKER_MATERIAL_PRESETS,
-} from '@madebuy/shared/src/constants/makerPresets'
-import type { MakerType, Tenant } from '@madebuy/shared/src/types/tenant'
+  type MakerType,
+  type Tenant,
+} from '@madebuy/shared'
 import { useEffect, useState } from 'react'
 
 interface UseTenantCategoriesResult {

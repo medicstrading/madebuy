@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
+import { useCelebrations } from '@/components/celebrations/CelebrationProvider'
 import {
   FALLBACK_PRODUCT_CATEGORIES,
   useTenantCategories,
@@ -48,6 +49,7 @@ export function PieceForm({
   piece,
 }: PieceFormProps) {
   const router = useRouter()
+  const { checkCelebrations } = useCelebrations()
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
 
@@ -244,6 +246,9 @@ export function PieceForm({
           })
         }
       }
+
+      // Check for celebrations (first product milestone)
+      await checkCelebrations()
 
       router.push('/dashboard/inventory')
       router.refresh()
@@ -574,7 +579,6 @@ export function PieceForm({
             </p>
           </div>
           <button
-                        
             onClick={addMaterialUsage}
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
@@ -673,7 +677,6 @@ export function PieceForm({
 
                   {/* Remove Button */}
                   <button
-                                        
                     onClick={() => removeMaterialUsage(index)}
                     className="mt-7 text-red-600 hover:text-red-700"
                   >
@@ -816,7 +819,6 @@ export function PieceForm({
                         ${suggestedPrice.toFixed(2)}
                       </span>
                       <button
-                                                
                         onClick={() =>
                           setFormData((prev) => ({
                             ...prev,
@@ -846,14 +848,12 @@ export function PieceForm({
       {/* Actions */}
       <div className="flex gap-3 justify-end">
         <button
-                    
           onClick={() => router.back()}
           className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
-                    
           disabled={submitting}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >

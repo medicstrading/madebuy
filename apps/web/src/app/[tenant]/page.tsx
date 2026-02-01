@@ -33,8 +33,11 @@ export default async function ShopHomePage({
   params: { tenant: string }
 }) {
   const tenant = await requireTenant(params.tenant)
-  const rawPiecesResult = await pieces.listPieces(tenant.id, { status: 'available' })
-  const rawPieces = 'data' in rawPiecesResult ? rawPiecesResult.data : rawPiecesResult
+  const rawPiecesResult = await pieces.listPieces(tenant.id, {
+    status: 'available',
+  })
+  const rawPieces =
+    'data' in rawPiecesResult ? rawPiecesResult.data : rawPiecesResult
   const allPieces = await populatePiecesWithMedia(rawPieces)
 
   // Fetch collections

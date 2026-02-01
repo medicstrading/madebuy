@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { pieces, tenants } from '@madebuy/db'
 import type { Piece } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/search

@@ -8,7 +8,9 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, backgroundColor: '#020617', minHeight: '100vh' }}>
+      <body
+        style={{ margin: 0, backgroundColor: '#020617', minHeight: '100vh' }}
+      >
         <div
           style={{
             display: 'flex',

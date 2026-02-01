@@ -8,9 +8,9 @@ import type { Order } from '../types/order'
 import type { Tenant } from '../types/tenant'
 import {
   createEmailSender,
+  type EmailSender,
   getPlatformFromAddress,
   getTenantFromAddress,
-  type EmailSender,
 } from './email'
 import { renderOrderConfirmationEmail } from './templates/order-confirmation'
 import { renderOrderNotificationEmail } from './templates/order-notification'
@@ -34,7 +34,9 @@ export async function sendOrderConfirmation(params: {
   const sender = createEmailSender()
 
   if (!sender) {
-    console.warn('[Email] Email sender not configured, skipping order confirmation')
+    console.warn(
+      '[Email] Email sender not configured, skipping order confirmation',
+    )
     return { success: false, error: 'Email sender not configured' }
   }
 
@@ -67,7 +69,9 @@ export async function sendOrderNotification(params: {
   const sender = createEmailSender()
 
   if (!sender) {
-    console.warn('[Email] Email sender not configured, skipping order notification')
+    console.warn(
+      '[Email] Email sender not configured, skipping order notification',
+    )
     return { success: false, error: 'Email sender not configured' }
   }
 
@@ -106,7 +110,9 @@ export async function sendShippingNotification(params: {
   const sender = createEmailSender()
 
   if (!sender) {
-    console.warn('[Email] Email sender not configured, skipping shipping notification')
+    console.warn(
+      '[Email] Email sender not configured, skipping shipping notification',
+    )
     return { success: false, error: 'Email sender not configured' }
   }
 

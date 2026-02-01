@@ -1,4 +1,4 @@
-import { PLAN_NAMES, PLAN_PRICES } from '@madebuy/shared/src/lib/subscription'
+import { PLAN_NAMES, PLAN_PRICES } from '@madebuy/shared'
 import { NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 import { getSubscriptionSummary } from '@/lib/subscription-check'

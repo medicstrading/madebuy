@@ -1,13 +1,11 @@
 'use client'
 
-import type {
-  WebsitePage,
-  WebsiteTemplate,
-} from '@madebuy/shared/src/types/template'
 import {
   getDefaultPages,
   TEMPLATE_DEFINITIONS,
-} from '@madebuy/shared/src/types/template'
+  type WebsitePage,
+  type WebsiteTemplate,
+} from '@madebuy/shared'
 import { Check, Eye, Sparkles, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 

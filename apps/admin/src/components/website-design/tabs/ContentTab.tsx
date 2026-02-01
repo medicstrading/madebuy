@@ -1,9 +1,6 @@
 'use client'
 
-import type {
-  PageSection,
-  WebsitePage,
-} from '@madebuy/shared/src/types/template'
+import { type PageSection, type WebsitePage } from '@madebuy/shared'
 import {
   BookOpen,
   Check,

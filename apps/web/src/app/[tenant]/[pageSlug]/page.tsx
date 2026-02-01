@@ -94,8 +94,11 @@ export default async function DynamicPage({
   }
 
   // Fetch all the data needed for sections
-  const rawPiecesResult = await pieces.listPieces(tenant.id, { status: 'available' })
-  const rawPieces = 'data' in rawPiecesResult ? rawPiecesResult.data : rawPiecesResult
+  const rawPiecesResult = await pieces.listPieces(tenant.id, {
+    status: 'available',
+  })
+  const rawPieces =
+    'data' in rawPiecesResult ? rawPiecesResult.data : rawPiecesResult
   const allPieces = await populatePiecesWithMedia(rawPieces)
 
   const collectionsResult = await collections.listCollections(tenant.id, {

@@ -1,6 +1,6 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { createRateLimiter } from '@madebuy/shared'
 import type { RateLimitConfig as SharedRateLimitConfig } from '@madebuy/shared'
+import { createRateLimiter } from '@madebuy/shared'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Rate Limiting Implementation (Admin App)

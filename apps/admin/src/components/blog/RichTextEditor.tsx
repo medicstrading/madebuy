@@ -92,19 +92,25 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
 
         {/* Headings */}
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
           isActive={editor.isActive('heading', { level: 1 })}
           icon={Heading1}
           title="Heading 1"
         />
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }
           isActive={editor.isActive('heading', { level: 2 })}
           icon={Heading2}
           title="Heading 2"
         />
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
           isActive={editor.isActive('heading', { level: 3 })}
           icon={Heading3}
           title="Heading 3"

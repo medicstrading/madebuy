@@ -46,7 +46,10 @@ export async function GET(_request: NextRequest) {
  */
 export async function POST(_request: NextRequest) {
   return NextResponse.json(
-    { error: 'Etsy listing creation coming soon' },
+    {
+      error:
+        'Etsy sync coming Q2 2026. For now, manage your Etsy listings directly on etsy.com.',
+    },
     { status: 501 },
   )
 }

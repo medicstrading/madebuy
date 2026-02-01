@@ -105,7 +105,9 @@ export const CreateOrderSchema = z.object({
   shipping: ShippingDetailsSchema.optional(),
   payment: PaymentDetailsSchema.optional(),
   notes: z.string().max(1000).optional(),
-  source: z.enum(['shop', 'custom_domain', 'admin', 'marketplace']).default('shop'),
+  source: z
+    .enum(['shop', 'custom_domain', 'admin', 'marketplace'])
+    .default('shop'),
   stripeSessionId: ShortTextSchema.optional(),
   stripePaymentIntentId: ShortTextSchema.optional(),
 })

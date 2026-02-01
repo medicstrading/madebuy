@@ -312,7 +312,7 @@ function PersonalizationFieldInput({
   const renderHelpText = () => {
     if (!field.helpText) return null
     return (
-      <p className="mt-1.5 text-xs text-gray-500 flex items-start gap-1">
+      <p className="mt-1.5 text-xs text-gray-600 flex items-start gap-1">
         <HelpCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
         {field.helpText}
       </p>
@@ -336,7 +336,7 @@ function PersonalizationFieldInput({
     const isNearLimit = currentLength > field.maxLength * 0.8
     return (
       <p
-        className={`mt-1 text-xs text-right ${isNearLimit ? 'text-amber-600' : 'text-gray-400'}`}
+        className={`mt-1 text-xs text-right ${isNearLimit ? 'text-amber-600' : 'text-gray-600'}`}
       >
         {currentLength}/{field.maxLength}
       </p>

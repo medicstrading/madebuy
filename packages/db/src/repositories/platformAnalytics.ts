@@ -19,12 +19,12 @@ import type {
   TopSeller,
 } from '@madebuy/shared'
 import {
-  startOfMonth,
-  subMonths,
+  differenceInDays,
   format,
   startOfDay,
+  startOfMonth,
   subDays,
-  differenceInDays,
+  subMonths,
 } from 'date-fns'
 import { getDatabase } from '../client'
 
@@ -35,7 +35,9 @@ import { getDatabase } from '../client'
 /**
  * Get MRR time series for the last N months
  */
-export async function getMRRTimeSeries(months: number = 12): Promise<MRRDataPoint[]> {
+export async function getMRRTimeSeries(
+  months: number = 12,
+): Promise<MRRDataPoint[]> {
   const db = await getDatabase()
   const startDate = startOfMonth(subMonths(new Date(), months - 1))
 
@@ -146,7 +148,10 @@ export async function getRevenueTimeSeries(
     { $sort: { _id: 1 } },
   ]
 
-  const results = await db.collection('transactions').aggregate(pipeline).toArray()
+  const results = await db
+    .collection('transactions')
+    .aggregate(pipeline)
+    .toArray()
 
   return results.map((r) => ({
     date: r._id,
@@ -250,7 +255,10 @@ export async function getTopSellersByRevenue(
     { $limit: limit },
   ]
 
-  const results = await db.collection('transactions').aggregate(pipeline).toArray()
+  const results = await db
+    .collection('transactions')
+    .aggregate(pipeline)
+    .toArray()
 
   return results.map((r) => ({
     tenantId: r.tenantId,
@@ -473,8 +481,12 @@ export async function getTenantHealthScores(
         slug: 1,
         plan: 1,
         lastLoginAt: '$lastLoginAt',
-        productCount: { $ifNull: [{ $arrayElemAt: ['$pieceCount.count', 0] }, 0] },
-        orderCount: { $ifNull: [{ $arrayElemAt: ['$orderCount.count', 0] }, 0] },
+        productCount: {
+          $ifNull: [{ $arrayElemAt: ['$pieceCount.count', 0] }, 0],
+        },
+        orderCount: {
+          $ifNull: [{ $arrayElemAt: ['$orderCount.count', 0] }, 0],
+        },
         totalRevenue: { $ifNull: [{ $arrayElemAt: ['$revenue.total', 0] }, 0] },
       },
     },
@@ -576,7 +588,13 @@ export async function getMarketplaceStats(): Promise<MarketplaceStats> {
       .collection('transactions')
       .aggregate([
         { $match: { type: 'sale', status: 'completed' } },
-        { $group: { _id: null, total: { $sum: '$grossAmount' }, count: { $sum: 1 } } },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$grossAmount' },
+            count: { $sum: 1 },
+          },
+        },
       ])
       .toArray(),
   ])
@@ -588,7 +606,8 @@ export async function getMarketplaceStats(): Promise<MarketplaceStats> {
     activeStorefronts: storefronts,
     totalOrders: orders,
     totalRevenue: revenueData.total / 100,
-    avgOrderValue: revenueData.count > 0 ? revenueData.total / 100 / revenueData.count : 0,
+    avgOrderValue:
+      revenueData.count > 0 ? revenueData.total / 100 / revenueData.count : 0,
     cartAbandonmentRate: 0, // Would need cart tracking data
   }
 }

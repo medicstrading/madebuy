@@ -25,7 +25,9 @@ function getValidatedAdminUrl(): string {
     const parsed = new URL(url)
     const hostPort = parsed.port ? `${parsed.host}` : parsed.host
     if (!ALLOWED_ADMIN_DOMAINS.some((d) => hostPort.includes(d))) {
-      console.warn(`ADMIN_APP_URL "${url}" not in allowed domains, using default`)
+      console.warn(
+        `ADMIN_APP_URL "${url}" not in allowed domains, using default`,
+      )
       return 'http://localhost:3300'
     }
     return url
@@ -48,7 +50,9 @@ export async function POST(request: Request) {
           description: `Unauthorized impersonation attempt by ${admin.name} (role: ${admin.role})`,
           adminEmail: admin.email,
         },
-        ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown',
+        ip:
+          request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+          'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         success: false,
         errorMessage: 'Insufficient privileges',
@@ -64,10 +68,7 @@ export async function POST(request: Request) {
     try {
       body = await request.json()
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
     const parsed = impersonateSchema.safeParse(body)
@@ -106,7 +107,9 @@ export async function POST(request: Request) {
         tenantEmail: tenant.email,
         tenantSlug: tenant.slug,
       },
-      ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown',
+      ip:
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
       success: true,
     })

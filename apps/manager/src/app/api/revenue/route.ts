@@ -26,7 +26,11 @@ export async function GET() {
       platformAnalytics.getMarketplaceStats(),
     ])
 
-    const today = todayStats[0] || { revenue: 0, orderCount: 0, avgOrderValue: 0 }
+    const today = todayStats[0] || {
+      revenue: 0,
+      orderCount: 0,
+      avgOrderValue: 0,
+    }
 
     return NextResponse.json({
       mrr: mrrBreakdown.totalMrr,

@@ -284,7 +284,6 @@ export function MediaStep({
             {selectedMedia.map((media, _index) => (
               <div key={media.id} className="relative group">
                 <button
-                                    
                   onClick={() => setPrimary(media.id)}
                   className={`relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all ${
                     primaryId === media.id
@@ -307,7 +306,6 @@ export function MediaStep({
                   )}
                 </button>
                 <button
-                                    
                   onClick={() => toggleMedia(media.id)}
                   className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -369,7 +367,6 @@ export function MediaStep({
       {/* Actions */}
       <div className="flex items-center justify-between pt-4">
         <button
-                    
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -379,14 +376,12 @@ export function MediaStep({
 
         <div className="flex items-center gap-3">
           <button
-                        
             onClick={onSkip}
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             Skip for now
           </button>
           <button
-                        
             onClick={handleSubmit}
             disabled={loading || hasUploads}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-blue-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"

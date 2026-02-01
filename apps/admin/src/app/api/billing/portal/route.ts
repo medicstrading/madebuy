@@ -1,10 +1,10 @@
 import {
   createLogger,
+  ExternalServiceError,
   isMadeBuyError,
   toErrorResponse,
   UnauthorizedError,
   ValidationError,
-  ExternalServiceError,
 } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
@@ -35,7 +35,9 @@ export async function POST(_request: NextRequest) {
 
     // Tenant must have a Stripe customer ID to access portal
     if (!tenant.stripeCustomerId) {
-      throw new ValidationError('No billing account found. Subscribe to a plan first.')
+      throw new ValidationError(
+        'No billing account found. Subscribe to a plan first.',
+      )
     }
 
     // Build return URL
@@ -52,7 +54,10 @@ export async function POST(_request: NextRequest) {
   } catch (error) {
     if (isMadeBuyError(error)) {
       const { error: msg, code, statusCode, details } = toErrorResponse(error)
-      return NextResponse.json({ error: msg, code, details }, { status: statusCode })
+      return NextResponse.json(
+        { error: msg, code, details },
+        { status: statusCode },
+      )
     }
 
     // Catch Stripe errors as external service errors

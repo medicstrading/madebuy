@@ -4,8 +4,8 @@ import type {
   PaginatedResult,
   PaginationParams,
 } from '@madebuy/shared'
-import { nanoid } from 'nanoid'
 import { ObjectId } from 'mongodb'
+import { nanoid } from 'nanoid'
 import { getDatabase } from '../client'
 
 function generateOrderNumber(): string {
@@ -37,6 +37,8 @@ export async function createOrder(
     discount?: number
     currency?: string
     stripeSessionId?: string
+    paymentMethod?: 'stripe' | 'paypal' | 'bank_transfer'
+    paypalOrderId?: string
   },
 ): Promise<Order> {
   const db = await getDatabase()
@@ -66,12 +68,13 @@ export async function createOrder(
     billingAddress: data.billingAddress,
     shippingMethod: data.shippingMethod,
     shippingType: data.shippingType,
-    paymentMethod: 'stripe',
+    paymentMethod: pricing.paymentMethod || 'stripe',
     paymentStatus: 'pending',
     status: 'pending',
     promotionCode: data.promotionCode,
     customerNotes: data.customerNotes,
     stripeSessionId: pricing.stripeSessionId, // For idempotency
+    paypalOrderId: pricing.paypalOrderId, // For PayPal orders
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -121,6 +124,19 @@ export async function getOrderByStripeSessionId(
   return (await db
     .collection('orders')
     .findOne({ tenantId, stripeSessionId: sessionId })) as Order | null
+}
+
+/**
+ * Get order by PayPal order ID (for idempotency checks)
+ */
+export async function getOrderByPayPalOrderId(
+  tenantId: string,
+  paypalOrderId: string,
+): Promise<Order | null> {
+  const db = await getDatabase()
+  return (await db
+    .collection('orders')
+    .findOne({ tenantId, paypalOrderId })) as Order | null
 }
 
 /**
@@ -175,7 +191,9 @@ export async function listOrders(
     if (pagination.cursor) {
       try {
         query._id = {
-          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(pagination.cursor),
+          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(
+            pagination.cursor,
+          ),
         }
       } catch (e) {
         // Invalid cursor - ignore and start from beginning
@@ -205,7 +223,10 @@ export async function listOrders(
 
     // Fetch limit + 1 to check if there are more items
     const items = (await cursor
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: sortOrder === 'asc' ? 1 : -1 })
+      .sort({
+        [sortBy]: sortOrder === 'asc' ? 1 : -1,
+        _id: sortOrder === 'asc' ? 1 : -1,
+      })
       .limit(limit + 1)
       .toArray()) as unknown as Order[]
 
@@ -214,7 +235,10 @@ export async function listOrders(
       items.pop() // Remove the extra item
     }
 
-    const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1] as any)._id.toString() : null
+    const nextCursor =
+      hasMore && items.length > 0
+        ? (items[items.length - 1] as any)._id.toString()
+        : null
 
     return {
       data: items,

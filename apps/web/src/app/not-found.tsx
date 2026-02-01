@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { Home, Search, ShoppingBag } from 'lucide-react'
+import Link from 'next/link'
 
 // Explicitly prevent static prerendering of the not-found page
 export const dynamic = 'force-dynamic'

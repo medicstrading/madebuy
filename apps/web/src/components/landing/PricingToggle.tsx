@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
 import { Check } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 
 export function PricingSection() {
   const [isYearly, setIsYearly] = useState(false)
@@ -35,9 +35,7 @@ export function PricingSection() {
               type="button"
               onClick={() => setIsYearly(true)}
               className={`px-6 py-2.5 rounded-full font-medium transition-all ${
-                isYearly
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'text-gray-600'
+                isYearly ? 'bg-amber-500 text-white shadow-sm' : 'text-gray-600'
               }`}
             >
               Yearly{' '}
@@ -129,9 +127,7 @@ export function PricingSection() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {plan.name}
                 </h3>
-                <p className="text-gray-500 text-sm mb-4">
-                  {plan.description}
-                </p>
+                <p className="text-gray-500 text-sm mb-4">{plan.description}</p>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-bold text-gray-900">
                     $
@@ -150,10 +146,7 @@ export function PricingSection() {
 
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-3 text-sm"
-                  >
+                  <li key={feature} className="flex items-center gap-3 text-sm">
                     <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                     <span className="text-gray-600">{feature}</span>
                   </li>

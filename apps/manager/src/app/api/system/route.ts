@@ -108,8 +108,18 @@ export async function GET() {
         successRate: health.successRate || 99.8,
         errorsLast24h: health.errorsLast24h || 3,
         endpoints: [
-          { path: '/api/dashboard', method: 'GET', avgLatency: 85, errorRate: 0 },
-          { path: '/api/tenants', method: 'GET', avgLatency: 42, errorRate: 0.1 },
+          {
+            path: '/api/dashboard',
+            method: 'GET',
+            avgLatency: 85,
+            errorRate: 0,
+          },
+          {
+            path: '/api/tenants',
+            method: 'GET',
+            avgLatency: 42,
+            errorRate: 0.1,
+          },
           { path: '/api/revenue', method: 'GET', avgLatency: 95, errorRate: 0 },
         ],
       },

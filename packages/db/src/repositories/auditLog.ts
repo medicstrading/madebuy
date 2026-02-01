@@ -94,7 +94,10 @@ export async function logAuditEvent(input: CreateAuditLogInput): Promise<void> {
     await db.collection('audit_logs').insertOne(entry)
   } catch (error) {
     // Never fail the main operation due to audit logging
-    logger.error({ error, tenantId: input.tenantId }, 'Failed to log audit event')
+    logger.error(
+      { error, tenantId: input.tenantId },
+      'Failed to log audit event',
+    )
   }
 }
 

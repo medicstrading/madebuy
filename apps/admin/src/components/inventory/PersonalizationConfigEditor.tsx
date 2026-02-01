@@ -260,7 +260,6 @@ export function PersonalizationConfigEditor({
                 Personalization Fields
               </h3>
               <button
-                                
                 onClick={addField}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
               >
@@ -276,7 +275,6 @@ export function PersonalizationConfigEditor({
                   No fields configured yet
                 </p>
                 <button
-                                    
                   onClick={addField}
                   className="mt-3 text-sm text-blue-600 hover:text-blue-700"
                 >
@@ -618,7 +616,6 @@ function FieldEditor({
                       className="flex-1 rounded-lg border border-gray-200 bg-gray-50 p-2 text-sm"
                     />
                     <button
-                                            
                       onClick={() => removeOption(idx)}
                       className="p-2 text-gray-400 hover:text-red-500"
                     >
@@ -638,7 +635,6 @@ function FieldEditor({
                     className="flex-1 rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                   <button
-                                        
                     onClick={addOption}
                     className="p-2 text-blue-600 hover:text-blue-700"
                   >

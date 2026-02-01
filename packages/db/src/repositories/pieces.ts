@@ -10,8 +10,8 @@ import type {
   UpdatePieceInput,
 } from '@madebuy/shared'
 import { calculateCOGS, calculateProfitMargin } from '@madebuy/shared'
-import { nanoid } from 'nanoid'
 import { ObjectId } from 'mongodb'
+import { nanoid } from 'nanoid'
 import { cache } from '../cache'
 import { getDatabase } from '../client'
 
@@ -204,7 +204,9 @@ export async function listPieces(
     if (pagination.cursor) {
       try {
         query._id = {
-          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(pagination.cursor),
+          [sortOrder === 'asc' ? '$gt' : '$lt']: new ObjectId(
+            pagination.cursor,
+          ),
         }
       } catch (e) {
         // Invalid cursor - ignore and start from beginning
@@ -215,7 +217,10 @@ export async function listPieces(
     const items = (await db
       .collection('pieces')
       .find(query)
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: sortOrder === 'asc' ? 1 : -1 })
+      .sort({
+        [sortBy]: sortOrder === 'asc' ? 1 : -1,
+        _id: sortOrder === 'asc' ? 1 : -1,
+      })
       .limit(limit + 1)
       .toArray()) as unknown as Piece[]
 
@@ -224,7 +229,10 @@ export async function listPieces(
       items.pop() // Remove the extra item
     }
 
-    const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1] as any)._id.toString() : null
+    const nextCursor =
+      hasMore && items.length > 0
+        ? (items[items.length - 1] as any)._id.toString()
+        : null
 
     return {
       data: items,

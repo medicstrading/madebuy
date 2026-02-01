@@ -33,9 +33,7 @@ export const authOptions: NextAuthOptions = {
               // Keep specific reason in audit log for security monitoring
               errorMessage: 'Unknown admin email',
             })
-            .catch((e) =>
-              console.error('Audit log failed:', e),
-            )
+            .catch((e) => console.error('Audit log failed:', e))
           // Return generic error to user (no enumeration)
           return null
         }
@@ -54,9 +52,7 @@ export const authOptions: NextAuthOptions = {
               // Keep specific reason in audit log for security monitoring
               errorMessage: 'Invalid password',
             })
-            .catch((e) =>
-              console.error('Audit log failed:', e),
-            )
+            .catch((e) => console.error('Audit log failed:', e))
           // Return generic error to user (no enumeration)
           return null
         }
@@ -73,9 +69,7 @@ export const authOptions: NextAuthOptions = {
             actorType: 'admin',
             success: true,
           })
-          .catch((e) =>
-            console.error('Audit log failed:', e),
-          )
+          .catch((e) => console.error('Audit log failed:', e))
 
         return {
           id: admin.id,

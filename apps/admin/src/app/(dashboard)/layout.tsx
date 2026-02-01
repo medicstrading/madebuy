@@ -1,6 +1,7 @@
 import { marketplace } from '@madebuy/db'
 import { unstable_cache } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { CelebrationProvider } from '@/components/celebrations/CelebrationProvider'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { RegionalProvider } from '@/components/providers/RegionalProvider'
 import { getCurrentTenant } from '@/lib/session'
@@ -61,13 +62,15 @@ export default async function DashboardLayout({
 
   return (
     <RegionalProvider settings={tenant.regionalSettings || null}>
-      <DashboardShell
-        user={user}
-        tenant={serializedTenant}
-        marketplaceConnections={marketplaceConnections}
-      >
-        {children}
-      </DashboardShell>
+      <CelebrationProvider checkOnMount={true}>
+        <DashboardShell
+          user={user}
+          tenant={serializedTenant}
+          marketplaceConnections={marketplaceConnections}
+        >
+          {children}
+        </DashboardShell>
+      </CelebrationProvider>
     </RegionalProvider>
   )
 }

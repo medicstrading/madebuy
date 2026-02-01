@@ -1,22 +1,29 @@
 import pino from 'pino'
 
 const isDev = process.env.NODE_ENV === 'development'
+// Detect if running in Next.js/webpack environment (browser or SSR)
+const isNextJs =
+  typeof window !== 'undefined' ||
+  (typeof process !== 'undefined' && process.env.NEXT_RUNTIME)
 
 /**
  * Base logger instance configured for the application environment
  */
 export const logger = pino({
   level: process.env.LOG_LEVEL || (isDev ? 'debug' : 'info'),
-  ...(isDev && {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss',
-        ignore: 'pid,hostname',
-      },
-    },
-  }),
+  // Only use pino-pretty in development and NOT in Next.js context
+  ...(isDev && !isNextJs
+    ? {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss',
+            ignore: 'pid,hostname',
+          },
+        },
+      }
+    : {}),
 })
 
 /**
