@@ -46,19 +46,19 @@ pnpm create:tenant                      # Create test tenant
 
 ## Docker Development Environment
 
-**CRITICAL:** Dev servers run in Docker containers on NUC. Code is mounted via SSHFS.
+**CRITICAL:** Dev servers run in Docker containers locally. Code is mounted directly.
 
 ### Build Commands (MUST use docker exec)
 ```bash
 # Find container name
-ssh nuc-dev "docker ps --format '{{.Names}}' | grep madebuy"
+docker ps --format '{{.Names}}' | grep madebuy
 
 # Run build INSIDE container
-ssh nuc-dev "docker exec madebuy-web-dev pnpm build"
-ssh nuc-dev "docker exec madebuy-admin-dev pnpm build"
+docker exec madebuy-web-dev pnpm build
+docker exec madebuy-admin-dev pnpm build
 
 # Bundle analysis
-ssh nuc-dev "docker exec madebuy-web-dev sh -c 'ANALYZE=true pnpm build'"
+docker exec madebuy-web-dev sh -c 'ANALYZE=true pnpm build'
 ```
 
 ### NEVER DO

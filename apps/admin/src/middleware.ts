@@ -38,7 +38,7 @@ function isValidCallbackUrl(url: string): boolean {
 }
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/api/auth']
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth']
 
 // Cron endpoints that use CRON_SECRET instead of session auth
 const CRON_ROUTES = [
