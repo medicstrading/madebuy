@@ -1,5 +1,5 @@
 import { tenants } from '@madebuy/db'
-import { ADMIN_PASSWORD_REQUIREMENTS, validatePassword } from '@madebuy/shared'
+import { DEFAULT_PASSWORD_REQUIREMENTS, validatePassword } from '@madebuy/shared'
 import bcrypt from 'bcryptjs'
 import { type NextRequest, NextResponse } from 'next/server'
 import { rateLimit, rateLimiters } from '@/lib/rate-limit'
@@ -30,10 +30,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate password strength (12+ chars, uppercase, lowercase, numbers, special chars)
+    // Validate password strength (8+ chars, uppercase, lowercase, numbers)
     const passwordValidation = validatePassword(
       password,
-      ADMIN_PASSWORD_REQUIREMENTS,
+      DEFAULT_PASSWORD_REQUIREMENTS,
     )
     if (!passwordValidation.isValid) {
       return NextResponse.json(
