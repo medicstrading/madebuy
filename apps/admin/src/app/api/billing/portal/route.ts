@@ -12,14 +12,14 @@ import { getCurrentTenant } from '@/lib/session'
 
 const log = createLogger({ module: 'billing-portal' })
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
 
 /**
  * POST /api/billing/portal
@@ -50,7 +50,7 @@ export async function POST(_request: NextRequest) {
     const returnUrl = `${baseUrl}/dashboard/settings/billing`
 
     // Create portal session
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await getStripe().billingPortal.sessions.create({
       customer: tenant.stripeCustomerId,
       return_url: returnUrl,
     })

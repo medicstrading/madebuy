@@ -3,14 +3,14 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
 
 /**
  * POST /api/stripe/connect/onboarding
@@ -33,7 +33,7 @@ export async function POST() {
 
     // Generate onboarding link
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3300'
-    const accountLink = await stripe.accountLinks.create({
+    const accountLink = await getStripe().accountLinks.create({
       account: connectAccountId,
       refresh_url: `${baseUrl}/dashboard/settings/payments?refresh=true`,
       return_url: `${baseUrl}/dashboard/settings/payments?onboarding=complete`,

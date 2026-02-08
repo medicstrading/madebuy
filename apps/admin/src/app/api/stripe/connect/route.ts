@@ -7,14 +7,14 @@ import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
 
 /**
  * GET /api/stripe/connect
@@ -37,7 +37,7 @@ export async function GET() {
     }
 
     // Fetch current account status from Stripe
-    const account = await stripe.accounts.retrieve(connectAccountId)
+    const account = await getStripe().accounts.retrieve(connectAccountId)
 
     const status: StripeConnectStatus = {
       connectAccountId: account.id,
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Stripe Express account
-    const account = await stripe.accounts.create({
+    const account = await getStripe().accounts.create({
       type: 'express',
       country: 'AU',
       email: tenant.email,

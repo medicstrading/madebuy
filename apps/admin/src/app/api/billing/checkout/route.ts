@@ -4,14 +4,14 @@ import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
 
 // Stripe Price IDs for each plan (configured in Stripe Dashboard)
 // These should match the prices you create in Stripe
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     let customerId = tenant.stripeCustomerId
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: tenant.email,
         name: tenant.businessName || tenant.email,
         metadata: {
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     const idempotencyKey = `subscription_${tenant.id}_${planId}_${Date.now()}`
 
     // Create checkout session for subscription
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
