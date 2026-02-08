@@ -56,7 +56,12 @@ export type { RateLimitConfig, RateLimitResult } from './lib/rate-limit'
 export { createRateLimiter } from './lib/rate-limit'
 // Export sanitization utilities
 // Pure JS functions (safe for API routes and server components)
-export { escapeHtml, sanitizeInput, stripHtml } from './lib/sanitize-input'
+export {
+  escapeHtml,
+  sanitizeHtmlServer,
+  sanitizeInput,
+  stripHtml,
+} from './lib/sanitize-input'
 // NOTE: sanitizeHtml is NOT exported here because it uses DOMPurify/jsdom
 // which breaks Next.js server-side builds. Import it directly from:
 // import { sanitizeHtml } from '@madebuy/shared/lib/sanitize'

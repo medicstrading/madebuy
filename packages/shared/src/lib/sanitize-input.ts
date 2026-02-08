@@ -63,3 +63,36 @@ export function sanitizeInput(input: string): string {
     .join('')
     .trim()
 }
+
+/**
+ * Server-safe HTML sanitizer for API routes.
+ * Strips dangerous tags and attributes without requiring JSDOM/DOMPurify.
+ * Use this instead of sanitizeHtml() in API routes and server components.
+ */
+export function sanitizeHtmlServer(html: string): string {
+  if (!html || typeof html !== 'string') {
+    return ''
+  }
+
+  return (
+    html
+      // Remove script, style, iframe, object, embed, form tags and their content
+      .replace(
+        /<(script|style|iframe|object|embed|form)\b[^>]*>[\s\S]*?<\/\1>/gi,
+        '',
+      )
+      // Remove self-closing versions of dangerous tags
+      .replace(/<(script|style|iframe|object|embed|form)\b[^>]*\/?>/gi, '')
+      // Remove event handler attributes (on*)
+      .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+      // Remove javascript: and data: URLs in href/src attributes
+      .replace(
+        /(href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi,
+        '$1=""',
+      )
+      .replace(
+        /(href|src)\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi,
+        '$1=""',
+      )
+  )
+}
