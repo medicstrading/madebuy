@@ -6,24 +6,17 @@
 import { orders } from '@madebuy/db'
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  MOCK_TENANT_FREE,
+  createRequest,
+  mockCurrentTenant,
+  mockUnauthorized,
+} from '../../../__tests__/setup'
 
-// Mock getCurrentTenant
-const mockGetCurrentTenant = vi.fn()
-vi.mock('@/lib/session', () => ({
-  getCurrentTenant: () => mockGetCurrentTenant(),
-}))
-
-// Import handlers after mocks
+// Import handlers (mocks from setup.ts are already active)
 import { GET, POST } from '../orders/route'
 
 describe('Orders API', () => {
-  const mockTenant = {
-    id: 'tenant-123',
-    email: 'test@example.com',
-    businessName: 'Test Shop',
-    plan: 'maker',
-  }
-
   const mockOrder = {
     id: 'order-456',
     tenantId: 'tenant-123',
@@ -63,22 +56,21 @@ describe('Orders API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetCurrentTenant.mockReset()
   })
 
   describe('GET /api/orders', () => {
     it('should return 401 when not authenticated', async () => {
-      mockGetCurrentTenant.mockResolvedValue(null)
+      mockUnauthorized()
 
       const response = await GET()
 
       expect(response.status).toBe(401)
       const data = await response.json()
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error).toBe('Please log in to continue.')
     })
 
     it('should return orders when authenticated', async () => {
-      mockGetCurrentTenant.mockResolvedValue(mockTenant)
+      mockCurrentTenant(MOCK_TENANT_FREE)
       vi.mocked(orders.listOrders).mockResolvedValue([mockOrder])
 
       const response = await GET()
@@ -90,7 +82,7 @@ describe('Orders API', () => {
     })
 
     it('should call listOrders with correct tenant ID', async () => {
-      mockGetCurrentTenant.mockResolvedValue(mockTenant)
+      mockCurrentTenant(MOCK_TENANT_FREE)
       vi.mocked(orders.listOrders).mockResolvedValue([])
 
       await GET()
@@ -99,7 +91,7 @@ describe('Orders API', () => {
     })
 
     it('should return empty array when no orders exist', async () => {
-      mockGetCurrentTenant.mockResolvedValue(mockTenant)
+      mockCurrentTenant(MOCK_TENANT_FREE)
       vi.mocked(orders.listOrders).mockResolvedValue([])
 
       const response = await GET()
@@ -112,7 +104,7 @@ describe('Orders API', () => {
 
   describe('POST /api/orders', () => {
     it('should return 401 when not authenticated', async () => {
-      mockGetCurrentTenant.mockResolvedValue(null)
+      mockUnauthorized()
 
       const request = new NextRequest('http://localhost/api/orders', {
         method: 'POST',
@@ -141,7 +133,7 @@ describe('Orders API', () => {
     })
 
     it('should create order when authenticated', async () => {
-      mockGetCurrentTenant.mockResolvedValue(mockTenant)
+      mockCurrentTenant(MOCK_TENANT_FREE)
       vi.mocked(orders.createOrder).mockResolvedValue({
         ...mockOrder,
         id: 'new-order-id',

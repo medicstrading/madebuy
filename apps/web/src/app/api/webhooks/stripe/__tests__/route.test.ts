@@ -21,6 +21,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // MOCKS - Must be hoisted before imports
 // =============================================================================
 
+// Hoist environment variables BEFORE any module imports
+vi.hoisted(() => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_mock'
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_mock'
+  process.env.STRIPE_PRICE_MAKER_MONTHLY = 'price_maker_monthly'
+  process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY = 'price_professional_monthly'
+  process.env.STRIPE_PRICE_STUDIO_MONTHLY = 'price_studio_monthly'
+  process.env.MONGODB_URI = 'mongodb://localhost:27017/madebuy-test'
+})
+
 // Hoist mock functions so they can be used in vi.mock
 const {
   mockConstructEvent,
@@ -44,14 +54,6 @@ const {
   mockLogWarn: vi.fn(),
 }))
 
-// Mock environment variables
-vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_mock')
-vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_mock')
-vi.stubEnv('MONGODB_URI', 'mongodb://localhost:27017/madebuy-test')
-vi.stubEnv('STRIPE_PRICE_MAKER_MONTHLY', 'price_maker_monthly')
-vi.stubEnv('STRIPE_PRICE_PROFESSIONAL_MONTHLY', 'price_professional_monthly')
-vi.stubEnv('STRIPE_PRICE_STUDIO_MONTHLY', 'price_studio_monthly')
-
 // Mock @madebuy/db
 vi.mock('@madebuy/db', () => ({
   downloads: {
@@ -69,10 +71,15 @@ vi.mock('@madebuy/db', () => ({
   orders: {
     getOrderByStripeSessionId: vi.fn(),
     createOrder: vi.fn(),
+    getOrderByPaymentIntent: vi.fn(),
+    updateRefundStatus: vi.fn(),
   },
   pieces: {
     getPiece: vi.fn(),
     getLowStockPieces: vi.fn(),
+    getPiecesByIds: vi.fn(),
+    incrementStock: vi.fn(),
+    incrementVariantStock: vi.fn(),
   },
   tenants: {
     getTenantById: vi.fn(),
@@ -80,11 +87,12 @@ vi.mock('@madebuy/db', () => ({
     getTenantByStripeCustomerId: vi.fn(),
   },
   stockReservations: {
-    completeReservation: vi.fn(),
+    commitReservation: vi.fn(),
     cancelReservation: vi.fn(),
   },
   transactions: {
     createTransaction: vi.fn(),
+    getTransactionByStripeSessionId: vi.fn(),
   },
 }))
 
@@ -404,16 +412,39 @@ const mockOrder = {
 
 describe('Stripe Webhook Route', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    // Clear call history but preserve mock implementations
+    mockConstructEvent.mockClear()
+    mockSendOrderConfirmation.mockClear()
+    mockSendDownloadEmail.mockClear()
+    mockSendLowStockAlertEmail.mockClear()
+    mockSendPaymentFailedEmail.mockClear()
+    mockSendSubscriptionCancelledEmail.mockClear()
+    mockLogError.mockClear()
+    mockLogInfo.mockClear()
+    mockLogWarn.mockClear()
 
-    // Default mock implementations
+    // Reset all db mocks
+    vi.mocked(orders.getOrderByStripeSessionId).mockReset()
+    vi.mocked(orders.createOrder).mockReset()
+    vi.mocked(orders.getOrderByPaymentIntent).mockReset()
+    vi.mocked(orders.updateRefundStatus).mockReset()
+    vi.mocked(pieces.getPiece).mockReset()
+    vi.mocked(pieces.getPiecesByIds).mockReset()
+    vi.mocked(pieces.getLowStockPieces).mockReset()
+    vi.mocked(pieces.incrementStock).mockReset()
+    vi.mocked(pieces.incrementVariantStock).mockReset()
+    vi.mocked(tenants.getTenantById).mockReset()
+    vi.mocked(tenants.updateTenant).mockReset()
+    vi.mocked(tenants.getTenantByStripeCustomerId).mockReset()
+    vi.mocked(stockReservations.commitReservation).mockReset()
+    vi.mocked(stockReservations.cancelReservation).mockReset()
+    vi.mocked(transactions.createTransaction).mockReset()
+    vi.mocked(transactions.getTransactionByStripeSessionId).mockReset()
+
+    // Default mock implementation for Stripe event construction
     mockConstructEvent.mockImplementation((body, _sig, _secret) => {
       return JSON.parse(body)
     })
-  })
-
-  afterEach(() => {
-    vi.resetAllMocks()
   })
 
   // ---------------------------------------------------------------------------
@@ -426,9 +457,15 @@ describe('Stripe Webhook Route', () => {
       // Setup mocks
       vi.mocked(orders.getOrderByStripeSessionId).mockResolvedValue(null)
       vi.mocked(pieces.getPiece).mockResolvedValue(mockPiece as any)
+      vi.mocked(pieces.getPiecesByIds).mockResolvedValue(
+        new Map([['piece-456', mockPiece as any]]),
+      )
+      vi.mocked(transactions.getTransactionByStripeSessionId).mockResolvedValue(
+        null,
+      )
+      vi.mocked(stockReservations.commitReservation).mockResolvedValue(true)
       vi.mocked(tenants.getTenantById).mockResolvedValue(mockTenant as any)
       vi.mocked(orders.createOrder).mockResolvedValue(mockOrder as any)
-      vi.mocked(stockReservations.completeReservation).mockResolvedValue(true)
       vi.mocked(pieces.getLowStockPieces).mockResolvedValue([])
       vi.mocked(transactions.createTransaction).mockResolvedValue({
         id: 'txn_123',
@@ -448,8 +485,8 @@ describe('Stripe Webhook Route', () => {
         'cs_test_123',
       )
 
-      // Verify stock reservation completed (with tenantId for cross-tenant isolation)
-      expect(stockReservations.completeReservation).toHaveBeenCalledWith(
+      // Verify stock reservation committed (with tenantId for cross-tenant isolation)
+      expect(stockReservations.commitReservation).toHaveBeenCalledWith(
         'tenant-123',
         'res_123',
       )
@@ -509,7 +546,7 @@ describe('Stripe Webhook Route', () => {
 
       // Should NOT create a new order
       expect(orders.createOrder).not.toHaveBeenCalled()
-      expect(stockReservations.completeReservation).not.toHaveBeenCalled()
+      expect(stockReservations.commitReservation).not.toHaveBeenCalled()
       expect(transactions.createTransaction).not.toHaveBeenCalled()
       expect(mockSendOrderConfirmation).not.toHaveBeenCalled()
     })
@@ -684,7 +721,10 @@ describe('Stripe Webhook Route', () => {
       const responseBody = await response.json()
 
       expect(response.status).toBe(400)
-      expect(responseBody).toEqual({ error: 'Invalid signature' })
+      expect(responseBody).toEqual({
+        error: 'Invalid signature',
+        code: 'INVALID_SIGNATURE',
+      })
     })
 
     it('should reject requests with missing signature', async () => {
@@ -699,7 +739,10 @@ describe('Stripe Webhook Route', () => {
       const responseBody = await response.json()
 
       expect(response.status).toBe(400)
-      expect(responseBody).toEqual({ error: 'No signature' })
+      expect(responseBody).toEqual({
+        error: 'No signature',
+        code: 'MISSING_SIGNATURE',
+      })
     })
   })
 
@@ -744,8 +787,6 @@ describe('Stripe Webhook Route', () => {
       // Remove tenantId from metadata
       ;(event.data.object as Stripe.Subscription).metadata = {}
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
       const request = createMockRequest(JSON.stringify(event))
       const response = await POST(request)
       const responseBody = await response.json()
@@ -753,13 +794,12 @@ describe('Stripe Webhook Route', () => {
       expect(response.status).toBe(200)
       expect(responseBody).toEqual({ received: true })
 
-      // Should log the error via console.error (subscription handler uses console.error)
-      expect(consoleSpy).toHaveBeenCalledWith(
+      // Should log the error via pino logger
+      expect(mockLogError).toHaveBeenCalledWith(
+        expect.objectContaining({ subscriptionId: 'sub_test_123' }),
         'No tenantId in subscription metadata',
       )
       expect(tenants.updateTenant).not.toHaveBeenCalled()
-
-      consoleSpy.mockRestore()
     })
   })
 })

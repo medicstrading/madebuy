@@ -5,7 +5,7 @@ import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -14,7 +14,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const discount = await discounts.getDiscountCodeById(tenant.id, params.id)
+    const { id } = await params
+    const discount = await discounts.getDiscountCodeById(tenant.id, id)
 
     if (!discount) {
       return NextResponse.json({ error: 'Discount not found' }, { status: 404 })
@@ -32,7 +33,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -41,11 +42,12 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const data: UpdateDiscountCodeInput = await request.json()
 
     const discount = await discounts.updateDiscountCode(
       tenant.id,
-      params.id,
+      id,
       data,
     )
 
@@ -74,7 +76,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -83,7 +85,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const deleted = await discounts.deleteDiscountCode(tenant.id, params.id)
+    const { id } = await params
+    const deleted = await discounts.deleteDiscountCode(tenant.id, id)
 
     if (!deleted) {
       return NextResponse.json({ error: 'Discount not found' }, { status: 404 })

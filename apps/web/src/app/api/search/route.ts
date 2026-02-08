@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const query = searchParams.get('q')
     const tenantSlug = searchParams.get('tenant')
 
-    if (!query || !tenantSlug) {
+    if (query === null || !tenantSlug) {
       return NextResponse.json(
         { error: 'Missing required parameters: q, tenant' },
         { status: 400 },

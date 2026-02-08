@@ -7,8 +7,8 @@ import { bulk } from '@madebuy/db'
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock getCurrentTenant
 const mockGetCurrentTenant = vi.fn()
+
 vi.mock('@/lib/session', () => ({
   getCurrentTenant: () => mockGetCurrentTenant(),
 }))
@@ -28,7 +28,6 @@ describe('Bulk Operations API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetCurrentTenant.mockReset()
   })
 
   describe('POST /api/pieces/bulk', () => {

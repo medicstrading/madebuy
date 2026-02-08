@@ -5,7 +5,7 @@ import { getCurrentTenant } from '@/lib/session'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -14,7 +14,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const enquiry = await enquiries.getEnquiry(tenant.id, params.id)
+    const { id } = await params
+    const enquiry = await enquiries.getEnquiry(tenant.id, id)
 
     if (!enquiry) {
       return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 })
@@ -32,7 +33,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -41,24 +42,25 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const { status, note } = await request.json()
 
     // Update status if provided
     if (status) {
       await enquiries.updateEnquiryStatus(
         tenant.id,
-        params.id,
+        id,
         status as Enquiry['status'],
       )
     }
 
     // Add note if provided
     if (note) {
-      await enquiries.addEnquiryNote(tenant.id, params.id, note)
+      await enquiries.addEnquiryNote(tenant.id, id, note)
     }
 
     // Fetch updated enquiry
-    const enquiry = await enquiries.getEnquiry(tenant.id, params.id)
+    const enquiry = await enquiries.getEnquiry(tenant.id, id)
 
     if (!enquiry) {
       return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 })
@@ -76,7 +78,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -85,7 +87,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await enquiries.deleteEnquiry(tenant.id, params.id)
+    const { id } = await params
+    await enquiries.deleteEnquiry(tenant.id, id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

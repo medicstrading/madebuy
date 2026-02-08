@@ -19,6 +19,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { tenantId, code, orderTotal, pieceIds, customerEmail } = body
 
+    // Validate required fields first
+    if (!tenantId || !code || orderTotal === undefined) {
+      return NextResponse.json(
+        { error: 'Missing required fields: tenantId, code, orderTotal' },
+        { status: 400 },
+      )
+    }
+
     // Validate input types
     if (
       typeof tenantId !== 'string' ||
@@ -28,14 +36,6 @@ export async function POST(request: NextRequest) {
       (customerEmail !== undefined && typeof customerEmail !== 'string')
     ) {
       return NextResponse.json({ error: 'Invalid input type' }, { status: 400 })
-    }
-
-    // Validate required fields
-    if (!tenantId || !code || orderTotal === undefined) {
-      return NextResponse.json(
-        { error: 'Missing required fields: tenantId, code, orderTotal' },
-        { status: 400 },
-      )
     }
 
     // Validate tenant exists

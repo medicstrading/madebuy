@@ -2,7 +2,6 @@ import { tenants } from '@madebuy/db'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import {
-  canCustomizeLayout,
   canUseBlog,
   validateWebsiteDesignUpdate,
 } from '@/lib/website-design'
@@ -55,8 +54,16 @@ export async function PATCH(request: NextRequest) {
       template,
       pages,
       header,
+      headerConfig,
       footer,
+      footerConfig,
+      logoMediaId,
+      logoUrl,
     } = body
+
+    // Normalize field names (client sends headerConfig/footerConfig)
+    const resolvedHeader = header ?? headerConfig
+    const resolvedFooter = footer ?? footerConfig
 
     // Get current tenant to merge websiteDesign
     const tenant = await tenants.getTenantById(user.id)
@@ -64,16 +71,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
-    // Validate plan access for template/pages (requires Pro+)
-    if (
-      (template !== undefined || pages !== undefined) &&
-      !canCustomizeLayout(tenant)
-    ) {
-      return NextResponse.json(
-        { error: 'Template customization requires Pro plan or higher.' },
-        { status: 403 },
-      )
-    }
+    // Template selection is available to ALL plans (basic page structure)
+    // Only advanced layout customization (custom sections, etc.) is gated
 
     // Validate plan access for the requested features
     const validation = validateWebsiteDesignUpdate(tenant, {
@@ -122,12 +121,20 @@ export async function PATCH(request: NextRequest) {
       updatedDesign.pages = pages
     }
 
-    if (header !== undefined) {
-      updatedDesign.header = header
+    if (resolvedHeader !== undefined) {
+      updatedDesign.headerConfig = resolvedHeader
     }
 
-    if (footer !== undefined) {
-      updatedDesign.footer = footer
+    if (resolvedFooter !== undefined) {
+      updatedDesign.footerConfig = resolvedFooter
+    }
+
+    if (logoMediaId !== undefined) {
+      updatedDesign.logoMediaId = logoMediaId
+    }
+
+    if (logoUrl !== undefined) {
+      updatedDesign.logoUrl = logoUrl
     }
 
     // Legacy fields (kept for backward compatibility)
@@ -155,8 +162,10 @@ export async function PATCH(request: NextRequest) {
     const hasDesignChanges =
       template !== undefined ||
       pages !== undefined ||
-      header !== undefined ||
-      footer !== undefined ||
+      resolvedHeader !== undefined ||
+      resolvedFooter !== undefined ||
+      logoMediaId !== undefined ||
+      logoUrl !== undefined ||
       banner !== undefined ||
       typography !== undefined ||
       layout !== undefined ||

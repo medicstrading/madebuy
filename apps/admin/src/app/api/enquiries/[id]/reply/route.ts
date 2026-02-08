@@ -15,7 +15,7 @@ function getResendClient() {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenant = await getCurrentTenant()
@@ -24,6 +24,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const { subject, body } = await request.json()
 
     // Input validation
@@ -49,7 +50,7 @@ export async function POST(
     }
 
     // Get the enquiry
-    const enquiry = await enquiries.getEnquiry(tenant.id, params.id)
+    const enquiry = await enquiries.getEnquiry(tenant.id, id)
 
     if (!enquiry) {
       return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 })
@@ -142,7 +143,7 @@ export async function POST(
     // Record the reply in the database
     const updatedEnquiry = await enquiries.replyToEnquiry(
       tenant.id,
-      params.id,
+      id,
       subject,
       body,
     )

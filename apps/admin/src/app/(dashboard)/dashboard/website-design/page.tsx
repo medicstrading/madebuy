@@ -128,11 +128,13 @@ export default function WebsiteDesignPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save')
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to save')
       }
     } catch (error) {
       console.error('Failed to save:', error)
-      alert('Failed to save changes. Please try again.')
+      const message = error instanceof Error ? error.message : 'Failed to save changes. Please try again.'
+      alert(message)
     } finally {
       setIsSaving(false)
     }
