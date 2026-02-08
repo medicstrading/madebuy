@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react'
 import { MiniCartPreview } from '@/components/cart/MiniCartPreview'
 import { useCart } from '@/contexts/CartContext'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { formatCurrency } from '@/lib/utils'
 import { PersonalizationForm } from './PersonalizationForm'
 
 interface ProductAddToCartProps {
@@ -149,10 +150,10 @@ export function ProductAddToCart({
       {hasPersonalization && personalizationTotal > 0 && (
         <div className="text-right">
           <span className="text-sm text-gray-500 line-through mr-2">
-            ${((product.price || 0) / 100).toFixed(2)}
+            {formatCurrency((product.price || 0) / 100)}
           </span>
           <span className="text-2xl font-bold text-gray-900">
-            ${(displayPrice / 100).toFixed(2)}
+            {formatCurrency(displayPrice / 100)}
           </span>
         </div>
       )}

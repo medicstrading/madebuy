@@ -4,6 +4,7 @@ import { ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { SectionProps } from './SectionRenderer'
+import { formatCurrency } from '@/lib/utils'
 
 export function ProductFeatured({
   settings,
@@ -92,7 +93,7 @@ export function ProductFeatured({
           {/* Price */}
           {featuredPiece.price && (
             <p className="text-2xl font-semibold text-gray-900 mb-8">
-              ${featuredPiece.price.toFixed(2)}
+              {formatCurrency(featuredPiece.price)}
             </p>
           )}
 

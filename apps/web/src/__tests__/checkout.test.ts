@@ -168,10 +168,11 @@ describe('Checkout Flow', () => {
     it('should complete reservation when payment succeeds', async () => {
       vi.mocked(stockReservations.completeReservation).mockResolvedValue(true)
 
-      const result = await stockReservations.completeReservation('session-123')
+      const result = await stockReservations.completeReservation('tenant-123', 'session-123')
 
       expect(result).toBe(true)
       expect(stockReservations.completeReservation).toHaveBeenCalledWith(
+        'tenant-123',
         'session-123',
       )
     })

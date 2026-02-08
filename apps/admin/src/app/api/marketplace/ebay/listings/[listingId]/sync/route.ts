@@ -23,6 +23,13 @@ export async function POST(_request: NextRequest, context: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!tenant.features?.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace sync not available on your plan' },
+        { status: 403 },
+      )
+    }
+
     const { listingId } = await context.params
 
     // Get listing from database

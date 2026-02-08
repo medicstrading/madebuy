@@ -377,6 +377,17 @@ export function ProductGallery({
     }
   }, [])
 
+  // Cleanup video element on unmount
+  useEffect(() => {
+    return () => {
+      if (mainVideoRef.current) {
+        mainVideoRef.current.pause()
+        mainVideoRef.current.src = ''
+        mainVideoRef.current.load()
+      }
+    }
+  }, [])
+
   // Preload adjacent images
   useEffect(() => {
     const preloadIndexes = [currentIndex - 1, currentIndex + 1].filter(

@@ -201,16 +201,43 @@ export function getPublicUrl(key: string): string {
  * Generate a signed URL for private R2 objects
  * @param key - The R2 object key
  * @param expiresIn - Expiration time in seconds (default: 1 hour)
+ * @param contentType - Optional content type to force (if known)
  */
 export async function getSignedUrl(
   key: string,
   expiresIn: number = 3600,
+  contentType?: string,
 ): Promise<string> {
   const config = getR2Config()
-  const command = new GetObjectCommand({
+
+  // Determine if this is an image based on key extension or content type
+  const isImage =
+    contentType?.startsWith('image/') ||
+    /\.(jpg|jpeg|png|gif|webp)$/i.test(key)
+
+  // For non-image files, force download and set explicit content type
+  const commandParams: any = {
     Bucket: config.bucketName,
     Key: key,
-  })
+  }
+
+  if (!isImage) {
+    // Force download for non-image files to prevent XSS via HTML uploads
+    commandParams.ResponseContentDisposition = 'attachment'
+
+    // Set explicit content type if known, otherwise force octet-stream
+    if (contentType) {
+      commandParams.ResponseContentType = contentType
+    } else {
+      // Force binary download for unknown types
+      commandParams.ResponseContentType = 'application/octet-stream'
+    }
+  } else if (contentType) {
+    // For images, set explicit content type if provided
+    commandParams.ResponseContentType = contentType
+  }
+
+  const command = new GetObjectCommand(commandParams)
 
   return await awsGetSignedUrl(getR2Client(), command, { expiresIn })
 }

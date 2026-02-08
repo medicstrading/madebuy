@@ -1,5 +1,6 @@
 import type {
   CreateReviewInput,
+  Order,
   ProductReviewStats,
   Review,
   ReviewListOptions,
@@ -11,12 +12,18 @@ import { getDatabase } from '../client'
 
 /**
  * Create a new review
+ * REV-05 FIX: Accepts optional order to determine verified purchase status
  */
 export async function createReview(
   tenantId: string,
   data: CreateReviewInput,
+  order?: Order,
 ): Promise<Review> {
   const db = await getDatabase()
+
+  // REV-05 FIX: Determine verified purchase based on actual order verification
+  // If order is provided and valid, it's verified. Otherwise, it's not.
+  const isVerifiedPurchase = !!order
 
   const review: Review = {
     id: nanoid(),
@@ -31,9 +38,11 @@ export async function createReview(
     text: data.text,
     photos: data.photos || [],
     status: 'pending', // All reviews start as pending moderation
-    isVerifiedPurchase: true, // Set to true since we verify on creation
+    isVerifiedPurchase, // REV-05 FIX: Based on actual order verification
     helpfulCount: 0,
     reportCount: 0,
+    helpfulVoters: [], // REV-07: Initialize empty voter tracking arrays
+    reportVoters: [], // REV-07: Initialize empty voter tracking arrays
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -56,6 +65,15 @@ export async function getReview(
 }
 
 /**
+ * Get a review by ID without requiring tenantId
+ * Used for vote endpoints where we need to derive tenantId from the review
+ */
+export async function getReviewById(id: string): Promise<Review | null> {
+  const db = await getDatabase()
+  return (await db.collection('reviews').findOne({ id })) as Review | null
+}
+
+/**
  * Check if a customer has already reviewed a piece for an order
  */
 export async function hasReviewedOrder(
@@ -68,6 +86,24 @@ export async function hasReviewedOrder(
     tenantId,
     orderId,
     pieceId,
+  })
+  return !!existing
+}
+
+/**
+ * REV-04 FIX: Check if a customer has already reviewed a piece (by email)
+ * This prevents the same customer from submitting multiple reviews
+ */
+export async function hasCustomerReviewedPiece(
+  tenantId: string,
+  pieceId: string,
+  customerEmail: string,
+): Promise<boolean> {
+  const db = await getDatabase()
+  const existing = await db.collection('reviews').findOne({
+    tenantId,
+    pieceId,
+    customerEmail: customerEmail.toLowerCase(), // Case-insensitive match
   })
   return !!existing
 }
@@ -239,37 +275,51 @@ export async function deleteReview(
 }
 
 /**
- * Mark a review as helpful
+ * REV-07 FIX: Mark a review as helpful with voter tracking
+ * Returns true if vote was recorded, false if user already voted
  */
 export async function markReviewHelpful(
   tenantId: string,
   id: string,
-): Promise<void> {
+  voterId: string,
+): Promise<boolean> {
   const db = await getDatabase()
-  await db.collection('reviews').updateOne(
-    { tenantId, id },
+
+  // Try to add the voter to the helpfulVoters array
+  const result = await db.collection('reviews').updateOne(
+    { tenantId, id, helpfulVoters: { $ne: voterId } }, // Only update if voter not in array
     {
       $inc: { helpfulCount: 1 },
+      $addToSet: { helpfulVoters: voterId },
       $set: { updatedAt: new Date() },
     },
   )
+
+  return result.modifiedCount > 0
 }
 
 /**
- * Report a review
+ * REV-07 FIX: Report a review with voter tracking
+ * Returns true if report was recorded, false if user already reported
  */
 export async function reportReview(
   tenantId: string,
   id: string,
-): Promise<void> {
+  voterId: string,
+): Promise<boolean> {
   const db = await getDatabase()
-  await db.collection('reviews').updateOne(
-    { tenantId, id },
+
+  // Try to add the voter to the reportVoters array
+  const result = await db.collection('reviews').updateOne(
+    { tenantId, id, reportVoters: { $ne: voterId } }, // Only update if voter not in array
     {
       $inc: { reportCount: 1 },
+      $addToSet: { reportVoters: voterId },
       $set: { updatedAt: new Date() },
     },
   )
+
+  return result.modifiedCount > 0
 }
 
 /**

@@ -15,6 +15,33 @@ const ETSY_AUTH_URL = 'https://www.etsy.com/oauth/connect'
 const ETSY_CLIENT_ID = process.env.ETSY_CLIENT_ID
 const ETSY_REDIRECT_URI = process.env.ETSY_REDIRECT_URI
 
+/**
+ * Validate returnUrl against an allowlist of safe relative paths.
+ * Prevents open redirect attacks via the OAuth returnUrl parameter.
+ */
+const ALLOWED_RETURN_URL_PREFIXES = [
+  '/dashboard/marketplace',
+  '/dashboard/settings',
+  '/dashboard/connections',
+]
+
+function validateReturnUrl(url: string | null): string {
+  const defaultUrl = '/dashboard/marketplace'
+  if (!url) return defaultUrl
+  // Must be a relative path starting with /
+  if (!url.startsWith('/')) return defaultUrl
+  // Block protocol-relative URLs and javascript/data schemes
+  if (url.startsWith('//')) return defaultUrl
+  if (url.includes('://')) return defaultUrl
+  if (url.toLowerCase().includes('javascript:')) return defaultUrl
+  if (url.toLowerCase().includes('data:')) return defaultUrl
+  // Must match an allowed prefix
+  if (!ALLOWED_RETURN_URL_PREFIXES.some((prefix) => url.startsWith(prefix))) {
+    return defaultUrl
+  }
+  return url
+}
+
 // Etsy scopes needed for selling
 const ETSY_SCOPES = [
   'listings_r',
@@ -54,6 +81,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check feature gate for marketplace sync
+    if (!tenant.features.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace integration requires a Pro or higher plan' },
+        { status: 403 },
+      )
+    }
+
     // Check if Etsy credentials are configured
     if (!ETSY_CLIENT_ID || !ETSY_REDIRECT_URI) {
       return NextResponse.json(
@@ -80,9 +115,8 @@ export async function GET(request: NextRequest) {
     // Generate state parameter for CSRF protection
     const nonce = nanoid(32)
 
-    // Get return URL from query params
-    const returnUrl =
-      request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
+    // Get return URL from query params and validate against allowlist
+    const returnUrl = validateReturnUrl(request.nextUrl.searchParams.get('returnUrl'))
 
     // Store OAuth state with code verifier securely in database
     // SECURITY: Code verifier is stored in DB, NOT in URL state parameter

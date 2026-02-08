@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid'
 import { type NextRequest, NextResponse } from 'next/server'
 import { parseCSV, validateAndParse } from '@/lib/csv-parser'
 import { getCurrentTenant } from '@/lib/session'
+import { checkCanAddPiece } from '@/lib/subscription-check'
 
 interface RouteParams {
   params: Promise<{ jobId: string }>
@@ -168,6 +169,35 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
           productsUpdated++
         } else {
           // Create new product
+          // Check piece limit before creating
+          const canAdd = await checkCanAddPiece(tenant)
+          if (!canAdd.allowed) {
+            errors.push({
+              row: primaryRow.rowNumber || 0,
+              message: `Cannot import product "${primaryRow.name}": ${canAdd.message || 'Product limit reached'}`,
+            })
+
+            if (!job.skipErrors) {
+              // Stop on first error if skipErrors is false
+              await imports.updateImportJob(tenant.id, jobId, {
+                status: 'failed',
+                completedAt: new Date(),
+                productsCreated,
+                productsUpdated,
+                productsSkipped,
+                imagesDownloaded,
+                errors: [...job.errors, ...errors],
+              })
+              return NextResponse.json(
+                { error: 'Import failed: product limit reached', errors },
+                { status: 403 },
+              )
+            }
+
+            productsSkipped++
+            continue
+          }
+
           const pieceData: CreatePieceInput = {
             name: primaryRow.name,
             description: primaryRow.description,

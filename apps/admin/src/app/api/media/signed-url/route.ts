@@ -4,13 +4,22 @@ import { requireTenant } from '@/lib/session'
 
 export async function POST(request: NextRequest) {
   try {
-    const _tenant = await requireTenant()
+    const tenant = await requireTenant()
     const { key } = await request.json()
 
     if (!key) {
       return NextResponse.json(
         { error: 'Missing key parameter' },
         { status: 400 },
+      )
+    }
+
+    // DB-14: Validate R2 key prefix matches authenticated tenant ID
+    // R2 keys are formatted as "{tenantId}/{nanoid}-{filename}"
+    if (typeof key !== 'string' || !key.startsWith(`${tenant.id}/`)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 },
       )
     }
 

@@ -20,6 +20,12 @@ export function SearchInput({
 }: SearchInputProps) {
   const [value, setValue] = useState('')
   const timeoutRef = useRef<NodeJS.Timeout>()
+  const onSearchRef = useRef(onSearch)
+
+  // Keep ref in sync with latest onSearch
+  useEffect(() => {
+    onSearchRef.current = onSearch
+  }, [onSearch])
 
   // Debounced search handler
   useEffect(() => {
@@ -30,7 +36,7 @@ export function SearchInput({
 
     // Set new timeout for debounced search
     timeoutRef.current = setTimeout(() => {
-      onSearch(value)
+      onSearchRef.current(value)
     }, debounceMs)
 
     // Cleanup on unmount
@@ -39,7 +45,7 @@ export function SearchInput({
         clearTimeout(timeoutRef.current)
       }
     }
-  }, [value, onSearch, debounceMs])
+  }, [value, debounceMs])
 
   const handleClear = useCallback(() => {
     setValue('')

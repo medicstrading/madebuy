@@ -17,7 +17,12 @@ import { rateLimiters } from '@/lib/rate-limit'
 
 const log = createLogger({ module: 'checkout' })
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Validate Stripe secret key is configured
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 })
 
@@ -144,6 +149,16 @@ export async function POST(request: NextRequest) {
         // Variant product but no variant selected
         await stockReservations.cancelReservation(tempSessionId)
         throw new ValidationError(`Please select a variant for ${piece.name}`)
+      }
+
+      // PAY-01: Validate that variant still exists (explicit check before using client-sent price)
+      // Server already resolves variant price at line 222, but validate existence first
+      if (item.variantId && piece.hasVariants) {
+        const variantExists = piece.variants?.some((v) => v.id === item.variantId)
+        if (!variantExists) {
+          await stockReservations.cancelReservation(tempSessionId)
+          throw new NotFoundError('Product variant', item.variantId)
+        }
       }
 
       // Try to reserve stock (handles race conditions, supports variants)
@@ -364,6 +379,9 @@ export async function POST(request: NextRequest) {
     // Zero platform fees - MadeBuy's differentiator. Sellers keep 100% minus Stripe processing.
     const platformFeeAmount = 0
 
+    // PAY-07: Add idempotency key to prevent duplicate checkout sessions on retry
+    const idempotencyKey = `checkout_${tenantId}_${Date.now()}_${items.map(i => i.pieceId).join('_')}`
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -411,6 +429,8 @@ export async function POST(request: NextRequest) {
         reservationSessionId: tempSessionId, // Link to stock reservations
         connectAccountId, // Track which Connect account received funds
       },
+    }, {
+      idempotencyKey,
     })
 
     log.info(

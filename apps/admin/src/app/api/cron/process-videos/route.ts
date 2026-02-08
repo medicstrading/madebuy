@@ -47,19 +47,41 @@ interface ProcessResult {
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret to prevent unauthorized access (timing-safe)
+    // Verify cron secret to prevent unauthorized access (fail-closed)
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    // If CRON_SECRET is set, require authorization
-    if (cronSecret && !verifySecret(authHeader, cronSecret)) {
+    // CRON_SECRET must be configured - fail closed if missing
+    if (!cronSecret) {
+      console.error('[CRON] CRON_SECRET environment variable is not set')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    // Verify the provided secret matches (timing-safe)
+    if (!verifySecret(authHeader, cronSecret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[VIDEO-CRON] Checking for pending videos...')
 
-    // Get videos that need processing
-    const pendingVideos = await media.getVideosPendingProcessing()
+    // First, recover stuck videos (stuck in "processing" for more than 10 minutes)
+    const stuckVideos = await media.getStuckProcessingVideos(10)
+    if (stuckVideos.length > 0) {
+      console.log(
+        `[VIDEO-CRON] Found ${stuckVideos.length} stuck videos, resetting to pending...`,
+      )
+      for (const video of stuckVideos) {
+        await media.updateVideoProcessingStatus(
+          video.tenantId,
+          video.id,
+          'pending',
+          'Reset from stuck processing state',
+        )
+      }
+    }
+
+    // Get videos that need processing (limit to 10 per invocation to avoid OOM)
+    const pendingVideos = await media.getVideosPendingProcessing(10)
 
     console.log(
       `[VIDEO-CRON] Found ${pendingVideos.length} videos pending processing`,
@@ -71,6 +93,7 @@ export async function GET(request: NextRequest) {
         processed: 0,
         succeeded: 0,
         failed: 0,
+        recovered: stuckVideos.length,
         message: 'No videos pending processing',
       })
     }
@@ -97,6 +120,9 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch video buffer from R2 storage
+        // NOTE: This loads the entire video into memory. For very large videos,
+        // consider implementing streaming processing in the future.
+        // Current mitigation: Process max 10 videos per invocation + 60s duration limit
         const videoData = await getFromR2(videoKey)
         if (!videoData) {
           throw new Error('Failed to fetch video from storage')
@@ -167,7 +193,7 @@ export async function GET(request: NextRequest) {
     const failed = results.filter((r) => !r.success).length
 
     console.log(
-      `[VIDEO-CRON] Completed: ${succeeded} successful, ${failed} failed`,
+      `[VIDEO-CRON] Completed: ${succeeded} successful, ${failed} failed, ${stuckVideos.length} recovered`,
     )
 
     return NextResponse.json({
@@ -175,6 +201,7 @@ export async function GET(request: NextRequest) {
       processed: pendingVideos.length,
       succeeded,
       failed,
+      recovered: stuckVideos.length,
       results,
     })
   } catch (error) {

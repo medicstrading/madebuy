@@ -78,6 +78,8 @@ async function getPaidOrdersInRange(
       tenantId,
       paymentStatus: 'paid',
       paidAt: { $gte: startDate, $lte: endDate },
+      // Exclude cancelled and fully refunded orders
+      status: { $nin: ['cancelled', 'refunded'] },
     })
     .toArray()
   return results as unknown as Order[]

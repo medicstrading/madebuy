@@ -448,8 +448,9 @@ describe('Stripe Webhook Route', () => {
         'cs_test_123',
       )
 
-      // Verify stock reservation completed
+      // Verify stock reservation completed (with tenantId for cross-tenant isolation)
       expect(stockReservations.completeReservation).toHaveBeenCalledWith(
+        'tenant-123',
         'res_123',
       )
 

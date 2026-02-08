@@ -55,48 +55,71 @@ export async function GET(request: NextRequest) {
 
     console.log('[CRON] Starting marketplace inventory sync...')
 
-    // Get all tenants with active marketplace features
-    const allTenants = await tenants.getAllTenants()
+    // Process tenants in batches to avoid OOM
+    const BATCH_SIZE = 50
+    const MAX_TOTAL_PROCESSED = 500 // Safety limit per cron invocation
     const results: SyncResult[] = []
     let processedCount = 0
     let errorCount = 0
+    let totalTenants = 0
+    let lastId: string | undefined = undefined
 
-    for (const tenant of allTenants) {
-      // Check if tenant has marketplace feature (Pro+ or Business)
-      if (!tenant.features?.marketplaceSync) {
-        continue
+    while (totalTenants < MAX_TOTAL_PROCESSED) {
+      // Get next batch of tenants
+      const tenantBatch = await tenants.getAllTenants(BATCH_SIZE, lastId)
+
+      if (tenantBatch.length === 0) {
+        break
       }
 
-      // Get active eBay connection
-      const ebayConnection = await marketplace.getConnectionByMarketplace(
-        tenant.id,
-        'ebay',
-      )
+      for (const tenant of tenantBatch) {
+        totalTenants++
 
-      if (ebayConnection?.status === 'connected') {
-        const ebayResults = await syncEbayListings(tenant.id, ebayConnection)
-        results.push(...ebayResults)
-        processedCount += ebayResults.filter((r) => r.success).length
-        errorCount += ebayResults.filter((r) => !r.success).length
+        // Check if tenant has marketplace feature (Pro+ or Business)
+        if (!tenant.features?.marketplaceSync) {
+          continue
+        }
+
+        // Get active eBay connection
+        const ebayConnection = await marketplace.getConnectionByMarketplace(
+          tenant.id,
+          'ebay',
+        )
+
+        if (ebayConnection?.status === 'connected') {
+          const ebayResults = await syncEbayListings(tenant.id, ebayConnection)
+          results.push(...ebayResults)
+          processedCount += ebayResults.filter((r) => r.success).length
+          errorCount += ebayResults.filter((r) => !r.success).length
+        }
+
+        // Etsy sync would go here when available
+        // const etsyConnection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
+        // if (etsyConnection?.status === 'connected') {
+        //   const etsyResults = await syncEtsyListings(tenant.id, etsyConnection)
+        //   results.push(...etsyResults)
+        // }
       }
 
-      // Etsy sync would go here when available
-      // const etsyConnection = await marketplace.getConnectionByMarketplace(tenant.id, 'etsy')
-      // if (etsyConnection?.status === 'connected') {
-      //   const etsyResults = await syncEtsyListings(tenant.id, etsyConnection)
-      //   results.push(...etsyResults)
-      // }
+      // Set cursor for next batch
+      lastId = tenantBatch[tenantBatch.length - 1]?.id
+
+      // If we got fewer results than batch size, we're done
+      if (tenantBatch.length < BATCH_SIZE) {
+        break
+      }
     }
 
     console.log(
-      `[CRON] Marketplace sync completed: ${processedCount} synced, ${errorCount} errors`,
+      `[CRON] Marketplace sync completed: ${processedCount} synced, ${errorCount} errors (checked ${totalTenants} tenants)`,
     )
 
     return NextResponse.json({
       success: true,
       processed: processedCount,
       errors: errorCount,
-      results,
+      tenantsChecked: totalTenants,
+      results: results.slice(0, 100), // Limit response size
     })
   } catch (error) {
     console.error('[CRON] Marketplace sync error:', error)

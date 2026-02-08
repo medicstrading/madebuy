@@ -30,6 +30,9 @@ export interface Review {
   sellerRespondedAt?: Date
   helpfulCount: number
   reportCount: number
+  // REV-07: Vote tracking arrays to prevent duplicate votes
+  helpfulVoters?: string[] // IP addresses or session IDs of users who voted helpful
+  reportVoters?: string[] // IP addresses or session IDs of users who reported
   createdAt: Date
   updatedAt: Date
 }

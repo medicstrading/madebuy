@@ -67,14 +67,20 @@ export async function createDownloadRecord(
 
 /**
  * Get a download record by its secure token
+ * When tenantId is provided, adds cross-tenant isolation.
+ * For public download pages (no tenant session), token alone is the auth
+ * mechanism -- 256-bit tokens make cross-tenant collision impossible.
  */
 export async function getDownloadRecordByToken(
   token: string,
+  tenantId?: string,
 ): Promise<DownloadRecord | null> {
   const db = await getDatabase()
-  const record = await db
-    .collection(COLLECTION)
-    .findOne({ downloadToken: token })
+  const query: Record<string, unknown> = { downloadToken: token }
+  if (tenantId) {
+    query.tenantId = tenantId
+  }
+  const record = await db.collection(COLLECTION).findOne(query)
   return record as DownloadRecord | null
 }
 

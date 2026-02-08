@@ -272,8 +272,13 @@ export async function setPrimaryMedia(
 
 /**
  * Get videos that need processing (pending status)
+ * NOTE: Intentionally cross-tenant -- this is a cron/maintenance function
+ * that processes pending videos globally across all tenants.
+ * Each video record contains its own tenantId for downstream operations.
  */
-export async function getVideosPendingProcessing(): Promise<MediaItem[]> {
+export async function getVideosPendingProcessing(
+  limit = 10,
+): Promise<MediaItem[]> {
   const db = await getDatabase()
 
   const results = await db
@@ -283,7 +288,29 @@ export async function getVideosPendingProcessing(): Promise<MediaItem[]> {
       processingStatus: 'pending',
     })
     .sort({ createdAt: 1 }) // Process oldest first
-    .limit(10) // Batch of 10
+    .limit(limit)
+    .toArray()
+
+  return results as unknown as MediaItem[]
+}
+
+/**
+ * Get videos stuck in "processing" status for more than a given time
+ * @param minutesThreshold Videos in "processing" for more than this many minutes
+ */
+export async function getStuckProcessingVideos(
+  minutesThreshold = 10,
+): Promise<MediaItem[]> {
+  const db = await getDatabase()
+  const thresholdDate = new Date(Date.now() - minutesThreshold * 60 * 1000)
+
+  const results = await db
+    .collection('media')
+    .find({
+      type: 'video',
+      processingStatus: 'processing',
+      updatedAt: { $lt: thresholdDate },
+    })
     .toArray()
 
   return results as unknown as MediaItem[]

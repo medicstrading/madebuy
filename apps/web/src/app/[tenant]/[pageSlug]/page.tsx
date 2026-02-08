@@ -51,9 +51,45 @@ export async function generateMetadata({
       return { title: 'Page Not Found' }
     }
 
+    // Fetch logo for OG image
+    let logoUrl: string | null = null
+    if (tenant.logoMediaId) {
+      const logoMedia = await media.getMedia(tenant.id, tenant.logoMediaId)
+      logoUrl = logoMedia?.variants.original.url || null
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
+    const pageUrl = `${siteUrl}/${params.tenant}/${params.pageSlug}`
+    const title = page.seo?.title || `${page.title} | ${tenant.businessName}`
+    const description = page.seo?.description || tenant.description
+
     return {
-      title: page.seo?.title || `${page.title} | ${tenant.businessName}`,
-      description: page.seo?.description || tenant.description,
+      title,
+      description,
+      openGraph: {
+        title,
+        description: description || undefined,
+        url: pageUrl,
+        siteName: tenant.businessName,
+        type: 'website',
+        locale: 'en_AU',
+        images: logoUrl
+          ? [
+              {
+                url: logoUrl,
+                width: 1200,
+                height: 630,
+                alt: tenant.businessName,
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description: description || undefined,
+        images: logoUrl ? [logoUrl] : [],
+      },
     }
   } catch {
     return { title: 'Page Not Found' }

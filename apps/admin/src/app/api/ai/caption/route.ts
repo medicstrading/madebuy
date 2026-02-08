@@ -1,5 +1,6 @@
-import { captionStyles, media } from '@madebuy/db'
+import { captionStyles, media, tenants } from '@madebuy/db'
 import type { SocialPlatform } from '@madebuy/shared'
+import { canUseAiCaption, getPlanLimits } from '@madebuy/shared'
 import { generateCaption } from '@madebuy/social'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
@@ -10,6 +11,26 @@ export async function POST(request: NextRequest) {
 
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check feature gate for AI captions
+    if (!tenant.features.aiCaptions) {
+      return NextResponse.json(
+        { error: 'AI caption generation requires a Pro or higher plan' },
+        { status: 403 },
+      )
+    }
+
+    // Check usage limit
+    const usedThisMonth = tenant.usage?.aiCaptionsUsedThisMonth ?? 0
+    if (!canUseAiCaption(tenant.plan, usedThisMonth)) {
+      const limits = getPlanLimits(tenant.plan)
+      return NextResponse.json(
+        {
+          error: `Monthly AI caption limit reached (${limits.aiCaptionsPerMonth}). Upgrade your plan for more.`,
+        },
+        { status: 403 },
+      )
     }
 
     const {
@@ -61,6 +82,9 @@ export async function POST(request: NextRequest) {
       styleProfile: styleProfile || undefined,
     })
 
+    // Increment usage counter
+    await tenants.incrementUsage(tenant.id, 'aiCaptionsUsedThisMonth')
+
     return NextResponse.json({
       ...result,
       hasStyleProfile: !!styleProfile,
@@ -68,9 +92,15 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error generating caption:', error)
+
+    // Don't leak API configuration details to client
+    const errorMessage = error instanceof Error && error.message.includes('not configured')
+      ? 'AI service is not configured. Please contact support.'
+      : 'Failed to generate caption. Please try again.'
+
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Internal server error',
+        error: errorMessage,
       },
       { status: 500 },
     )

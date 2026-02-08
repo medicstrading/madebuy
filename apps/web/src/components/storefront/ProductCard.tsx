@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { memo } from 'react'
 import type { CardProduct } from '@/lib/productMapping'
+import { formatCurrency } from '@/lib/utils'
 
 interface ProductCardProps {
   product: CardProduct
@@ -61,7 +62,7 @@ export const ProductCard = memo(function ProductCard({
           <p
             className={`mt-1 font-semibold text-gray-900 ${variant === 'compact' ? 'text-sm' : ''}`}
           >
-            ${product.price.toFixed(2)}
+            {formatCurrency(product.price)}
           </p>
         )}
       </div>

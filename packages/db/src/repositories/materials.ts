@@ -307,23 +307,24 @@ export async function adjustStock(
 ): Promise<Material> {
   const db = await getDatabase()
 
-  // Get current material
+  // Get current material to calculate isLowStock
   const material = await getMaterial(tenantId, materialId)
   if (!material) {
     throw new Error(`Material ${materialId} not found`)
   }
 
-  const newQuantity = material.quantityInStock + adjustment
-  if (newQuantity < 0) {
-    throw new Error(
-      `Cannot reduce stock below 0. Current: ${material.quantityInStock}, adjustment: ${adjustment}`,
-    )
+  // For stock reduction, check minimum constraint atomically
+  // For stock addition, no constraint needed
+  const query: Record<string, unknown> = { tenantId, id: materialId }
+  if (adjustment < 0) {
+    // Prevent reducing stock below 0
+    query.quantityInStock = { $gte: Math.abs(adjustment) }
   }
 
+  const newQuantity = material.quantityInStock + adjustment
   const isLowStock = newQuantity <= material.reorderPoint
 
   const updateData: Record<string, unknown> = {
-    quantityInStock: newQuantity,
     isLowStock,
     updatedAt: new Date(),
   }
@@ -333,16 +334,32 @@ export async function adjustStock(
     updateData.lastRestocked = new Date()
   }
 
-  await db
-    .collection('materials')
-    .updateOne({ tenantId, id: materialId }, { $set: updateData })
+  // Use atomic $inc operation to prevent race conditions
+  const result = await db.collection('materials').findOneAndUpdate(
+    query,
+    {
+      $inc: { quantityInStock: adjustment },
+      $set: updateData,
+    },
+    { returnDocument: 'after' },
+  )
 
-  return {
-    ...material,
-    quantityInStock: newQuantity,
-    isLowStock,
-    updatedAt: new Date(),
+  if (!result) {
+    if (adjustment < 0) {
+      throw new Error(
+        `Cannot reduce stock below 0. Current: ${material.quantityInStock}, adjustment: ${adjustment}`,
+      )
+    }
+    throw new Error(`Material ${materialId} not found`)
   }
+
+  // Re-fetch to get properly typed material
+  const updatedMaterial = await getMaterial(tenantId, materialId)
+  if (!updatedMaterial) {
+    throw new Error(`Material ${materialId} not found after update`)
+  }
+
+  return updatedMaterial
 }
 
 export async function restockMaterialFromInvoice(

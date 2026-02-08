@@ -4,6 +4,7 @@ import type { PieceWithMedia } from '@madebuy/shared'
 import { AlertCircle } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 interface SearchResultsProps {
   results: PieceWithMedia[]
@@ -106,8 +107,7 @@ export function SearchResults({
               </h3>
 
               <p className="text-lg font-semibold text-gray-900">
-                {product.currency === 'AUD' && '$'}
-                {product.price?.toFixed(2)}
+                {formatCurrency(product.price, product.currency)}
               </p>
 
               {product.stock !== undefined && product.stock <= 0 && (

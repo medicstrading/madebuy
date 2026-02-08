@@ -1,5 +1,6 @@
 import { marketplace } from '@madebuy/db'
 import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 /**
  * Etsy OAuth Token Endpoint
@@ -44,9 +45,12 @@ export async function GET(request: NextRequest) {
     // State parameter is just the nonce - code verifier is in the database
     const nonce = state
 
+    // Get authenticated tenant for cross-tenant isolation
+    const tenant = await requireTenant()
+
     // Verify state and retrieve code verifier from database
     // SECURITY: Code verifier comes from database, not from URL
-    const oauthState = await marketplace.verifyOAuthState(nonce)
+    const oauthState = await marketplace.verifyOAuthState(tenant.id, nonce)
     if (!oauthState) {
       return NextResponse.redirect(
         `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Invalid or expired OAuth state. Please try again.')}`,

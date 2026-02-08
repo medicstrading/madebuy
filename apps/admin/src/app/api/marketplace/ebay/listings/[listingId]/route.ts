@@ -24,6 +24,13 @@ export async function GET(_request: NextRequest, context: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!tenant.features?.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace sync not available on your plan' },
+        { status: 403 },
+      )
+    }
+
     const { listingId } = await context.params
 
     // Get listing from database
@@ -110,6 +117,13 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     const tenant = await getCurrentTenant()
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!tenant.features?.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace sync not available on your plan' },
+        { status: 403 },
+      )
     }
 
     const { listingId } = await context.params
@@ -327,6 +341,13 @@ export async function DELETE(_request: NextRequest, context: RouteParams) {
     const tenant = await getCurrentTenant()
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!tenant.features?.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace sync not available on your plan' },
+        { status: 403 },
+      )
     }
 
     const { listingId } = await context.params

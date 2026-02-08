@@ -27,6 +27,33 @@ function getEbayRedirectUri() {
   return process.env.EBAY_REDIRECT_URI
 }
 
+/**
+ * Validate returnUrl against an allowlist of safe relative paths.
+ * Prevents open redirect attacks via the OAuth returnUrl parameter.
+ */
+const ALLOWED_RETURN_URL_PREFIXES = [
+  '/dashboard/marketplace',
+  '/dashboard/settings',
+  '/dashboard/connections',
+]
+
+function validateReturnUrl(url: string | null): string {
+  const defaultUrl = '/dashboard/marketplace'
+  if (!url) return defaultUrl
+  // Must be a relative path starting with /
+  if (!url.startsWith('/')) return defaultUrl
+  // Block protocol-relative URLs and javascript/data schemes
+  if (url.startsWith('//')) return defaultUrl
+  if (url.includes('://')) return defaultUrl
+  if (url.toLowerCase().includes('javascript:')) return defaultUrl
+  if (url.toLowerCase().includes('data:')) return defaultUrl
+  // Must match an allowed prefix
+  if (!ALLOWED_RETURN_URL_PREFIXES.some((prefix) => url.startsWith(prefix))) {
+    return defaultUrl
+  }
+  return url
+}
+
 // eBay scopes needed for selling
 const EBAY_SCOPES = [
   'https://api.ebay.com/oauth/api_scope',
@@ -48,6 +75,14 @@ export async function GET(request: NextRequest) {
     const tenant = await getCurrentTenant()
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check feature gate for marketplace sync
+    if (!tenant.features.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace integration requires a Pro or higher plan' },
+        { status: 403 },
+      )
     }
 
     // Get config at runtime
@@ -92,9 +127,8 @@ export async function GET(request: NextRequest) {
       .digest('hex')
       .slice(0, 32)
 
-    // Get return URL from query params
-    const returnUrl =
-      request.nextUrl.searchParams.get('returnUrl') || '/dashboard/marketplace'
+    // Get return URL from query params and validate against allowlist
+    const returnUrl = validateReturnUrl(request.nextUrl.searchParams.get('returnUrl'))
 
     // Store OAuth state for verification
     await marketplace.saveOAuthState({

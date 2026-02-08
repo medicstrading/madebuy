@@ -354,10 +354,13 @@ export async function validateDiscountCode(
       break
   }
 
+  // PAY-15: Clamp discount to prevent negative order totals
+  const finalDiscountAmount = Math.min(discountAmount, orderTotal)
+
   return {
     valid: true,
     discount,
-    discountAmount: Math.round(discountAmount * 100) / 100,
+    discountAmount: Math.round(finalDiscountAmount * 100) / 100,
   }
 }
 

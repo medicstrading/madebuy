@@ -138,6 +138,11 @@ export function CheckoutForm({ tenant, tenantId }: CheckoutFormProps) {
       return
     }
 
+    // PAY-05: Guard against double-click/double-submit
+    if (loading) {
+      return
+    }
+
     setLoading(true)
     setError(null)
 

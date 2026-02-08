@@ -2,6 +2,7 @@ import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { PurchaseTracker } from '@/components/analytics/PurchaseTracker'
 import { requireTenant } from '@/lib/tenant'
+import { CartClearer } from '@/components/checkout/CartClearer'
 
 export async function generateMetadata({
   params,
@@ -29,6 +30,9 @@ export default async function CheckoutSuccessPage({
     <div className="min-h-screen bg-gray-50">
       {/* Analytics Tracking */}
       <PurchaseTracker tenantId={tenant.id} orderId={sessionId} />
+
+      {/* PAY-02: Clear cart after successful checkout */}
+      <CartClearer />
 
       <main className="container mx-auto px-4 py-16">
         <div className="mx-auto max-w-2xl">

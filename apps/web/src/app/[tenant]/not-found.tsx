@@ -1,12 +1,15 @@
 import { ArrowLeft, Home, Search, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 
 // Force dynamic rendering for tenant-specific 404
 export const dynamic = 'force-dynamic'
 
 export default function TenantNotFound() {
-  // Note: We can't access params or tenant context in not-found.tsx
-  // This is a Next.js limitation - we'll show a generic tenant 404
+  // Extract tenant slug from pathname
+  const headersList = headers()
+  const pathname = headersList.get('x-pathname') || ''
+  const tenantSlug = pathname.split('/')[1] || ''
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -37,7 +40,7 @@ export default function TenantNotFound() {
             Go Back
           </button>
           <Link
-            href="/"
+            href={tenantSlug ? `/${tenantSlug}` : '/'}
             className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-full font-semibold border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
           >
             <Home className="w-5 h-5" />
@@ -56,7 +59,7 @@ export default function TenantNotFound() {
               Explore all available items
             </p>
             <Link
-              href="/"
+              href={tenantSlug ? `/${tenantSlug}` : '/'}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               View all products →
@@ -72,7 +75,7 @@ export default function TenantNotFound() {
               Find what you&apos;re looking for
             </p>
             <Link
-              href="/search"
+              href={tenantSlug ? `/${tenantSlug}/search` : '/search'}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               Search products →

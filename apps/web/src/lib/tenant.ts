@@ -1,5 +1,6 @@
 import { domains, tenants } from '@madebuy/db'
 import type { Tenant } from '@madebuy/shared'
+import { notFound } from 'next/navigation'
 import { cache } from 'react'
 
 /**
@@ -57,7 +58,7 @@ export const requireTenant = cache(
     }
 
     if (!tenant) {
-      throw new Error('Shop not found')
+      notFound()
     }
 
     return tenant

@@ -14,6 +14,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!tenant.features?.socialPublishing) {
+      return NextResponse.json(
+        { error: 'Social publishing not available on your plan' },
+        { status: 403 },
+      )
+    }
+
     const publishRecord = await publish.getPublishRecord(tenant.id, params.id)
 
     if (!publishRecord) {
@@ -42,6 +49,13 @@ export async function PATCH(
 
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!tenant.features?.socialPublishing) {
+      return NextResponse.json(
+        { error: 'Social publishing not available on your plan' },
+        { status: 403 },
+      )
     }
 
     const data: Partial<Omit<PublishRecord, 'id' | 'tenantId' | 'createdAt'>> =
@@ -81,6 +95,13 @@ export async function DELETE(
 
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!tenant.features?.socialPublishing) {
+      return NextResponse.json(
+        { error: 'Social publishing not available on your plan' },
+        { status: 403 },
+      )
     }
 
     // Check if publish record exists

@@ -53,9 +53,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid store' }, { status: 404 })
     }
 
-    // Get or generate unsubscribe secret for this tenant
-    // In production, this should be stored in tenant settings
-    const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET || tenant.id
+    // Get unsubscribe secret - must match cron handler
+    const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET
+    if (!unsubscribeSecret) {
+      console.error('[UNSUBSCRIBE] UNSUBSCRIBE_SECRET environment variable is not set')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 },
+      )
+    }
 
     // Verify token
     if (!verifyUnsubscribeToken(email, token, unsubscribeSecret)) {

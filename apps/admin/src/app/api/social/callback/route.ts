@@ -1,8 +1,29 @@
-import { tenants } from '@madebuy/db'
+import { getDatabase, tenants } from '@madebuy/db'
 import type { SocialConnection, SocialPlatform } from '@madebuy/shared'
 import { encrypt } from '@madebuy/shared'
 import { lateClient } from '@madebuy/social'
 import { type NextRequest, NextResponse } from 'next/server'
+
+const SOCIAL_OAUTH_STATE_COLLECTION = 'social_oauth_states'
+
+/**
+ * Verify and consume social OAuth state nonce from the database.
+ * Returns the stored tenantId and platform if valid, null otherwise.
+ * The state record is deleted on lookup (single-use nonce).
+ */
+async function verifySocialOAuthState(
+  nonce: string,
+): Promise<{ tenantId: string; platform: string } | null> {
+  const db = await getDatabase()
+  const state = await db
+    .collection(SOCIAL_OAUTH_STATE_COLLECTION)
+    .findOneAndDelete({
+      nonce,
+      expiresAt: { $gt: new Date() },
+    })
+  if (!state) return null
+  return { tenantId: state.tenantId as string, platform: state.platform as string }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,14 +46,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Parse state: format is "tenantId:platform"
-    const [tenantId, platform] = state.split(':')
-
-    if (!tenantId || !platform) {
+    // Verify state nonce against the database (CSRF protection)
+    const oauthState = await verifySocialOAuthState(state)
+    if (!oauthState) {
       return NextResponse.redirect(
         new URL('/dashboard/connections?error=invalid_state', request.url),
       )
     }
+
+    const { tenantId, platform } = oauthState
 
     // Exchange code for access token via Late API
     const protocol = request.headers.get('x-forwarded-proto') || 'http'

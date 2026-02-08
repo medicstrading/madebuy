@@ -1,4 +1,4 @@
-import { media, pieces } from '@madebuy/db'
+import { getDatabase, media, pieces } from '@madebuy/db'
 import { deleteFromR2 } from '@madebuy/storage'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
@@ -82,27 +82,43 @@ export async function POST(request: NextRequest) {
     // Delete media records from database
     const deletedCount = await media.deleteMediaBulk(tenant.id, validIds)
 
-    // Update piece records to remove deleted media
+    // Update piece records to remove deleted media atomically
+    const db = await getDatabase()
     for (const [pieceId, deletedMediaIds] of mediaByPiece) {
-      const piece = await pieces.getPiece(tenant.id, pieceId)
+      // Use atomic $pull to remove media IDs without race conditions
+      await db.collection('pieces').updateOne(
+        { tenantId: tenant.id, id: pieceId },
+        {
+          $pull: { mediaIds: { $in: deletedMediaIds } } as any,
+          $set: { updatedAt: new Date() },
+        },
+      )
+
+      // Update primary media if it was deleted
+      // Use findOneAndUpdate to check and update atomically
+      const piece = await db.collection('pieces').findOne(
+        {
+          tenantId: tenant.id,
+          id: pieceId,
+          primaryMediaId: { $in: deletedMediaIds },
+        },
+      )
+
       if (piece) {
+        // Set primary media to first remaining media or null
         const remainingMediaIds = (piece.mediaIds || []).filter(
           (id: string) => !deletedMediaIds.includes(id),
         )
 
-        const updateData: any = {
-          mediaIds: remainingMediaIds,
-        }
-
-        // Update primary media if it was deleted
-        if (
-          piece.primaryMediaId &&
-          deletedMediaIds.includes(piece.primaryMediaId)
-        ) {
-          updateData.primaryMediaId = remainingMediaIds[0] || null
-        }
-
-        await pieces.updatePiece(tenant.id, pieceId, updateData)
+        await db.collection('pieces').updateOne(
+          { tenantId: tenant.id, id: pieceId },
+          {
+            $set: {
+              primaryMediaId: remainingMediaIds[0] || null,
+              updatedAt: new Date(),
+            },
+          },
+        )
       }
     }
 

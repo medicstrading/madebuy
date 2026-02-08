@@ -15,11 +15,21 @@ import {
 
 const logger = createLogger({ service: 'stripe-connect-webhook' })
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Validate Stripe secret key is configured
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 })
 
-const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET!
+// Validate Stripe Connect webhook secret is configured
+if (!process.env.STRIPE_CONNECT_WEBHOOK_SECRET) {
+  throw new Error('STRIPE_CONNECT_WEBHOOK_SECRET environment variable is not set')
+}
+
+const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET
 
 /**
  * Stripe Connect Webhook Handler
@@ -327,20 +337,23 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
     }
   }
 
-  // Send notification email to tenant
-  try {
-    await sendPayoutFailedEmail({
-      tenant,
-      payout,
-      failureReason: payout.failure_message || null,
-      bankAccountLast4,
-    })
-  } catch (emailError) {
-    // Log but don't throw - we don't want email failures to affect webhook response
-    logger.error(
-      { emailError, tenantId: tenant.id },
-      'Failed to send payout failed notification email',
-    )
+  // WH-08: Add null check before sending email
+  if (tenant) {
+    // Send notification email to tenant
+    try {
+      await sendPayoutFailedEmail({
+        tenant,
+        payout,
+        failureReason: payout.failure_message || null,
+        bankAccountLast4,
+      })
+    } catch (emailError) {
+      // Log but don't throw - we don't want email failures to affect webhook response
+      logger.error(
+        { emailError, tenantId: tenant.id },
+        'Failed to send payout failed notification email',
+      )
+    }
   }
 }
 
@@ -383,6 +396,7 @@ async function handleDisputeCreated(
   )
 
   const tenant = await tenants.getTenantByStripeAccountId(accountId)
+  // WH-07: Add proper null check for tenant
   if (!tenant) {
     logger.error(
       { stripeAccountId: accountId },
@@ -412,12 +426,24 @@ async function handleDisputeCreated(
           typeof charge.payment_intent === 'string'
             ? charge.payment_intent
             : charge.payment_intent.id
+        // WH-06: Validate payment intent belongs to tenant
         const order = await orders.getOrderByPaymentIntent(
           tenant.id,
           paymentIntentId,
         )
-        if (order) {
+        if (order && order.tenantId === tenant.id) {
           orderId = order.id
+        } else if (order && order.tenantId !== tenant.id) {
+          logger.error(
+            {
+              disputeId: dispute.id,
+              paymentIntentId,
+              orderTenantId: order.tenantId,
+              webhookTenantId: tenant.id,
+            },
+            'Payment intent belongs to different tenant - security violation',
+          )
+          return
         }
       }
     } catch (err) {
@@ -453,18 +479,21 @@ async function handleDisputeCreated(
     'Created dispute record',
   )
 
-  // Send notification email to tenant
-  try {
-    await sendDisputeNotificationEmail({
-      tenant,
-      dispute,
-      evidenceDueBy: evidenceDueBy || null,
-    })
-  } catch (emailError) {
-    logger.error(
-      { emailError, tenantId: tenant.id },
-      'Failed to send dispute notification email',
-    )
+  // WH-07: Add null check before sending notification
+  if (tenant) {
+    // Send notification email to tenant
+    try {
+      await sendDisputeNotificationEmail({
+        tenant,
+        dispute,
+        evidenceDueBy: evidenceDueBy || null,
+      })
+    } catch (emailError) {
+      logger.error(
+        { emailError, tenantId: tenant.id },
+        'Failed to send dispute notification email',
+      )
+    }
   }
 }
 

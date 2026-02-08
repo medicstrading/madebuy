@@ -45,15 +45,38 @@ function getEncryptionKey(): Buffer {
 /**
  * Check if encryption is properly configured.
  * Returns false if MARKETPLACE_ENCRYPTION_KEY is not set.
+ *
+ * IMPORTANT: In production, this will throw an error if not configured.
  */
 export function isEncryptionConfigured(): boolean {
   const key = process.env.MARKETPLACE_ENCRYPTION_KEY
-  if (!key) return false
+  if (!key) {
+    // In production, encryption key is mandatory for security
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'MARKETPLACE_ENCRYPTION_KEY is required in production. ' +
+          'Generate one with: openssl rand -base64 32',
+      )
+    }
+    return false
+  }
 
   try {
     const keyBuffer = Buffer.from(key, 'base64')
-    return keyBuffer.length === 32
-  } catch {
+    if (keyBuffer.length !== 32) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'MARKETPLACE_ENCRYPTION_KEY must be exactly 32 bytes when decoded. ' +
+            'Generate one with: openssl rand -base64 32',
+        )
+      }
+      return false
+    }
+    return true
+  } catch (error) {
+    if (process.env.NODE_ENV === 'production') {
+      throw error
+    }
     return false
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Milestone } from '@madebuy/shared'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface CelebrationModalProps {
   milestone: Milestone
@@ -13,6 +13,7 @@ export function CelebrationModal({
   onDismiss,
 }: CelebrationModalProps) {
   const [show, setShow] = useState(false)
+  const dismissTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     // Trigger animation shortly after mount
@@ -20,9 +21,18 @@ export function CelebrationModal({
     return () => clearTimeout(timer)
   }, [])
 
+  // Cleanup dismiss timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (dismissTimeoutRef.current) {
+        clearTimeout(dismissTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleDismiss = () => {
     setShow(false)
-    setTimeout(onDismiss, 300) // Wait for fade-out animation
+    dismissTimeoutRef.current = setTimeout(onDismiss, 300) // Wait for fade-out animation
   }
 
   return (

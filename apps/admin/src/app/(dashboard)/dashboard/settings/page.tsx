@@ -8,7 +8,7 @@ import {
 } from '@madebuy/shared'
 import { Boxes, Loader2, Package, RotateCcw, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CategoryManager } from '@/components/settings/CategoryManager'
 import { MakerTypeSelector } from '@/components/settings/MakerTypeSelector'
 import { HelpButton } from '@/components/ui/HelpButton'
@@ -22,6 +22,16 @@ export default function SettingsPage() {
     'idle',
   )
   const [isRestartingOnboarding, setIsRestartingOnboarding] = useState(false)
+  const saveStatusTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup save status timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveStatusTimeoutRef.current) {
+        clearTimeout(saveStatusTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Load tenant data
   useEffect(() => {
@@ -56,7 +66,10 @@ export default function SettingsPage() {
       if (response.ok) {
         setTenant((prev) => (prev ? { ...prev, makerType } : prev))
         setSaveStatus('saved')
-        setTimeout(() => setSaveStatus('idle'), 2000)
+        if (saveStatusTimeoutRef.current) {
+          clearTimeout(saveStatusTimeoutRef.current)
+        }
+        saveStatusTimeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000)
       } else {
         throw new Error('Failed to save')
       }
@@ -86,7 +99,10 @@ export default function SettingsPage() {
     if (response.ok) {
       setTenant((prev) => (prev ? { ...prev, [field]: updated } : prev))
       setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 2000)
+      if (saveStatusTimeoutRef.current) {
+        clearTimeout(saveStatusTimeoutRef.current)
+      }
+      saveStatusTimeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000)
     } else {
       throw new Error('Failed to save')
     }
@@ -112,7 +128,10 @@ export default function SettingsPage() {
     if (response.ok) {
       setTenant((prev) => (prev ? { ...prev, [field]: updated } : prev))
       setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 2000)
+      if (saveStatusTimeoutRef.current) {
+        clearTimeout(saveStatusTimeoutRef.current)
+      }
+      saveStatusTimeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000)
     } else {
       throw new Error('Failed to save')
     }

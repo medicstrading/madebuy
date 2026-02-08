@@ -472,23 +472,37 @@ export async function resetMonthlyUsage(tenantId: string): Promise<void> {
 /**
  * Get all tenants that need their monthly usage reset
  * Returns tenants whose lastResetDate is from a previous month
+ * @param limit Maximum number of tenants to return
+ * @param afterId Cursor for pagination - return tenants after this ID
  */
-export async function getTenantsNeedingUsageReset(): Promise<Tenant[]> {
+export async function getTenantsNeedingUsageReset(
+  limit = 100,
+  afterId?: string,
+): Promise<Tenant[]> {
   const db = await getDatabase()
 
   // Get the first day of current month
   const now = new Date()
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
+  const query: any = {
+    $or: [
+      { 'usage.lastResetDate': { $lt: firstOfMonth } },
+      { 'usage.lastResetDate': { $exists: false } },
+      { usage: { $exists: false } },
+    ],
+  }
+
+  // Add cursor condition if provided
+  if (afterId) {
+    query.id = { $gt: afterId }
+  }
+
   const results = await db
     .collection('tenants')
-    .find({
-      $or: [
-        { 'usage.lastResetDate': { $lt: firstOfMonth } },
-        { 'usage.lastResetDate': { $exists: false } },
-        { usage: { $exists: false } },
-      ],
-    })
+    .find(query)
+    .sort({ id: 1 }) // Consistent ordering for pagination
+    .limit(limit)
     .toArray()
 
   return results as unknown as Tenant[]
@@ -517,10 +531,27 @@ export async function initializeUsage(tenantId: string): Promise<void> {
 
 /**
  * Get all tenants (for cron jobs)
+ * @param limit Maximum number of tenants to return (default: all)
+ * @param afterId Cursor for pagination - return tenants after this ID
  */
-export async function getAllTenants(): Promise<Tenant[]> {
+export async function getAllTenants(
+  limit?: number,
+  afterId?: string,
+): Promise<Tenant[]> {
   const db = await getDatabase()
-  const results = await db.collection('tenants').find({}).toArray()
+
+  const query: any = {}
+  if (afterId) {
+    query.id = { $gt: afterId }
+  }
+
+  let cursor = db.collection('tenants').find(query).sort({ id: 1 })
+
+  if (limit) {
+    cursor = cursor.limit(limit)
+  }
+
+  const results = await cursor.toArray()
   return results as unknown as Tenant[]
 }
 

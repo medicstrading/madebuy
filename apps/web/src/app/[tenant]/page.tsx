@@ -19,11 +19,45 @@ export async function generateMetadata({
 }) {
   const tenant = await requireTenant(params.tenant)
 
+  // Fetch logo for OG image
+  let logoUrl: string | null = null
+  if (tenant.logoMediaId) {
+    const logoMedia = await media.getMedia(tenant.id, tenant.logoMediaId)
+    logoUrl = logoMedia?.variants.original.url || null
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://madebuy.com.au'
+  const tenantUrl = `${siteUrl}/${params.tenant}`
+  const description =
+    tenant.description || `Shop handmade products from ${tenant.businessName}`
+
   return {
     title: `${tenant.businessName} - Handmade Products`,
-    description:
-      tenant.description ||
-      `Shop handmade products from ${tenant.businessName}`,
+    description,
+    openGraph: {
+      title: `${tenant.businessName} - Handmade Products`,
+      description,
+      url: tenantUrl,
+      siteName: tenant.businessName,
+      type: 'website',
+      locale: 'en_AU',
+      images: logoUrl
+        ? [
+            {
+              url: logoUrl,
+              width: 1200,
+              height: 630,
+              alt: tenant.businessName,
+            },
+          ]
+        : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${tenant.businessName} - Handmade Products`,
+      description,
+      images: logoUrl ? [logoUrl] : [],
+    },
   }
 }
 

@@ -277,12 +277,15 @@ export async function saveOAuthState(
 
 /**
  * Verify and consume OAuth state
+ * Requires tenantId to prevent cross-tenant OAuth state hijacking
  */
 export async function verifyOAuthState(
+  tenantId: string,
   nonce: string,
 ): Promise<MarketplaceOAuthState | null> {
   const db = await getDatabase()
   const state = await db.collection(OAUTH_STATE_COLLECTION).findOneAndDelete({
+    tenantId,
     nonce,
     expiresAt: { $gt: new Date() },
   })
@@ -291,6 +294,8 @@ export async function verifyOAuthState(
 
 /**
  * Clean up expired OAuth states
+ * NOTE: Intentionally cross-tenant -- this is a cron/maintenance function
+ * that cleans up expired OAuth states globally across all tenants.
  */
 export async function cleanupExpiredOAuthStates(): Promise<void> {
   const db = await getDatabase()

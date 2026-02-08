@@ -38,6 +38,12 @@ export function POSCheckout({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // PAY-06: Guard against double-click/double-submit
+    if (processing) {
+      return
+    }
+
     setProcessing(true)
     setError(null)
 

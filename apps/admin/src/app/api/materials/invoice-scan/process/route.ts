@@ -20,16 +20,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Parse request body once and store it
+  let requestBody: { invoiceId?: string } = {}
   try {
-    const { invoiceId } = await request.json()
+    requestBody = await request.json()
+  } catch {
+    return NextResponse.json(
+      { error: 'Invalid request body' },
+      { status: 400 },
+    )
+  }
 
-    if (!invoiceId) {
-      return NextResponse.json(
-        { error: 'Invoice ID required' },
-        { status: 400 },
-      )
-    }
+  const { invoiceId } = requestBody
 
+  if (!invoiceId) {
+    return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 })
+  }
+
+  try {
     // Get invoice record
     const invoice = await invoices.getInvoice(tenant.id, invoiceId)
     if (!invoice) {
@@ -82,8 +90,7 @@ export async function POST(request: NextRequest) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred'
 
-    // Update invoice status to error
-    const { invoiceId } = await request.json().catch(() => ({}))
+    // Update invoice status to error (using invoiceId from stored request body)
     if (invoiceId && tenant) {
       try {
         await invoices.updateInvoice(tenant.id, invoiceId, {

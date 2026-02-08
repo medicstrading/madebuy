@@ -26,6 +26,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check feature gate for social publishing
+    if (!tenant.features.socialPublishing) {
+      return NextResponse.json(
+        { error: 'Social publishing requires a Maker or higher plan' },
+        { status: 403 },
+      )
+    }
+
     const data = await lateClient.getAccounts()
 
     // Extract connected platforms (active accounts only)

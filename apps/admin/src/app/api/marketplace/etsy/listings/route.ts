@@ -15,6 +15,13 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!tenant.features?.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace sync not available on your plan' },
+        { status: 403 },
+      )
+    }
+
     // Check Etsy connection
     const connection = await marketplace.getConnectionByMarketplace(
       tenant.id,

@@ -156,15 +156,16 @@ export async function deletePublishRecord(
 // --- Recurrence functions ---
 
 /**
- * Get a publish record by ID without tenant filter (for cron jobs)
+ * Get a publish record by ID with tenant isolation
  */
 export async function getPublishRecordById(
+  tenantId: string,
   id: string,
 ): Promise<PublishRecord | null> {
   const db = await getDatabase()
   return (await db
     .collection('publish_records')
-    .findOne({ id })) as PublishRecord | null
+    .findOne({ tenantId, id })) as PublishRecord | null
 }
 
 /**

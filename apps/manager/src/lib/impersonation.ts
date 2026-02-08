@@ -1,11 +1,11 @@
 import { jwtVerify, SignJWT } from 'jose'
 
-// Fail fast if secrets are not configured - no weak fallbacks
+// Fail fast if IMPERSONATION_SECRET is not configured - no fallback to NEXTAUTH_SECRET
 function getImpersonationSecret(): Uint8Array {
-  const secret = process.env.IMPERSONATION_SECRET || process.env.NEXTAUTH_SECRET
+  const secret = process.env.IMPERSONATION_SECRET
   if (!secret) {
     throw new Error(
-      'IMPERSONATION_SECRET or NEXTAUTH_SECRET must be set. ' +
+      'IMPERSONATION_SECRET must be set (do not share with NEXTAUTH_SECRET). ' +
         'Generate with: openssl rand -hex 32',
     )
   }

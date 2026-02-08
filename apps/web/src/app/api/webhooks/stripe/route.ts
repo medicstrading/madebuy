@@ -32,11 +32,17 @@ import {
 
 const log = createLogger({ module: 'stripe-webhook' })
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Validate Stripe secret key is configured
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 })
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+// WH-12: Replace non-null assertion with runtime validation
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
 /**
  * Stripe Payment Webhook Handler (Simplified)
@@ -54,6 +60,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'No signature', code: 'MISSING_SIGNATURE' },
       { status: 400 },
+    )
+  }
+
+  // WH-12: Validate webhook secret is configured
+  if (!webhookSecret) {
+    log.error('STRIPE_WEBHOOK_SECRET is not configured')
+    return NextResponse.json(
+      { error: 'Server configuration error', code: 'CONFIG_ERROR' },
+      { status: 500 },
     )
   }
 
@@ -177,7 +192,7 @@ async function handleCheckoutCompleted(
     return
   }
 
-  // Parse items from metadata (with error handling)
+  // WH-02: Move JSON.parse inside try block (already inside try, but improve error handling)
   const itemsJson = session.metadata?.items
   let items: Array<{
     pieceId: string
@@ -195,19 +210,24 @@ async function handleCheckoutCompleted(
         { err: parseError, sessionId: session.id, itemsJson },
         'Failed to parse items from session metadata',
       )
-      return // Can't create order without items
+      throw new ValidationError(
+        'Invalid items data in checkout session',
+        'INVALID_ITEMS_DATA',
+      )
     }
   }
 
-  // Complete stock reservations first (decrements actual stock atomically)
+  // PAY-03 FIX: Complete stock reservations using session ID
+  // The reservationSessionId is actually the session ID (tempSessionId from checkout)
+  // We need to use commitReservation which looks up all reservations by sessionId
   const reservationSessionId = session.metadata?.reservationSessionId
   if (reservationSessionId) {
     const completed =
-      await stockReservations.completeReservation(reservationSessionId)
+      await stockReservations.commitReservation(tenantId, reservationSessionId)
     if (!completed) {
       log.warn(
         { reservationSessionId, sessionId: session.id },
-        'No reservations found for session',
+        'No reservations found for session - may have already been completed or expired',
       )
     }
   }
@@ -217,14 +237,17 @@ async function handleCheckoutCompleted(
   const pieceIds = items.map((item) => item.pieceId)
   const piecesMap = await pieces.getPiecesByIds(tenantId, pieceIds)
 
+  // WH-04: If pieces not found, log warning and return error instead of creating empty order
   const orderItems = []
+  const missingPieceIds: string[] = []
   for (const item of items) {
     const piece = piecesMap.get(item.pieceId)
     if (!piece) {
-      log.error(
+      log.warn(
         { pieceId: item.pieceId, tenantId, sessionId: session.id },
-        'Piece not found for order',
+        'Piece not found for order item',
       )
+      missingPieceIds.push(item.pieceId)
       continue
     }
 
@@ -239,6 +262,31 @@ async function handleCheckoutCompleted(
       personalizations: item.personalization, // Maps from cart personalization to order personalizations
       personalizationTotal: item.personalizationTotal || 0,
     })
+  }
+
+  // WH-04: Don't create order if pieces are missing
+  if (missingPieceIds.length > 0) {
+    log.error(
+      {
+        sessionId: session.id,
+        tenantId,
+        missingPieceIds,
+        totalItems: items.length,
+      },
+      'Cannot create order: pieces not found in database',
+    )
+    throw new ValidationError(
+      'Order items not found in database',
+      'MISSING_ORDER_ITEMS',
+    )
+  }
+
+  if (orderItems.length === 0) {
+    log.error(
+      { sessionId: session.id, tenantId },
+      'Cannot create order: no valid items',
+    )
+    throw new ValidationError('No valid order items', 'NO_VALID_ITEMS')
   }
 
   // Get shipping address from session
@@ -284,12 +332,14 @@ async function handleCheckoutCompleted(
     customerNotes: session.metadata?.notes || undefined,
   }
 
+  // WH-03: Store paymentIntentId in order metadata for refund lookup
   const order = await orders.createOrder(tenantId, orderData, {
     shipping: shippingAmount,
     tax: taxAmount,
     discount: 0,
     currency: (session.currency || 'aud').toUpperCase(),
     stripeSessionId: session.id, // For idempotency
+    paymentIntentId: session.payment_intent as string, // WH-03: For refund lookup
   })
   log.info(
     {
@@ -301,34 +351,52 @@ async function handleCheckoutCompleted(
     'Order created from checkout session',
   )
 
-  // Record transaction in ledger
-  const grossAmountCents = session.amount_total || 0
-  const isInternational = shippingAddress.country !== 'AU'
-  const stripeFee = calculateStripeFee(grossAmountCents, isInternational)
-  const platformFee = 0 // Zero transaction fees - MadeBuy's differentiator
-
-  await transactions.createTransaction({
+  // WH-05: Add idempotency check for transaction creation
+  // Check if transaction already exists for this Stripe session
+  const existingTransaction = await transactions.getTransactionByStripeSessionId(
     tenantId,
-    orderId: order.id,
-    type: 'sale',
-    grossAmount: grossAmountCents,
-    stripeFee,
-    platformFee,
-    netAmount: grossAmountCents - stripeFee - platformFee,
-    currency: (session.currency || 'aud').toUpperCase(),
-    stripePaymentIntentId: session.payment_intent as string,
-    status: 'completed',
-    description: `Order ${order.orderNumber}`,
-    completedAt: new Date(),
-  })
-  log.info(
-    {
-      orderId: order.id,
-      transactionType: 'sale',
-      netAmount: grossAmountCents - stripeFee - platformFee,
-    },
-    'Transaction recorded for order',
+    session.id,
   )
+  if (!existingTransaction) {
+    // Record transaction in ledger
+    const grossAmountCents = session.amount_total || 0
+    const isInternational = shippingAddress.country !== 'AU'
+    const stripeFee = calculateStripeFee(grossAmountCents, isInternational)
+    const platformFee = 0 // Zero transaction fees - MadeBuy's differentiator
+
+    await transactions.createTransaction({
+      tenantId,
+      orderId: order.id,
+      type: 'sale',
+      grossAmount: grossAmountCents,
+      stripeFee,
+      platformFee,
+      netAmount: grossAmountCents - stripeFee - platformFee,
+      currency: (session.currency || 'aud').toUpperCase(),
+      stripePaymentIntentId: session.payment_intent as string,
+      stripeSessionId: session.id, // WH-05: For idempotency
+      status: 'completed',
+      description: `Order ${order.orderNumber}`,
+      completedAt: new Date(),
+    })
+    log.info(
+      {
+        orderId: order.id,
+        transactionType: 'sale',
+        netAmount: grossAmountCents - stripeFee - platformFee,
+      },
+      'Transaction recorded for order',
+    )
+  } else {
+    log.info(
+      {
+        orderId: order.id,
+        transactionId: existingTransaction.id,
+        sessionId: session.id,
+      },
+      'Transaction already exists for session, skipping duplicate',
+    )
+  }
 
   // Create download records for digital products
   // Reuse the piecesMap from earlier to avoid another N+1 query
@@ -336,7 +404,8 @@ async function handleCheckoutCompleted(
     []
   for (const item of order.items) {
     const piece = piecesMap.get(item.pieceId)
-    if (piece?.digital?.isDigital && piece.digital.files?.length > 0) {
+    // WH-09: Add null check before accessing piece.digital
+    if (piece?.digital?.isDigital && piece.digital?.files?.length > 0) {
       try {
         const downloadRecord = await downloads.createDownloadRecord(tenantId, {
           orderId: order.id,
@@ -389,6 +458,7 @@ async function handleCheckoutCompleted(
           if (piece?.digital?.files) {
             const downloadRecord = await downloads.getDownloadRecordByToken(
               download.token,
+              tenantId,
             )
             if (downloadRecord) {
               await sendDownloadEmail({
@@ -478,17 +548,19 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 
 /**
  * Handle charge.refunded
- * Updates order refund status and restores stock for full refunds
+ * Updates order refund status and restores stock for full/partial refunds
  */
 async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
   const paymentIntentId = charge.payment_intent as string
   const tenantId = charge.metadata?.tenantId
 
   if (!tenantId) {
-    log.warn(
-      { chargeId: charge.id },
-      'No tenantId in charge metadata for refund',
+    log.error(
+      { chargeId: charge.id, paymentIntentId },
+      'CRITICAL: No tenantId in charge metadata for refund - manual review required',
     )
+    // TODO: Create manual review flag/record in database for admin attention
+    // This should never happen in production but indicates a serious data integrity issue
     return
   }
 
@@ -497,9 +569,24 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       chargeId: charge.id,
       tenantId,
       refundedAmount: charge.amount_refunded,
+      totalAmount: charge.amount,
     },
     'Processing charge refund',
   )
+
+  // Get the order to calculate stock restoration
+  const order = await orders.getOrderByPaymentIntent(tenantId, paymentIntentId)
+  if (!order || order.tenantId !== tenantId) {
+    log.error(
+      { chargeId: charge.id, tenantId, paymentIntentId },
+      'Order not found for refund',
+    )
+    return
+  }
+
+  // Calculate refund percentage for proportional stock restoration
+  const refundPercentage = charge.amount_refunded / charge.amount
+  const isFullRefund = refundPercentage >= 0.99 // Account for rounding
 
   // Update order refund status
   await orders.updateRefundStatus(tenantId, paymentIntentId, {
@@ -509,35 +596,39 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     reason: charge.refunds?.data[0]?.reason || undefined,
   })
 
-  // If full refund, restore stock
-  if (charge.amount_refunded === charge.amount) {
-    log.info({ chargeId: charge.id, tenantId }, 'Full refund - restoring stock')
-
-    // Get the order to restore stock
-    const order = await orders.getOrderByPaymentIntent(
+  // Restore stock proportionally based on refund amount
+  log.info(
+    {
+      chargeId: charge.id,
       tenantId,
-      paymentIntentId,
-    )
-    if (order && order.tenantId === tenantId) {
-      // Verify order belongs to tenant for safety
-      for (const item of order.items) {
-        if (item.variantId) {
-          await pieces.incrementVariantStock(
-            tenantId,
-            item.pieceId,
-            item.variantId,
-            item.quantity,
-          )
-        } else {
-          await pieces.incrementStock(tenantId, item.pieceId, item.quantity)
-        }
+      isFullRefund,
+      refundPercentage: Math.round(refundPercentage * 100),
+    },
+    isFullRefund ? 'Full refund - restoring all stock' : 'Partial refund - restoring proportional stock',
+  )
+
+  for (const item of order.items) {
+    // Calculate proportional quantity to restore (round down to be conservative)
+    const restoreQuantity = Math.floor(item.quantity * refundPercentage)
+
+    if (restoreQuantity > 0) {
+      if (item.variantId) {
+        await pieces.incrementVariantStock(
+          tenantId,
+          item.pieceId,
+          item.variantId,
+          restoreQuantity,
+        )
+      } else {
+        await pieces.incrementStock(tenantId, item.pieceId, restoreQuantity)
       }
-      log.info(
-        { orderId: order.id, itemCount: order.items.length },
-        'Stock restored for refund',
-      )
     }
   }
+
+  log.info(
+    { orderId: order.id, itemCount: order.items.length, refundPercentage: Math.round(refundPercentage * 100) },
+    'Stock restored for refund',
+  )
 }
 
 /**
@@ -560,10 +651,16 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
 // =============================================================================
 
 // Map Stripe Price IDs to plans (inverse of what's in billing/checkout)
-const PRICE_ID_TO_PLAN: Record<string, Plan> = {
-  [process.env.STRIPE_PRICE_MAKER_MONTHLY || '']: 'maker',
-  [process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || '']: 'professional',
-  [process.env.STRIPE_PRICE_STUDIO_MONTHLY || '']: 'studio',
+// PAY-10: Filter out undefined env vars to prevent empty string keys
+const PRICE_ID_TO_PLAN: Record<string, Plan> = {}
+if (process.env.STRIPE_PRICE_MAKER_MONTHLY) {
+  PRICE_ID_TO_PLAN[process.env.STRIPE_PRICE_MAKER_MONTHLY] = 'maker'
+}
+if (process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY) {
+  PRICE_ID_TO_PLAN[process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY] = 'professional'
+}
+if (process.env.STRIPE_PRICE_STUDIO_MONTHLY) {
+  PRICE_ID_TO_PLAN[process.env.STRIPE_PRICE_STUDIO_MONTHLY] = 'studio'
 }
 
 /**
@@ -746,6 +843,17 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   }
 
   const attemptCount = invoice.attempt_count || 1
+
+  // WH-11: Set subscription status to past_due when payment fails
+  if (tenant.subscriptionId) {
+    await tenants.updateTenant(tenant.id, {
+      subscriptionStatus: 'past_due',
+    })
+    log.info(
+      { tenantId: tenant.id, subscriptionId: tenant.subscriptionId },
+      'Subscription status set to past_due after payment failure',
+    )
+  }
 
   // Calculate next retry date based on attempt count
   // Stripe's Smart Retries typically retry at ~3, 5, and 7 days after each attempt

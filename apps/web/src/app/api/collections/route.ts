@@ -27,18 +27,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
+    // Validate and clamp limit
+    const parsedLimit = limit ? parseInt(limit, 10) : (featured === 'true' ? 6 : 20)
+    const clampedLimit = Number.isNaN(parsedLimit) ? (featured === 'true' ? 6 : 20) : Math.min(Math.max(parsedLimit, 1), 100)
+
     let result
 
     if (featured === 'true') {
-      result = await collections.getFeaturedCollections(
-        tenant.id,
-        limit ? parseInt(limit, 10) : 6,
-      )
+      result = await collections.getFeaturedCollections(tenant.id, clampedLimit)
     } else {
-      result = await collections.listPublishedCollections(
-        tenant.id,
-        limit ? parseInt(limit, 10) : 20,
-      )
+      result = await collections.listPublishedCollections(tenant.id, clampedLimit)
     }
 
     return NextResponse.json({ collections: result })

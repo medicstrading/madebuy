@@ -133,15 +133,17 @@ export async function reserveStock(
 /**
  * Complete reservation - mark as completed (stock already decremented)
  * Called after successful payment
+ * Requires tenantId for cross-tenant data isolation
  */
 export async function completeReservation(
+  tenantId: string,
   reservationId: string,
 ): Promise<boolean> {
   const db = await getDatabase()
   const result = await db
     .collection('stock_reservations')
     .updateOne(
-      { id: reservationId, status: 'active' },
+      { tenantId, id: reservationId, status: 'active' },
       { $set: { status: 'completed', completedAt: new Date() } },
     )
   return result.modifiedCount > 0
@@ -251,14 +253,16 @@ export async function getReservationsBySession(
 
 /**
  * Get reservation by ID
+ * Requires tenantId for cross-tenant data isolation
  */
 export async function getReservation(
+  tenantId: string,
   reservationId: string,
 ): Promise<StockReservation | null> {
   const db = await getDatabase()
   return (await db
     .collection('stock_reservations')
-    .findOne({ id: reservationId })) as StockReservation | null
+    .findOne({ tenantId, id: reservationId })) as StockReservation | null
 }
 
 /**
@@ -280,6 +284,8 @@ export async function cancelSessionReservations(
 /**
  * Get expired reservations that need cleanup
  * Should be called by a cron job to release held stock
+ * NOTE: Intentionally cross-tenant -- this is a cron/maintenance function
+ * that cleans up expired reservations globally across all tenants.
  */
 export async function getExpiredReservations(): Promise<StockReservation[]> {
   const db = await getDatabase()
@@ -308,13 +314,17 @@ export async function cleanupExpiredReservations(): Promise<number> {
 
 /**
  * Commit reservation - alias for completeReservation for backwards compatibility
+ * Requires tenantId for cross-tenant data isolation
  */
-export async function commitReservation(sessionId: string): Promise<boolean> {
+export async function commitReservation(
+  tenantId: string,
+  sessionId: string,
+): Promise<boolean> {
   const reservations = await getReservationsBySession(sessionId)
   let allCompleted = true
 
   for (const reservation of reservations) {
-    const completed = await completeReservation(reservation.id)
+    const completed = await completeReservation(tenantId, reservation.id)
     if (!completed) allCompleted = false
   }
 

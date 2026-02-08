@@ -131,6 +131,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // PAY-04: Check for duplicate order by PayPal order ID to prevent double-processing
+    const existingOrderByPayPal = await orders.getOrderByPayPalOrderId(tenantId, orderID)
+    if (existingOrderByPayPal) {
+      log.info(
+        { orderID, orderId: existingOrderByPayPal.id, tenantId },
+        'Order already exists for this PayPal order ID, skipping duplicate',
+      )
+      return NextResponse.json({
+        success: true,
+        orderId: existingOrderByPayPal.id,
+        orderNumber: existingOrderByPayPal.orderNumber,
+      })
+    }
+
     // Extract order details from PayPal response
     const purchaseUnit = capture.purchase_units[0]
     const payerInfo = capture.payer
@@ -217,7 +231,7 @@ export async function POST(request: NextRequest) {
 
     // Confirm stock reservation (deducts from inventory)
     if (reservationSessionId) {
-      await stockReservations.commitReservation(reservationSessionId)
+      await stockReservations.commitReservation(tenantId, reservationSessionId)
     }
 
     log.info(

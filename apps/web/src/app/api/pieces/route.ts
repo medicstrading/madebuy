@@ -41,9 +41,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
     }
 
+    // Validate and clamp limit
     const parsedLimit = limitParam ? parseInt(limitParam, 10) : 50
+    const limit = Number.isNaN(parsedLimit) ? 50 : Math.min(Math.max(parsedLimit, 1), 100)
     const options = {
-      limit: Number.isNaN(parsedLimit) ? 50 : parsedLimit,
+      limit,
       category: category || undefined,
     }
 

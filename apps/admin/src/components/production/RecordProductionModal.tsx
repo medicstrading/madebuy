@@ -84,6 +84,9 @@ export function RecordProductionModal({
   )
 
   const handleSubmit = async () => {
+    // Prevent double-click/double-submission
+    if (isSubmitting) return
+
     if (!hasMaterials) {
       setError('This piece has no materials configured. Add materials first.')
       return

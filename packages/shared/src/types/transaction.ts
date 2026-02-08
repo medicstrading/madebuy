@@ -32,6 +32,7 @@ export interface Transaction {
 
   // Stripe references
   stripePaymentIntentId?: string
+  stripeSessionId?: string // WH-05: For idempotency checking
   stripeTransferId?: string
   stripePayoutId?: string
   stripeRefundId?: string
@@ -61,6 +62,7 @@ export interface CreateTransactionInput {
   gstRate?: number
   currency?: string
   stripePaymentIntentId?: string
+  stripeSessionId?: string // WH-05: For idempotency checking
   stripeTransferId?: string
   stripePayoutId?: string
   stripeRefundId?: string

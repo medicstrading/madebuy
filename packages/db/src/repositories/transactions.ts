@@ -32,6 +32,7 @@ export async function createTransaction(
     gstRate: data.gstRate,
     currency: data.currency || 'AUD',
     stripePaymentIntentId: data.stripePaymentIntentId,
+    stripeSessionId: data.stripeSessionId, // WH-05: For idempotency
     stripeTransferId: data.stripeTransferId,
     stripePayoutId: data.stripePayoutId,
     stripeRefundId: data.stripeRefundId,
@@ -70,6 +71,19 @@ export async function getTransactionByPaymentIntent(
   return (await db
     .collection('transactions')
     .findOne({ stripePaymentIntentId })) as Transaction | null
+}
+
+/**
+ * WH-05: Get transaction by Stripe session ID for idempotency checks
+ */
+export async function getTransactionByStripeSessionId(
+  tenantId: string,
+  stripeSessionId: string,
+): Promise<Transaction | null> {
+  const db = await getDatabase()
+  return (await db
+    .collection('transactions')
+    .findOne({ tenantId, stripeSessionId })) as Transaction | null
 }
 
 /**
@@ -240,8 +254,7 @@ export async function getTenantBalance(
   }
 
   // Calculate pending balance (net sales - payouts - refunds)
-  const salesNet = data.totalNet - data.totalPayouts // Net from non-payout transactions
-  const pendingBalance = salesNet - data.totalPayouts
+  const pendingBalance = data.totalNet - data.totalPayouts
 
   return {
     totalGross: data.totalGross - data.totalRefunds,

@@ -61,94 +61,124 @@ interface EmailResult {
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret to prevent unauthorized access (timing-safe)
+    // Verify cron secret to prevent unauthorized access (fail-closed)
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    // If CRON_SECRET is set, require authorization
-    if (cronSecret && !verifySecret(authHeader, cronSecret)) {
+    // CRON_SECRET must be configured - fail closed if missing
+    if (!cronSecret) {
+      console.error('[CRON] CRON_SECRET environment variable is not set')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    // Verify the provided secret matches (timing-safe)
+    if (!verifySecret(authHeader, cronSecret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[CRON] Starting abandoned cart email check...')
 
-    // Get all active tenants
-    const allTenants = await tenants.listTenants()
+    // Unsubscribe secret for generating tokens - must match web handler
+    const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET
+    if (!unsubscribeSecret) {
+      console.error('[CRON] UNSUBSCRIBE_SECRET environment variable is not set')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
 
+    // Process tenants in batches to avoid OOM
+    const BATCH_SIZE = 50
+    const MAX_TOTAL_TENANTS = 500 // Safety limit per cron invocation
     let totalProcessed = 0
     let totalSent = 0
     let totalSkipped = 0
     let totalFailed = 0
+    let totalTenants = 0
     const results: EmailResult[] = []
+    let lastId: string | undefined = undefined
 
-    // Unsubscribe secret for generating tokens
-    const unsubscribeSecret =
-      process.env.UNSUBSCRIBE_SECRET || 'default-unsubscribe-secret'
+    while (totalTenants < MAX_TOTAL_TENANTS) {
+      // Get next batch of tenants
+      const tenantBatch = await tenants.listTenants(BATCH_SIZE, lastId)
 
-    // Process each tenant's abandoned carts
-    for (const tenant of allTenants) {
-      try {
-        // ===== FIRST EMAIL: After 1 hour =====
-        const cartsForFirstEmail =
-          await abandonedCarts.getCartsForRecoveryEmail(tenant.id, 60) // 1 hour
+      if (tenantBatch.length === 0) {
+        break
+      }
 
-        if (cartsForFirstEmail.length > 0) {
-          console.log(
-            `[CRON] Found ${cartsForFirstEmail.length} carts for first email for tenant ${tenant.id}`,
-          )
+      // Process each tenant's abandoned carts
+      for (const tenant of tenantBatch) {
+        totalTenants++
 
-          for (const cart of cartsForFirstEmail) {
-            const emailResult = await processCartEmail(
-              cart,
-              tenant,
-              'first',
-              unsubscribeSecret,
-              async () =>
-                abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id),
+        try {
+          // ===== FIRST EMAIL: After 1 hour =====
+          const cartsForFirstEmail =
+            await abandonedCarts.getCartsForRecoveryEmail(tenant.id, 60) // 1 hour
+
+          if (cartsForFirstEmail.length > 0) {
+            console.log(
+              `[CRON] Found ${cartsForFirstEmail.length} carts for first email for tenant ${tenant.id}`,
             )
-            results.push(emailResult)
-            totalProcessed++
-            if (emailResult.success) totalSent++
-            else if (emailResult.skipped) totalSkipped++
-            else totalFailed++
+
+            for (const cart of cartsForFirstEmail) {
+              const emailResult = await processCartEmail(
+                cart,
+                tenant,
+                'first',
+                unsubscribeSecret,
+                async () =>
+                  abandonedCarts.markRecoveryEmailSent(tenant.id, cart.id),
+              )
+              results.push(emailResult)
+              totalProcessed++
+              if (emailResult.success) totalSent++
+              else if (emailResult.skipped) totalSkipped++
+              else totalFailed++
+            }
           }
-        }
 
-        // ===== SECOND EMAIL: After 24 hours =====
-        const cartsForSecondEmail =
-          await abandonedCarts.getCartsForSecondRecoveryEmail(
-            tenant.id,
-            24 * 60,
-          ) // 24 hours
+          // ===== SECOND EMAIL: After 24 hours =====
+          const cartsForSecondEmail =
+            await abandonedCarts.getCartsForSecondRecoveryEmail(
+              tenant.id,
+              24 * 60,
+            ) // 24 hours
 
-        if (cartsForSecondEmail.length > 0) {
-          console.log(
-            `[CRON] Found ${cartsForSecondEmail.length} carts for second email for tenant ${tenant.id}`,
-          )
-
-          for (const cart of cartsForSecondEmail) {
-            const emailResult = await processCartEmail(
-              cart,
-              tenant,
-              'second',
-              unsubscribeSecret,
-              async () =>
-                abandonedCarts.markSecondEmailSent(tenant.id, cart.id),
+          if (cartsForSecondEmail.length > 0) {
+            console.log(
+              `[CRON] Found ${cartsForSecondEmail.length} carts for second email for tenant ${tenant.id}`,
             )
-            results.push(emailResult)
-            totalProcessed++
-            if (emailResult.success) totalSent++
-            else if (emailResult.skipped) totalSkipped++
-            else totalFailed++
+
+            for (const cart of cartsForSecondEmail) {
+              const emailResult = await processCartEmail(
+                cart,
+                tenant,
+                'second',
+                unsubscribeSecret,
+                async () =>
+                  abandonedCarts.markSecondEmailSent(tenant.id, cart.id),
+              )
+              results.push(emailResult)
+              totalProcessed++
+              if (emailResult.success) totalSent++
+              else if (emailResult.skipped) totalSkipped++
+              else totalFailed++
+            }
           }
+        } catch (error) {
+          console.error(`[CRON] Error processing tenant ${tenant.id}:`, error)
         }
-      } catch (error) {
-        console.error(`[CRON] Error processing tenant ${tenant.id}:`, error)
+      }
+
+      // Set cursor for next batch
+      lastId = tenantBatch[tenantBatch.length - 1]?.id
+
+      // If we got fewer results than batch size, we're done
+      if (tenantBatch.length < BATCH_SIZE) {
+        break
       }
     }
 
     console.log(
-      `[CRON] Abandoned cart email completed: ${totalSent} sent, ${totalSkipped} skipped, ${totalFailed} failed out of ${totalProcessed} processed`,
+      `[CRON] Abandoned cart email completed: ${totalSent} sent, ${totalSkipped} skipped, ${totalFailed} failed out of ${totalProcessed} processed (checked ${totalTenants} tenants)`,
     )
 
     return NextResponse.json({
@@ -157,6 +187,7 @@ export async function GET(request: NextRequest) {
       sent: totalSent,
       skipped: totalSkipped,
       failed: totalFailed,
+      tenantsChecked: totalTenants,
       results: results.slice(0, 100), // Limit results in response
     })
   } catch (error) {
@@ -195,13 +226,13 @@ async function processCartEmail(
   }
 
   try {
-    // Check if customer has unsubscribed from emails
+    // Check if customer exists and their email preferences
     const customer = await customers.getCustomerByEmail(
       tenant.id,
       cart.customerEmail,
     )
 
-    // Skip if customer exists and has unsubscribed
+    // Skip if customer has explicitly unsubscribed
     if (customer && customer.emailSubscribed === false) {
       console.log(
         `[CRON] Skipping cart ${cart.id} (${emailType}) - customer ${cart.customerEmail} has unsubscribed`,
@@ -215,6 +246,45 @@ async function processCartEmail(
         success: false,
         skipped: true,
         error: 'Customer unsubscribed',
+      }
+    }
+
+    // Skip if customer is a first-time visitor with no prior purchases and hasn't opted in
+    // Only send to: customers with prior orders OR customers who have explicitly opted in
+    if (customer) {
+      // Check if customer has any prior orders
+      const hasOrders = customer.orderCount && customer.orderCount > 0
+      const hasOptedIn = customer.emailSubscribed === true || customer.marketingOptIn === true
+
+      if (!hasOrders && !hasOptedIn) {
+        console.log(
+          `[CRON] Skipping cart ${cart.id} (${emailType}) - first-time visitor without opt-in`,
+        )
+        // Mark as sent to prevent future attempts
+        await markSentCallback()
+        return {
+          cartId: cart.id,
+          email: cart.customerEmail,
+          emailType,
+          success: false,
+          skipped: true,
+          error: 'No prior relationship or opt-in',
+        }
+      }
+    } else {
+      // No customer record exists - skip for compliance
+      console.log(
+        `[CRON] Skipping cart ${cart.id} (${emailType}) - no customer record found`,
+      )
+      // Mark as sent to prevent future attempts
+      await markSentCallback()
+      return {
+        cartId: cart.id,
+        email: cart.customerEmail,
+        emailType,
+        success: false,
+        skipped: true,
+        error: 'No customer record',
       }
     }
 

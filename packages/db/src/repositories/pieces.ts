@@ -141,6 +141,17 @@ export async function getPiece(
     .findOne({ tenantId, id })) as unknown as Piece | null
 }
 
+/**
+ * Get a piece by ID without requiring tenantId
+ * Used for security checks where we need to derive tenantId from the piece
+ */
+export async function getPieceById(id: string): Promise<Piece | null> {
+  const db = await getDatabase()
+  return (await db
+    .collection('pieces')
+    .findOne({ id })) as unknown as Piece | null
+}
+
 export async function getPieceBySlug(
   tenantId: string,
   slug: string,
@@ -257,6 +268,19 @@ export async function listPieces(
 }
 
 /**
+ * Sanitize MongoDB text search query to prevent injection
+ * Escapes special characters that have meaning in MongoDB text search
+ */
+function sanitizeSearchQuery(query: string): string {
+  // Remove MongoDB text search operators and special characters
+  // These have special meaning in $text queries: " - \
+  return query
+    .replace(/["\\-]/g, '') // Remove quotes, backslashes, and negation operator
+    .replace(/\$/g, '') // Remove $ which could be used for injection
+    .trim()
+}
+
+/**
  * Search pieces using MongoDB full-text search
  * Only searches published, available pieces for storefront use
  */
@@ -268,7 +292,7 @@ export async function searchPieces(
   const db = await getDatabase()
 
   // Clean and validate query
-  const searchQuery = query.trim()
+  const searchQuery = sanitizeSearchQuery(query.trim())
   if (!searchQuery) {
     return []
   }
@@ -322,6 +346,41 @@ export async function deletePiece(tenantId: string, id: string): Promise<void> {
   // Get piece to find slug before deleting
   const piece = await getPiece(tenantId, id)
 
+  // CASCADE-01: Remove piece from all bundles that reference it
+  await db.collection('bundles').updateMany(
+    { tenantId, 'items.pieceId': id },
+    { $pull: { items: { pieceId: id } } } as any
+  )
+
+  // CASCADE-05: Remove piece from all collections that reference it
+  await db.collection('collections').updateMany(
+    { tenantId, pieceIds: id },
+    { $pull: { pieceIds: id } } as any
+  )
+
+  // CASCADE-04: Delete all reviews for this piece
+  await db.collection('reviews').deleteMany({ tenantId, pieceId: id })
+
+  // CASCADE-06: Delete all wishlist entries for this piece
+  await db.collection('wishlist').deleteMany({ tenantId, pieceId: id })
+
+  // CASCADE-03: Mark orphaned media for cleanup
+  // Find media that is only associated with this piece
+  const mediaToMark = await db
+    .collection('media')
+    .find({ tenantId, pieceId: id })
+    .toArray()
+
+  for (const media of mediaToMark) {
+    // Mark media as orphaned by removing pieceId reference
+    // The media can be cleaned up later by a separate cleanup job
+    await db.collection('media').updateOne(
+      { tenantId, id: media.id },
+      { $unset: { pieceId: '' }, $set: { updatedAt: new Date() } }
+    )
+  }
+
+  // Delete the piece itself
   await db.collection('pieces').deleteOne({ tenantId, id })
 
   // Invalidate cache after delete

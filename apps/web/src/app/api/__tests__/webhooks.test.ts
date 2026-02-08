@@ -128,8 +128,8 @@ describe('Stripe Webhooks', () => {
       )
       expect(existingOrder).toBeNull()
 
-      // Complete reservation
-      const completed = await stockReservations.completeReservation('res_123')
+      // Complete reservation (with tenantId for cross-tenant isolation)
+      const completed = await stockReservations.completeReservation('tenant-123', 'res_123')
       expect(completed).toBe(true)
 
       // Get piece for order items

@@ -5,6 +5,7 @@ import { ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { SectionProps } from './SectionRenderer'
+import { formatCurrency } from '@/lib/utils'
 
 const COLUMNS_MAP = {
   2: 'grid-cols-1 sm:grid-cols-2',
@@ -183,7 +184,7 @@ function ProductCard({
             <div className="flex items-center justify-between">
               <span className="text-lg font-semibold text-gray-900">
                 {piece.price ? (
-                  `$${piece.price.toFixed(2)}`
+                  formatCurrency(piece.price)
                 ) : (
                   <span className="text-sm font-normal text-gray-500">
                     Price on request

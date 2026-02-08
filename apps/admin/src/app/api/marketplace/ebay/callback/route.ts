@@ -1,5 +1,6 @@
 import { marketplace } from '@madebuy/db'
 import { type NextRequest, NextResponse } from 'next/server'
+import { requireTenant } from '@/lib/session'
 
 /**
  * eBay OAuth Token Endpoint Configuration
@@ -61,8 +62,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify state and get tenant info
-    const oauthState = await marketplace.verifyOAuthState(state)
+    // Get authenticated tenant for cross-tenant isolation
+    const tenant = await requireTenant()
+
+    // Verify state and get tenant info (with tenantId filter)
+    const oauthState = await marketplace.verifyOAuthState(tenant.id, state)
     if (!oauthState) {
       return NextResponse.redirect(
         `${APP_URL}/dashboard/marketplace?error=${encodeURIComponent('Invalid or expired OAuth state. Please try again.')}`,

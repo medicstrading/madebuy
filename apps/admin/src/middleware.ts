@@ -42,8 +42,14 @@ const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-passwo
 
 // Cron endpoints that use CRON_SECRET instead of session auth
 const CRON_ROUTES = [
-  '/api/cron/publish-scheduled',
-  '/api/cron/publish-scheduled-blogs',
+  '/api/cron/publish',
+  '/api/cron/reset-usage',
+  '/api/cron/abandoned-cart',
+  '/api/cron/learn-captions',
+  '/api/cron/process-videos',
+  '/api/cron/marketplace-refresh-tokens',
+  '/api/cron/marketplace-sync',
+  '/api/cron/marketplace-orders',
 ]
 
 // Internal endpoints that accept either session auth OR CRON_SECRET
@@ -56,10 +62,13 @@ export async function middleware(request: NextRequest) {
 
   // Allow public routes first (no auth or rate limit needed)
   if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
-    // Only rate limit login attempts (unauthenticated, critical path)
+    // Rate limit login attempts and OAuth callbacks (unauthenticated, critical paths)
     if (
       pathname === '/api/auth/callback/credentials' ||
-      pathname === '/api/auth/signin'
+      pathname === '/api/auth/signin' ||
+      pathname === '/api/late/callback' ||
+      pathname === '/api/marketplace/ebay/callback' ||
+      pathname === '/api/marketplace/etsy/callback'
     ) {
       const rateLimitResponse = await rateLimit(request, rateLimiters.auth)
       if (rateLimitResponse) return rateLimitResponse

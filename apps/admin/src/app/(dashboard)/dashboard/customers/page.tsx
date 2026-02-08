@@ -18,7 +18,7 @@ import {
   Users,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 // ============================================================================
@@ -53,11 +53,25 @@ export default function CustomersPage() {
   const [activeTab, setActiveTab] = useState<TabId>('customers')
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [enquiryCount, setEnquiryCount] = useState<number>(0)
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup transition timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleTabChange = (tab: TabId) => {
     if (tab === activeTab) return
+    // Clear any existing transition timeout
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current)
+    }
     setIsTransitioning(true)
-    setTimeout(() => {
+    transitionTimeoutRef.current = setTimeout(() => {
       setActiveTab(tab)
       setIsTransitioning(false)
     }, 150)

@@ -3,7 +3,7 @@
 import { ArrowRight, ImageIcon, ShoppingBag, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CartItem } from '@/contexts/CartContext'
 import { formatCurrency } from '@/lib/utils'
 
@@ -25,6 +25,12 @@ export function MiniCartPreview({
   addedProductId,
 }: MiniCartPreviewProps) {
   const [isAnimating, setIsAnimating] = useState(false)
+  const onCloseRef = useRef(onClose)
+
+  // Keep ref in sync with latest onClose
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   // Handle animation states
   useEffect(() => {
@@ -38,11 +44,11 @@ export function MiniCartPreview({
     if (!isOpen) return
 
     const timer = setTimeout(() => {
-      onClose()
+      onCloseRef.current()
     }, 5000)
 
     return () => clearTimeout(timer)
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   // Handle close animation
   const handleClose = () => {

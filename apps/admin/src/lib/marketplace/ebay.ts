@@ -38,9 +38,16 @@ export function createEbayClient(
     contentLanguage: 'en_AU',
   })
 
+  // Validate eBay credentials are configured
+  if (!process.env.EBAY_CLIENT_ID || !process.env.EBAY_CLIENT_SECRET) {
+    throw new Error(
+      'eBay API credentials not configured. Set EBAY_CLIENT_ID and EBAY_CLIENT_SECRET environment variables.',
+    )
+  }
+
   const client = new eBayApi({
-    appId: process.env.EBAY_CLIENT_ID!,
-    certId: process.env.EBAY_CLIENT_SECRET!,
+    appId: process.env.EBAY_CLIENT_ID,
+    certId: process.env.EBAY_CLIENT_SECRET,
     sandbox: !isProduction,
     siteId: eBayApi.SiteId.EBAY_AU,
     marketplaceId: eBayApi.MarketplaceId.EBAY_AU,

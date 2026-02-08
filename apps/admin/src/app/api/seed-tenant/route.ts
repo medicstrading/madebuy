@@ -4,10 +4,15 @@ import { nanoid } from 'nanoid'
 import { NextResponse } from 'next/server'
 
 // One-time seed endpoint - DELETE AFTER USE
-// Protected by SEED_SECRET environment variable
+// Protected by SEED_SECRET environment variable AND NODE_ENV=development
 const SEED_SECRET = process.env.SEED_SECRET
 
 export async function GET(request: Request) {
+  // Only available in development environment - never in production
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   // Require SEED_SECRET env var to be set
   if (!SEED_SECRET) {
     return NextResponse.json({ error: 'Endpoint disabled' }, { status: 404 })

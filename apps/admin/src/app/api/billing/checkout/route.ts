@@ -4,7 +4,12 @@ import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getCurrentTenant } from '@/lib/session'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Validate Stripe secret key is configured
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 })
 
@@ -64,6 +69,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // PAY-13: Check if tenant already has an active subscription
+    if (tenant.subscriptionId) {
+      // Tenant already has a subscription - they should use the billing portal to manage it
+      return NextResponse.json(
+        {
+          error: 'You already have an active subscription. Use the billing portal to change plans.',
+          code: 'SUBSCRIPTION_EXISTS',
+        },
+        { status: 400 },
+      )
+    }
+
     // Get or create Stripe customer
     let customerId = tenant.stripeCustomerId
 
@@ -86,6 +103,9 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3300'
     const successUrl = `${baseUrl}/dashboard/settings/billing?success=true&plan=${planId}`
     const cancelUrl = `${baseUrl}/dashboard/settings/billing?canceled=true`
+
+    // PAY-08: Add idempotency key to prevent duplicate subscription checkout sessions
+    const idempotencyKey = `subscription_${tenant.id}_${planId}_${Date.now()}`
 
     // Create checkout session for subscription
     const session = await stripe.checkout.sessions.create({
@@ -120,6 +140,8 @@ export async function POST(request: NextRequest) {
       tax_id_collection: {
         enabled: true,
       },
+    }, {
+      idempotencyKey,
     })
 
     return NextResponse.json({ url: session.url })

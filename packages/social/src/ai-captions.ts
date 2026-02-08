@@ -42,7 +42,8 @@ function getOpenAI(): OpenAI {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY not configured')
+      // Generic error message - don't leak env var names
+      throw new Error('AI service not configured')
     }
     openaiClient = new OpenAI({ apiKey })
   }
@@ -57,12 +58,24 @@ function sanitizeForPrompt(
   maxLength: number = 500,
 ): string {
   if (!input) return ''
+
   // Remove potential prompt injection patterns and limit length
-  return input
+  let sanitized = input
     .replace(/[\r\n]+/g, ' ') // Remove newlines
     .replace(/[<>{}[\]]/g, '') // Remove brackets that could be interpreted as instructions
+    .replace(/[`'"]/g, '') // Remove quotes that could break out of instructions
+    .replace(/\b(ignore|disregard|forget|instead|system|assistant|user|prompt|instruction)\b/gi, '') // Remove instruction-like words
+    .replace(/:/g, '') // Remove colons that could introduce new instructions
     .slice(0, maxLength)
     .trim()
+
+  // If the sanitized input is too different from original, it might be malicious - return empty
+  if (sanitized.length < input.length * 0.3 && input.length > 20) {
+    console.warn('Suspicious input detected in AI prompt, sanitized heavily')
+    return ''
+  }
+
+  return sanitized
 }
 
 /**
@@ -291,6 +304,10 @@ Important rules:
     }
   } catch (error) {
     console.error('Error generating AI caption:', error)
+    // Generic error message - don't leak API details
+    if (error instanceof Error && error.message.includes('not configured')) {
+      throw error // Pass through our generic config error
+    }
     throw new Error('Failed to generate AI caption')
   }
 }

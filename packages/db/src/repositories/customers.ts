@@ -831,11 +831,16 @@ export async function authenticateCustomer(
 
 /**
  * Verify customer email using token
+ * Requires tenantId to prevent cross-tenant token usage
  */
-export async function verifyCustomerEmail(token: string): Promise<boolean> {
+export async function verifyCustomerEmail(
+  tenantId: string,
+  token: string,
+): Promise<boolean> {
   const db = await getDatabase()
 
   const customer = await db.collection('customers').findOne({
+    tenantId,
     verificationToken: token,
     verificationTokenExpiry: { $gt: new Date() },
   })
@@ -843,7 +848,7 @@ export async function verifyCustomerEmail(token: string): Promise<boolean> {
   if (!customer) return false
 
   await db.collection('customers').updateOne(
-    { id: customer.id },
+    { tenantId, id: customer.id },
     {
       $set: {
         emailVerified: true,
@@ -935,8 +940,10 @@ export async function createPasswordResetToken(
 
 /**
  * Reset password using token
+ * Requires tenantId to prevent cross-tenant token usage
  */
 export async function resetPassword(
+  tenantId: string,
   token: string,
   newPassword: string,
 ): Promise<boolean> {
@@ -954,6 +961,7 @@ export async function resetPassword(
   const db = await getDatabase()
 
   const customer = await db.collection('customers').findOne({
+    tenantId,
     resetToken: token,
     resetTokenExpiry: { $gt: new Date() },
   })
@@ -963,7 +971,7 @@ export async function resetPassword(
   const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS)
 
   await db.collection('customers').updateOne(
-    { id: customer.id },
+    { tenantId, id: customer.id },
     {
       $set: {
         passwordHash,
@@ -1182,11 +1190,16 @@ export async function initiateEmailChange(
 
 /**
  * Confirm email change using token
+ * Requires tenantId to prevent cross-tenant token usage
  */
-export async function confirmEmailChange(token: string): Promise<boolean> {
+export async function confirmEmailChange(
+  tenantId: string,
+  token: string,
+): Promise<boolean> {
   const db = await getDatabase()
 
   const customer = await db.collection('customers').findOne({
+    tenantId,
     emailChangeToken: token,
     emailChangeTokenExpiry: { $gt: new Date() },
   })
@@ -1195,12 +1208,12 @@ export async function confirmEmailChange(token: string): Promise<boolean> {
 
   // Check that pending email isn't already taken
   const existing = await db.collection('customers').findOne({
-    tenantId: customer.tenantId,
+    tenantId,
     email: customer.pendingEmail,
   })
   if (existing) {
     await db.collection('customers').updateOne(
-      { id: customer.id },
+      { tenantId, id: customer.id },
       {
         $unset: {
           pendingEmail: '',
@@ -1214,7 +1227,7 @@ export async function confirmEmailChange(token: string): Promise<boolean> {
   }
 
   await db.collection('customers').updateOne(
-    { id: customer.id },
+    { tenantId, id: customer.id },
     {
       $set: {
         email: customer.pendingEmail,

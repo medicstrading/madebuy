@@ -31,6 +31,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check feature gate for social publishing
+    if (!tenant.features.socialPublishing) {
+      return NextResponse.json(
+        { error: 'Social publishing requires a Maker or higher plan' },
+        { status: 403 },
+      )
+    }
+
     const data: CreatePublishInput = await request.json()
 
     // Check if tenant has social connections for the requested platforms

@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto'
-import { getDatabase, publish } from '@madebuy/db'
+import { getDatabase, publish, tenants } from '@madebuy/db'
 import { type NextRequest, NextResponse } from 'next/server'
+import { executePublishRecord } from '@/lib/publish-execute'
 
 /**
  * Timing-safe comparison for secrets to prevent timing attacks
@@ -65,18 +66,63 @@ async function getScheduledRecordsReady(): Promise<ScheduledRecord[]> {
   return results as unknown as ScheduledRecord[]
 }
 
+/**
+ * Get stuck publishing records (stuck in "publishing" for more than 10 minutes)
+ */
+async function getStuckPublishingRecords(): Promise<ScheduledRecord[]> {
+  const db = await getDatabase()
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+
+  const results = await db
+    .collection('publish_records')
+    .find({
+      status: 'publishing',
+      updatedAt: { $lt: tenMinutesAgo },
+    })
+    .project({ id: 1, tenantId: 1, scheduledFor: 1 })
+    .toArray()
+
+  return results as unknown as ScheduledRecord[]
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret to prevent unauthorized access (timing-safe)
+    // Verify cron secret to prevent unauthorized access (fail-closed)
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    // If CRON_SECRET is set, require authorization
-    if (cronSecret && !verifySecret(authHeader, cronSecret)) {
+    // CRON_SECRET must be configured - fail closed if missing
+    if (!cronSecret) {
+      console.error('[CRON] CRON_SECRET environment variable is not set')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    // Verify the provided secret matches (timing-safe)
+    if (!verifySecret(authHeader, cronSecret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[CRON] Checking for scheduled posts...')
+
+    // First, recover stuck publishing records (stuck in "publishing" for more than 10 minutes)
+    const stuckRecords = await getStuckPublishingRecords()
+    if (stuckRecords.length > 0) {
+      console.log(
+        `[CRON] Found ${stuckRecords.length} stuck publishing records, resetting to scheduled...`,
+      )
+      for (const record of stuckRecords) {
+        await publish.updatePublishRecord(record.tenantId, record.id, {
+          status: 'scheduled',
+          results: [
+            {
+              platform: 'system' as any,
+              status: 'failed',
+              error: 'Reset from stuck publishing state',
+            },
+          ],
+        })
+      }
+    }
 
     // Get all records across all tenants that are scheduled and ready
     const scheduledRecords = await getScheduledRecordsReady()
@@ -91,6 +137,7 @@ export async function GET(request: NextRequest) {
         processed: 0,
         succeeded: 0,
         failed: 0,
+        recovered: stuckRecords.length,
         message: 'No scheduled posts ready to publish',
       })
     }
@@ -103,37 +150,30 @@ export async function GET(request: NextRequest) {
           `[CRON] Processing record ${record.id} for tenant ${record.tenantId}...`,
         )
 
-        // Mark as publishing first to prevent duplicate processing
-        await publish.updatePublishRecord(record.tenantId, record.id, {
-          status: 'publishing',
-        })
+        // Check feature gate - skip if tenant doesn't have socialPublishing
+        const tenant = await tenants.getTenantById(record.tenantId)
+        if (!tenant?.features?.socialPublishing) {
+          console.warn(
+            `[CRON] Skipping record ${record.id} - tenant ${record.tenantId} does not have socialPublishing enabled`,
+          )
+          results.push({
+            recordId: record.id,
+            tenantId: record.tenantId,
+            success: false,
+            error: 'Social publishing not enabled on plan',
+          })
+          continue
+        }
 
-        // Call the execute endpoint to publish
-        // Use the internal app URL for server-to-server calls
-        const appUrl =
-          process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}`
-            : 'http://localhost:3300'
+        // Call the publish execution logic directly (no HTTP request needed)
+        // This avoids the session auth requirement of the /api/publish/[id]/execute endpoint
+        const executeResult = await executePublishRecord(record.tenantId, record.id)
 
-        const executeResponse = await fetch(
-          `${appUrl}/api/publish/${record.id}/execute`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              // Pass cron secret for internal auth if needed
-              ...(cronSecret && { 'X-Cron-Secret': cronSecret }),
-            },
-          },
-        )
-
-        const executeData = await executeResponse.json()
-
-        if (executeResponse.ok && executeData.success) {
+        if (executeResult.success) {
           console.log(`[CRON] Successfully published record ${record.id}`)
 
           // Handle recurring posts
-          const fullRecord = await publish.getPublishRecordById(record.id)
+          const fullRecord = await publish.getPublishRecordById(record.tenantId, record.id)
           if (fullRecord?.recurrence?.enabled) {
             console.log(
               `[CRON] Record ${record.id} has recurrence enabled, processing...`,
@@ -159,28 +199,20 @@ export async function GET(request: NextRequest) {
             success: true,
           })
         } else {
+          const execError = executeResult.error || 'Unknown execution error'
           console.error(
             `[CRON] Failed to publish record ${record.id}:`,
-            executeData.error,
+            execError,
           )
 
-          // Mark as failed with error message
-          await publish.updatePublishRecord(record.tenantId, record.id, {
-            status: 'failed',
-            results: [
-              {
-                platform: 'system' as any,
-                status: 'failed',
-                error: executeData.error || 'Unknown execution error',
-              },
-            ],
-          })
+          // executePublishRecord already updates the record status to 'failed',
+          // so no need to update it again here
 
           results.push({
             recordId: record.id,
             tenantId: record.tenantId,
             success: false,
-            error: executeData.error || 'Unknown execution error',
+            error: execError,
           })
         }
       } catch (error) {
@@ -212,13 +244,16 @@ export async function GET(request: NextRequest) {
     const succeeded = results.filter((r) => r.success).length
     const failed = results.filter((r) => !r.success).length
 
-    console.log(`[CRON] Completed: ${succeeded} successful, ${failed} failed`)
+    console.log(
+      `[CRON] Completed: ${succeeded} successful, ${failed} failed, ${stuckRecords.length} recovered`,
+    )
 
     return NextResponse.json({
       success: true,
       processed: scheduledRecords.length,
       succeeded,
       failed,
+      recovered: stuckRecords.length,
       results,
     })
   } catch (error) {

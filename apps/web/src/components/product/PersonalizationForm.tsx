@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { formatCurrency } from '@/lib/utils'
 
 interface PersonalizationFormProps {
   config: PersonalizationConfig
@@ -300,10 +301,10 @@ function PersonalizationFieldInput({
     if (!field.priceAdjustment) return null
     return (
       <span className="ml-2 text-xs font-normal text-green-600">
-        (+$
+        (+
         {field.priceAdjustmentType === 'percentage'
           ? `${field.priceAdjustment}%`
-          : (field.priceAdjustment / 100).toFixed(2)}
+          : formatCurrency(field.priceAdjustment / 100)}
         )
       </span>
     )
@@ -679,10 +680,10 @@ function FileUploadField({
         {field.required && <span className="text-red-500 ml-0.5">*</span>}
         {field.priceAdjustment ? (
           <span className="ml-2 text-xs font-normal text-green-600">
-            (+$
+            (+
             {field.priceAdjustmentType === 'percentage'
               ? `${field.priceAdjustment}%`
-              : (field.priceAdjustment / 100).toFixed(2)}
+              : formatCurrency(field.priceAdjustment / 100)}
             )
           </span>
         ) : null}

@@ -143,7 +143,7 @@ export async function sendOrderConfirmation(order: Order, tenant: Tenant) {
         ? `
     <div style="background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
       <h2 style="margin-top: 0; color: #374151;">Order Notes</h2>
-      <p>${order.customerNotes}</p>
+      <p>${escapeHtml(order.customerNotes)}</p>
     </div>
     `
         : ''

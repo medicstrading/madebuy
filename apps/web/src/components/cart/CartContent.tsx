@@ -81,9 +81,9 @@ export function CartContent({
         addItem(product, { quantity: item.quantity })
       }
 
-      // Store discount code if provided
+      // Store discount code if provided - use functional state update to avoid stale closure
       if (discountCode) {
-        setRecoveredDiscount(discountCode)
+        setRecoveredDiscount(() => discountCode)
         // Also store in sessionStorage for checkout
         sessionStorage.setItem('recoveryDiscount', discountCode)
       }

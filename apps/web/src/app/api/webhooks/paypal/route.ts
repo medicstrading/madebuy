@@ -36,6 +36,15 @@ function verifyWebhookSignature(body: string, headers: Headers): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    // PayPal webhook is not fully implemented yet - disable unless PAYPAL_WEBHOOK_ID is configured
+    if (!process.env.PAYPAL_WEBHOOK_ID) {
+      log.warn('PayPal webhook endpoint called but PAYPAL_WEBHOOK_ID is not configured')
+      return NextResponse.json(
+        { error: 'PayPal webhook integration is not yet implemented' },
+        { status: 501 },
+      )
+    }
+
     const rawBody = await request.text()
 
     // Verify webhook signature
@@ -44,7 +53,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    const event = JSON.parse(rawBody)
+    // WH-01: Wrap JSON.parse in try/catch
+    let event: any
+    try {
+      event = JSON.parse(rawBody)
+    } catch (parseError) {
+      log.error(
+        { err: parseError, rawBodyLength: rawBody.length },
+        'Failed to parse PayPal webhook body',
+      )
+      return NextResponse.json(
+        { error: 'Invalid JSON payload' },
+        { status: 400 },
+      )
+    }
     const eventType = event.event_type
 
     log.info({ eventType, eventId: event.id }, 'PayPal webhook received')

@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password (cost 8 for ~25ms - still secure with strong password requirements)
-    const passwordHash = await bcrypt.hash(password, 8)
+    // Hash password (cost 10 for stronger security, consistent with reset-password)
+    const passwordHash = await bcrypt.hash(password, 10)
 
     // Create tenant
     const tenant = await tenants.createTenant(

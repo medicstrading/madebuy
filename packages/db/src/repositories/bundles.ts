@@ -369,11 +369,17 @@ export async function getBundleAvailability(
  * Decrement stock for all pieces in a bundle atomically
  * Uses MongoDB transactions to prevent race conditions and overselling
  * Called when bundle is purchased
+ *
+ * NOTE: BundlePiece currently doesn't support variantId. If bundles need to support
+ * variant pieces, extend BundlePiece interface to include optional variantId field
+ * and update this function to handle variant stock decrements.
  */
 export async function decrementBundleStock(
   tenantId: string,
   bundleId: string,
   quantity: number = 1,
+  // Optional variant selections: Map<pieceId, variantId>
+  variantSelections?: Map<string, string>,
 ): Promise<boolean> {
   const client = await getMongoClient()
   const db = await getDatabase()
@@ -391,29 +397,58 @@ export async function decrementBundleStock(
       // The stock check is part of the update query to prevent overselling
       for (const bp of bundle.pieces) {
         const decrementAmount = bp.quantity * quantity
+        const variantId = variantSelections?.get(bp.pieceId)
 
-        const result = await db.collection('pieces').updateOne(
-          {
-            tenantId,
-            id: bp.pieceId,
-            // Only decrement if there's enough stock
-            $or: [
-              { stock: { $gte: decrementAmount } },
-              { stock: { $exists: false } }, // Unlimited stock
-            ],
-          },
-          {
-            $inc: { stock: -decrementAmount },
-            $set: { updatedAt: new Date() },
-          },
-          { session },
-        )
+        if (variantId) {
+          // Decrement variant stock
+          const result = await db.collection('pieces').updateOne(
+            {
+              tenantId,
+              id: bp.pieceId,
+              'variants.id': variantId,
+              'variants.stock': { $gte: decrementAmount },
+            },
+            {
+              $inc: { 'variants.$[v].stock': -decrementAmount },
+              $set: { updatedAt: new Date() },
+            },
+            {
+              arrayFilters: [{ 'v.id': variantId }],
+              session,
+            },
+          )
 
-        // If a piece couldn't be decremented, mark as failed
-        // The transaction will be aborted
-        if (result.matchedCount === 0) {
-          success = false
-          throw new Error(`Insufficient stock for piece ${bp.pieceId}`)
+          if (result.matchedCount === 0) {
+            success = false
+            throw new Error(
+              `Insufficient stock for piece ${bp.pieceId} variant ${variantId}`,
+            )
+          }
+        } else {
+          // Decrement base piece stock
+          const result = await db.collection('pieces').updateOne(
+            {
+              tenantId,
+              id: bp.pieceId,
+              // Only decrement if there's enough stock
+              $or: [
+                { stock: { $gte: decrementAmount } },
+                { stock: { $exists: false } }, // Unlimited stock
+              ],
+            },
+            {
+              $inc: { stock: -decrementAmount },
+              $set: { updatedAt: new Date() },
+            },
+            { session },
+          )
+
+          // If a piece couldn't be decremented, mark as failed
+          // The transaction will be aborted
+          if (result.matchedCount === 0) {
+            success = false
+            throw new Error(`Insufficient stock for piece ${bp.pieceId}`)
+          }
         }
       }
     })

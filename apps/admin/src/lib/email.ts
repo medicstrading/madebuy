@@ -38,12 +38,25 @@ interface SendNewsletterResult {
 }
 
 /**
+ * Generate unsubscribe token for an email
+ */
+function generateUnsubscribeToken(email: string, secret: string): string {
+  const crypto = require('node:crypto')
+  return crypto
+    .createHmac('sha256', secret)
+    .update(email.toLowerCase())
+    .digest('hex')
+    .slice(0, 32)
+}
+
+/**
  * Build newsletter HTML with template styling
  */
 function buildNewsletterHtml(
   newsletter: Newsletter,
   template: NewsletterTemplate,
   tenant: Tenant,
+  recipientEmail: string,
 ): string {
   const { header, colors, footer, sections } = template
   const logoUrl = tenant.logoMediaId ? '' : '' // Logo URL would need to be fetched from media storage
@@ -128,11 +141,28 @@ function buildNewsletterHtml(
       <p style="margin-top: 20px; font-size: 11px; color: #9ca3af;">
         You received this email because you're subscribed to updates from ${tenant.businessName}.
       </p>
+
+      <p style="margin-top: 12px; font-size: 11px; color: #9ca3af;">
+        <a href="${buildUnsubscribeUrl(tenant, recipientEmail)}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a> from marketing emails.
+      </p>
     </div>
   </div>
 </body>
 </html>
   `
+
+  function buildUnsubscribeUrl(tenant: Tenant, email: string): string {
+    const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET
+    if (!unsubscribeSecret) {
+      console.warn('[email] UNSUBSCRIBE_SECRET not set - unsubscribe links will not be generated')
+      return '#'
+    }
+    const token = generateUnsubscribeToken(email, unsubscribeSecret)
+    const baseUrl = tenant.customDomain
+      ? `https://${tenant.customDomain}`
+      : `https://madebuy.com.au/${tenant.slug}`
+    return `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`
+  }
 }
 
 /**
@@ -160,10 +190,23 @@ export async function sendNewsletter(
     process.env.DEFAULT_FROM_EMAIL ||
     'newsletter@madebuy.com.au'
   const fromName = tenant.businessName || 'Newsletter'
-  const htmlContent = buildNewsletterHtml(newsletter, template, tenant)
 
   const errors: Array<{ email: string; error: string }> = []
   let sentCount = 0
+
+  // Build unsubscribe URL base
+  const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET
+  if (!unsubscribeSecret) {
+    console.warn('[email] UNSUBSCRIBE_SECRET not set - newsletter sending aborted')
+    return {
+      success: false,
+      sentCount: 0,
+      errors: [{ email: 'all', error: 'UNSUBSCRIBE_SECRET not configured' }],
+    }
+  }
+  const baseUrl = tenant.customDomain
+    ? `https://${tenant.customDomain}`
+    : `https://madebuy.com.au/${tenant.slug}`
 
   // Resend supports batch sending with up to 100 emails at a time
   const batchSize = 100
@@ -172,12 +215,22 @@ export async function sendNewsletter(
 
     try {
       const result = await client.batch.send(
-        batch.map((recipient) => ({
-          from: `${fromName} <${fromEmail}>`,
-          to: recipient.email,
-          subject: newsletter.subject,
-          html: htmlContent,
-        })),
+        batch.map((recipient) => {
+          const htmlContent = buildNewsletterHtml(newsletter, template, tenant, recipient.email)
+          const unsubscribeToken = generateUnsubscribeToken(recipient.email, unsubscribeSecret)
+          const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(recipient.email)}&token=${unsubscribeToken}`
+
+          return {
+            from: `${fromName} <${fromEmail}>`,
+            to: recipient.email,
+            subject: newsletter.subject,
+            html: htmlContent,
+            headers: {
+              'List-Unsubscribe': `<${unsubscribeUrl}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          }
+        }),
       )
 
       // Check for individual failures in the batch

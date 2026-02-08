@@ -46,21 +46,33 @@ export function LowStockAlerts() {
       }
     }
 
-    fetchAlerts()
-  }, [fetchAlerts])
+    // Create AbortController for cleanup
+    const controller = new AbortController()
 
-  async function fetchAlerts() {
-    try {
-      const res = await fetch('/api/alerts/stock')
-      const data: AlertsResponse = await res.json()
-      setAlerts(data.alerts || [])
-      setSummary(data.summary || { outOfStock: 0, lowStock: 0, total: 0 })
-    } catch (error) {
-      console.error('Failed to fetch stock alerts:', error)
-    } finally {
-      setLoading(false)
+    // Fetch alerts inline to avoid dependency issues
+    const fetchAlerts = async () => {
+      try {
+        const res = await fetch('/api/alerts/stock', {
+          signal: controller.signal,
+        })
+        const data: AlertsResponse = await res.json()
+        setAlerts(data.alerts || [])
+        setSummary(data.summary || { outOfStock: 0, lowStock: 0, total: 0 })
+      } catch (error) {
+        // Ignore abort errors
+        if (error instanceof Error && error.name === 'AbortError') return
+        console.error('Failed to fetch stock alerts:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    fetchAlerts()
+
+    return () => {
+      controller.abort()
+    }
+  }, [])
 
   function dismissAlert(alertKey: string) {
     const newDismissed = new Set(dismissed)

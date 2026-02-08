@@ -56,9 +56,13 @@ export function QuickLaunchWizard({
 
   // Check for existing draft on mount
   useEffect(() => {
+    const controller = new AbortController()
+
     const checkForDraft = async () => {
       try {
-        const response = await fetch('/api/wizard/draft')
+        const response = await fetch('/api/wizard/draft', {
+          signal: controller.signal,
+        })
         if (response.ok) {
           const data = await response.json()
           if (data.draft) {
@@ -66,35 +70,42 @@ export function QuickLaunchWizard({
             setShowDraftModal(true)
           }
         }
-      } catch {
+      } catch (error) {
+        // Ignore abort errors
+        if (error instanceof Error && error.name === 'AbortError') return
         // No draft or error - continue fresh
       }
     }
     checkForDraft()
+
+    return () => {
+      controller.abort()
+    }
   }, [])
 
   // Auto-save draft when state changes (debounced)
   useEffect(() => {
-    const saveDraft = async (stateToSave: WizardState) => {
-      try {
-        await fetch('/api/wizard/draft', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: stateToSave }),
-        })
-      } catch {
-        // Silent fail for draft saving
-      }
-    }
-
     if (state.pieceId && state.currentStep !== 'complete') {
       // Clear any pending save
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current)
       }
+
       // Debounce save by 1 second
       saveTimerRef.current = setTimeout(() => {
-        saveDraft(state)
+        // Define the save function inside the effect to avoid stale closures
+        const saveDraft = async () => {
+          try {
+            await fetch('/api/wizard/draft', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ state }),
+            })
+          } catch {
+            // Silent fail for draft saving
+          }
+        }
+        saveDraft()
       }, 1000)
     }
 

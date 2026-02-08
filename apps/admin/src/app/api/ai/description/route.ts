@@ -1,3 +1,5 @@
+import { tenants } from '@madebuy/db'
+import { canUseAiCaption, getPlanLimits } from '@madebuy/shared'
 import { type NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { getCurrentTenant } from '@/lib/session'
@@ -9,7 +11,8 @@ function getOpenAI(): OpenAI {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY not configured')
+      // Generic error message - don't leak env var names
+      throw new Error('AI service not configured')
     }
     openaiClient = new OpenAI({ apiKey })
   }
@@ -49,6 +52,26 @@ export async function POST(request: NextRequest) {
 
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check feature gate for AI captions
+    if (!tenant.features.aiCaptions) {
+      return NextResponse.json(
+        { error: 'AI description generation requires a Pro or higher plan' },
+        { status: 403 },
+      )
+    }
+
+    // Check usage limit (descriptions share the same counter as captions)
+    const usedThisMonth = tenant.usage?.aiCaptionsUsedThisMonth ?? 0
+    if (!canUseAiCaption(tenant.plan, usedThisMonth)) {
+      const limits = getPlanLimits(tenant.plan)
+      return NextResponse.json(
+        {
+          error: `Monthly AI generation limit reached (${limits.aiCaptionsPerMonth}). Upgrade your plan for more.`,
+        },
+        { status: 403 },
+      )
     }
 
     // Check rate limit
@@ -96,22 +119,20 @@ Just provide the description text, no quotes or labels.`
 
     const description = response.choices[0]?.message?.content?.trim() || ''
 
+    // Increment usage counter (shares counter with AI captions)
+    await tenants.incrementUsage(tenant.id, 'aiCaptionsUsedThisMonth')
+
     return NextResponse.json({ description })
   } catch (error) {
     console.error('Error generating description:', error)
 
-    if (
-      error instanceof Error &&
-      error.message === 'OPENAI_API_KEY not configured'
-    ) {
-      return NextResponse.json(
-        { error: 'AI features not configured' },
-        { status: 503 },
-      )
-    }
+    // Don't leak API configuration details to client
+    const errorMessage = error instanceof Error && error.message.includes('not configured')
+      ? 'AI service is not configured. Please contact support.'
+      : 'Failed to generate description. Please try again.'
 
     return NextResponse.json(
-      { error: 'Failed to generate description' },
+      { error: errorMessage },
       { status: 500 },
     )
   }

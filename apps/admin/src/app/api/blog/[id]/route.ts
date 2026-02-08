@@ -1,4 +1,5 @@
 import { blog } from '@madebuy/db'
+import { sanitizeHtml } from '@madebuy/shared/lib/sanitize'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getCurrentTenant } from '@/lib/session'
 
@@ -49,7 +50,7 @@ export async function PATCH(
     const post = await blog.updateBlogPost(tenant.id, params.id, {
       title: data.title,
       slug: data.slug,
-      content: data.content,
+      content: data.content ? sanitizeHtml(data.content) : undefined,
       excerpt: data.excerpt,
       coverImageId: data.coverImageId,
       tags: data.tags,

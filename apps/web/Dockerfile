@@ -61,7 +61,7 @@ RUN echo "=== Final app structure ===" && ls -la /app && \
 
 USER nodejs
 
-EXPOSE 3000
+EXPOSE 3301
 
 # The standalone server.js reads PORT and HOSTNAME env vars
-CMD ["sh", "-c", "echo 'Starting web server on port:' $PORT && HOSTNAME=0.0.0.0 node apps/web/server.js"]
+CMD ["sh", "-c", "echo 'Starting web server on port:' $PORT && HOSTNAME=0.0.0.0 node server.js"]

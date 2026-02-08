@@ -37,6 +37,7 @@ export async function createOrder(
     discount?: number
     currency?: string
     stripeSessionId?: string
+    paymentIntentId?: string // WH-03: For refund lookup
     paymentMethod?: 'stripe' | 'paypal' | 'bank_transfer'
     paypalOrderId?: string
   },
@@ -74,6 +75,7 @@ export async function createOrder(
     promotionCode: data.promotionCode,
     customerNotes: data.customerNotes,
     stripeSessionId: pricing.stripeSessionId, // For idempotency
+    paymentIntentId: pricing.paymentIntentId, // WH-03: For refund lookup
     paypalOrderId: pricing.paypalOrderId, // For PayPal orders
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -284,12 +286,45 @@ export async function listOrders(
   return results as unknown as Order[]
 }
 
+// Order status state machine: defines valid status transitions
+const VALID_STATUS_TRANSITIONS: Record<
+  Order['status'],
+  Order['status'][]
+> = {
+  pending: ['confirmed', 'processing', 'cancelled'],
+  confirmed: ['processing', 'cancelled'],
+  processing: ['shipped', 'cancelled'],
+  shipped: ['delivered', 'cancelled'],
+  delivered: [], // Terminal state
+  cancelled: [], // Terminal state
+  refunded: [], // Terminal state
+}
+
 export async function updateOrderStatus(
   tenantId: string,
   id: string,
   status: Order['status'],
 ): Promise<void> {
   const db = await getDatabase()
+
+  // CASCADE-07: Validate state transition
+  // Get current order status
+  const order = (await db
+    .collection('orders')
+    .findOne({ tenantId, id })) as unknown as Order | null
+
+  if (!order) {
+    throw new Error(`Order ${id} not found`)
+  }
+
+  // Check if transition is valid
+  const allowedTransitions = VALID_STATUS_TRANSITIONS[order.status]
+  if (!allowedTransitions.includes(status)) {
+    throw new Error(
+      `Invalid status transition: cannot change from "${order.status}" to "${status}". Allowed transitions: ${allowedTransitions.join(', ') || 'none (terminal state)'}`,
+    )
+  }
+
   await db.collection('orders').updateOne(
     { tenantId, id },
     {
@@ -326,11 +361,19 @@ export async function updateOrder(
   >,
 ): Promise<void> {
   const db = await getDatabase()
+
+  // CASCADE-07: Strip status field to prevent bypassing state machine
+  // Status changes MUST go through updateOrderStatus() for validation
+  const { status, ...safeUpdates } = updates as any
+  if (status) {
+    console.warn('[orders] updateOrder called with status field - use updateOrderStatus() instead')
+  }
+
   await db.collection('orders').updateOne(
     { tenantId, id },
     {
       $set: {
-        ...updates,
+        ...safeUpdates,
         updatedAt: new Date(),
       },
     },
@@ -410,15 +453,17 @@ export async function getOrdersForSync(
 
 /**
  * Mark an order as synced to an accounting provider
+ * Requires tenantId for cross-tenant data isolation
  */
 export async function markAsSynced(
+  tenantId: string,
   orderId: string,
   provider: 'xero' | 'myob' | 'quickbooks',
   externalId: string | undefined,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
-    { id: orderId },
+    { tenantId, id: orderId },
     {
       $set: {
         [`syncedToAccounting.${provider}`]: {
@@ -455,15 +500,17 @@ export async function getFailedSyncOrders(
 
 /**
  * Mark an order sync as failed (for retry tracking)
+ * Requires tenantId for cross-tenant data isolation
  */
 export async function markSyncFailed(
+  tenantId: string,
   orderId: string,
   provider: 'xero' | 'myob' | 'quickbooks',
   error: string,
 ): Promise<void> {
   const db = await getDatabase()
   await db.collection('orders').updateOne(
-    { id: orderId },
+    { tenantId, id: orderId },
     {
       $set: {
         [`syncedToAccounting.${provider}`]: {
@@ -479,6 +526,7 @@ export async function markSyncFailed(
 /**
  * Bulk update order status for multiple orders
  * Returns the number of orders updated
+ * CASCADE-07: Validates state transitions per order
  */
 export async function bulkUpdateOrderStatus(
   tenantId: string,
@@ -488,10 +536,33 @@ export async function bulkUpdateOrderStatus(
   if (orderIds.length === 0) return 0
 
   const db = await getDatabase()
+
+  // Fetch current orders to validate transitions
+  const orders = (await db
+    .collection('orders')
+    .find({ tenantId, id: { $in: orderIds } })
+    .toArray()) as unknown as Order[]
+
+  // Filter to only orders with valid transitions
+  const validOrderIds: string[] = []
+  for (const order of orders) {
+    const allowedTransitions = VALID_STATUS_TRANSITIONS[order.status]
+    if (allowedTransitions.includes(status)) {
+      validOrderIds.push(order.id)
+    } else {
+      console.warn(
+        `[orders] Skipping order ${order.id}: invalid transition from "${order.status}" to "${status}"`,
+      )
+    }
+  }
+
+  if (validOrderIds.length === 0) return 0
+
+  // Update only orders with valid transitions
   const result = await db.collection('orders').updateMany(
     {
       tenantId,
-      id: { $in: orderIds },
+      id: { $in: validOrderIds },
     },
     {
       $set: {

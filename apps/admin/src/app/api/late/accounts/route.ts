@@ -15,6 +15,13 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!tenant.features?.socialPublishing) {
+      return NextResponse.json(
+        { error: 'Social publishing not available on your plan' },
+        { status: 403 },
+      )
+    }
+
     const data = await lateClient.getAccounts()
 
     return NextResponse.json({ accounts: data.accounts })

@@ -152,6 +152,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check feature gate for marketplace sync
+    if (!tenant.features.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace integration requires a Pro or higher plan' },
+        { status: 403 },
+      )
+    }
+
     // Check eBay connection
     const connection = await marketplace.getConnectionByMarketplace(
       tenant.id,
@@ -232,6 +240,14 @@ export async function POST(request: NextRequest) {
     const tenant = await getCurrentTenant()
     if (!tenant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check feature gate for marketplace sync
+    if (!tenant.features.marketplaceSync) {
+      return NextResponse.json(
+        { error: 'Marketplace integration requires a Pro or higher plan' },
+        { status: 403 },
+      )
     }
 
     // Check eBay connection

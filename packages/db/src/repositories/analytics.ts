@@ -59,7 +59,7 @@ export async function getFunnelData(
 ): Promise<FunnelData> {
   const db = await getDatabase()
 
-  // Single aggregation with $group by event type - much faster than 4 countDocuments
+  // Single aggregation with $group by event type - count unique sessions
   const pipeline = [
     {
       $match: {
@@ -77,7 +77,15 @@ export async function getFunnelData(
     },
     {
       $group: {
-        _id: '$event',
+        _id: {
+          event: '$event',
+          sessionId: '$sessionId',
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id.event',
         count: { $sum: 1 },
       },
     },
@@ -132,7 +140,7 @@ export async function getFunnelDataByProduct(
 ): Promise<FunnelData> {
   const db = await getDatabase()
 
-  // Single aggregation with $group by event type
+  // Single aggregation with $group by event type - count unique sessions
   const pipeline = [
     {
       $match: {
@@ -151,7 +159,15 @@ export async function getFunnelDataByProduct(
     },
     {
       $group: {
-        _id: '$event',
+        _id: {
+          event: '$event',
+          sessionId: '$sessionId',
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id.event',
         count: { $sum: 1 },
       },
     },

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { getCurrentTenant } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,13 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(request: NextRequest) {
   const baseRedirectPath = '/dashboard/connections'
+
+  // Verify the user has a valid session (OAuth flow was initiated by authenticated user)
+  const tenant = await getCurrentTenant()
+  if (!tenant) {
+    console.error('Late callback received without valid session')
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
 
   try {
     const searchParams = request.nextUrl.searchParams

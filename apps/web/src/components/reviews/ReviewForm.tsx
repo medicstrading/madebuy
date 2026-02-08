@@ -1,6 +1,6 @@
 'use client'
 
-import { Loader2, Send, Star, Upload, X } from 'lucide-react'
+import { Loader2, Send, Star } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface ReviewFormProps {
@@ -198,8 +198,8 @@ export function ReviewForm({
     setError(null)
 
     try {
-      // TODO: Upload photos to R2 first if any
-      // For now, submit without photos
+      // REV-06: Photo upload disabled until R2 endpoint is implemented
+      // Photos functionality temporarily removed from UI
 
       const response = await fetch('/api/reviews', {
         method: 'POST',
@@ -363,8 +363,9 @@ export function ReviewForm({
         </div>
       </div>
 
+      {/* REV-06: Photo upload disabled until R2 endpoint is implemented */}
       {/* Photo Upload */}
-      <div>
+      {/* <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Photos (optional)
         </label>
@@ -402,7 +403,7 @@ export function ReviewForm({
         <p className="mt-1 text-xs text-gray-500">
           Up to 5 photos, max 5MB each
         </p>
-      </div>
+      </div> */}
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">

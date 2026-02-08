@@ -32,25 +32,35 @@ export function WishlistProvider({
   const [pieceIds, setPieceIds] = useState<string[]>([])
   const [_isLoading, setIsLoading] = useState(true)
 
-  const fetchWishlist = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/wishlist?tenantId=${tenantId}`)
-      if (response.ok) {
-        const data = await response.json()
-        const ids = (data.items || []).map(
-          (item: { pieceId: string }) => item.pieceId,
-        )
-        setPieceIds(ids)
+  const fetchWishlist = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        const response = await fetch(`/api/wishlist?tenantId=${tenantId}`, {
+          signal,
+        })
+        if (response.ok) {
+          const data = await response.json()
+          const ids = (data.items || []).map(
+            (item: { pieceId: string }) => item.pieceId,
+          )
+          setPieceIds(ids)
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return // Ignore abort errors
+        }
+        console.error('Failed to fetch wishlist:', error)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error('Failed to fetch wishlist:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [tenantId])
+    },
+    [tenantId],
+  )
 
   useEffect(() => {
-    fetchWishlist()
+    const controller = new AbortController()
+    fetchWishlist(controller.signal)
+    return () => controller.abort()
   }, [fetchWishlist])
 
   const isInWishlist = useCallback(
