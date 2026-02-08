@@ -212,7 +212,7 @@ async function handleCheckoutCompleted(
       )
       throw new ValidationError(
         'Invalid items data in checkout session',
-        'INVALID_ITEMS_DATA',
+        { items: ['Invalid items data in checkout session'] },
       )
     }
   }
@@ -277,7 +277,7 @@ async function handleCheckoutCompleted(
     )
     throw new ValidationError(
       'Order items not found in database',
-      'MISSING_ORDER_ITEMS',
+      { items: ['Order items not found in database'] },
     )
   }
 
@@ -286,7 +286,7 @@ async function handleCheckoutCompleted(
       { sessionId: session.id, tenantId },
       'Cannot create order: no valid items',
     )
-    throw new ValidationError('No valid order items', 'NO_VALID_ITEMS')
+    throw new ValidationError('No valid order items')
   }
 
   // Get shipping address from session

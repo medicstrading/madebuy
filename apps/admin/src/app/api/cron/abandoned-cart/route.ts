@@ -253,8 +253,8 @@ async function processCartEmail(
     // Only send to: customers with prior orders OR customers who have explicitly opted in
     if (customer) {
       // Check if customer has any prior orders
-      const hasOrders = customer.orderCount && customer.orderCount > 0
-      const hasOptedIn = customer.emailSubscribed === true || customer.marketingOptIn === true
+      const hasOrders = customer.totalOrders && customer.totalOrders > 0
+      const hasOptedIn = customer.emailSubscribed === true
 
       if (!hasOrders && !hasOptedIn) {
         console.log(
