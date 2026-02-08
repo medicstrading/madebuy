@@ -32,14 +32,14 @@ import {
 
 const log = createLogger({ module: 'stripe-webhook' })
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
 
 // WH-12: Replace non-null assertion with runtime validation
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
     log.error({ err }, 'Webhook signature verification failed')
     return NextResponse.json(

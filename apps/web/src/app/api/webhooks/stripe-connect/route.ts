@@ -15,21 +15,21 @@ import {
 
 const logger = createLogger({ service: 'stripe-connect-webhook' })
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
-
-// Validate Stripe Connect webhook secret is configured
-if (!process.env.STRIPE_CONNECT_WEBHOOK_SECRET) {
-  throw new Error('STRIPE_CONNECT_WEBHOOK_SECRET environment variable is not set')
+function getWebhookSecret() {
+  if (!process.env.STRIPE_CONNECT_WEBHOOK_SECRET) {
+    throw new Error('STRIPE_CONNECT_WEBHOOK_SECRET environment variable is not set')
+  }
+  return process.env.STRIPE_CONNECT_WEBHOOK_SECRET
 }
-
-const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET
 
 /**
  * Stripe Connect Webhook Handler
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    event = getStripe().webhooks.constructEvent(body, signature, getWebhookSecret())
   } catch (err) {
     logger.error({ err }, 'Connect webhook signature verification failed')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
@@ -321,7 +321,7 @@ async function handlePayoutFailed(payout: Stripe.Payout, accountId: string) {
   if (payout.destination) {
     try {
       // The destination is a bank account ID, we can try to get last4 from it
-      const bankAccount = (await stripe.accounts.retrieveExternalAccount(
+      const bankAccount = (await getStripe().accounts.retrieveExternalAccount(
         accountId,
         typeof payout.destination === 'string'
           ? payout.destination
@@ -418,7 +418,7 @@ async function handleDisputeCreated(
     typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id
   if (chargeId) {
     try {
-      const charge = await stripe.charges.retrieve(chargeId, {
+      const charge = await getStripe().charges.retrieve(chargeId, {
         stripeAccount: accountId,
       })
       if (charge.payment_intent) {

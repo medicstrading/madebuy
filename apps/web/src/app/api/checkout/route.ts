@@ -17,14 +17,14 @@ import { rateLimiters } from '@/lib/rate-limit'
 
 const log = createLogger({ module: 'checkout' })
 
-// Validate Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-})
 
 // Default shipping methods if tenant hasn't configured any
 const DEFAULT_SHIPPING_METHODS: ShippingMethod[] = [
@@ -382,7 +382,7 @@ export async function POST(request: NextRequest) {
     // PAY-07: Add idempotency key to prevent duplicate checkout sessions on retry
     const idempotencyKey = `checkout_${tenantId}_${Date.now()}_${items.map(i => i.pieceId).join('_')}`
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
